@@ -1,0 +1,570 @@
+{
+  "schema": 1,
+  "slot_map": {
+    "1": "body",
+    "2": "shadow",
+    "s": "shadow",
+    "3": "prop"
+  },
+  "aircraft": {
+    "328jet": {
+      "world": {
+        "body": {
+          "file": "aircraft_328jet_1_2x.png",
+          "width": 106,
+          "height": 83,
+          "bbox": [
+            1,
+            1,
+            104,
+            80
+          ],
+          "pad": [
+            1,
+            1,
+            1,
+            2
+          ],
+          "flat_alpha": 255,
+          "max_alpha": 255,
+          "mean_rgb": [
+            117.2,
+            138.5,
+            161.4
+          ],
+          "scale": 2,
+          "source": "aircraft_328jet_1_2x.png"
+        },
+        "shadow": {
+          "file": "aircraft_328jet_s_2x.png",
+          "width": 98,
+          "height": 54,
+          "bbox": [
+            1,
+            0,
+            96,
+            52
+          ],
+          "pad": [
+            1,
+            1,
+            0,
+            1
+          ],
+          "flat_alpha": 191,
+          "max_alpha": 191,
+          "mean_rgb": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "kind_hint": "shadow",
+          "scale": 2,
+          "source": "aircraft_328jet_s_2x.png"
+        }
+      },
+      "shop": {
+        "blue": {
+          "file": "328jet_blue.png",
+          "width": 106,
+          "height": 83,
+          "bbox": [
+            1,
+            1,
+            104,
+            82
+          ],
+          "pad": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "flat_alpha": 255,
+          "max_alpha": 255,
+          "mean_rgb": [
+            96.9,
+            114.7,
+            133.6
+          ],
+          "scale": 1,
+          "source": "328jet_blue.png"
+        }
+      }
+    },
+    "747": {
+      "world": {},
+      "shop": {
+        "default": {
+          "file": "747_1.png",
+          "width": 161,
+          "height": 115,
+          "bbox": [
+            0,
+            1,
+            160,
+            108
+          ],
+          "pad": [
+            0,
+            0,
+            1,
+            6
+          ],
+          "flat_alpha": 255,
+          "max_alpha": 255,
+          "mean_rgb": [
+            96.5,
+            116.5,
+            140.1
+          ],
+          "scale": 1,
+          "source": "747_1.png"
+        }
+      }
+    },
+    "a300": {
+      "world": {},
+      "shop": {
+        "default": {
+          "file": "a300_1.png",
+          "width": 156,
+          "height": 113,
+          "bbox": [
+            0,
+            2,
+            153,
+            98
+          ],
+          "pad": [
+            0,
+            2,
+            2,
+            14
+          ],
+          "flat_alpha": 255,
+          "max_alpha": 255,
+          "mean_rgb": [
+            122.1,
+            130.2,
+            149.6
+          ],
+          "frames": 2,
+          "gutters": [
+            [
+              4,
+              6
+            ]
+          ],
+          "cell_width": 78,
+          "scale": 1,
+          "source": "a300_1.png"
+        }
+      }
+    },
+    "a318": {
+      "world": {},
+      "shop": {
+        "default": {
+          "file": "a318_1.png",
+          "width": 130,
+          "height": 96,
+          "bbox": [
+            0,
+            0,
+            129,
+            95
+          ],
+          "pad": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "flat_alpha": 255,
+          "max_alpha": 255,
+          "mean_rgb": [
+            115.9,
+            120.8,
+            131.9
+          ],
+          "scale": 1,
+          "source": "a318_1.png"
+        }
+      }
+    },
+    "a319": {
+      "world": {},
+      "shop": {
+        "default": {
+          "file": "a319_1.png",
+          "width": 136,
+          "height": 99,
+          "bbox": [
+            0,
+            0,
+            135,
+            98
+          ],
+          "pad": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "flat_alpha": 255,
+          "max_alpha": 255,
+          "mean_rgb": [
+            139.1,
+            136.6,
+            128.7
+          ],
+          "scale": 1,
+          "source": "a319_1.png"
+        }
+      }
+    },
+    "a380-300": {
+      "world": {},
+      "shop": {
+        "default": {
+          "file": "a380-300_1.png",
+          "width": 185,
+          "height": 151,
+          "bbox": [
+            0,
+            0,
+            184,
+            150
+          ],
+          "pad": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "flat_alpha": 255,
+          "max_alpha": 255,
+          "mean_rgb": [
+            129.9,
+            129.9,
+            140.4
+          ],
+          "scale": 1,
+          "source": "a380-300_1.png"
+        }
+      }
+    },
+    "a400m": {
+      "world": {},
+      "shop": {
+        "white": {
+          "file": "A400M_white.png",
+          "width": 200,
+          "height": 133,
+          "bbox": [
+            0,
+            0,
+            199,
+            132
+          ],
+          "pad": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "flat_alpha": 255,
+          "max_alpha": 255,
+          "mean_rgb": [
+            102.6,
+            121.9,
+            130.0
+          ],
+          "scale": 1,
+          "source": "A400M_white.png"
+        }
+      }
+    },
+    "airship": {
+      "world": {},
+      "shop": {
+        "default": {
+          "file": "airship.png",
+          "width": 206,
+          "height": 139,
+          "bbox": [
+            1,
+            2,
+            205,
+            132
+          ],
+          "pad": [
+            1,
+            0,
+            2,
+            6
+          ],
+          "flat_alpha": 255,
+          "max_alpha": 255,
+          "mean_rgb": [
+            112.2,
+            141.7,
+            179.2
+          ],
+          "scale": 1,
+          "source": "airship.png"
+        }
+      }
+    },
+    "an-225": {
+      "world": {},
+      "shop": {
+        "default": {
+          "file": "an-225_1.png",
+          "width": 192,
+          "height": 147,
+          "bbox": [
+            7,
+            1,
+            189,
+            139
+          ],
+          "pad": [
+            7,
+            2,
+            1,
+            7
+          ],
+          "flat_alpha": 255,
+          "max_alpha": 255,
+          "mean_rgb": [
+            96.2,
+            80.6,
+            81.3
+          ],
+          "scale": 1,
+          "source": "an-225_1.png"
+        }
+      }
+    },
+    "ark": {
+      "world": {},
+      "shop": {
+        "default": {
+          "file": "ark.png",
+          "width": 223,
+          "height": 140,
+          "bbox": [
+            0,
+            0,
+            222,
+            139
+          ],
+          "pad": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "flat_alpha": 255,
+          "max_alpha": 255,
+          "mean_rgb": [
+            76.4,
+            87.1,
+            115.3
+          ],
+          "scale": 1,
+          "source": "ark.png"
+        }
+      }
+    },
+    "blackh": {
+      "world": {},
+      "shop": {
+        "green": {
+          "file": "blackh_green.png",
+          "width": 151,
+          "height": 117,
+          "bbox": [
+            3,
+            9,
+            148,
+            110
+          ],
+          "pad": [
+            3,
+            2,
+            9,
+            6
+          ],
+          "flat_alpha": 255,
+          "max_alpha": 255,
+          "mean_rgb": [
+            62.9,
+            71.9,
+            59.7
+          ],
+          "scale": 1,
+          "source": "blackh_green.png"
+        }
+      }
+    },
+    "p-51mustang": {
+      "world": {
+        "body": {
+          "file": "aircraft_p-51mustang_1_2x.png",
+          "width": 125,
+          "height": 82,
+          "bbox": [
+            0,
+            0,
+            124,
+            81
+          ],
+          "pad": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "flat_alpha": 255,
+          "max_alpha": 255,
+          "mean_rgb": [
+            106.5,
+            110.7,
+            123.2
+          ],
+          "scale": 2,
+          "source": "aircraft_p-51mustang_1_2x.png"
+        },
+        "prop": {
+          "file": "aircraft_p-51mustang_3_2x.png",
+          "width": 88,
+          "height": 55,
+          "bbox": [
+            0,
+            0,
+            87,
+            54
+          ],
+          "pad": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "flat_alpha": 128,
+          "max_alpha": 251,
+          "mean_rgb": [
+            255.0,
+            255.0,
+            255.0
+          ],
+          "kind_hint": "blur",
+          "frames": 2,
+          "gutters": [
+            [
+              42,
+              45
+            ]
+          ],
+          "cell_width": 44,
+          "scale": 2,
+          "source": "aircraft_p-51mustang_3_2x.png"
+        },
+        "shadow": {
+          "file": "aircraft_p-51mustang_s_2x.png",
+          "width": 124,
+          "height": 67,
+          "bbox": [
+            0,
+            0,
+            123,
+            66
+          ],
+          "pad": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "flat_alpha": 143,
+          "max_alpha": 143,
+          "mean_rgb": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "kind_hint": "shadow",
+          "scale": 2,
+          "source": "aircraft_p-51mustang_s_2x.png"
+        }
+      },
+      "shop": {}
+    },
+    "p51": {
+      "world": {},
+      "shop": {
+        "white": {
+          "file": "p51_white.png",
+          "width": 125,
+          "height": 82,
+          "bbox": [
+            0,
+            0,
+            124,
+            81
+          ],
+          "pad": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "flat_alpha": 255,
+          "max_alpha": 255,
+          "mean_rgb": [
+            85.0,
+            88.3,
+            98.3
+          ],
+          "scale": 1,
+          "source": "p51_white.png"
+        }
+      }
+    },
+    "ufo": {
+      "world": {},
+      "shop": {
+        "blue": {
+          "file": "ufo_blue.png",
+          "width": 175,
+          "height": 158,
+          "bbox": [
+            10,
+            0,
+            166,
+            157
+          ],
+          "pad": [
+            10,
+            8,
+            0,
+            0
+          ],
+          "flat_alpha": 255,
+          "max_alpha": 255,
+          "mean_rgb": [
+            73.1,
+            108.5,
+            125.6
+          ],
+          "scale": 1,
+          "source": "ufo_blue.png"
+        }
+      }
+    }
+  },
+  "unmatched": []
+}

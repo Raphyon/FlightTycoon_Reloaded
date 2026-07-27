@@ -1,0 +1,17 @@
+# Normalise text, never touch binaries
+*            text=auto
+*.cs         text diff=csharp
+*.py         text
+*.json       text
+*.md         text
+
+*.png        binary
+*.psd        binary
+*.wav        binary
+*.ogg        binary
+
+# Unity YAML - use the built-in smart merge instead of a line merge
+*.unity      merge=unityyamlmerge eol=lf
+*.prefab     merge=unityyamlmerge eol=lf
+*.asset      merge=unityyamlmerge eol=lf
+*.meta       merge=unityyamlmerge eol=lf
