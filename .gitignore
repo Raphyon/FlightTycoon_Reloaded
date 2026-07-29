@@ -1,26 +1,6 @@
-# ---- Unity ----
-[Ll]ibrary/
-[Tt]emp/
-[Oo]bj/
-[Bb]uild/
-[Bb]uilds/
-[Ll]ogs/
-[Uu]User[Ss]ettings/
-[Mm]emoryCaptures/
-[Rr]ecordings/
-*.csproj
-*.unityproj
-*.sln
-*.suo
-*.user
-*.booproj
-*.pidb
-*.svd
-sysinfo.txt
-*.apk
-*.aab
-*.unitypackage
-.vsconfig
+# ---- Godot ----
+.godot/
+*.translation
 
 # ---- OS / editor ----
 .DS_Store

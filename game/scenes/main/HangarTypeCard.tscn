@@ -1,0 +1,97 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scenes/main/HangarTypeCard.gd" id="1"]
+[ext_resource type="Texture2D" path="res://assets/bubbles/star_icon@2x.png" id="2"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_badge"]
+bg_color = Color(0.15, 0.45, 0.85, 1)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(1, 1, 1, 1)
+corner_radius_top_left = 18
+corner_radius_top_right = 18
+corner_radius_bottom_right = 18
+corner_radius_bottom_left = 18
+
+[node name="HangarTypeCard" type="Control"]
+custom_minimum_size = Vector2(180, 210)
+script = ExtResource("1")
+
+[node name="Icon" type="TextureRect" parent="."]
+offset_left = 10.0
+offset_top = 0.0
+offset_right = 170.0
+offset_bottom = 120.0
+expand_mode = 1
+stretch_mode = 5
+
+[node name="CountBadgeBg" type="PanelContainer" parent="."]
+offset_left = 128.0
+offset_top = 90.0
+offset_right = 172.0
+offset_bottom = 120.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_badge")
+
+[node name="CountLabel" type="Label" parent="CountBadgeBg"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+text = "0"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="NameLabel" type="Label" parent="."]
+offset_left = 0.0
+offset_top = 124.0
+offset_right = 180.0
+offset_bottom = 146.0
+theme_override_font_sizes/font_size = 14
+horizontal_alignment = 1
+autowrap_mode = 2
+
+[node name="AffinityRow" type="HBoxContainer" parent="."]
+offset_left = 0.0
+offset_top = 150.0
+offset_right = 180.0
+offset_bottom = 184.0
+alignment = 1
+theme_override_constants/separation = 8
+
+[node name="StarWrap" type="Control" parent="AffinityRow"]
+custom_minimum_size = Vector2(34, 32)
+layout_mode = 2
+
+[node name="StarIcon" type="TextureRect" parent="AffinityRow/StarWrap"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+texture = ExtResource("2")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="LevelLabel" type="Label" parent="AffinityRow/StarWrap"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+theme_override_font_sizes/font_size = 14
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+text = "1"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="ProgressWrap" type="Control" parent="AffinityRow"]
+custom_minimum_size = Vector2(70, 14)
+layout_mode = 2
+
+[node name="ProgressBg" type="ColorRect" parent="AffinityRow/ProgressWrap"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0.2, 0.2, 0.2, 1)
+
+[node name="ProgressFill" type="ColorRect" parent="AffinityRow/ProgressWrap"]
+offset_right = 0.0
+offset_bottom = 14.0
+color = Color(0.95, 0.7, 0.15, 1)

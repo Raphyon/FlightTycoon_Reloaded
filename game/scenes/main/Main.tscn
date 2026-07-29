@@ -1,0 +1,1001 @@
+[gd_scene format=3 uid="uid://bqefymbjp6i1m"]
+
+[ext_resource type="Script" uid="uid://b3q0t3juv7q08" path="res://scenes/main/Main.gd" id="1"]
+[ext_resource type="Texture2D" uid="uid://c8dku5kcf8ygj" path="res://assets/background/airport001.png" id="2"]
+[ext_resource type="Script" uid="uid://bkwyw07ytbilj" path="res://scenes/main/Camera.gd" id="5"]
+[ext_resource type="Script" uid="uid://cfd5jo3hugstt" path="res://scenes/main/GridOverlay.gd" id="6"]
+[ext_resource type="Script" uid="uid://bfd4tc8yrj2vp" path="res://scenes/main/ApronEditor.gd" id="7"]
+[ext_resource type="Script" uid="uid://dn70ms0jgb7p" path="res://scenes/main/ApronInfoPanel.gd" id="8"]
+[ext_resource type="Texture2D" path="res://assets/hud/icon_medium_money1@2x.png" id="9"]
+[ext_resource type="Texture2D" uid="uid://c220asf3bpyfv" path="res://assets/hud/icon_medium_xp@2x.png" id="10"]
+[ext_resource type="Script" uid="uid://bmj0j2k8gwvtb" path="res://scenes/main/TopBar.gd" id="11"]
+[ext_resource type="Script" uid="uid://dhir8w21yu38y" path="res://scenes/main/ShopPanel.gd" id="12"]
+[ext_resource type="Script" uid="uid://cr44ii2sx8ybs" path="res://scenes/main/HangarPanel.gd" id="13"]
+[ext_resource type="Script" uid="uid://bwm7is8i2pxqq" path="res://scenes/main/CloudEditor.gd" id="14"]
+[ext_resource type="Script" uid="uid://bjiin7bgjxrj6" path="res://scenes/main/ZoneUnlockPanel.gd" id="15"]
+[ext_resource type="Texture2D" uid="uid://dpkflvv8uatk7" path="res://assets/buttons/button_Store@2x.png" id="16"]
+[ext_resource type="Texture2D" uid="uid://dk0oss4gtef8" path="res://assets/buttons/button_store2_pressed@2x.png" id="17"]
+[ext_resource type="Texture2D" uid="uid://ljl6f81a8d4j" path="res://assets/buttons/button_Aircraft@2x.png" id="18"]
+[ext_resource type="Texture2D" uid="uid://bf6iqmhsc5i1e" path="res://assets/buttons/button_aircraft2@2x.png" id="19"]
+[ext_resource type="Script" uid="uid://cqdyqg152a25k" path="res://scenes/main/ShopHubPanel.gd" id="20"]
+[ext_resource type="Texture2D" uid="uid://bed6xvhohrmcf" path="res://assets/background/bigplane2@ipad.png" id="22"]
+[ext_resource type="PackedScene" path="res://scenes/main/FuelPanel.tscn" id="24"]
+[ext_resource type="Script" path="res://scenes/main/LockOverlay.gd" id="25"]
+[ext_resource type="Texture2D" path="res://assets/board/board_buildinginfo@2x.png" id="26"]
+[ext_resource type="Texture2D" path="res://assets/board/board_apron_info_icon3@2x.png" id="27"]
+[ext_resource type="Texture2D" path="res://assets/board/board_apron_info_icon1@2x.png" id="28"]
+[ext_resource type="Script" path="res://scenes/main/SkinPickerPanel.gd" id="29"]
+[ext_resource type="Texture2D" path="res://assets/hud/icon_medium_coin@2x.png" id="30"]
+[ext_resource type="Script" path="res://scenes/main/AssignPickerPanel.gd" id="31"]
+[ext_resource type="Script" path="res://scenes/main/PathEditor.gd" id="32"]
+[ext_resource type="Script" path="res://scenes/main/RoadTraffic.gd" id="33"]
+[ext_resource type="Script" path="res://scenes/main/RotorEditor.gd" id="34"]
+[ext_resource type="Script" path="res://scenes/main/ExpansionShopPanel.gd" id="35"]
+[ext_resource type="Texture2D" path="res://assets/hud/hud_info_right@ipad.png" id="36"]
+[ext_resource type="Texture2D" path="res://assets/hud/hud_info_left@ipad.png" id="37"]
+[ext_resource type="Texture2D" path="res://assets/hud/hud_map@2x.png" id="38"]
+[ext_resource type="Script" path="res://scenes/main/XpBar.gd" id="39"]
+[ext_resource type="Texture2D" path="res://assets/hud/xp_fill.png" id="40"]
+[ext_resource type="Texture2D" path="res://assets/hud/icon_medium_oil@2x.png" id="41"]
+[ext_resource type="Texture2D" path="res://assets/hud/toolbar@2x.png" id="42"]
+[ext_resource type="Script" path="res://scenes/main/Toolbar.gd" id="43"]
+[ext_resource type="Script" path="res://scenes/main/WorldMapPanel.gd" id="44"]
+[ext_resource type="Texture2D" path="res://assets/board/board_worldmap@2x.png" id="45"]
+[ext_resource type="Texture2D" path="res://assets/buttons/button_map1@2x.png" id="46"]
+[ext_resource type="Texture2D" path="res://assets/buttons/button_map2@2x.png" id="47"]
+[ext_resource type="Texture2D" path="res://assets/buttons/button_map3@2x.png" id="48"]
+[ext_resource type="Texture2D" path="res://assets/buttons/button_map4@2x.png" id="49"]
+[ext_resource type="Texture2D" path="res://assets/buttons/button_map_current@2x.png" id="50"]
+[ext_resource type="Texture2D" path="res://assets/buttons/button_esc@2x.png" id="51"]
+[ext_resource type="Script" path="res://scenes/main/DebugMenu.gd" id="52"]
+
+[node name="Main" type="Node2D" unique_id=1252586279]
+script = ExtResource("1")
+
+[node name="Background" type="Sprite2D" parent="." unique_id=227110005]
+texture = ExtResource("2")
+centered = false
+
+[node name="Aprons" type="Node2D" parent="." unique_id=2051804205]
+
+[node name="AreaOrigins" type="Node2D" parent="." unique_id=1393314050]
+
+[node name="Zone1" type="Marker2D" parent="AreaOrigins" unique_id=2112800692]
+position = Vector2(752.5, 1290.4)
+
+[node name="Zone2" type="Marker2D" parent="AreaOrigins" unique_id=1754657666]
+position = Vector2(1389, 1741)
+
+[node name="Forest" type="Marker2D" parent="AreaOrigins" unique_id=1202394529]
+position = Vector2(2680, 1000)
+
+[node name="Desert" type="Marker2D" parent="AreaOrigins" unique_id=1311565767]
+position = Vector2(1451, 427)
+
+[node name="Snow" type="Marker2D" parent="AreaOrigins" unique_id=1975366034]
+position = Vector2(2674.1, 120.6)
+
+[node name="Beach" type="Marker2D" parent="AreaOrigins" unique_id=682841953]
+position = Vector2(460, 400)
+
+[node name="DarkZone" type="Marker2D" parent="AreaOrigins" unique_id=50447763]
+position = Vector2(2735.4, 2026.1)
+
+[node name="GridOverlay" type="Node2D" parent="." unique_id=1163300136]
+script = ExtResource("6")
+
+[node name="ApronEditor" type="Node2D" parent="." unique_id=1040825060]
+script = ExtResource("7")
+
+[node name="Clouds" type="Node2D" parent="." unique_id=140231114]
+
+[node name="CloudEditor" type="Node2D" parent="." unique_id=2115948767]
+script = ExtResource("14")
+
+[node name="WorldAircraft" type="Node2D" parent="." unique_id=1232857671]
+
+[node name="PathEditor" type="Node2D" parent="." unique_id=3320458812]
+script = ExtResource("32")
+
+[node name="RoadTraffic" type="Node2D" parent="." unique_id=3841029571]
+script = ExtResource("33")
+
+[node name="RotorEditor" type="Node2D" parent="." unique_id=4029581037]
+script = ExtResource("34")
+
+[node name="Camera2D" type="Camera2D" parent="." unique_id=1881146880]
+limit_left = 0
+limit_top = 0
+limit_right = 3072
+limit_bottom = 2304
+position_smoothing_enabled = true
+script = ExtResource("5")
+
+[node name="UI" type="CanvasLayer" parent="." unique_id=872881012]
+
+[node name="TopBarRight" type="TextureRect" parent="UI"]
+anchor_right = 1.0
+offset_left = 220.0
+offset_top = 0.0
+offset_right = 0.0
+offset_bottom = 48.0
+mouse_filter = 2
+texture = ExtResource("36")
+expand_mode = 1
+stretch_mode = 0
+
+[node name="TopBarLeft" type="TextureRect" parent="UI"]
+offset_left = 0.0
+offset_top = 0.0
+offset_right = 220.0
+offset_bottom = 96.0
+mouse_filter = 2
+texture = ExtResource("37")
+
+[node name="XpBar" type="Control" parent="UI/TopBarLeft"]
+clip_contents = true
+offset_left = 97.0
+offset_top = 34.0
+offset_right = 198.0
+offset_bottom = 56.0
+mouse_filter = 2
+script = ExtResource("39")
+
+[node name="Fill" type="NinePatchRect" parent="UI/TopBarLeft/XpBar"]
+offset_right = 101.0
+offset_bottom = 22.0
+mouse_filter = 2
+texture = ExtResource("40")
+patch_margin_left = 6
+patch_margin_right = 6
+
+[node name="Icon" type="TextureRect" parent="UI/TopBarLeft/XpBar"]
+custom_minimum_size = Vector2(26, 17)
+offset_right = 26.0
+offset_bottom = 17.0
+mouse_filter = 2
+texture = ExtResource("10")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Label" type="Label" parent="UI/TopBarLeft/XpBar"]
+offset_right = 101.0
+offset_bottom = 22.0
+mouse_filter = 2
+theme_override_font_sizes/font_size = 14
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+text = "0"
+vertical_alignment = 1
+
+[node name="LevelLabel" type="Label" parent="UI/TopBarLeft"]
+offset_left = 97.0
+offset_top = 58.0
+offset_right = 198.0
+offset_bottom = 78.0
+mouse_filter = 2
+theme_override_font_sizes/font_size = 14
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+text = "Lv. 1"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="MapTab" type="TextureButton" parent="UI"]
+offset_left = 11.0
+offset_top = 93.0
+offset_right = 193.0
+offset_bottom = 149.0
+texture_normal = ExtResource("38")
+ignore_texture_size = true
+stretch_mode = 5
+
+[node name="Label" type="Label" parent="UI/MapTab"]
+offset_right = 182.0
+offset_bottom = 34.0
+mouse_filter = 2
+theme_override_font_sizes/font_size = 16
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+text = "World Map"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="TopBar" type="HBoxContainer" parent="UI" unique_id=1347047334]
+offset_left = 240.0
+offset_top = 0.0
+offset_right = 1140.0
+offset_bottom = 48.0
+theme_override_constants/separation = 20
+script = ExtResource("11")
+
+[node name="MoneyIcon" type="TextureRect" parent="UI/TopBar" unique_id=1940203111]
+custom_minimum_size = Vector2(47, 42)
+layout_mode = 2
+texture = ExtResource("9")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="MoneyLabel" type="Label" parent="UI/TopBar" unique_id=1137627867]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "0"
+vertical_alignment = 1
+
+[node name="CoinIcon" type="TextureRect" parent="UI/TopBar"]
+custom_minimum_size = Vector2(35, 39)
+layout_mode = 2
+texture = ExtResource("30")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="CoinLabel" type="Label" parent="UI/TopBar"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "0"
+vertical_alignment = 1
+
+[node name="FuelIcon" type="TextureRect" parent="UI/TopBar"]
+custom_minimum_size = Vector2(29, 42)
+layout_mode = 2
+texture = ExtResource("41")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="FuelLabel" type="Label" parent="UI/TopBar" unique_id=2013012711]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "0"
+vertical_alignment = 1
+
+[node name="Toolbar" type="Control" parent="UI"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("43")
+
+[node name="Shelf" type="TextureRect" parent="UI/Toolbar"]
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -33.0
+grow_horizontal = 2
+grow_vertical = 0
+mouse_filter = 2
+texture = ExtResource("42")
+expand_mode = 1
+stretch_mode = 0
+
+[node name="Buttons" type="HBoxContainer" parent="UI/Toolbar"]
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -258.0
+offset_top = -114.0
+offset_right = -20.0
+offset_bottom = -12.0
+grow_horizontal = 0
+grow_vertical = 0
+theme_override_constants/separation = 12
+alignment = 2
+
+[node name="ShopButton" type="TextureButton" parent="UI/Toolbar/Buttons" unique_id=798617765]
+custom_minimum_size = Vector2(109, 102)
+layout_mode = 2
+toggle_mode = true
+texture_normal = ExtResource("16")
+texture_pressed = ExtResource("17")
+ignore_texture_size = true
+stretch_mode = 5
+
+[node name="Label" type="Label" parent="UI/Toolbar/Buttons/ShopButton"]
+offset_left = 2.0
+offset_top = 69.0
+offset_right = 91.0
+offset_bottom = 95.0
+mouse_filter = 2
+theme_override_font_sizes/font_size = 14
+theme_override_colors/font_color = Color(0.18, 0.13, 0.09, 1)
+text = "Shop"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="HangarButton" type="TextureButton" parent="UI/Toolbar/Buttons" unique_id=366019142]
+custom_minimum_size = Vector2(109, 102)
+layout_mode = 2
+toggle_mode = true
+texture_normal = ExtResource("18")
+texture_pressed = ExtResource("19")
+ignore_texture_size = true
+stretch_mode = 5
+
+[node name="Label" type="Label" parent="UI/Toolbar/Buttons/HangarButton"]
+offset_left = 2.0
+offset_top = 69.0
+offset_right = 91.0
+offset_bottom = 95.0
+mouse_filter = 2
+theme_override_font_sizes/font_size = 14
+theme_override_colors/font_color = Color(0.18, 0.13, 0.09, 1)
+text = "Hangar"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="DebugMenu" type="Control" parent="UI"]
+visible = false
+mouse_filter = 2
+script = ExtResource("52")
+
+[node name="WorldMapPanel" type="Control" parent="UI"]
+visible = false
+custom_minimum_size = Vector2(878, 422)
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -439.0
+offset_top = -211.0
+offset_right = 439.0
+offset_bottom = 211.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("44")
+
+[node name="Background" type="TextureRect" parent="UI/WorldMapPanel"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+texture = ExtResource("45")
+
+[node name="CivilHeader" type="Label" parent="UI/WorldMapPanel"]
+offset_left = 15.0
+offset_top = 13.0
+offset_right = 465.0
+offset_bottom = 47.0
+mouse_filter = 2
+theme_override_font_sizes/font_size = 21
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0.11, 0.06, 0.02, 1)
+theme_override_constants/outline_size = 6
+text = "Civil Airports"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="WarHeader" type="Label" parent="UI/WorldMapPanel"]
+offset_left = 477.0
+offset_top = 13.0
+offset_right = 860.0
+offset_bottom = 47.0
+mouse_filter = 2
+theme_override_font_sizes/font_size = 21
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0.11, 0.06, 0.02, 1)
+theme_override_constants/outline_size = 6
+text = "War World"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="HomeLandButton" type="TextureButton" parent="UI/WorldMapPanel"]
+offset_left = 55.0
+offset_top = 52.0
+offset_right = 425.0
+offset_bottom = 162.0
+texture_normal = ExtResource("46")
+ignore_texture_size = true
+stretch_mode = 5
+
+[node name="DreamLandButton" type="TextureButton" parent="UI/WorldMapPanel"]
+offset_left = 55.0
+offset_top = 170.0
+offset_right = 425.0
+offset_bottom = 280.0
+texture_normal = ExtResource("47")
+ignore_texture_size = true
+stretch_mode = 5
+
+[node name="CarrierShipButton" type="TextureButton" parent="UI/WorldMapPanel"]
+offset_left = 55.0
+offset_top = 288.0
+offset_right = 425.0
+offset_bottom = 398.0
+texture_normal = ExtResource("48")
+ignore_texture_size = true
+stretch_mode = 5
+
+[node name="SkyMasterButton" type="TextureButton" parent="UI/WorldMapPanel"]
+offset_left = 492.0
+offset_top = 84.0
+offset_right = 845.0
+offset_bottom = 367.0
+texture_normal = ExtResource("49")
+ignore_texture_size = true
+stretch_mode = 5
+
+[node name="CurrentBadge" type="TextureRect" parent="UI/WorldMapPanel"]
+offset_right = 60.0
+offset_bottom = 42.0
+mouse_filter = 2
+texture = ExtResource("50")
+
+[node name="EscButton" type="TextureButton" parent="UI/WorldMapPanel"]
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -58.0
+offset_top = -14.0
+offset_right = 14.0
+offset_bottom = 58.0
+grow_horizontal = 0
+texture_normal = ExtResource("51")
+ignore_texture_size = true
+stretch_mode = 5
+
+[node name="ShopHubPanel" type="PanelContainer" parent="UI" unique_id=352734037]
+visible = false
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("20")
+
+[node name="Background" type="TextureRect" parent="UI/ShopHubPanel" unique_id=901830235]
+show_behind_parent = true
+layout_mode = 2
+mouse_filter = 2
+texture = ExtResource("22")
+expand_mode = 1
+stretch_mode = 6
+
+[node name="Frame" type="Control" parent="UI/ShopHubPanel" unique_id=1336546937]
+layout_mode = 2
+
+[node name="SafeArea" type="Control" parent="UI/ShopHubPanel/Frame" unique_id=370356724]
+anchors_preset = 0
+anchor_top = 0.24
+anchor_right = 1.0
+anchor_bottom = 0.72
+offset_left = 40.0
+offset_right = -40.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Margin" type="MarginContainer" parent="UI/ShopHubPanel/Frame/SafeArea" unique_id=19913272]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 8
+
+[node name="VBox" type="VBoxContainer" parent="UI/ShopHubPanel/Frame/SafeArea/Margin" unique_id=2094419634]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="TitleLabel" type="Label" parent="UI/ShopHubPanel/Frame/SafeArea/Margin/VBox" unique_id=376528614]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "Shop"
+
+[node name="Grid" type="GridContainer" parent="UI/ShopHubPanel/Frame/SafeArea/Margin/VBox" unique_id=623663196]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 3
+theme_override_constants/h_separation = 50
+theme_override_constants/v_separation = 20
+columns = 3
+
+[node name="CloseButton" type="Button" parent="UI/ShopHubPanel/Frame/SafeArea/Margin/VBox" unique_id=1212176294]
+layout_mode = 2
+text = "Close"
+
+[node name="FuelPanel" parent="UI" instance=ExtResource("24")]
+visible = false
+
+[node name="ShopPanel" type="PanelContainer" parent="UI" unique_id=813678258]
+visible = false
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("12")
+
+[node name="Background" type="TextureRect" parent="UI/ShopPanel" unique_id=1226671801]
+show_behind_parent = true
+layout_mode = 2
+mouse_filter = 2
+texture = ExtResource("22")
+expand_mode = 1
+stretch_mode = 6
+
+[node name="Frame" type="Control" parent="UI/ShopPanel" unique_id=34407752]
+layout_mode = 2
+
+[node name="SafeArea" type="Control" parent="UI/ShopPanel/Frame" unique_id=1570395534]
+anchors_preset = 0
+anchor_top = 0.24
+anchor_right = 1.0
+anchor_bottom = 0.72
+offset_left = 40.0
+offset_right = -40.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Margin" type="MarginContainer" parent="UI/ShopPanel/Frame/SafeArea" unique_id=1174394226]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 8
+
+[node name="VBox" type="VBoxContainer" parent="UI/ShopPanel/Frame/SafeArea/Margin" unique_id=1891109856]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="TitleLabel" type="Label" parent="UI/ShopPanel/Frame/SafeArea/Margin/VBox" unique_id=704861357]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "Aircraft Shop"
+
+[node name="CardRow" type="HBoxContainer" parent="UI/ShopPanel/Frame/SafeArea/Margin/VBox" unique_id=1471650203]
+custom_minimum_size = Vector2(0, 232)
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 12
+alignment = 1
+
+[node name="PageControls" type="HBoxContainer" parent="UI/ShopPanel/Frame/SafeArea/Margin/VBox" unique_id=315705909]
+layout_mode = 2
+theme_override_constants/separation = 16
+alignment = 1
+
+[node name="PrevButton" type="Button" parent="UI/ShopPanel/Frame/SafeArea/Margin/VBox/PageControls" unique_id=179174484]
+layout_mode = 2
+text = "<"
+
+[node name="Dots" type="HBoxContainer" parent="UI/ShopPanel/Frame/SafeArea/Margin/VBox/PageControls" unique_id=1175513873]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="NextButton" type="Button" parent="UI/ShopPanel/Frame/SafeArea/Margin/VBox/PageControls" unique_id=668112403]
+layout_mode = 2
+text = ">"
+
+[node name="CloseButton" type="Button" parent="UI/ShopPanel/Frame/SafeArea/Margin/VBox" unique_id=1628004145]
+layout_mode = 2
+text = "Close"
+
+[node name="ExpansionShopPanel" type="PanelContainer" parent="UI"]
+visible = false
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("35")
+
+[node name="Background" type="TextureRect" parent="UI/ExpansionShopPanel"]
+show_behind_parent = true
+layout_mode = 2
+mouse_filter = 2
+texture = ExtResource("22")
+expand_mode = 1
+stretch_mode = 6
+
+[node name="Frame" type="Control" parent="UI/ExpansionShopPanel"]
+layout_mode = 2
+
+[node name="SafeArea" type="Control" parent="UI/ExpansionShopPanel/Frame"]
+anchors_preset = 0
+anchor_top = 0.24
+anchor_right = 1.0
+anchor_bottom = 0.72
+offset_left = 40.0
+offset_right = -40.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Margin" type="MarginContainer" parent="UI/ExpansionShopPanel/Frame/SafeArea"]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 8
+
+[node name="VBox" type="VBoxContainer" parent="UI/ExpansionShopPanel/Frame/SafeArea/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="TitleLabel" type="Label" parent="UI/ExpansionShopPanel/Frame/SafeArea/Margin/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "Expansion Shop"
+
+[node name="CardRow" type="HBoxContainer" parent="UI/ExpansionShopPanel/Frame/SafeArea/Margin/VBox"]
+custom_minimum_size = Vector2(0, 232)
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 12
+alignment = 1
+
+[node name="PageControls" type="HBoxContainer" parent="UI/ExpansionShopPanel/Frame/SafeArea/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 16
+alignment = 1
+
+[node name="PrevButton" type="Button" parent="UI/ExpansionShopPanel/Frame/SafeArea/Margin/VBox/PageControls"]
+layout_mode = 2
+text = "<"
+
+[node name="Dots" type="HBoxContainer" parent="UI/ExpansionShopPanel/Frame/SafeArea/Margin/VBox/PageControls"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="NextButton" type="Button" parent="UI/ExpansionShopPanel/Frame/SafeArea/Margin/VBox/PageControls"]
+layout_mode = 2
+text = ">"
+
+[node name="CloseButton" type="Button" parent="UI/ExpansionShopPanel/Frame/SafeArea/Margin/VBox"]
+layout_mode = 2
+text = "Close"
+
+[node name="HangarPanel" type="PanelContainer" parent="UI" unique_id=1514080592]
+visible = false
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("13")
+
+[node name="Background" type="TextureRect" parent="UI/HangarPanel"]
+show_behind_parent = true
+layout_mode = 2
+mouse_filter = 2
+texture = ExtResource("22")
+expand_mode = 1
+stretch_mode = 6
+
+[node name="Frame" type="Control" parent="UI/HangarPanel"]
+layout_mode = 2
+
+[node name="SafeArea" type="Control" parent="UI/HangarPanel/Frame"]
+anchor_top = 0.24
+anchor_right = 1.0
+anchor_bottom = 0.72
+offset_left = 40.0
+offset_right = -40.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Margin" type="MarginContainer" parent="UI/HangarPanel/Frame/SafeArea"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 8
+
+[node name="VBox" type="VBoxContainer" parent="UI/HangarPanel/Frame/SafeArea/Margin" unique_id=45953518]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="TitleLabel" type="Label" parent="UI/HangarPanel/Frame/SafeArea/Margin/VBox" unique_id=542778430]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "Hangar"
+
+[node name="Grid" type="GridContainer" parent="UI/HangarPanel/Frame/SafeArea/Margin/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+size_flags_horizontal = 4
+theme_override_constants/h_separation = 30
+theme_override_constants/v_separation = 20
+columns = 4
+
+[node name="CloseButton" type="Button" parent="UI/HangarPanel/Frame/SafeArea/Margin/VBox" unique_id=1994010458]
+layout_mode = 2
+text = "Close"
+
+[node name="ApronInfoPanel" type="PanelContainer" parent="UI" unique_id=521176117]
+visible = false
+anchor_left = 0.5
+anchor_right = 0.5
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = -310.0
+offset_top = -210.0
+offset_right = 310.0
+offset_bottom = 0.0
+grow_horizontal = 2
+grow_vertical = 0
+script = ExtResource("8")
+
+[node name="Background" type="TextureRect" parent="UI/ApronInfoPanel"]
+show_behind_parent = true
+layout_mode = 2
+mouse_filter = 2
+texture = ExtResource("26")
+expand_mode = 1
+stretch_mode = 0
+
+[node name="Margin" type="MarginContainer" parent="UI/ApronInfoPanel" unique_id=1729622351]
+layout_mode = 2
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 16
+
+[node name="VBox" type="VBoxContainer" parent="UI/ApronInfoPanel/Margin" unique_id=1090286239]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="TitleLabel" type="Label" parent="UI/ApronInfoPanel/Margin/VBox" unique_id=935475672]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "Apron"
+
+[node name="SlotsRow" type="HBoxContainer" parent="UI/ApronInfoPanel/Margin/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 24
+
+[node name="SkinColumn" type="VBoxContainer" parent="UI/ApronInfoPanel/Margin/VBox/SlotsRow"]
+layout_mode = 2
+alignment = 1
+theme_override_constants/separation = 6
+
+[node name="SkinSlot" type="Control" parent="UI/ApronInfoPanel/Margin/VBox/SlotsRow/SkinColumn"]
+custom_minimum_size = Vector2(110, 65)
+layout_mode = 2
+
+[node name="SkinFrame" type="TextureRect" parent="UI/ApronInfoPanel/Margin/VBox/SlotsRow/SkinColumn/SkinSlot"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+texture = ExtResource("27")
+expand_mode = 1
+stretch_mode = 0
+
+[node name="SkinPreview" type="TextureRect" parent="UI/ApronInfoPanel/Margin/VBox/SlotsRow/SkinColumn/SkinSlot"]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 14.0
+offset_top = 8.0
+offset_right = -14.0
+offset_bottom = -8.0
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="SkinEmptyLabel" type="Label" parent="UI/ApronInfoPanel/Margin/VBox/SlotsRow/SkinColumn/SkinSlot"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+text = "None"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="SkinBonusLabel" type="Label" parent="UI/ApronInfoPanel/Margin/VBox/SlotsRow/SkinColumn"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "No bonus"
+horizontal_alignment = 1
+
+[node name="SkinButton" type="Button" parent="UI/ApronInfoPanel/Margin/VBox/SlotsRow/SkinColumn"]
+layout_mode = 2
+text = "Choose Skin"
+
+[node name="PlaneColumn" type="VBoxContainer" parent="UI/ApronInfoPanel/Margin/VBox/SlotsRow"]
+layout_mode = 2
+alignment = 1
+theme_override_constants/separation = 6
+
+[node name="PlaneSlot" type="Control" parent="UI/ApronInfoPanel/Margin/VBox/SlotsRow/PlaneColumn"]
+custom_minimum_size = Vector2(110, 65)
+layout_mode = 2
+
+[node name="PlaneFrame" type="TextureRect" parent="UI/ApronInfoPanel/Margin/VBox/SlotsRow/PlaneColumn/PlaneSlot"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+texture = ExtResource("28")
+expand_mode = 1
+stretch_mode = 0
+
+[node name="PlaneIcon" type="TextureRect" parent="UI/ApronInfoPanel/Margin/VBox/SlotsRow/PlaneColumn/PlaneSlot"]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 22.0
+offset_top = 8.0
+offset_right = -22.0
+offset_bottom = -8.0
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="PlaneEmptyLabel" type="Label" parent="UI/ApronInfoPanel/Margin/VBox/SlotsRow/PlaneColumn/PlaneSlot"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+theme_override_font_sizes/font_size = 24
+text = "?"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="PlaneButton" type="Button" parent="UI/ApronInfoPanel/Margin/VBox/SlotsRow/PlaneColumn"]
+layout_mode = 2
+text = "Assign"
+
+[node name="StatusColumn" type="VBoxContainer" parent="UI/ApronInfoPanel/Margin/VBox/SlotsRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+alignment = 1
+theme_override_constants/separation = 6
+
+[node name="StatusLabel" type="Label" parent="UI/ApronInfoPanel/Margin/VBox/SlotsRow/StatusColumn"]
+layout_mode = 2
+horizontal_alignment = 1
+autowrap_mode = 2
+text = "Status"
+
+[node name="ActionButton" type="Button" parent="UI/ApronInfoPanel/Margin/VBox/SlotsRow/StatusColumn"]
+visible = false
+layout_mode = 2
+text = "Action"
+
+[node name="CloseButton" type="Button" parent="UI/ApronInfoPanel/Margin/VBox" unique_id=1944186977]
+layout_mode = 2
+text = "Close"
+
+[node name="SkinPickerPanel" type="PanelContainer" parent="UI"]
+visible = false
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -320.0
+offset_top = -220.0
+offset_right = 320.0
+offset_bottom = 220.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("29")
+
+[node name="Margin" type="MarginContainer" parent="UI/SkinPickerPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 16
+
+[node name="VBox" type="VBoxContainer" parent="UI/SkinPickerPanel/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="TitleLabel" type="Label" parent="UI/SkinPickerPanel/Margin/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "Choose Apron Skin"
+
+[node name="Grid" type="GridContainer" parent="UI/SkinPickerPanel/Margin/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/h_separation = 20
+theme_override_constants/v_separation = 16
+columns = 4
+
+[node name="CloseButton" type="Button" parent="UI/SkinPickerPanel/Margin/VBox"]
+layout_mode = 2
+text = "Close"
+
+[node name="AssignPickerPanel" type="PanelContainer" parent="UI"]
+visible = false
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -260.0
+offset_top = -180.0
+offset_right = 260.0
+offset_bottom = 180.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("31")
+
+[node name="Margin" type="MarginContainer" parent="UI/AssignPickerPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 16
+
+[node name="VBox" type="VBoxContainer" parent="UI/AssignPickerPanel/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="TitleLabel" type="Label" parent="UI/AssignPickerPanel/Margin/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "Select an Aircraft"
+
+[node name="EmptyLabel" type="Label" parent="UI/AssignPickerPanel/Margin/VBox"]
+visible = false
+layout_mode = 2
+text = "No idle aircraft - buy one from the Shop"
+horizontal_alignment = 1
+autowrap_mode = 2
+
+[node name="List" type="VBoxContainer" parent="UI/AssignPickerPanel/Margin/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 8
+
+[node name="CloseButton" type="Button" parent="UI/AssignPickerPanel/Margin/VBox"]
+layout_mode = 2
+text = "Close"
+
+[node name="ZoneUnlockPanel" type="PanelContainer" parent="UI" unique_id=785618106]
+visible = false
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -160.0
+offset_top = -90.0
+offset_right = 160.0
+offset_bottom = 90.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("15")
+
+[node name="Margin" type="MarginContainer" parent="UI/ZoneUnlockPanel" unique_id=914221156]
+layout_mode = 2
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 12
+
+[node name="VBox" type="VBoxContainer" parent="UI/ZoneUnlockPanel/Margin" unique_id=1692996493]
+layout_mode = 2
+
+[node name="TitleLabel" type="Label" parent="UI/ZoneUnlockPanel/Margin/VBox" unique_id=1153199228]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "Zone"
+
+[node name="StatusLabel" type="Label" parent="UI/ZoneUnlockPanel/Margin/VBox" unique_id=737751190]
+layout_mode = 2
+text = "Status"
+
+[node name="ActionButton" type="Button" parent="UI/ZoneUnlockPanel/Margin/VBox" unique_id=1429990736]
+visible = false
+layout_mode = 2
+text = "Action"
+
+[node name="CloseButton" type="Button" parent="UI/ZoneUnlockPanel/Margin/VBox" unique_id=1007457473]
+layout_mode = 2
+text = "Close"
