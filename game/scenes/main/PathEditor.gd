@@ -52,15 +52,39 @@ var editing := false
 var target := Target.BODY
 var data: Dictionary = {}
 var _active_road: String = ""
-var _hud_layer: CanvasLayer
-var _hud_label: Label
+var _hud: EditorHud
 
 
 func _ready() -> void:
+	# HUD first: reload_for_map refreshes it.
+	_hud = EditorHud.create(self)
+	reload_for_map()
+
+
+
+# Re-reads this airport's traced paths. Called on travel: `data` is per-map and
+# is what every save writes back, so without this the editor kept homeland's
+# paths in memory, drew them over the new airport, and - worse - wrote them
+# into the new airport's slot on the next edit.
+func reload_for_map() -> void:
 	data = PathLayout.load_data()
-	if data["roads"].size() > 0:
-		_active_road = data["roads"].keys()[0]
-	_build_hud()
+	# An airport nobody has traced yet loads as {} - none of these keys exist,
+	# rather than existing empty. Normalising once here keeps every
+	# data["roads"] and data[plane_key] access below valid instead of guarding
+	# a dozen of them, and matters for more than tidiness: _current_points()
+	# hands back the live array that _append_point mutates, so it has to be a
+	# real array in `data`, not a temporary.
+	if not data.has("roads"):
+		data["roads"] = {}
+	for spec in PLANE_TARGETS.values():
+		if not data.has(spec["key"]):
+			data[spec["key"]] = []
+	# Picking the active road belongs here rather than in _ready, so travelling
+	# selects one that exists on the airport you just arrived at.
+	var roads: Dictionary = data["roads"]
+	_active_road = roads.keys()[0] if roads.size() > 0 else ""
+	queue_redraw()
+	_update_hud()
 
 
 func _input(event: InputEvent) -> void:
@@ -186,35 +210,9 @@ func _draw_path(points: Array, color: Color, active: bool) -> void:
 			draw_line(prev, p, color, 2.0)
 
 
-func _build_hud() -> void:
-	_hud_layer = CanvasLayer.new()
-	_hud_layer.layer = 50
-	_hud_layer.visible = false
-	add_child(_hud_layer)
-
-	var panel := PanelContainer.new()
-	panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	panel.set_anchors_preset(Control.PRESET_TOP_LEFT)
-	panel.position = Vector2(12, 12)
-	var style := StyleBoxFlat.new()
-	style.bg_color = Color(0, 0, 0, 0.7)
-	style.content_margin_left = 10
-	style.content_margin_right = 10
-	style.content_margin_top = 8
-	style.content_margin_bottom = 8
-	panel.add_theme_stylebox_override("panel", style)
-	_hud_layer.add_child(panel)
-
-	_hud_label = Label.new()
-	_hud_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_hud_label.add_theme_color_override("font_color", Color.WHITE)
-	_hud_label.add_theme_font_size_override("font_size", 14)
-	panel.add_child(_hud_label)
-
-
 func _update_hud() -> void:
-	_hud_layer.visible = editing
 	if not editing:
+		_hud.set_lines(false, [])
 		return
 
 	var lines: Array[String] = ["PATH EDITOR  (T to exit)", ""]
@@ -237,4 +235,4 @@ func _update_hud() -> void:
 		lines.append("N = new road   C = toggle category")
 		lines.append("[ / ] = switch road   X = delete whole road")
 
-	_hud_label.text = "\n".join(lines)
+	_hud.set_lines(true, lines)

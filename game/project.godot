@@ -21,6 +21,7 @@ config/features=PackedStringArray("4.7", "Forward Plus")
 [autoload]
 
 IsoGrid="*res://scripts/iso_grid.gd"
+Maps="*res://scripts/maps.gd"
 Economy="*res://scripts/economy.gd"
 Fleet="*res://scripts/fleet.gd"
 FuelStore="*res://scripts/fuel_store.gd"

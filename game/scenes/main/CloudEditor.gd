@@ -5,7 +5,9 @@ extends Node2D
 # they're eyeballed and placed by hand).
 #
 #   O          toggle cloud placement mode on/off
-#   1-7        pick which area you're placing for (Zone1 has no cloud)
+#   1-n        pick which area you're placing for - the current airport's
+#              areas (7 on homeland, 3 on Dreamland, 1 on the carrier). Not
+#              every area has cloud art; the on-screen readout says which.
 #   left click place/move this area's cloud (click its own cloud to remove)
 #
 # Saves immediately to res://data/cloud_layout.json.
@@ -13,19 +15,70 @@ extends Node2D
 const CLOUD_SLOT_SCENE := preload("res://scenes/main/CloudSlot.tscn")
 
 var editing := false
-var area_index := 1  # Zone2 - first lockable area
+var area_index := 0  # reset per map by reload_for_map()
 var data: Dictionary = {}  # area_name -> [x,y]
 var _slots: Dictionary = {}  # area_name -> Node2D
+var _hud: EditorHud
 
 
 func _ready() -> void:
-	data = CloudLayout.load_data()
 	ZoneProgress.unlocked_changed.connect(_rebuild_all)
+	_hud = EditorHud.create(self)
+	reload_for_map()
+
+
+# Clouds are per-airport too, so travelling has to re-read rather than redraw
+# what's already in memory. _rebuild_all already frees every slot, so this only
+# has to refresh `data` first.
+# Clouds only exist for areas that have cloud art, and only show while the area
+# is still locked - so the readout says which of those two is stopping you,
+# rather than leaving a click looking like it silently did nothing.
+func _update_hud() -> void:
+	if _hud == null:
+		return
+	var areas := Maps.areas_for()
+	var lockable := CloudLayout.lockable_areas()
+	var lines: Array = [
+		"CLOUD EDITOR - %s  (O to exit)" % Maps.display_name(),
+		"",
+	]
+	for i in range(areas.size()):
+		var area_name: String = areas[i]
+		var state := ""
+		if not area_name in lockable:
+			state = "no cloud art"
+		elif ZoneProgress.is_unlocked(area_name):
+			state = "unlocked - cloud hidden"
+		elif data.has(area_name):
+			var p: Array = data[area_name]
+			state = "placed (%d,%d)" % [roundi(float(p[0])), roundi(float(p[1]))]
+		else:
+			state = "NOT PLACED"
+		lines.append("%s %d  %-14s %s" % [">" if i == area_index else " ", i + 1, area_name, state])
+	lines.append("")
+	lines.append("1-%d = area   ·   click = place/move   ·   click its cloud = remove" % areas.size())
+	_hud.set_lines(editing, lines)
+
+
+func reload_for_map() -> void:
+	data = CloudLayout.load_data()
+	# Start on the first area that actually has cloud art rather than on area
+	# 1: on homeland that's Zone1, which has no cloud by design, so opening the
+	# tool would land you on the one area where clicking does nothing.
+	var areas := Maps.areas_for()
+	var lockable := CloudLayout.lockable_areas()
+	area_index = 0
+	for i in range(areas.size()):
+		if areas[i] in lockable:
+			area_index = i
+			break
+	_update_hud()
 	_rebuild_all()
 
 
 func _current_area_name() -> String:
-	return ApronLayout.AREA_NAMES[area_index]
+	var areas := Maps.areas_for()
+	return areas[area_index] if area_index < areas.size() else ""
 
 
 # Uses _input (fires before GUI, physics picking, and _unhandled_input),
@@ -38,12 +91,12 @@ func _input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed:
 		if event.keycode == KEY_O:
 			editing = !editing
-			print("Cloud editor %s - editing %s" % ["ON" if editing else "OFF", _current_area_name()])
+			_update_hud()
 		elif editing and event.keycode >= KEY_1 and event.keycode <= KEY_7:
 			var idx: int = event.keycode - KEY_1
-			if idx < ApronLayout.AREA_NAMES.size():
+			if idx < Maps.areas_for().size():
 				area_index = idx
-				print("Editing cloud for: %s" % _current_area_name())
+				_update_hud()
 
 	if not editing:
 		return
@@ -54,7 +107,7 @@ func _input(event: InputEvent) -> void:
 
 func _place(pos: Vector2) -> void:
 	var area_name := _current_area_name()
-	if not area_name in CloudLayout.LOCKABLE_AREAS:
+	if not area_name in CloudLayout.lockable_areas():
 		print("%s has no cloud (always unlocked)" % area_name)
 		return
 	# Re-sync with whatever's actually on disk right before writing, rather
@@ -64,6 +117,7 @@ func _place(pos: Vector2) -> void:
 	data[area_name] = [pos.x, pos.y]
 	CloudLayout.save_data(data)
 	print("Placed cloud for %s at (%d,%d)" % [area_name, roundi(pos.x), roundi(pos.y)])
+	_update_hud()
 	call_deferred("_rebuild_all")
 
 
@@ -71,7 +125,7 @@ func _rebuild_all() -> void:
 	for area_name in _slots.keys().duplicate():
 		_slots[area_name].queue_free()
 	_slots.clear()
-	for area_name in CloudLayout.LOCKABLE_AREAS:
+	for area_name in CloudLayout.lockable_areas():
 		if ZoneProgress.is_unlocked(area_name) or not data.has(area_name):
 			continue
 		var p: Array = data[area_name]

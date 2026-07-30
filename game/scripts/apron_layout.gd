@@ -16,6 +16,9 @@ extends RefCounted
 # a different area, but once everything's placed that just leaves ugly gaps
 # for no benefit, so it's plain sequential now. The tradeoff: adding or
 # removing an apron anywhere now does renumber every area after it.
+# Homeland's areas. Kept for reference and as the migration target for legacy
+# save files; anything that needs "the areas I can place into right now" must
+# ask Maps.areas_for() instead, since that depends on which airport you're in.
 const AREA_NAMES: Array[String] = [
 	"Zone1", "Zone2", "DarkZone", "Forest", "Desert", "Beach", "Snow"
 ]
@@ -37,31 +40,56 @@ static func default_zone1_points() -> Array:
 	return points
 
 
-# {area_name: [[x,y], ...]} - the actual placed points, written by ApronEditor.
-static func load_area_data() -> Dictionary:
+# {map_key: {area_name: [[x,y], ...]}} for every airport at once.
+static func load_all() -> Dictionary:
 	if not FileAccess.file_exists(SAVE_PATH):
 		return {}
 	var f := FileAccess.open(SAVE_PATH, FileAccess.READ)
 	var text := f.get_as_text()
 	f.close()
 	var parsed: Variant = JSON.parse_string(text)
-	return parsed if parsed is Dictionary else {}
+	return Maps.unwrap_layout(parsed) if parsed is Dictionary else {}
 
 
-static func save_area_data(data: Dictionary) -> void:
+static func save_all(all_data: Dictionary) -> void:
 	DirAccess.make_dir_recursive_absolute("res://data")
 	var f := FileAccess.open(SAVE_PATH, FileAccess.WRITE)
-	f.store_string(JSON.stringify(data, "\t"))
+	f.store_string(JSON.stringify(all_data, "\t"))
 	f.close()
 
 
-# {area_name: starting_id} - gap-free, in AREA_NAMES order.
-static func compute_id_starts(data: Dictionary) -> Dictionary:
+# {area_name: [[x,y], ...]} for one airport - the current one unless told
+# otherwise. Written by ApronEditor.
+static func load_area_data(map_key: String = "") -> Dictionary:
+	var key := map_key if map_key != "" else Maps.current
+	return load_all().get(key, {})
+
+
+static func save_area_data(data: Dictionary, map_key: String = "") -> void:
+	var key := map_key if map_key != "" else Maps.current
+	var all_data := load_all()
+	all_data[key] = data
+	save_all(all_data)
+
+
+# {area_name: starting_id}, gap-free across EVERY map's areas in Maps order.
+# Ids have to be globally unique, not per-map: ApronProgress records built
+# aprons by id and FleetAircraft.assigned_apron_id points at one, so two
+# airports both owning an "apron 1" would share build state and park the same
+# aircraft in both places.
+#
+# The cost is that inserting or removing an apron renumbers everything after
+# it, which is why Maps lists homeland first - its aprons are already placed
+# and referenced, so placing in the newer maps can't disturb them.
+static func compute_id_starts() -> Dictionary:
+	var all_data := load_all()
 	var starts := {}
 	var next_id := 1
-	for area_name in AREA_NAMES:
-		starts[area_name] = next_id
-		next_id += (data.get(area_name, []) as Array).size()
+	for map_key in Maps.MAPS:
+		var map_data: Dictionary = all_data.get(map_key, {})
+		for area_name in Maps.MAPS[map_key]["areas"]:
+			starts[area_name] = next_id
+			next_id += (map_data.get(area_name, []) as Array).size()
 	return starts
 
 

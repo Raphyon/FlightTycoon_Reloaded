@@ -25,6 +25,39 @@ const WORLD_SPRITES := {
 		],
 		"rotor_offsets": [Vector2.ZERO],
 	},
+	"a400m": {
+		"body": "res://assets/aircraft/a400m/body_2x.png",
+		"shadow": "res://assets/aircraft/a400m/shadow_2x.png",
+		# Four turboprops, and unlike the V-22 there's no separate stationary
+		# disc: the static props are painted into the body art, so parked
+		# needs no overlay at all and only the spin flipbook is layered on
+		# during takeoff. Same arrangement as the P-51.
+		#
+		# Four frames rather than the usual two - the source strip carries a
+		# full rotation cycle. They're split hub-aligned (see
+		# tools/plane_derive.py split_prop_strip) so the disc spins about a
+		# fixed point instead of wandering between frames.
+		"rotor_spin_frames": [
+			"res://assets/aircraft/a400m/prop_a_2x.png",
+			"res://assets/aircraft/a400m/prop_b_2x.png",
+			"res://assets/aircraft/a400m/prop_c_2x.png",
+			"res://assets/aircraft/a400m/prop_d_2x.png",
+		],
+		# STARTING POINTS ONLY - place these properly with RotorEditor (press
+		# R in-game, M to reach a400m, 1-4 to pick a hub, click to set). These
+		# came from clustering the yellow prop tips painted into the body, but
+		# three of the four props are partly occluded by the fuselage and wing
+		# and the whole signal is only ~55 px, so they land near the right
+		# engines rather than on the hubs.
+		"rotor_offsets": [
+			Vector2(-62, 2), Vector2(-20, 27), Vector2(-1, 39), Vector2(10, 36),
+		],
+		# Hub 2 (index 1) is the inboard prop on the far wing, which the hull
+		# partly covers at this isometric angle - drawn on top, its blur disc
+		# reads as floating in front of the aircraft. Only the default: press B
+		# in RotorEditor to change it per hub, and the rig file wins once set.
+		"rotor_behind_body": [1],
+	},
 	"v22": {
 		"body": "res://assets/aircraft/v22/body_2x.png",
 		"shadow": "res://assets/aircraft/v22/shadow_2x.png",
@@ -75,12 +108,37 @@ const WORLD_SPRITES := {
 	"blackh": {
 		"body": "res://assets/aircraft/blackh/body_2x.png",
 		"shadow": "res://assets/aircraft/blackh/shadow_2x.png",
+		# Second shadow with the main rotor blades left out, swapped in while
+		# the rotor is spinning - a stopped rotor's blades cast a visible
+		# 6-blade star, a blurred disc doesn't. See _show_spin_rotors.
+		"shadow_spin": "res://assets/aircraft/blackh/shadow_spin_2x.png",
 		"vtol": true,
-		"rotor_spin_frames": [
-			"res://assets/aircraft/blackh/rotor_spin_a_2x.png",
-			"res://assets/aircraft/blackh/rotor_spin_b_2x.png",
+		# Two hubs with *different* art - the main rotor and the tail rotor are
+		# separate sprites, not the same disc twice. That's what "rotors" is
+		# for: one entry per hub, parallel to rotor_offsets. Hub 1 is the main
+		# rotor, hub 2 the tail. Neither is painted into the body art, so the
+		# idle frames are what you see while parked.
+		"rotors": [
+			{
+				"idle": ["res://assets/aircraft/blackh/rotor_idle_2x.png"],
+				"spin": [
+					"res://assets/aircraft/blackh/rotor_spin_a_2x.png",
+					"res://assets/aircraft/blackh/rotor_spin_b_2x.png",
+				],
+			},
+			{
+				"idle": ["res://assets/aircraft/blackh/tail_idle_2x.png"],
+				"spin": [
+					"res://assets/aircraft/blackh/tail_spin_a_2x.png",
+					"res://assets/aircraft/blackh/tail_spin_b_2x.png",
+				],
+			},
 		],
-		"rotor_offsets": [Vector2(5.9, -15.5)],
+		# Both hubs need placing with RotorEditor (press R, M to reach blackh,
+		# 1 = main rotor, 2 = tail rotor). The main-rotor value is carried over
+		# from the old derived sprite and is only roughly right for this art;
+		# the tail figure is a placeholder at the far end of the boom.
+		"rotor_offsets": [Vector2(5.9, -15.5), Vector2(48, -8)],
 		"ground_effect_frames": [
 			"res://assets/aircraft/blackh/downwash_a_2x.png",
 			"res://assets/aircraft/blackh/downwash_b_2x.png",

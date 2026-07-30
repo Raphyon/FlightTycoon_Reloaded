@@ -16,6 +16,9 @@ because it is olive); a hue rule would erase a blue aircraft outright.
 Models listed in ORIGINAL skip all of that - they come from
 source-assets/original already clean and are only cropped and scaled.
 
+Models listed in WORLD_CLEAN also skip the shadow lift, but for a different
+reason and from a different place - see that dict.
+
 Run from the repo root:  python3 tools/plane_derive.py
 """
 from PIL import Image
@@ -77,11 +80,36 @@ ORIGINAL = {
     'a318': 90,        # smallest of the airliners
 }
 
+# Dump world sprites that arrive already clean: the game's own in-world art
+# rather than a shop icon, so there is no baked cast shadow to lift. Unlike
+# ORIGINAL this is still dump art, so it keeps the placeholder-only
+# restriction - which is exactly why it lives here and not in
+# source-assets/original. Source is ingest.py's output tree.
+#
+# The A400M's own shop icon does have a shadow, but not a liftable one: it's a
+# soft contact shadow tucked under the airframe rather than an offset
+# silhouette, so only the slivers peeking past the wings survive extraction
+# (~1800 px of disconnected fragments). The silhouette shadow below is the
+# right answer instead.
+#
+# Value is the target sprite height. Sized into the same hierarchy as
+# ORIGINAL rather than used 1:1: the dump draws the A400M 133 px tall, which
+# would make it the largest airframe in the fleet, ahead of the An-225. 96
+# puts it level with the A300, whose wingspan it nearly matches (42.4 m vs
+# 44.8 m).
+WORLD_CLEAN_DIR = 'source-assets/aircraft'
+WORLD_CLEAN = {
+    'a400m': 96,
+}
+
 SRC_DIR = 'source-assets/shop'
 OUT_DIR = 'game/assets/aircraft'
 SHADOW_PEAK_ALPHA = 150
 SHADOW_SQUASH = 0.80
 OUTLINE_REACH = 2         # px an airframe outline may sit from solid paint
+FRAME_SUFFIXES = 'abcdefgh'
+HUB_MAX_LUMA = 90         # the spinner is dark against a pale blur
+HUB_MIN_ALPHA = 120
 
 
 def save_shadow_from(body: Image.Image, dest: str) -> Image.Image:
@@ -97,6 +125,84 @@ def save_shadow_from(body: Image.Image, dest: str) -> Image.Image:
         shadow = shadow.crop(sb)
     shadow.save(os.path.join(dest, 'shadow_2x.png'))
     return shadow
+
+
+def split_prop_strip(strip: Image.Image, dest: str, scale: float) -> list:
+    """Split a blur strip into one file per frame, hub-aligned.
+
+    Frames are separated by empty columns, but their content spans are not
+    all the same width (the A400M's are 24/24/24/23), and WorldAircraft draws
+    each frame with a centered Sprite2D. Cropping each frame to its own
+    content would therefore re-center it and make the hub wander between
+    frames - a visible wobble. So every frame is pasted into an identical
+    cell with its hub landing on the same spot, which is what keeps the prop
+    spinning about a fixed point.
+    """
+    a = np.array(strip)
+    alpha = a[:, :, 3].astype(int)
+    luma = a[:, :, 0].astype(int)
+    filled = (alpha > 8).any(axis=0)
+
+    spans, start = [], None
+    for i, f in enumerate(filled):
+        if f and start is None:
+            start = i
+        elif not f and start is not None:
+            spans.append((start, i))
+            start = None
+    if start is not None:
+        spans.append((start, len(filled)))
+
+    hubs = []
+    for s, e in spans:
+        hub = (luma[:, s:e] < HUB_MAX_LUMA) & (alpha[:, s:e] > HUB_MIN_ALPHA)
+        ys, xs = np.where(hub)
+        # Fall back to the span's centre if a frame has no dark spinner.
+        hubs.append((xs.mean(), ys.mean()) if len(ys) else ((e - s) / 2.0, strip.height / 2.0))
+
+    cell_w = max(e - s for s, e in spans)
+    cell_h = strip.height
+    hub_x = max(h[0] for h in hubs)
+    hub_y = max(h[1] for h in hubs)
+
+    written = []
+    for i, ((s, e), (hx, hy)) in enumerate(zip(spans, hubs)):
+        frame = strip.crop((s, 0, e, cell_h))
+        cell = Image.new('RGBA', (cell_w, cell_h), (0, 0, 0, 0))
+        cell.paste(frame, (int(round(hub_x - hx)), int(round(hub_y - hy))))
+        if scale != 1.0:
+            cell = cell.resize((max(1, int(cell_w * scale)),
+                                max(1, int(cell_h * scale))), Image.LANCZOS)
+        name = 'prop_%s_2x.png' % FRAME_SUFFIXES[i]
+        cell.save(os.path.join(dest, name))
+        written.append(name)
+    return written
+
+
+def derive_world_clean(key: str, target_h: int) -> None:
+    """Clean dump world sprite: crop + scale, silhouette shadow, prop split."""
+    src = os.path.join(WORLD_CLEAN_DIR, key)
+    im = Image.open(os.path.join(src, 'body_2x.png')).convert('RGBA')
+    im = im.crop(im.getbbox())
+    scale = target_h / im.height
+    body = im.resize((max(1, int(im.width * scale)), target_h), Image.LANCZOS)
+
+    dest = os.path.join(OUT_DIR, key)
+    os.makedirs(dest, exist_ok=True)
+    body.save(os.path.join(dest, 'body_2x.png'))
+    shadow = save_shadow_from(body, dest)
+
+    # The prop frames overlay the static props painted into the body, so they
+    # scale by exactly the same factor or they stop lining up with them.
+    frames = []
+    strip_path = os.path.join(src, 'prop_2x.png')
+    if os.path.exists(strip_path):
+        strip = Image.open(strip_path).convert('RGBA')
+        frames = split_prop_strip(strip, dest, scale)
+
+    print('%-10s WORLD_CLEAN %-9s scale %.3f -> body %-9s shadow %-9s prop %s'
+          % (key, '%dx%d' % im.size, scale, '%dx%d' % body.size,
+             '%dx%d' % shadow.size, '%df %s' % (len(frames), ','.join(frames)) if frames else '-'))
 
 
 def derive_original(key: str, target_h: int) -> None:
@@ -187,5 +293,7 @@ if __name__ == '__main__':
             derive_original(k, ORIGINAL[k])
         else:
             derive(k, v)
+    for k, target_h in WORLD_CLEAN.items():
+        derive_world_clean(k, target_h)
     for k in DOWNWASH_MODELS:
         add_downwash(k)

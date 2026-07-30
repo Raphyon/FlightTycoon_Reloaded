@@ -47,6 +47,8 @@ const GROUND_EFFECT_FADE_DURATION := 2.4
 const RUNWAY_RELEASE_FRACTION := 0.5
 
 var _shadow: Sprite2D
+var _shadow_parked: Texture2D
+var _shadow_spinning: Texture2D
 var _body: Sprite2D
 var _rotors_idle: Array[Sprite2D] = []
 var _rotors_spin: Array[Sprite2D] = []
@@ -66,12 +68,19 @@ func setup(model_key: String, screen_pos: Vector2) -> void:
 		_shadow = Sprite2D.new()
 		_shadow.texture = load(sprites["shadow"])
 		add_child(_shadow)
+		# Helicopters ship two shadows: one casting the static rotor blades and
+		# one without them, for when the rotor has blurred into a disc. Keeping
+		# both lets the shadow follow the rotor state instead of showing a
+		# stopped rotor's blades under a spinning one.
+		_shadow_parked = _shadow.texture
+		if sprites.has("shadow_spin"):
+			_shadow_spinning = load(sprites["shadow_spin"])
 	if sprites.has("body"):
 		_body = Sprite2D.new()
 		_body.texture = load(sprites["body"])
 		_body.position = BODY_BASE_OFFSET
 		add_child(_body)
-	if sprites.has("rotor_spin_frames"):
+	if sprites.has("rotor_spin_frames") or sprites.has("rotors"):
 		_add_rotors(model_key, sprites)
 	# Parented to self, not the body, so it stays on the pad rather than
 	# riding up with the aircraft.
@@ -89,6 +98,25 @@ func setup(model_key: String, screen_pos: Vector2) -> void:
 		move_child(_ground_effect, 0)
 
 
+# Which idle/spin frames hub `index` uses. Most models share one set across
+# every hub (a tiltrotor's two nacelles, a turboprop's four engines), so those
+# just set rotor_idle_frames/rotor_spin_frames once. A helicopter can't: its
+# tail rotor is entirely different art from its main rotor, so it lists one
+# entry per hub under "rotors" instead, parallel to rotor_offsets.
+#
+# Static so RotorEditor can resolve the same art for its preview without
+# duplicating the rule.
+static func hub_frames(sprites: Dictionary, index: int) -> Dictionary:
+	var per_hub: Array = sprites.get("rotors", [])
+	if index < per_hub.size():
+		var entry: Dictionary = per_hub[index]
+		return {"idle": entry.get("idle", []), "spin": entry.get("spin", [])}
+	return {
+		"idle": sprites.get("rotor_idle_frames", []),
+		"spin": sprites.get("rotor_spin_frames", []),
+	}
+
+
 # Propeller/rotor models only - two alternate states per hub, not layered:
 # a stationary "idle" sprite shown while parked, swapped for a "spin"
 # flipbook while taking off (a static single frame for a tiltrotor's glow,
@@ -99,13 +127,29 @@ func setup(model_key: String, screen_pos: Vector2) -> void:
 # without a code change.
 func _add_rotors(model_key: String, sprites: Dictionary) -> void:
 	var offsets := AircraftRig.get_rotor_offsets(model_key)
-	var idle_frames: Array = sprites.get("rotor_idle_frames", [])
+	# Hubs flagged as behind the fuselage. show_behind_parent draws the sprite
+	# before its parent, so a flagged rotor lands between the shadow and the
+	# body (the shadow is an earlier sibling of _body, so its whole subtree is
+	# already done by then) - which is what an inboard far-wing prop needs.
+	# Reparenting to self would work too but would lose the body's position
+	# and flip, which these inherit for free as its children.
+	var behind := AircraftRig.get_rotor_behind(model_key)
 	for i in range(offsets.size()):
+		var frames := hub_frames(sprites, i)
+		var spin_frames: Array = frames["spin"]
+		if spin_frames.is_empty():
+			continue
 		var offset: Vector2 = offsets[i]
 		var phase_delay := i * ROTOR_FRAME_DURATION * 0.5
+		var draw_behind: bool = i < behind.size() and behind[i]
+		var idle_frames: Array = frames["idle"]
 		if not idle_frames.is_empty():
-			_rotors_idle.append(_add_flipbook(idle_frames, offset, phase_delay))
-		_rotors_spin.append(_add_flipbook(sprites["rotor_spin_frames"], offset, phase_delay))
+			var idle := _add_flipbook(idle_frames, offset, phase_delay)
+			idle.show_behind_parent = draw_behind
+			_rotors_idle.append(idle)
+		var spin := _add_flipbook(spin_frames, offset, phase_delay)
+		spin.show_behind_parent = draw_behind
+		_rotors_spin.append(spin)
 	for rotor in _rotors_spin:
 		rotor.visible = false
 
@@ -141,6 +185,8 @@ func _show_spin_rotors() -> void:
 		rotor.visible = false
 	for rotor in _rotors_spin:
 		rotor.visible = true
+	if _shadow and _shadow_spinning:
+		_shadow.texture = _shadow_spinning
 
 
 # Idempotent, and called from _exit_tree as well - a plane freed mid-run
@@ -162,6 +208,8 @@ func _show_idle_rotors() -> void:
 		rotor.visible = true
 	for rotor in _rotors_spin:
 		rotor.visible = false
+	if _shadow and _shadow_parked:
+		_shadow.texture = _shadow_parked
 
 
 # Keeps the parked position current (aprons can be re-placed with the apron
@@ -186,11 +234,11 @@ func play_arrival() -> void:
 # apron. Nothing traced yet -> stays put at the apron, same as before.
 func _play_runway_arrival() -> void:
 	var path_data := PathLayout.load_data()
-	var body_points := PathLayout.points_to_vectors(path_data["plane_arrival_body"])
+	var body_points := PathLayout.points_to_vectors(path_data.get("plane_arrival_body", []))
 	if body_points.is_empty():
 		_settle_at_home()
 		return
-	var shadow_points := PathLayout.points_to_vectors(path_data["plane_arrival_shadow"])
+	var shadow_points := PathLayout.points_to_vectors(path_data.get("plane_arrival_shadow", []))
 	if shadow_points.is_empty():
 		shadow_points = body_points
 
@@ -372,11 +420,13 @@ func _play_runway_departure() -> void:
 	var path_data := PathLayout.load_data()
 	# Falls back to staying put (and the shadow falls back to riding glued
 	# to the body) if these haven't been traced yet with PathEditor (press T
-	# in-game) - harmless no-op instead of a crash.
-	var body_points := PathLayout.points_to_vectors(path_data["plane_body"])
+	# in-game) - harmless no-op instead of a crash. Read with .get(): paths
+	# are per-airport now, so an airport nobody has traced yet has no keys at
+	# all, not empty ones.
+	var body_points := PathLayout.points_to_vectors(path_data.get("plane_body", []))
 	if body_points.is_empty():
 		body_points = [position]
-	var shadow_points := PathLayout.points_to_vectors(path_data["plane_shadow"])
+	var shadow_points := PathLayout.points_to_vectors(path_data.get("plane_shadow", []))
 	if shadow_points.is_empty():
 		shadow_points = body_points
 	var facing_right := body_points[-1].x >= body_points[0].x

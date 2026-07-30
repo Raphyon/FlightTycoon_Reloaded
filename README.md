@@ -31,7 +31,10 @@ tools/
   propgen.py    generates 2-frame prop/rotor blur strips in the game's format
   plane_derive.py     builds world body+shadow for the jet fleet from the
                 shop icons (lifting out their baked cast shadow), or from
-                source-assets/original where a replacement exists
+                source-assets/original where a replacement exists, or from
+                source-assets/aircraft for dump world sprites that arrive
+                already shadow-free (WORLD_CLEAN - the A400M); also splits
+                prop strips into hub-aligned per-frame files
   blackhawk_derive.py separate because the Black Hawk needs a different
                 shadow test (hue, not alpha) and a rotor blur built by
                 rotate-accumulating its own blades
@@ -98,6 +101,14 @@ read as fast rotation. Do not normalise them to a single value. Play at 12–16f
 
 `tools/propgen.py` generates strips to this spec for aircraft whose slot-3
 asset is missing. Parameterised by cell size, blade count and hub radius.
+
+Not every strip is two frames: the A400M's carries four, a full rotation
+cycle, and includes a dark spinner hub rather than being pure white. Frames
+are split on their empty columns, but each is then pasted into an identical
+cell with its hub on a fixed spot — the content spans differ in width
+(24/24/24/23) and `WorldAircraft` draws frames with a centered `Sprite2D`, so
+cropping each to its own bounds would re-center it and make the disc wander
+between frames. See `split_prop_strip` in `plane_derive.py`.
 
 ### Altitude
 

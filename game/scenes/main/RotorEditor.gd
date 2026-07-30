@@ -12,30 +12,52 @@ extends Node2D
 #   1-9        select which rotor hub you're placing (models with a single
 #              prop, like the P-51, only use 1)
 #   click      set the selected rotor's position - preview updates live
+#   B          toggle whether the selected rotor draws behind the fuselage
+#              (an inboard prop on the far wing is partly hidden by the hull,
+#              so its disc must not paint over it)
 #
 # Saves immediately to res://data/aircraft_rig.json, one entry per model.
 
-const MODEL_KEYS := ["v22", "p51", "blackh"]
+const WorldAircraftScript := preload("res://scenes/main/WorldAircraft.gd")
 const MARKER_RADIUS := 5.0
-const ROTOR_COLORS := [Color(1, 0.3, 0.3, 0.9), Color(0.3, 0.6, 1, 0.9), Color(0.3, 1, 0.5, 0.9)]
+# One distinct colour per hub. Needs to cover the largest rotor count in the
+# fleet - the A400M's four turboprops wrapped a three-colour list, giving
+# rotors 1 and 4 the same marker with no way to tell them apart while placing.
+const ROTOR_COLORS := [
+	Color(1, 0.3, 0.3, 0.9),      # 1 red
+	Color(0.3, 0.6, 1, 0.9),      # 2 blue
+	Color(0.3, 1, 0.5, 0.9),      # 3 green
+	Color(1, 0.85, 0.25, 0.9),    # 4 yellow
+	Color(0.85, 0.45, 1, 0.9),    # 5 violet
+	Color(0.3, 0.95, 0.95, 0.9),  # 6 cyan
+]
 
 var editing := false
 var model_index := 0
 var selected := 0
+# Discovered from Fleet.WORLD_SPRITES rather than hardcoded: a fixed list left
+# the A400M unreachable here the moment it joined the fleet, which is exactly
+# the failure that makes a manual placement tool useless.
+var _model_keys: Array[String] = []
 var _offsets: Array[Vector2] = []
+var _behind: Array[bool] = []
 var _reference_pos := Vector2.ZERO
 var _preview_body: Sprite2D
 var _preview_rotors: Array[Sprite2D] = []
-var _hud_layer: CanvasLayer
-var _hud_label: Label
+var _hud: EditorHud
 
 
 func _ready() -> void:
-	_build_hud()
+	for key in Fleet.WORLD_SPRITES:
+		var s: Dictionary = Fleet.WORLD_SPRITES[key]
+		if s.has("rotor_spin_frames") or s.has("rotors"):
+			_model_keys.append(key)
+	_model_keys.sort()
+	_hud = EditorHud.create(self)
 
 
 func _model_key() -> String:
-	return MODEL_KEYS[model_index]
+	return _model_keys[model_index] if model_index < _model_keys.size() else ""
 
 
 func _input(event: InputEvent) -> void:
@@ -48,10 +70,16 @@ func _input(event: InputEvent) -> void:
 				_clear_preview()
 			_update_hud()
 		elif editing and event.keycode == KEY_M:
-			model_index = wrapi(model_index + 1, 0, MODEL_KEYS.size())
+			model_index = wrapi(model_index + 1, 0, _model_keys.size())
 			selected = 0
 			_drop_preview()
 			_update_hud()
+		elif editing and event.keycode == KEY_B:
+			if selected < _behind.size():
+				_behind[selected] = not _behind[selected]
+				_apply_behind()
+				_save()
+				_update_hud()
 		elif editing and event.keycode >= KEY_1 and event.keycode <= KEY_9:
 			var idx: int = event.keycode - KEY_1
 			if idx < _offsets.size():
@@ -67,31 +95,44 @@ func _input(event: InputEvent) -> void:
 
 func _drop_preview() -> void:
 	_clear_preview()
+	var sprites: Dictionary = Fleet.WORLD_SPRITES.get(_model_key(), {})
+	if not sprites.has("body") or not (sprites.has("rotor_spin_frames") or sprites.has("rotors")):
+		return
 	var cam := get_viewport().get_camera_2d()
 	_reference_pos = cam.get_screen_center_position() if cam else Vector2.ZERO
 
 	_offsets = AircraftRig.get_rotor_offsets(_model_key())
 	if _offsets.is_empty():
 		_offsets = [Vector2.ZERO]
+	_behind = AircraftRig.get_rotor_behind(_model_key())
+	while _behind.size() < _offsets.size():
+		_behind.append(false)
 
-	var sprites: Dictionary = Fleet.WORLD_SPRITES.get(_model_key(), {})
 	_preview_body = Sprite2D.new()
 	_preview_body.texture = load(sprites["body"])
 	_preview_body.position = _reference_pos
 	add_child(_preview_body)
 
-	# Prefer the stationary "idle" look for the preview since that's what's
-	# actually visible while parked; models with no idle art (like the P-51)
-	# fall back to the first spin frame just so there's something to align.
-	var preview_frames: Array = sprites.get("rotor_idle_frames", sprites["rotor_spin_frames"])
-	var preview_texture: Texture2D = load(preview_frames[0])
+	# Each hub previews its own art, resolved through the same rule the game
+	# uses (WorldAircraft.hub_frames) - a helicopter's tail rotor must not
+	# preview as a second main rotor, or you'd be aligning the wrong sprite.
+	# Prefer the stationary "idle" look since that's what's visible while
+	# parked; hubs with no idle art (the P-51, the A400M) fall back to the
+	# first spin frame just so there's something to align.
 	_preview_rotors.clear()
-	for offset in _offsets:
+	for i in range(_offsets.size()):
+		var frames: Dictionary = WorldAircraftScript.hub_frames(sprites, i)
+		var idle: Array = frames["idle"]
+		var spin: Array = frames["spin"]
+		var paths: Array = idle if not idle.is_empty() else spin
+		if paths.is_empty():
+			continue
 		var rotor := Sprite2D.new()
-		rotor.texture = preview_texture
-		rotor.position = offset
+		rotor.texture = load(paths[0])
+		rotor.position = _offsets[i]
 		_preview_body.add_child(rotor)
 		_preview_rotors.append(rotor)
+	_apply_behind()
 
 
 func _clear_preview() -> void:
@@ -104,15 +145,26 @@ func _clear_preview() -> void:
 func _place(pos: Vector2) -> void:
 	_offsets[selected] = pos - _reference_pos
 	_preview_rotors[selected].position = _offsets[selected]
-
-	var data := AircraftRig.load_data()
-	var stored: Array = []
-	for o in _offsets:
-		stored.append([o.x, o.y])
-	data[_model_key()] = stored
-	AircraftRig.save_data(data)
+	_save()
 	queue_redraw()
 	_update_hud()
+
+
+# Mirrors the flag onto the live preview so B shows its effect immediately.
+func _apply_behind() -> void:
+	for i in range(_preview_rotors.size()):
+		_preview_rotors[i].show_behind_parent = i < _behind.size() and _behind[i]
+
+
+func _save() -> void:
+	var data := AircraftRig.load_data()
+	var stored: Array = []
+	for i in range(_offsets.size()):
+		# Always written as [x, y, behind] - a two-element entry means "flag
+		# never set", which AircraftRig reads as deferring to the model default.
+		stored.append([_offsets[i].x, _offsets[i].y, 1 if (i < _behind.size() and _behind[i]) else 0])
+	data[_model_key()] = stored
+	AircraftRig.save_data(data)
 
 
 func _draw() -> void:
@@ -126,43 +178,19 @@ func _draw() -> void:
 		draw_circle(p, MARKER_RADIUS, color)
 
 
-func _build_hud() -> void:
-	_hud_layer = CanvasLayer.new()
-	_hud_layer.layer = 50
-	_hud_layer.visible = false
-	add_child(_hud_layer)
-
-	var panel := PanelContainer.new()
-	panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	panel.set_anchors_preset(Control.PRESET_TOP_LEFT)
-	panel.position = Vector2(12, 12)
-	var style := StyleBoxFlat.new()
-	style.bg_color = Color(0, 0, 0, 0.7)
-	style.content_margin_left = 10
-	style.content_margin_right = 10
-	style.content_margin_top = 8
-	style.content_margin_bottom = 8
-	panel.add_theme_stylebox_override("panel", style)
-	_hud_layer.add_child(panel)
-
-	_hud_label = Label.new()
-	_hud_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_hud_label.add_theme_color_override("font_color", Color.WHITE)
-	_hud_label.add_theme_font_size_override("font_size", 14)
-	panel.add_child(_hud_label)
-
-
 func _update_hud() -> void:
-	_hud_layer.visible = editing
 	if not editing:
+		_hud.set_lines(false, [])
 		return
 	var lines: Array[String] = [
-		"ROTOR EDITOR - %s  (R to exit, M to switch model)" % _model_key(),
+		"ROTOR EDITOR - %s  [%d/%d]  (R to exit, M to switch model)"
+			% [_model_key(), model_index + 1, _model_keys.size()],
 		"",
 		"Selected: rotor %d" % (selected + 1),
 	]
 	for i in range(_offsets.size()):
-		lines.append("  rotor %d offset: (%.1f, %.1f)" % [i + 1, _offsets[i].x, _offsets[i].y])
+		var tag := "  BEHIND hull" if (i < _behind.size() and _behind[i]) else ""
+		lines.append("  rotor %d offset: (%.1f, %.1f)%s" % [i + 1, _offsets[i].x, _offsets[i].y, tag])
 	lines.append("")
-	lines.append("1-%d = select rotor   click = place it" % _offsets.size())
-	_hud_label.text = "\n".join(lines)
+	lines.append("1-%d = select rotor   click = place it   B = behind/front" % _offsets.size())
+	_hud.set_lines(true, lines)

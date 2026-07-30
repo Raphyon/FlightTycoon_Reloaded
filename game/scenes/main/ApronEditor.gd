@@ -4,7 +4,8 @@ extends Node2D
 # one - one system for everything instead of Zone1 being a special case.
 #
 #   P          toggle placement mode on/off
-#   1-7        pick which area you're editing (order = ApronLayout.AREA_NAMES)
+#   1-7        pick which area you're editing (order = Maps.areas_for(),
+#              i.e. the areas of the airport you're currently standing in)
 #   left click place an apron exactly where you click (click empty ground to
 #              add, click an existing one to remove) - no grid snapping, since
 #              not every apron-shaped tile sits on the same lattice.
@@ -29,18 +30,58 @@ var area_index := 0
 var data: Dictionary = {}
 var _slots: Dictionary = {}  # area_name -> {apron_id: Area2D}
 var _world_aircraft: Dictionary = {}  # aircraft_id -> Node2D
+var _hud: EditorHud
 var _hover_pos := Vector2.ZERO
 var _hover_valid := false
 
 
 func _ready() -> void:
-	data = ApronLayout.load_area_data()
-	if not data.has("Zone1"):
-		data["Zone1"] = ApronLayout.default_zone1_points()
-		ApronLayout.save_area_data(data)
-	for area_name in ApronLayout.AREA_NAMES:
-		_slots[area_name] = {}
+	if Maps.current == Maps.DEFAULT_MAP and not ApronLayout.load_area_data().has("Zone1"):
+		var seed_data := ApronLayout.load_area_data()
+		seed_data["Zone1"] = ApronLayout.default_zone1_points()
+		ApronLayout.save_area_data(seed_data)
 	Fleet.fleet_changed.connect(_rebuild_all)
+	_hud = EditorHud.create(self)
+	reload_for_map()
+
+
+# Re-reads this airport's aprons and rebuilds from scratch. Called on travel:
+# `data` and `_slots` are per-map, so a plain _rebuild_all() after a map change
+# would redraw the airport you just left (it renders the in-memory data) and
+# blow up on any area the previous map didn't have.
+# Which airport, which area, and how many aprons sit in each - the counts are
+# what tell you whether you've actually placed into the area you meant, since
+# the area names on the newer maps are provisional and easy to lose track of.
+func _update_hud() -> void:
+	if _hud == null:
+		return
+	var areas := _areas()
+	var lines: Array = [
+		"APRON EDITOR - %s  (P to exit)" % Maps.display_name(),
+		"",
+	]
+	var total := 0
+	for i in range(areas.size()):
+		var area_name: String = areas[i]
+		var count: int = (data.get(area_name, []) as Array).size()
+		total += count
+		lines.append("%s %d  %-14s %3d" % [">" if i == area_index else " ", i + 1, area_name, count])
+	lines.append("")
+	lines.append("%d aprons on this map   ·   1-%d = area" % [total, areas.size()])
+	lines.append("click ground = add   ·   click a tile = remove")
+	_hud.set_lines(editing, lines)
+
+
+func reload_for_map() -> void:
+	for area_name in _slots.keys():
+		for slot in _slots[area_name].values():
+			slot.queue_free()
+	_slots.clear()
+	for area_name in _areas():
+		_slots[area_name] = {}
+	data = ApronLayout.load_area_data()
+	area_index = 0
+	_update_hud()
 	_rebuild_all()
 
 
@@ -60,21 +101,26 @@ func _find_slot(apron_id: int) -> Area2D:
 	return null
 
 
+func _areas() -> Array:
+	return Maps.areas_for()
+
+
 func _current_area_name() -> String:
-	return ApronLayout.AREA_NAMES[area_index]
+	var areas := _areas()
+	return areas[area_index] if area_index < areas.size() else ""
 
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed:
 		if event.keycode == KEY_P:
 			editing = !editing
-			print("Apron editor %s - editing %s" % ["ON" if editing else "OFF", _current_area_name()])
+			_update_hud()
 			queue_redraw()
 		elif editing and event.keycode >= KEY_1 and event.keycode <= KEY_7:
 			var idx: int = event.keycode - KEY_1
-			if idx < ApronLayout.AREA_NAMES.size():
+			if idx < _areas().size():
 				area_index = idx
-				print("Editing area: %s" % _current_area_name())
+				_update_hud()
 
 	if not editing:
 		return
@@ -104,6 +150,7 @@ func _add_point(pos: Vector2) -> void:
 	print("Added %s (%d,%d)" % [area_name, roundi(pos.x), roundi(pos.y)])
 	data[area_name] = list
 	ApronLayout.save_area_data(data)
+	_update_hud()
 	# Deferred: rebuilding spawns a new pickable Area2D right under the
 	# cursor. Doing that synchronously meant the same click could also get
 	# picked up by physics picking for the shape that just appeared,
@@ -122,6 +169,7 @@ func _remove_point(pos: Vector2) -> void:
 	print("Removed %s (%d,%d)" % [area_name, roundi(pos.x), roundi(pos.y)])
 	data[area_name] = list
 	ApronLayout.save_area_data(data)
+	_update_hud()
 	call_deferred("_rebuild_all")
 
 
@@ -142,8 +190,8 @@ func _point_in_apron_footprint(pos: Vector2, center: Vector2) -> bool:
 
 
 func _rebuild_all() -> void:
-	var starts: Dictionary = ApronLayout.compute_id_starts(data)
-	for area_name in ApronLayout.AREA_NAMES:
+	var starts: Dictionary = ApronLayout.compute_id_starts()
+	for area_name in _areas():
 		_rebuild(area_name, starts[area_name])
 	_sync_world_aircraft()
 

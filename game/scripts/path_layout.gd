@@ -24,26 +24,35 @@ const PLANE_PATH_KEYS := [
 ]
 
 
-static func load_data() -> Dictionary:
-	var data: Dictionary = {}
-	if FileAccess.file_exists(SAVE_PATH):
-		var f := FileAccess.open(SAVE_PATH, FileAccess.READ)
-		var text := f.get_as_text()
-		f.close()
-		var parsed: Variant = JSON.parse_string(text)
-		if parsed is Dictionary:
-			data = parsed
-	for key in PLANE_PATH_KEYS:
-		data[key] = data.get(key, [])
-	data["roads"] = data.get("roads", {})
-	return data
+static func load_all() -> Dictionary:
+	if not FileAccess.file_exists(SAVE_PATH):
+		return {}
+	var f := FileAccess.open(SAVE_PATH, FileAccess.READ)
+	var text := f.get_as_text()
+	f.close()
+	var parsed: Variant = JSON.parse_string(text)
+	return Maps.unwrap_layout(parsed) if parsed is Dictionary else {}
 
 
-static func save_data(data: Dictionary) -> void:
+static func save_all(all_data: Dictionary) -> void:
 	DirAccess.make_dir_recursive_absolute("res://data")
 	var f := FileAccess.open(SAVE_PATH, FileAccess.WRITE)
-	f.store_string(JSON.stringify(data, "\t"))
+	f.store_string(JSON.stringify(all_data, "\t"))
 	f.close()
+
+
+# One airport's traced paths - the current one unless told otherwise. Each
+# airport has its own runway and its own roads, so none of this is shared.
+static func load_data(map_key: String = "") -> Dictionary:
+	var key := map_key if map_key != "" else Maps.current
+	return load_all().get(key, {})
+
+
+static func save_data(data: Dictionary, map_key: String = "") -> void:
+	var key := map_key if map_key != "" else Maps.current
+	var all_data := load_all()
+	all_data[key] = data
+	save_all(all_data)
 
 
 static func points_to_vectors(points: Array) -> Array[Vector2]:

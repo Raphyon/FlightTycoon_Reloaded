@@ -32,11 +32,22 @@ var _next_spawn: Dictionary = {}  # road_name -> seconds remaining
 func _ready() -> void:
 	_reload_roads()
 	get_node("../PathEditor").roads_changed.connect(_reload_roads)
+	# Roads are traced per airport, so travelling has to drop the old ones and
+	# clear any vehicle still driving along a road that no longer exists here.
+	Maps.map_changed.connect(_on_map_changed)
+
+
+func _on_map_changed(_map_key: String) -> void:
+	for vehicle in get_children():
+		vehicle.queue_free()
+	_next_spawn.clear()
+	_reload_roads()
 
 
 func _reload_roads() -> void:
 	var data := PathLayout.load_data()
-	var roads: Dictionary = data["roads"]
+	# .get(): an airport with no traced roads has no "roads" key at all.
+	var roads: Dictionary = data.get("roads", {})
 	_roads.clear()
 	for road_name in roads.keys():
 		var road: Dictionary = roads[road_name]
@@ -79,7 +90,12 @@ func _spawn(road: Dictionary) -> void:
 		total_distance += points[i].distance_to(points[i + 1])
 	var duration := total_distance / VEHICLE_SPEED
 
-	var tween := create_tween()
+	# Bound to the vehicle, not to self: Godot kills a node's own tweens when
+	# the node is freed, so a vehicle removed mid-drive takes its tween with
+	# it. Created on self, the tween outlived the sprite and kept assigning to
+	# a freed object - which is what travelling between airports triggered,
+	# since that clears traffic that's still part-way along a road.
+	var tween := vehicle.create_tween()
 	tween.tween_method(
 		func(u: float) -> void: _on_vehicle_progress(vehicle, key, points, u),
 		0.0, 1.0, duration
@@ -88,6 +104,10 @@ func _spawn(road: Dictionary) -> void:
 
 
 func _on_vehicle_progress(vehicle: Sprite2D, key: String, points: Array[Vector2], u: float) -> void:
+	# queue_free is deferred, so a tween can still get one more tick in after
+	# the vehicle is marked for removal.
+	if not is_instance_valid(vehicle):
+		return
 	vehicle.position = PathLayout.position_along_path(points, u)
 	_update_facing(vehicle, key, PathLayout.direction_along_path(points, u))
 

@@ -256,7 +256,76 @@
       }
     },
     "a400m": {
-      "world": {},
+      "world": {
+        "body": {
+          "file": "aircraft_a400m_1_2x.png",
+          "width": 200,
+          "height": 133,
+          "bbox": [
+            0,
+            0,
+            199,
+            132
+          ],
+          "pad": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "flat_alpha": 255,
+          "max_alpha": 255,
+          "mean_rgb": [
+            116.7,
+            138.5,
+            146.5
+          ],
+          "scale": 2,
+          "source": "aircraft_a400m_1_2x.png"
+        },
+        "prop": {
+          "file": "aircraft_a400m_3_2x.png",
+          "width": 171,
+          "height": 58,
+          "bbox": [
+            14,
+            11,
+            153,
+            41
+          ],
+          "pad": [
+            14,
+            17,
+            11,
+            16
+          ],
+          "flat_alpha": 127,
+          "max_alpha": 255,
+          "mean_rgb": [
+            239.7,
+            239.7,
+            239.7
+          ],
+          "frames": 4,
+          "gutters": [
+            [
+              38,
+              48
+            ],
+            [
+              73,
+              89
+            ],
+            [
+              114,
+              130
+            ]
+          ],
+          "cell_width": 43,
+          "scale": 2,
+          "source": "aircraft_a400m_3_2x.png"
+        }
+      },
       "shop": {
         "white": {
           "file": "A400M_white.png",
