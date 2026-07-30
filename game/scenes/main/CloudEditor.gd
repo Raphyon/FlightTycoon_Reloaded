@@ -125,6 +125,23 @@ func _rebuild_all() -> void:
 	for area_name in _slots.keys().duplicate():
 		_slots[area_name].queue_free()
 	_slots.clear()
+
+	# An airport that borrows another's cloud positions covers everything
+	# outside its own zone permanently - ZoneProgress has no say, because those
+	# regions were never purchasable here (see Maps "cloud_cover_from").
+	var cover_from: String = Maps.entry().get("cloud_cover_from", "")
+	if cover_from != "":
+		var borrowed := CloudLayout.load_data(cover_from)
+		for area_name in CloudLayout.lockable_areas(cover_from):
+			if not borrowed.has(area_name):
+				continue
+			var bp: Array = borrowed[area_name]
+			var cover: Node2D = CLOUD_SLOT_SCENE.instantiate()
+			get_node("../Clouds").add_child(cover)
+			cover.setup(area_name, Vector2(bp[0], bp[1]))
+			_slots[area_name] = cover
+		return
+
 	for area_name in CloudLayout.lockable_areas():
 		if ZoneProgress.is_unlocked(area_name) or not data.has(area_name):
 			continue

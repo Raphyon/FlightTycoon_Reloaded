@@ -19,6 +19,9 @@ var _categories: Array = []
 
 func _ready() -> void:
 	_close_button.pressed.connect(hide)
+	# The reference uses a bottom-right arrow, not a full-width bar.
+	_close_button.visible = false
+	BackButton.add_to($Frame, hide)
 	_categories = [
 		{"icon": "button_store01@2x.png", "label": "Aircraft Shop", "on_pressed": _open_aircraft_shop},
 		{"icon": "button_store02@2x.png", "label": "Fuel Shop", "on_pressed": _open_fuel_shop},

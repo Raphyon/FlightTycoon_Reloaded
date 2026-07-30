@@ -1,18 +1,20 @@
 extends Control
 
-# Simple generic padlock drawn in code - not tracing anyone's specific icon
-# art, just a rectangle + an arc.
+# Dims a shop card and stamps a padlock over it.
+#
+# The padlock is the source game's own icon, rasterised from its SVG by
+# tools/svg_icon.py. This used to be a rectangle and an arc drawn in code,
+# deliberately generic because no lock art existed. It does now.
+const LOCK := preload("res://assets/hud/icon_lock.png")
+
+const DIM := Color(0, 0, 0, 0.55)
+# Fraction of the card's short side the padlock spans.
+const LOCK_SCALE := 0.42
 
 
 func _draw() -> void:
-	draw_rect(Rect2(Vector2.ZERO, size), Color(0, 0, 0, 0.55))
+	draw_rect(Rect2(Vector2.ZERO, size), DIM)
 
-	var cx := size.x * 0.5
-	var body_w := size.x * 0.32
-	var body_h := size.y * 0.26
-	var body_top := size.y * 0.56
-
-	var shackle_r := body_w * 0.4
-	var shackle_center := Vector2(cx, body_top)
-	draw_arc(shackle_center, shackle_r, PI, TAU, 24, Color(0.95, 0.95, 0.95), 4.0)
-	draw_rect(Rect2(cx - body_w * 0.5, body_top, body_w, body_h), Color(0.95, 0.95, 0.95), true)
+	var side := minf(size.x, size.y) * LOCK_SCALE
+	var lock_size := Vector2(side * LOCK.get_width() / LOCK.get_height(), side)
+	draw_texture_rect(LOCK, Rect2((size - lock_size) * 0.5, lock_size), false)

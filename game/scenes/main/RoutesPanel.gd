@@ -1,0 +1,396 @@
+extends PanelContainer
+
+# Every aircraft currently in service, as a table: what it is, where it's gone,
+# how long it has left, and one button that does whatever that aircraft needs
+# next.
+#
+# The point of the single button is remoteness. Each of these actions already
+# exists as a bubble on an apron, but the destination ones are at the robot's
+# airport - so without this you'd have to fly over, claim, refuel, and come
+# back for every aircraft. Here the whole loop is driveable from home.
+const ROW_BOARD := preload("res://assets/board/board_aircraft_list@2x.png")
+const ACTION_TEXTURE := preload("res://assets/buttons/button_orange2@2x.png")
+const COUNT_BOARD_TEXTURE := preload("res://assets/board/board_airline4@2x.png")
+
+const COUNT_BOARD_SIZE := Vector2(410, 62)
+const BOARD_RIGHT_MARGIN := 20.0
+const BOARD_TOP_MARGIN := 24.0
+
+# Narrower than the panel on purpose: the back arrow occupies the bottom-right
+# corner (x1038 onward on a 1152-wide panel), and a centred 980px row reached
+# x1066 - straight through it. Plus room for the scrollbar.
+const ROW_SIZE := Vector2(900, 62)
+const SCROLLBAR_ALLOWANCE := 14.0
+const ICON_SIZE := Vector2(52, 52)
+# Half the row's height, so a line reads as exactly two buttons tall. The
+# button art is natively 136x62; drawn at half height it needs a smaller label
+# to match, hence ACTION_FONT being well under the row's own font size.
+const ACTION_SIZE := Vector2(118, 31)
+const ACTION_FONT := 13
+# Column x positions inside a row.
+const COL_ICON := 10.0
+const COL_TYPE := 84.0
+const COL_DEST := 330.0
+const COL_TIME := 560.0
+const COL_ACTION := 752.0
+const ROW_FONT := 17
+
+enum Sort { TYPE, TIME, COMPLETED }
+
+const SORTS := [
+	{"sort": Sort.TYPE, "label": "Type"},
+	{"sort": Sort.TIME, "label": "Time left"},
+	{"sort": Sort.COMPLETED, "label": "Ready"},
+]
+
+# What each state needs next, and what to call it. FLYING_* are absent on
+# purpose: an aircraft in the air has nothing you can do for it.
+const ACTIONS := {
+	FleetAircraft.State.PARKED: "Depart",
+	FleetAircraft.State.AWAITING_DEST_CLAIM: "Collect",
+	FleetAircraft.State.AWAITING_DEST_REFUEL: "Send home",
+	FleetAircraft.State.AWAITING_HOME_CLAIM: "Collect",
+	FleetAircraft.State.AWAITING_HOME_REFUEL: "Refuel",
+}
+
+@onready var _grid: GridContainer = $Frame/SafeArea/Margin/VBox/Grid
+var _scroll: ScrollContainer
+@onready var _close_button: Button = $Frame/SafeArea/Margin/VBox/CloseButton
+@onready var _vbox: VBoxContainer = $Frame/SafeArea/Margin/VBox
+@onready var _frame: Control = $Frame
+
+var _sort: int = Sort.TIME
+var _count_label: Label
+var _empty_label: Label
+var _sort_buttons: Dictionary = {}
+
+
+func _ready() -> void:
+	_close_button.pressed.connect(hide)
+	# The reference uses a bottom-right arrow, not a full-width bar.
+	_close_button.visible = false
+	BackButton.add_to($Frame, hide)
+	Fleet.fleet_changed.connect(_on_fleet_changed)
+	get_tree().root.size_changed.connect(_fit_content)
+	_build_count_board()
+	_build_sort_row()
+	_build_empty_label()
+	_make_scrollable()
+
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_VISIBILITY_CHANGED and visible:
+		_refresh()
+		call_deferred("_fit_content")
+
+
+func _on_fleet_changed(_unused = null) -> void:
+	if visible:
+		_refresh()
+
+
+# Times tick down every frame, so the rows would go stale sitting open. Only
+# the labels are rewritten - rebuilding the rows would fight the buttons.
+func _process(_delta: float) -> void:
+	if not visible:
+		return
+	for row in _grid.get_children():
+		var a := Fleet.get_aircraft(int(row.get_meta("aircraft_id", -1)))
+		if a:
+			(row.get_meta("time_label") as Label).text = _time_text(a)
+
+
+func _fit_content() -> void:
+	var vbox: Control = $Frame/SafeArea/Margin/VBox
+	var safe_area: Control = $Frame/SafeArea
+	if not is_instance_valid(vbox) or not is_instance_valid(safe_area):
+		return
+	vbox.scale = Vector2.ONE
+	var natural := vbox.get_combined_minimum_size()
+	var available := safe_area.size
+	if natural.x <= 0 or natural.y <= 0 or available.x <= 0 or available.y <= 0:
+		return
+	var s := minf(1.0, minf(available.x / natural.x, available.y / natural.y))
+	vbox.scale = Vector2(s, s)
+
+
+# A fleet of any size overruns the panel: twelve aircraft need ~900px of rows
+# inside a ~345px area. _fit_content's shrink-to-fit is the wrong tool here -
+# at that count it would scale the table to 38% and make it unreadable - so the
+# grid goes in a ScrollContainer and keeps its real size instead.
+func _make_scrollable() -> void:
+	var parent := _grid.get_parent()
+	var at := _grid.get_index()
+	parent.remove_child(_grid)
+
+	_scroll = ScrollContainer.new()
+	_scroll.name = "RowScroll"
+	_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	_scroll.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	_scroll.custom_minimum_size = Vector2(ROW_SIZE.x + SCROLLBAR_ALLOWANCE, 0)
+	parent.add_child(_scroll)
+	parent.move_child(_scroll, at)
+
+	# The grid must not expand vertically inside the scroller, or it stretches
+	# to the viewport instead of overflowing it - and then nothing scrolls.
+	_grid.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+	_scroll.add_child(_grid)
+
+
+# --- chrome --------------------------------------------------------------
+
+func _build_count_board() -> void:
+	var wrap := Control.new()
+	wrap.name = "CountBoard"
+	wrap.anchor_left = 1.0
+	wrap.anchor_right = 1.0
+	wrap.grow_horizontal = Control.GROW_DIRECTION_BEGIN
+	wrap.offset_left = -(COUNT_BOARD_SIZE.x + BOARD_RIGHT_MARGIN)
+	wrap.offset_right = -BOARD_RIGHT_MARGIN
+	wrap.offset_top = BOARD_TOP_MARGIN
+	wrap.offset_bottom = BOARD_TOP_MARGIN + COUNT_BOARD_SIZE.y
+	wrap.mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+	var board := TextureRect.new()
+	board.texture = COUNT_BOARD_TEXTURE
+	board.set_anchors_preset(Control.PRESET_FULL_RECT)
+	board.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	board.stretch_mode = TextureRect.STRETCH_SCALE
+	board.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	wrap.add_child(board)
+
+	_count_label = Label.new()
+	_count_label.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_count_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_count_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	_count_label.add_theme_font_size_override("font_size", 21)
+	_count_label.add_theme_color_override("font_color", Color.WHITE)
+	_count_label.add_theme_color_override("font_outline_color", Color(0.11, 0.06, 0.02, 1))
+	_count_label.add_theme_constant_override("outline_size", 6)
+	_count_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	wrap.add_child(_count_label)
+
+	_frame.add_child(wrap)
+
+
+func _build_sort_row() -> void:
+	var row := HBoxContainer.new()
+	row.alignment = BoxContainer.ALIGNMENT_CENTER
+	row.add_theme_constant_override("separation", 10)
+
+	var heading := Label.new()
+	heading.text = "Sort by"
+	heading.add_theme_font_size_override("font_size", 16)
+	heading.add_theme_color_override("font_color", Color(1, 1, 1, 0.7))
+	row.add_child(heading)
+
+	var group := ButtonGroup.new()
+	for entry in SORTS:
+		var b := Button.new()
+		b.text = entry["label"]
+		b.toggle_mode = true
+		b.button_group = group
+		b.button_pressed = entry["sort"] == _sort
+		b.pressed.connect(_on_sort_pressed.bind(entry["sort"]))
+		row.add_child(b)
+		_sort_buttons[entry["sort"]] = b
+
+	_vbox.add_child(row)
+	_vbox.move_child(row, _grid.get_index())
+
+
+func _build_empty_label() -> void:
+	_empty_label = Label.new()
+	_empty_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_empty_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_empty_label.custom_minimum_size = Vector2(520, 0)
+	_empty_label.add_theme_font_size_override("font_size", 20)
+	_empty_label.add_theme_color_override("font_color", Color(1, 1, 1, 0.75))
+	_empty_label.visible = false
+	_vbox.add_child(_empty_label)
+	_vbox.move_child(_empty_label, _grid.get_index() + 1)
+
+
+func _on_sort_pressed(sort: int) -> void:
+	if sort == _sort:
+		return
+	_sort = sort
+	_refresh()
+
+
+# --- table ---------------------------------------------------------------
+
+# In service = assigned to an apron. A parked aircraft counts: it's on the
+# roster and its next action is to depart, which is exactly what this table is
+# for.
+func _routes() -> Array:
+	var out: Array = []
+	for a in Fleet.aircraft:
+		if not a.is_idle():
+			out.append(a)
+	match _sort:
+		Sort.TYPE:
+			out.sort_custom(func(x, y): return _type_name(x) < _type_name(y))
+		Sort.COMPLETED:
+			# Ready-for-action first, then by how long until they are.
+			out.sort_custom(func(x, y):
+				var rx := _has_action(x)
+				var ry := _has_action(y)
+				if rx != ry:
+					return rx
+				return x.flight_time_left < y.flight_time_left
+			)
+		_:
+			out.sort_custom(func(x, y): return x.flight_time_left < y.flight_time_left)
+	return out
+
+
+func _has_action(a: FleetAircraft) -> bool:
+	return ACTIONS.has(a.state)
+
+
+func _type_name(a: FleetAircraft) -> String:
+	for entry in ShopCatalog.ENTRIES:
+		if entry["key"] == a.model_key:
+			return entry["name"]
+	return a.model_key
+
+
+func _catalog_icon(a: FleetAircraft) -> Texture2D:
+	for entry in ShopCatalog.ENTRIES:
+		if entry["key"] == a.model_key:
+			return load("res://assets/shop/%s" % entry["icon"])
+	return null
+
+
+func _time_text(a: FleetAircraft) -> String:
+	if a.is_in_transit():
+		return "%ds" % ceili(a.flight_time_left)
+	return "Ready" if _has_action(a) else "-"
+
+
+func _destination_text(a: FleetAircraft) -> String:
+	if a.state == FleetAircraft.State.PARKED:
+		return "-"
+	var info: Dictionary = Maps.entry(Maps.ROBOT_MAP).get("visiting", {})
+	return str(info.get("name", Fleet.DESTINATION_NAME))
+
+
+func _refresh() -> void:
+	for child in _grid.get_children():
+		child.queue_free()
+
+	var routes := _routes()
+	for a in routes:
+		_grid.add_child(_build_row(a))
+
+	if _count_label:
+		var ready := 0
+		for a in routes:
+			if _has_action(a):
+				ready += 1
+		_count_label.text = "In service: %d   ·   Ready: %d" % [routes.size(), ready]
+	if _empty_label:
+		_empty_label.visible = routes.is_empty()
+		_empty_label.text = "No aircraft in service - assign one to an apron first."
+	call_deferred("_fit_content")
+
+
+func _build_row(a: FleetAircraft) -> Control:
+	var row := Control.new()
+	row.custom_minimum_size = ROW_SIZE
+	row.set_meta("aircraft_id", a.id)
+
+	row.add_child(_texture(ROW_BOARD, Vector2.ZERO, ROW_SIZE, TextureRect.STRETCH_SCALE))
+	row.add_child(_texture(_catalog_icon(a),
+		Vector2(COL_ICON, (ROW_SIZE.y - ICON_SIZE.y) * 0.5), ICON_SIZE,
+		TextureRect.STRETCH_KEEP_ASPECT_CENTERED))
+
+	row.add_child(_cell(_type_name(a), COL_TYPE, COL_DEST - COL_TYPE,
+		HORIZONTAL_ALIGNMENT_LEFT))
+	row.add_child(_cell(_destination_text(a), COL_DEST, COL_TIME - COL_DEST,
+		HORIZONTAL_ALIGNMENT_CENTER))
+
+	var time_label := _cell(_time_text(a), COL_TIME, COL_ACTION - COL_TIME,
+		HORIZONTAL_ALIGNMENT_CENTER)
+	row.add_child(time_label)
+	row.set_meta("time_label", time_label)
+
+	# ignore_texture_size BEFORE the texture, for the same reason the
+	# TextureRects need expand_mode first: otherwise the button's minimum size
+	# is its texture's, `size` clamps up to it, and the label - sized to what we
+	# asked for - ends up off-centre inside a button that grew.
+	var action := TextureButton.new()
+	action.ignore_texture_size = true
+	action.stretch_mode = TextureButton.STRETCH_KEEP_ASPECT_CENTERED
+	action.texture_normal = ACTION_TEXTURE
+	action.custom_minimum_size = ACTION_SIZE
+	action.position = Vector2(COL_ACTION, (ROW_SIZE.y - ACTION_SIZE.y) * 0.5)
+	action.size = ACTION_SIZE
+	var has_action := _has_action(a)
+	action.disabled = not has_action
+	action.modulate = Color.WHITE if has_action else Color(0.55, 0.55, 0.55, 1.0)
+	if has_action:
+		action.pressed.connect(_on_action.bind(a.id))
+	var action_label := Label.new()
+	action_label.text = ACTIONS.get(a.state, "In flight")
+	action_label.size = ACTION_SIZE
+	action_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	action_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	action_label.add_theme_font_size_override("font_size", ACTION_FONT)
+	action_label.add_theme_color_override("font_color", Color.WHITE)
+	action_label.add_theme_color_override("font_outline_color", Color(0.25, 0.10, 0.02, 1))
+	action_label.add_theme_constant_override("outline_size", 3)
+	action_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	action.add_child(action_label)
+	row.add_child(action)
+	return row
+
+
+# expand_mode BEFORE the texture, and custom_minimum_size pinned: a TextureRect
+# takes its minimum size from its texture, so assigning `size` while that
+# minimum still applies silently clamps it up to the texture's dimensions -
+# which is how a 52px icon came out 161px wide.
+func _texture(tex: Texture2D, pos: Vector2, s: Vector2, stretch: int) -> TextureRect:
+	var t := TextureRect.new()
+	t.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	t.stretch_mode = stretch
+	t.texture = tex
+	t.custom_minimum_size = s
+	t.position = pos
+	t.size = s
+	t.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	return t
+
+
+func _cell(text: String, x: float, width: float, align: int) -> Label:
+	var l := Label.new()
+	l.text = text
+	l.position = Vector2(x, 0.0)
+	l.size = Vector2(width, ROW_SIZE.y)
+	l.horizontal_alignment = align
+	l.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	l.add_theme_font_size_override("font_size", ROW_FONT)
+	l.add_theme_color_override("font_color", Color.WHITE)
+	l.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	return l
+
+
+# The one button. Which call it makes depends only on where the aircraft is in
+# its trip, so the player never has to know the difference.
+func _on_action(aircraft_id: int) -> void:
+	var a := Fleet.get_aircraft(aircraft_id)
+	if not a:
+		return
+	match a.state:
+		FleetAircraft.State.PARKED:
+			Fleet.fuel_and_depart(a.id)
+		FleetAircraft.State.AWAITING_DEST_CLAIM:
+			Fleet.claim_destination_reward(a.id)
+		FleetAircraft.State.AWAITING_DEST_REFUEL:
+			Fleet.refuel_at_destination(a.id)
+		FleetAircraft.State.AWAITING_HOME_CLAIM:
+			Fleet.claim_home_reward(a.id)
+		FleetAircraft.State.AWAITING_HOME_REFUEL:
+			Fleet.refuel_at_home(a.id)

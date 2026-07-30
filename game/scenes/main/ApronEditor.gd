@@ -36,10 +36,9 @@ var _hover_valid := false
 
 
 func _ready() -> void:
-	if Maps.current == Maps.DEFAULT_MAP and not ApronLayout.load_area_data().has("Zone1"):
-		var seed_data := ApronLayout.load_area_data()
-		seed_data["Zone1"] = ApronLayout.default_zone1_points()
-		ApronLayout.save_area_data(seed_data)
+	# Pre-fills homeland's Zone1 and the robot airport's mirror of it, whichever
+	# airport we happen to boot into.
+	ApronLayout.ensure_seeded()
 	Fleet.fleet_changed.connect(_rebuild_all)
 	_hud = EditorHud.create(self)
 	reload_for_map()
@@ -79,6 +78,15 @@ func reload_for_map() -> void:
 	_slots.clear()
 	for area_name in _areas():
 		_slots[area_name] = {}
+	# Travelling is not a departure. _sync_world_aircraft plays a takeoff
+	# animation for any aircraft it stops seeing, which is right when one is
+	# dispatched and wrong when the whole airport changes underneath it - every
+	# plane at the airport we just left would fly off. Freeing them outright
+	# here means the new airport's sync starts from nothing.
+	for node in _world_aircraft.values():
+		node.queue_free()
+	_world_aircraft.clear()
+
 	data = ApronLayout.load_area_data()
 	area_index = 0
 	_update_hud()
@@ -203,7 +211,11 @@ func _rebuild(area_name: String, start_id: int) -> void:
 
 	var points: Array = data.get(area_name, [])
 	for apron in ApronLayout.build_area_aprons(points, start_id, area_name):
-		apron.occupied = Fleet.get_aircraft_at_apron(apron.id) != null
+		# A robot pad is occupied by whoever landed on it, not by anything with
+		# this as its home apron - the two id spaces don't overlap, so asking
+		# both is safe and covers either airport.
+		apron.occupied = (Fleet.get_aircraft_at_apron(apron.id) != null
+			or Fleet.get_aircraft_at_robot_apron(apron.id) != null)
 		var slot: Area2D = APRON_SLOT_SCENE.instantiate()
 		get_node("../Aprons").add_child(slot)
 		slot.setup(apron)
@@ -213,14 +225,18 @@ func _rebuild(area_name: String, start_id: int) -> void:
 		_slots[area_name][apron.id] = slot
 
 
-# Aircraft states where the plane is away from its home apron - flying, or
-# sitting at the destination - so it shouldn't render there.
-const _AWAY_STATES := [
-	FleetAircraft.State.FLYING_OUT,
-	FleetAircraft.State.AWAITING_DEST_CLAIM,
-	FleetAircraft.State.AWAITING_DEST_REFUEL,
-	FleetAircraft.State.FLYING_BACK,
-]
+# Which pad this aircraft is physically sitting on right now, or -1 if it
+# shouldn't be drawn at all. Dispatched aircraft used to be simply hidden;
+# they're really at the robot airport now, on the pad they claimed, so the id
+# depends on where in the trip they are. Returning an id from another airport is
+# fine - _find_slot only knows the current map's pads, so it comes back null and
+# the aircraft isn't drawn here.
+func _visible_apron_for(a: FleetAircraft) -> int:
+	if a.is_idle() or a.is_in_transit():
+		return -1
+	if a.is_at_robot():
+		return a.robot_apron_id
+	return a.assigned_apron_id
 
 
 # Keeps the actual world sprites in sync with Fleet's assignment data -
@@ -230,9 +246,10 @@ const _AWAY_STATES := [
 func _sync_world_aircraft() -> void:
 	var seen := {}
 	for a in Fleet.aircraft:
-		if a.is_idle() or a.state in _AWAY_STATES:
+		var apron_id := _visible_apron_for(a)
+		if apron_id == -1:
 			continue
-		var slot: Area2D = _find_slot(a.assigned_apron_id)
+		var slot: Area2D = _find_slot(apron_id)
 		if not slot:
 			continue
 		seen[a.id] = true

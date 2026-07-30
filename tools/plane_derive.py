@@ -9,9 +9,7 @@ game/assets/aircraft/p-51mustang/body_2x.png). So the only work is
 
 The cast shadow is drawn dark and translucent while the airframe itself is
 fully opaque - that, plus an adjacency test to spare the airframe's own
-outline (which shares the shadow's colour), separates it cleanly. Note this
-is NOT the same test that worked for the Black Hawk (which keyed on hue,
-because it is olive); a hue rule would erase a blue aircraft outright.
+outline (which shares the shadow's colour), separates it cleanly.
 
 Models listed in ORIGINAL skip all of that - they come from
 source-assets/original already clean and are only cropped and scaled.
@@ -26,9 +24,10 @@ import numpy as np
 from scipy import ndimage
 import os
 
-# Whether a model is VTOL is a Fleet.WORLD_SPRITES concern, not a sprite
-# one - the derivation is identical either way, so the airship/ark/ufo ride
-# along here rather than needing their own tool.
+# The jets, derived from their shop icons. The Black Hawk, UFO, airship and
+# Ark used to ride along here too; they ship as real multi-element sheets now
+# and are handled by tools/sheet_derive.py instead, which is also where the
+# Ark's downwash rings come from.
 MODELS = {
     '747': '747_default.png',
     'a300': 'a300_default.png',
@@ -36,25 +35,12 @@ MODELS = {
     'a319': 'a319_default.png',
     'a380-300': 'a380-300_default.png',
     'an-225': 'an-225_default.png',
-    'airship': 'airship_default.png',
-    'ark': 'ark_default.png',
-    'ufo': 'ufo_blue.png',
 }
-
-# Thruster-lifted craft get the rotor-downwash rings under them. The rings
-# were cut for the V-22, whose body is 121 px wide against a 139 px ring -
-# so they're rescaled to keep that same ~1.15x overhang rather than leaving
-# a helicopter-sized puff under a much bigger hull.
-DOWNWASH_MODELS = ['ark', 'ufo']
-DOWNWASH_SRC = 'game/assets/aircraft/v22'
-DOWNWASH_RATIO = 139.0 / 121.0
 
 # The icons are drawn at world scale already, so they're used 1:1 by
 # default. These are the exceptions - at full size they sprawl well past
 # the 220x110 apron tile, crowding the pad and the airport road traffic.
 SCALE_OVERRIDES = {
-    'ark': 0.75,
-    'ufo': 0.75,
     'an-225': 0.85,
 }
 
@@ -275,18 +261,6 @@ def derive(key: str, icon: str) -> None:
              '%dx%d' % body.size, '%dx%d' % shadow.size))
 
 
-def add_downwash(key: str) -> None:
-    dest = os.path.join(OUT_DIR, key)
-    body_w = Image.open(os.path.join(dest, 'body_2x.png')).width
-    target_w = int(body_w * DOWNWASH_RATIO)
-    for frame in ['downwash_a_2x.png', 'downwash_b_2x.png']:
-        ring = Image.open(os.path.join(DOWNWASH_SRC, frame)).convert('RGBA')
-        scale = target_w / ring.width
-        ring = ring.resize((target_w, max(1, int(ring.height * scale))), Image.LANCZOS)
-        ring.save(os.path.join(dest, frame))
-    print('%-10s downwash scaled to %d px wide (body %d)' % (key, target_w, body_w))
-
-
 if __name__ == '__main__':
     for k, v in MODELS.items():
         if k in ORIGINAL:
@@ -295,5 +269,3 @@ if __name__ == '__main__':
             derive(k, v)
     for k, target_h in WORLD_CLEAN.items():
         derive_world_clean(k, target_h)
-    for k in DOWNWASH_MODELS:
-        add_downwash(k)

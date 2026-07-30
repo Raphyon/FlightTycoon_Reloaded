@@ -30,6 +30,9 @@ var _options: Dictionary = {}  # qty -> FuelOption instance
 
 func _ready() -> void:
 	_close_button.pressed.connect(hide)
+	# The reference uses a bottom-right arrow, not a full-width bar.
+	_close_button.visible = false
+	BackButton.add_to($Frame, hide)
 	FuelStore.price_changed.connect(_refresh)
 	FuelStore.fuel_changed.connect(_refresh)
 	Economy.money_changed.connect(_refresh)

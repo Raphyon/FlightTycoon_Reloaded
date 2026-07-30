@@ -22,6 +22,7 @@ config/features=PackedStringArray("4.7", "Forward Plus")
 
 IsoGrid="*res://scripts/iso_grid.gd"
 Maps="*res://scripts/maps.gd"
+Friends="*res://scripts/friends.gd"
 Economy="*res://scripts/economy.gd"
 Fleet="*res://scripts/fleet.gd"
 FuelStore="*res://scripts/fuel_store.gd"
@@ -33,6 +34,8 @@ ApronSkins="*res://scripts/apron_skins.gd"
 AircraftAffinity="*res://scripts/aircraft_affinity.gd"
 RunwayControl="*res://scripts/runway_control.gd"
 DebugState="*res://scripts/debug_state.gd"
+; Last, so it loads over autoloads that are already initialised.
+SaveGame="*res://scripts/save_game.gd"
 
 [display]
 

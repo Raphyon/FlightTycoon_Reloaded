@@ -69,9 +69,13 @@ func _refresh() -> void:
 		_action_button.disabled = Economy.money < cost
 		return
 	_slots_row.visible = true
-	_skin_column.visible = true
+	# The robot airport is somewhere you visit. Its pads aren't yours to skin
+	# any more than they're yours to assign to - the only things on offer there
+	# are collecting your planes and going home.
+	_skin_column.visible = Maps.current != Maps.ROBOT_MAP
 	_plane_column.visible = true
-	_refresh_skin_slot()
+	if _skin_column.visible:
+		_refresh_skin_slot()
 
 	var a := Fleet.get_aircraft_at_apron(_apron_id)
 	_refresh_plane_slot(a)
@@ -83,17 +87,30 @@ func _refresh() -> void:
 
 	_action_button.visible = true
 	_action_button.disabled = false
+	# Fuel burn and payout are the aircraft's own now (see ShopCatalog stats),
+	# so both have to be read per aircraft rather than off a shared constant.
+	var fuel := Fleet.fuel_cost(a.model_key)
+	var payout := Fleet.payout_for(a.model_key, Maps.ROBOT_MAP)
 	match a.state:
 		FleetAircraft.State.PARKED:
-			_status.text = "Parked - needs %d fuel" % Fleet.FUEL_PER_TRIP
-			_action_button.text = "Fuel & Depart (%s)" % Fleet.DESTINATION_NAME
-			_action_button.disabled = FuelStore.amount < Fleet.FUEL_PER_TRIP
+			# Out of range is a dead end, not a wait, so say so instead of
+			# offering a button that silently refuses.
+			if not Fleet.in_range(a.model_key, Maps.ROBOT_MAP):
+				_status.text = "Parked - can't reach %s (%d clouds)" % [
+					Fleet.DESTINATION_NAME, Fleet.distance_to(Maps.ROBOT_MAP)]
+				_action_button.text = "Out of range"
+				_action_button.disabled = true
+			else:
+				_status.text = "Parked - %d seats, needs %d fuel" % [
+					Fleet.passengers(a.model_key), fuel]
+				_action_button.text = "Fuel & Depart (%s)" % Fleet.DESTINATION_NAME
+				_action_button.disabled = FuelStore.amount < fuel
 		FleetAircraft.State.FLYING_OUT:
 			_status.text = "Flying to %s - %ds left" % [Fleet.DESTINATION_NAME, ceili(a.flight_time_left)]
 			_action_button.visible = false
 		FleetAircraft.State.AWAITING_DEST_CLAIM:
 			_status.text = "Arrived at %s" % Fleet.DESTINATION_NAME
-			_action_button.text = "Claim $%d" % Fleet.REWARD_AT_DESTINATION
+			_action_button.text = "Claim $%d" % payout
 		FleetAircraft.State.AWAITING_DEST_REFUEL:
 			_status.text = "Reward claimed"
 			_action_button.text = "Refuel (Free) & Return"
@@ -102,11 +119,11 @@ func _refresh() -> void:
 			_action_button.visible = false
 		FleetAircraft.State.AWAITING_HOME_CLAIM:
 			_status.text = "Landed home"
-			_action_button.text = "Claim $%d" % Fleet.REWARD_AT_HOME
+			_action_button.text = "Claim $%d" % payout
 		FleetAircraft.State.AWAITING_HOME_REFUEL:
-			_status.text = "Needs %d fuel to park" % Fleet.FUEL_PER_TRIP
+			_status.text = "Needs %d fuel to park" % fuel
 			_action_button.text = "Refuel & Park"
-			_action_button.disabled = FuelStore.amount < Fleet.FUEL_PER_TRIP
+			_action_button.disabled = FuelStore.amount < fuel
 
 
 func _refresh_skin_slot() -> void:
@@ -129,6 +146,20 @@ func _on_skin_button_pressed() -> void:
 
 
 func _refresh_plane_slot(a: FleetAircraft) -> void:
+	# The robot airport is somewhere you visit, not somewhere you base aircraft:
+	# its pads are landing slots for planes you dispatched, so there is nothing
+	# to assign to or replace here.
+	if Maps.current == Maps.ROBOT_MAP:
+		_plane_icon.visible = a != null
+		if a:
+			var e := _catalog_entry(a.model_key)
+			if e.size() > 0:
+				_plane_icon.texture = load("res://assets/shop/%s" % e["icon"])
+		_plane_empty_label.visible = a == null
+		_plane_button.text = "Visiting"
+		_plane_button.disabled = true
+		return
+
 	if not a:
 		_plane_icon.visible = false
 		_plane_empty_label.visible = true

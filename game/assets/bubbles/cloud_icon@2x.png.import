@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://c4r1bc7fiify0"
-path="res://.godot/imported/downwash_b_2x.png-fea64dacf699201296bbdca591201b3f.ctex"
+uid="uid://bdn874tsigebk"
+path="res://.godot/imported/cloud_icon@2x.png-85146d5c5db6a3ec4ca91b90793c177e.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/aircraft/ufo/downwash_b_2x.png"
-dest_files=["res://.godot/imported/downwash_b_2x.png-fea64dacf699201296bbdca591201b3f.ctex"]
+source_file="res://assets/bubbles/cloud_icon@2x.png"
+dest_files=["res://.godot/imported/cloud_icon@2x.png-85146d5c5db6a3ec4ca91b90793c177e.ctex"]
 
 [params]
 

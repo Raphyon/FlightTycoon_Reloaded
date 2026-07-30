@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://c4585xruj0usk"
-path="res://.godot/imported/downwash_a_2x.png-a28e27c03331e06410de2ee55419d943.ctex"
+uid="uid://cpsykp1oqgl8n"
+path="res://.godot/imported/body_spin_2x.png-16aebf3e0e0ebd52cd8b0d3153d55db3.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/aircraft/ufo/downwash_a_2x.png"
-dest_files=["res://.godot/imported/downwash_a_2x.png-a28e27c03331e06410de2ee55419d943.ctex"]
+source_file="res://assets/aircraft/ufo/body_spin_2x.png"
+dest_files=["res://.godot/imported/body_spin_2x.png-16aebf3e0e0ebd52cd8b0d3153d55db3.ctex"]
 
 [params]
 

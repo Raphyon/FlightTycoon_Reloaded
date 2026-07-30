@@ -86,24 +86,11 @@ const WORLD_SPRITES := {
 		"rotor_offsets": [Vector2(-48.5, 28.5), Vector2(27.5, -34.5)],
 	},
 	# ------------------------------------------------------------------
-	# TRIAL: derived Black Hawk, no original world art exists for it. The
-	# body is the shop icon (shop icons turn out to be the same render at
-	# the same iso angle as world bodies - compare p51_white.png against
-	# p-51mustang/body_2x.png), and the shadow is generated from that
-	# body's own silhouette the way the other shadows are built (flat
-	# black, ~80% height). Nothing here is invented art.
-	#
-	# The spin frames are the helicopter's own blade tips, rotate-accumulated
-	# around the hub where their axes converge (un-squashed to a circle
-	# first, since the disc is an ellipse in iso view). They overlay the
-	# body rather than replacing it, so the blades drawn into the icon stay
-	# put as the parked pose - that avoids having to invent fuselage pixels
-	# where the blades cross it. There are no rotor_idle_frames for the
-	# same reason: the idle state is already painted on.
-	#
-	# To drop the whole trial: delete assets/aircraft/blackh/, delete this
-	# entry, drop "blackh" from RotorEditor.MODEL_KEYS, and set its
-	# has_world_sprite back to false in ShopCatalog.
+	# Real sheet art (tools/sheet_derive.py). This was previously a TRIAL
+	# reconstruction from the shop icon - a hue-separated shadow and a rotor
+	# blur built by rotate-accumulating the blade tips - because no world art
+	# existed. The sheet turned up, so all of that is gone and so is the
+	# stand-in's wrong proportions.
 	# ------------------------------------------------------------------
 	"blackh": {
 		"body": "res://assets/aircraft/blackh/body_2x.png",
@@ -183,11 +170,19 @@ const WORLD_SPRITES := {
 	# much bigger hulls by tools/plane_derive.py); the airship floats on
 	# buoyancy and blows nothing at the ground.
 	# ------------------------------------------------------------------
+	# Real sheet art (tools/sheet_derive.py), not the old shop-icon derivation.
+	# Three liveries on the sheet; body_green/body_purple are cut and waiting on
+	# a skin system. The default matches the shop icon, which is the livery
+	# carrying the original developer's brand name on the hull - the one to
+	# replace first if this ever goes public.
 	"airship": {
 		"body": "res://assets/aircraft/airship/body_2x.png",
 		"shadow": "res://assets/aircraft/airship/shadow_2x.png",
 		"vtol": true,
 	},
+	# Real sheet art. The sheet is body-only, so the ground shadow is
+	# synthesised from its silhouette, and it keeps the V-22's downwash rings
+	# (rescaled to its hull) since it has no thruster art of its own.
 	"ark": {
 		"body": "res://assets/aircraft/ark/body_2x.png",
 		"shadow": "res://assets/aircraft/ark/shadow_2x.png",
@@ -197,26 +192,91 @@ const WORLD_SPRITES := {
 			"res://assets/aircraft/ark/downwash_b_2x.png",
 		],
 	},
+	# Real sheet art, and the one model whose whole hull changes on takeoff
+	# rather than a rotor: body_spin is the same hull with all six thrusters
+	# firing. Both frames are padded to a common canvas with the hull on the
+	# same spot, so the swap doesn't shift it (see sheet_derive.align_into).
+	#
+	# No ground_effect_frames on purpose - it used to borrow the V-22's
+	# downwash rings because it had no thruster art. It has its own now, and
+	# layering a helicopter's rotor wash under a thruster craft was always the
+	# stand-in rather than the intent.
+	#
+	# body_stone / body_stone_spin are the second livery, cut and waiting on a
+	# skin system.
 	"ufo": {
 		"body": "res://assets/aircraft/ufo/body_2x.png",
+		"body_spin": "res://assets/aircraft/ufo/body_spin_2x.png",
 		"shadow": "res://assets/aircraft/ufo/shadow_2x.png",
 		"vtol": true,
-		"ground_effect_frames": [
-			"res://assets/aircraft/ufo/downwash_a_2x.png",
-			"res://assets/aircraft/ufo/downwash_b_2x.png",
-		],
 	},
 }
 
-# Placeholder route economy - not real game balance data, just enough to
-# make the loop testable. Same trip cost to depart and to refuel at home;
-# the destination refuel is free (matches the described loop).
+# Route economy. What a leg is worth is the aircraft's business now, not a
+# flat number: see ShopCatalog for the per-model stats and how they were set.
+#
+#   payout  = capacity * fare   (distance is time, not money)
+#   fuel    = the model's own burn, charged to depart and to refuel at home;
+#             the destination refuel stays free (matches the described loop).
+#
+# Both legs pay the same, so a round trip is worth twice the figure above.
 const DESTINATION_NAME := "Robot"
-const FUEL_PER_TRIP := 5
-const REWARD_AT_DESTINATION := 150
-const REWARD_AT_HOME := 150
-const XP_PER_CLAIM := 20
-const FLIGHT_DURATION := 12.0  # seconds - short on purpose so it's testable
+
+# XP tracks what the leg was worth, so a 700-seat A380 doesn't hand out the
+# same 20 XP the 50-seat starter did. One XP per this much earned.
+const MONEY_PER_XP := 50
+
+
+func xp_for_claim(model_key: String) -> int:
+	return maxi(1, roundi(float(payout_for(model_key)) / MONEY_PER_XP))
+
+# A leg pays capacity * fare. Distance does NOT come into it - a further
+# destination costs you time, not money.
+#
+# The fare is a flat 10 for anything with a normal cabin, so the 50-seat 328
+# Jet earns 500 a leg and 1000 for the round trip it flies out and back.
+# Aircraft that carry almost nobody override it (ShopCatalog "ticket"), which
+# is the only way a 2-seat P-51 can be worth owning - the reference does the
+# same, charging 2000 a head on an F-15 and 200 on a balloon.
+const TICKET_PRICE := 10
+
+
+func ticket_price(model_key: String) -> int:
+	return int(ShopCatalog.entry_for(model_key).get("ticket", TICKET_PRICE))
+
+# Flight time multiplier per force grade, best to worst. S is the top class -
+# an S-class aircraft flies a cloud in the flat SECONDS_PER_DISTANCE, and
+# every grade below it takes proportionally longer, up to 3x for an E.
+const SPEED_FACTOR := {"S": 1.0, "A": 1.25, "B": 1.5, "C": 2.0, "D": 2.5, "E": 3.0}
+
+
+# How many passengers a leg carries: all of them.
+func passengers(model_key: String) -> int:
+	return int(ShopCatalog.stat(model_key, "seats"))
+
+
+func fuel_cost(model_key: String) -> int:
+	return int(ShopCatalog.stat(model_key, "fuel"))
+
+
+# What one leg pays, wherever it goes. map_key is accepted and ignored so the
+# call sites read the same as the flight-time ones.
+func payout_for(model_key: String, _map_key: String = "") -> int:
+	return passengers(model_key) * ticket_price(model_key)
+
+
+func in_range(model_key: String, map_key: String) -> bool:
+	return int(ShopCatalog.stat(model_key, "range")) >= distance_to(map_key)
+
+
+# Seconds of flight per cloud of distance, for an S-class aircraft - so the
+# S-class 328 Jet reaches a 1-cloud destination in exactly one minute, and
+# slower grades take their SPEED_FACTOR multiple of that. Distance is the
+# destination's own property (Maps "distance", drawn as cloud icons on the
+# visitor panel), so a further airport is a longer trip without touching this.
+#
+# This is the only thing distance changes: it costs time, never money.
+const SECONDS_PER_DISTANCE := 60.0
 
 var aircraft: Array[FleetAircraft] = []
 var _next_id := 1
@@ -233,6 +293,15 @@ func _ready() -> void:
 
 
 func _process(delta: float) -> void:
+	if _advance_flights(delta):
+		fleet_changed.emit()
+
+
+# Ticks every in-flight aircraft forward and lands the ones that arrive.
+# Returns whether anything changed. Shared with the save loader, which calls it
+# once with however long the game was closed - so the two can never disagree
+# about what "arriving" means.
+func _advance_flights(delta: float) -> bool:
 	var changed := false
 	for a in aircraft:
 		if a.state == FleetAircraft.State.FLYING_OUT or a.state == FleetAircraft.State.FLYING_BACK:
@@ -244,12 +313,49 @@ func _process(delta: float) -> void:
 					else FleetAircraft.State.AWAITING_HOME_CLAIM
 				)
 				changed = true
-	if changed:
-		fleet_changed.emit()
+	return changed
 
 
-func buy(model_key: String, price: int) -> bool:
-	if not Economy.spend_money(price):
+func to_save() -> Dictionary:
+	var out := []
+	for a in aircraft:
+		out.append({
+			"id": a.id, "model": a.model_key, "apron": a.assigned_apron_id,
+			"robot_apron": a.robot_apron_id, "state": a.state,
+			"left": a.flight_time_left,
+		})
+	return {"aircraft": out, "next_id": _next_id}
+
+
+# `elapsed` is real seconds since the save was written. Flights carry on while
+# the game is shut: coming back to an aircraft still frozen 20 seconds from
+# home would read as a bug, not as a rule. Rewards are NOT collected for you -
+# aircraft only advance as far as the awaiting-claim states, so time passing
+# saves you the wait but never earns you anything unattended.
+func load_save(data: Dictionary, elapsed: float) -> void:
+	aircraft.clear()
+	for d in data.get("aircraft", []):
+		var a := FleetAircraft.new(int(d.get("id", 0)), str(d.get("model", "328jet")))
+		a.assigned_apron_id = int(d.get("apron", -1))
+		a.robot_apron_id = int(d.get("robot_apron", -1))
+		a.state = int(d.get("state", FleetAircraft.State.PARKED))
+		a.flight_time_left = float(d.get("left", 0.0))
+		aircraft.append(a)
+	_next_id = int(data.get("next_id", aircraft.size() + 1))
+	if elapsed > 0.0:
+		_advance_flights(elapsed)
+	fleet_changed.emit()
+
+
+# Exotics are sold for coins rather than cash (see ShopCatalog), so which
+# wallet to charge is the catalog entry's business, not the caller's.
+func buy(model_key: String, price: int, currency: String = ShopCatalog.CASH) -> bool:
+	# Gated on pilot level as well as money - checked here rather than only on
+	# the shop button, so nothing can buy past the gate.
+	if not ShopCatalog.unlocked(model_key):
+		return false
+	var paid := Coins.spend(price) if currency == ShopCatalog.COINS else Economy.spend_money(price)
+	if not paid:
 		return false
 	aircraft.append(FleetAircraft.new(_next_id, model_key))
 	_next_id += 1
@@ -286,14 +392,42 @@ func unassign(aircraft_id: int) -> void:
 		fleet_changed.emit()
 
 
+# How long a one-way leg to this destination takes. Clamped at 1 so a map that
+# forgets to declare a distance still flies rather than arriving instantly.
+# model_key is optional so callers that only want the destination's baseline
+# (the routes table's estimate, tests) don't have to name an aircraft.
+func flight_seconds_to(map_key: String, model_key: String = "") -> float:
+	var base := SECONDS_PER_DISTANCE * maxf(1.0, float(Maps.entry(map_key).get("distance", 1)))
+	if model_key == "":
+		return base
+	var grade: String = ShopCatalog.stat(model_key, "force")
+	return base * float(SPEED_FACTOR.get(grade, 1.0))
+
+
+func distance_to(map_key: String) -> int:
+	return maxi(1, int(Maps.entry(map_key).get("distance", 1)))
+
+
 func fuel_and_depart(aircraft_id: int) -> bool:
 	var a := get_aircraft(aircraft_id)
 	if not a or a.state != FleetAircraft.State.PARKED:
 		return false
-	if not FuelStore.consume(FUEL_PER_TRIP):
+	# Claim the landing pad before spending anything: with the robot airport
+	# full there is nowhere to land, and taking the fuel first would charge for
+	# a trip that can't happen.
+	var pad := free_robot_apron()
+	if pad == -1:
 		return false
+	# Range is a real gate, not a number on a card: a short-legged aircraft
+	# can't reach a distant airport at all. Checked before the fuel is spent,
+	# same as the pad.
+	if not in_range(a.model_key, Maps.ROBOT_MAP):
+		return false
+	if not FuelStore.consume(fuel_cost(a.model_key)):
+		return false
+	a.robot_apron_id = pad
 	a.state = FleetAircraft.State.FLYING_OUT
-	a.flight_time_left = FLIGHT_DURATION
+	a.flight_time_left = flight_seconds_to(Maps.ROBOT_MAP, a.model_key)
 	fleet_changed.emit()
 	return true
 
@@ -301,7 +435,7 @@ func fuel_and_depart(aircraft_id: int) -> bool:
 func claim_destination_reward(aircraft_id: int) -> void:
 	var a := get_aircraft(aircraft_id)
 	if a and a.state == FleetAircraft.State.AWAITING_DEST_CLAIM:
-		_grant_reward(REWARD_AT_DESTINATION, a.assigned_apron_id)
+		_grant_reward(payout_for(a.model_key), a.assigned_apron_id, a.model_key)
 		AircraftAffinity.grant_use(a.model_key)
 		a.state = FleetAircraft.State.AWAITING_DEST_REFUEL
 		fleet_changed.emit()
@@ -311,15 +445,19 @@ func refuel_at_destination(aircraft_id: int) -> void:
 	# Free, per the loop - the destination supplies fuel for the return leg.
 	var a := get_aircraft(aircraft_id)
 	if a and a.state == FleetAircraft.State.AWAITING_DEST_REFUEL:
+		# Releasing the pad here, not on touchdown at home: the aircraft has
+		# physically left the robot airport, so holding its slot for the whole
+		# return leg would halve the airport's usable capacity.
+		a.robot_apron_id = -1
 		a.state = FleetAircraft.State.FLYING_BACK
-		a.flight_time_left = FLIGHT_DURATION
+		a.flight_time_left = flight_seconds_to(Maps.ROBOT_MAP, a.model_key)
 		fleet_changed.emit()
 
 
 func claim_home_reward(aircraft_id: int) -> void:
 	var a := get_aircraft(aircraft_id)
 	if a and a.state == FleetAircraft.State.AWAITING_HOME_CLAIM:
-		_grant_reward(REWARD_AT_HOME, a.assigned_apron_id)
+		_grant_reward(payout_for(a.model_key), a.assigned_apron_id, a.model_key)
 		AircraftAffinity.grant_use(a.model_key)
 		a.state = FleetAircraft.State.AWAITING_HOME_REFUEL
 		fleet_changed.emit()
@@ -327,17 +465,17 @@ func claim_home_reward(aircraft_id: int) -> void:
 
 # Apron skins (see ApronSkins) give a flat bonus to both the cash and XP
 # reward for whichever apron the aircraft is parked at.
-func _grant_reward(base_amount: int, apron_id: int) -> void:
+func _grant_reward(base_amount: int, apron_id: int, model_key: String) -> void:
 	var bonus := 1.0 + ApronSkins.bonus_percent_for(apron_id) / 100.0
 	Economy.add_money(roundi(base_amount * bonus))
-	Progression.add_xp(roundi(XP_PER_CLAIM * bonus))
+	Progression.add_xp(roundi(xp_for_claim(model_key) * bonus))
 
 
 func refuel_at_home(aircraft_id: int) -> bool:
 	var a := get_aircraft(aircraft_id)
 	if not a or a.state != FleetAircraft.State.AWAITING_HOME_REFUEL:
 		return false
-	if not FuelStore.consume(FUEL_PER_TRIP):
+	if not FuelStore.consume(fuel_cost(a.model_key)):
 		return false
 	a.state = FleetAircraft.State.PARKED
 	fleet_changed.emit()
@@ -356,3 +494,41 @@ func get_aircraft_at_apron(apron_id: int) -> FleetAircraft:
 		if a.assigned_apron_id == apron_id:
 			return a
 	return null
+
+
+# Whoever is sitting on this robot pad right now. Only counts aircraft actually
+# there, not ones still inbound - an inbound plane holds the pad (so nothing
+# else is sent to it) but there's nothing to draw or click on yet.
+func get_aircraft_at_robot_apron(apron_id: int) -> FleetAircraft:
+	for a in aircraft:
+		if a.robot_apron_id == apron_id and a.is_at_robot():
+			return a
+	return null
+
+
+# Every pad at the robot airport, in id order.
+func robot_apron_ids() -> Array:
+	var starts: Dictionary = ApronLayout.compute_id_starts()
+	if not starts.has(Maps.ROBOT_AREA):
+		return []
+	var start: int = starts[Maps.ROBOT_AREA]
+	var count: int = (ApronLayout.load_area_data(Maps.ROBOT_MAP).get(Maps.ROBOT_AREA, []) as Array).size()
+	var ids: Array = []
+	for i in range(count):
+		ids.append(start + i)
+	return ids
+
+
+# The first robot pad nobody has claimed, or -1 when the airport is full. A pad
+# is held from dispatch right through to the return leg, so a full robot means
+# no more departures until something is collected - that capacity limit is what
+# gives the trip its weight.
+func free_robot_apron() -> int:
+	var taken := {}
+	for a in aircraft:
+		if a.robot_apron_id != -1:
+			taken[a.robot_apron_id] = true
+	for id in robot_apron_ids():
+		if not taken.has(id):
+			return id
+	return -1

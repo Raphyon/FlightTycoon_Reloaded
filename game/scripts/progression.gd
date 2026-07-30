@@ -7,10 +7,20 @@ var xp: int = 0
 var level: int = 1
 
 
-# Placeholder XP curve - not real game data. Level N needs (N-1)*100
-# cumulative XP, i.e. flat 100 XP per level.
+# Levelling gets harder as it goes: level N itself costs STEP*N, so the
+# cumulative requirement is STEP*N*(N-1)/2 - quadratic, not the flat 100 a
+# level this replaced.
+#
+# It has to rise, because the reward rises too. XP now scales with what an
+# aircraft earns (Fleet.xp_for_claim), so a late-game A380 brings in 14x the
+# starter's XP per leg; against a flat curve the last hundred levels would
+# fall over in a handful of trips. The two curves are set against each other
+# so the pace stays roughly even - see the pacing table in the notes.
+const STEP := 8
+
+
 func xp_for_level(n: int) -> int:
-	return (n - 1) * 100
+	return STEP * n * (n - 1) / 2
 
 
 func add_xp(amount: int) -> void:

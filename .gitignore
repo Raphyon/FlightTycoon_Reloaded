@@ -13,3 +13,8 @@ __pycache__/
 *.pyc
 .venv/
 venv/
+
+# The player's own save (money, fleet, routes in progress). Written by
+# SaveGame at runtime - it's per-player state, not project data, so it must
+# not travel with the repo the way the layout files under game/data/ do.
+game/data/player.json

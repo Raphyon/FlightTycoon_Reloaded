@@ -15,6 +15,9 @@ var _page := 0
 
 func _ready() -> void:
 	_close_button.pressed.connect(hide)
+	# The reference uses a bottom-right arrow, not a full-width bar.
+	_close_button.visible = false
+	BackButton.add_to($Frame, hide)
 	_prev_button.pressed.connect(func() -> void: _show_page(_page - 1))
 	_next_button.pressed.connect(func() -> void: _show_page(_page + 1))
 	ZoneProgress.unlocked_changed.connect(_refresh_items)

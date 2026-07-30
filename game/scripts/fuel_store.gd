@@ -11,8 +11,12 @@ const PRICE_SWING := 0.5
 const PRICE_UPDATE_INTERVAL := 10.0  # seconds
 const PRICE_HISTORY_LENGTH := 20
 
-# Arbitrary placeholder starting stockpile, same caveat as Economy.money.
-var amount: int = 20:
+# Enough for two full round trips in the starting 328 Jet, which burns its
+# own 15 a leg (see ShopCatalog) and pays to depart and to refuel at home.
+# It used to be 20, from back when every aircraft burned a flat 5 - that is
+# now less than one round trip, so a fresh game stranded its own starter
+# aircraft at home with no way to earn the money to fuel it.
+var amount: int = 60:
 	set(value):
 		amount = value
 		fuel_changed.emit(amount)

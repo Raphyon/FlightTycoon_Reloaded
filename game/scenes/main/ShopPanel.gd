@@ -15,10 +15,18 @@ var _page := 0
 
 func _ready() -> void:
 	_close_button.pressed.connect(hide)
+	# The reference uses a bottom-right arrow, not a full-width bar.
+	_close_button.visible = false
+	BackButton.add_to($Frame, hide)
 	_prev_button.pressed.connect(func() -> void: _show_page(_page - 1))
 	_next_button.pressed.connect(func() -> void: _show_page(_page + 1))
 	Fleet.fleet_changed.connect(_refresh_items)
 	Economy.money_changed.connect(_refresh_items)
+	# The Ark and the UFO are priced in coins, so a coin balance change is just
+	# as much a reason to re-evaluate what's affordable as a cash one.
+	Coins.coins_changed.connect(_refresh_items)
+	# Levelling up unlocks aircraft, so it changes what's buyable too.
+	Progression.level_changed.connect(_refresh_items)
 
 	for entry in ShopCatalog.ENTRIES:
 		var item := SHOP_ITEM_SCENE.instantiate()

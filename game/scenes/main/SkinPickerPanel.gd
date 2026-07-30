@@ -49,8 +49,8 @@ func _build_skin_option(entry: Dictionary) -> Control:
 
 
 func _on_skin_pressed(skin_key: String) -> void:
-	if not ApronSkins.is_owned(skin_key):
-		if not ApronSkins.buy_skin(skin_key):
+	if not ApronSkins.is_owned(_apron_id, skin_key):
+		if not ApronSkins.buy_skin(_apron_id, skin_key):
 			return
 	ApronSkins.set_skin(_apron_id, skin_key)
 	hide()
@@ -59,7 +59,7 @@ func _on_skin_pressed(skin_key: String) -> void:
 func _refresh(_unused = null) -> void:
 	for entry in ApronSkins.SKINS:
 		var button: Button = _buttons[entry["key"]]
-		if ApronSkins.is_owned(entry["key"]):
+		if ApronSkins.is_owned(_apron_id, entry["key"]):
 			button.text = "Select"
 			button.disabled = false
 		else:

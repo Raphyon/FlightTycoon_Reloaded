@@ -14,6 +14,10 @@ enum State {
 var id: int
 var model_key: String
 var assigned_apron_id: int = -1  # -1 = idle/in hangar, otherwise the apron it's parked at
+# Which pad at the robot airport this aircraft is flying to / sitting on. Held
+# from dispatch until it heads home again, so it doubles as the capacity lock -
+# see Fleet.claim_robot_apron. -1 = not out on a trip.
+var robot_apron_id: int = -1
 var state: int = State.PARKED
 var flight_time_left: float = 0.0
 
@@ -25,3 +29,14 @@ func _init(p_id: int, p_model_key: String) -> void:
 
 func is_idle() -> bool:
 	return assigned_apron_id == -1
+
+
+# Sitting at the robot airport, waiting to be collected. Distinct from being in
+# transit: these are the states where the aircraft physically renders there.
+func is_at_robot() -> bool:
+	return state == State.AWAITING_DEST_CLAIM or state == State.AWAITING_DEST_REFUEL
+
+
+# In the air, so it renders at neither airport.
+func is_in_transit() -> bool:
+	return state == State.FLYING_OUT or state == State.FLYING_BACK

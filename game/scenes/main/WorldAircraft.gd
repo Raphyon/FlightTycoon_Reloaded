@@ -50,6 +50,8 @@ var _shadow: Sprite2D
 var _shadow_parked: Texture2D
 var _shadow_spinning: Texture2D
 var _body: Sprite2D
+var _body_parked: Texture2D
+var _body_spinning: Texture2D
 var _rotors_idle: Array[Sprite2D] = []
 var _rotors_spin: Array[Sprite2D] = []
 var _is_vtol := false
@@ -80,6 +82,14 @@ func setup(model_key: String, screen_pos: Vector2) -> void:
 		_body.texture = load(sprites["body"])
 		_body.position = BODY_BASE_OFFSET
 		add_child(_body)
+		# A model whose whole hull changes on takeoff rather than just a rotor -
+		# the UFO's six thrusters fire - ships a second body. Both frames are
+		# padded to a common canvas with the hull on the same spot (see
+		# sheet_derive.align_into), so swapping the texture on a centered
+		# Sprite2D doesn't shift the aircraft.
+		_body_parked = _body.texture
+		if sprites.has("body_spin"):
+			_body_spinning = load(sprites["body_spin"])
 	if sprites.has("rotor_spin_frames") or sprites.has("rotors"):
 		_add_rotors(model_key, sprites)
 	# Parented to self, not the body, so it stays on the pad rather than
@@ -187,6 +197,8 @@ func _show_spin_rotors() -> void:
 		rotor.visible = true
 	if _shadow and _shadow_spinning:
 		_shadow.texture = _shadow_spinning
+	if _body and _body_spinning:
+		_body.texture = _body_spinning
 
 
 # Idempotent, and called from _exit_tree as well - a plane freed mid-run
@@ -210,6 +222,8 @@ func _show_idle_rotors() -> void:
 		rotor.visible = false
 	if _shadow and _shadow_parked:
 		_shadow.texture = _shadow_parked
+	if _body and _body_parked:
+		_body.texture = _body_parked
 
 
 # Keeps the parked position current (aprons can be re-placed with the apron
@@ -233,7 +247,7 @@ func play_arrival() -> void:
 # Flies the traced approach, then fades out and reappears parked at the
 # apron. Nothing traced yet -> stays put at the apron, same as before.
 func _play_runway_arrival() -> void:
-	var path_data := PathLayout.load_data()
+	var path_data := PathLayout.load_effective()
 	var body_points := PathLayout.points_to_vectors(path_data.get("plane_arrival_body", []))
 	if body_points.is_empty():
 		_settle_at_home()
@@ -417,7 +431,7 @@ func _play_vertical_liftoff() -> void:
 
 
 func _play_runway_departure() -> void:
-	var path_data := PathLayout.load_data()
+	var path_data := PathLayout.load_effective()
 	# Falls back to staying put (and the shadow falls back to riding glued
 	# to the body) if these haven't been traced yet with PathEditor (press T
 	# in-game) - harmless no-op instead of a crash. Read with .get(): paths

@@ -40,6 +40,34 @@ static func default_zone1_points() -> Array:
 	return points
 
 
+# Pre-fills what shouldn't have to be clicked by hand: homeland's Zone1 from
+# the measured positions above, and the robot airport's single zone as a copy
+# of it - the robot is deliberately a mirror of airport1, so re-placing the
+# same 20 pads there would be busywork.
+#
+# Seeded once each. Editing homeland's Zone1 afterwards does not propagate to
+# the robot, and vice versa; they're independent from that point on.
+static func ensure_seeded() -> void:
+	var all_data := load_all()
+	var changed := false
+
+	var home: Dictionary = all_data.get(Maps.DEFAULT_MAP, {})
+	if not home.has("Zone1"):
+		home["Zone1"] = default_zone1_points()
+		all_data[Maps.DEFAULT_MAP] = home
+		changed = true
+
+	var robot: Dictionary = all_data.get("robot", {})
+	if not robot.has("RobotZone1"):
+		var source: Array = (all_data[Maps.DEFAULT_MAP] as Dictionary).get("Zone1", [])
+		robot["RobotZone1"] = source.duplicate(true)
+		all_data["robot"] = robot
+		changed = true
+
+	if changed:
+		save_all(all_data)
+
+
 # {map_key: {area_name: [[x,y], ...]}} for every airport at once.
 static func load_all() -> Dictionary:
 	if not FileAccess.file_exists(SAVE_PATH):
@@ -107,6 +135,12 @@ static func build_area_aprons(points: Array, start_id: int, area_name: String) -
 		# including the rest of Zone1, has to be built (see ApronProgress).
 		# `built` itself is computed live off ApronProgress, so this is the
 		# only piece of build state actually stored on the apron.
-		apron.free_by_default = area_name == "Zone1" and i < 5
+		#
+		# The robot airport is the exception: its pads are landing slots for
+		# aircraft you dispatch, not something you construct, so they all start
+		# built. Left buildable they'd show the "needs building" cone and the
+		# aircraft would land on an unbuilt pad.
+		apron.free_by_default = (area_name == Maps.ROBOT_AREA
+			or (area_name == "Zone1" and i < 5))
 		result.append(apron)
 	return result

@@ -4,18 +4,28 @@ signal built_changed
 
 const SAVE_PATH := "res://data/apron_progress.json"
 
-# Placeholder construction economy - not real game data, specifics/balance
-# to be adjusted later. Flat cost per apron within a zone (no escalation
-# within a zone, unlike the first version of this) - price instead rises
-# zone to zone, reflecting how much further out/harder to reach it is.
+# What one apron costs to build, per zone. Set at roughly a fifth of the best
+# aircraft you can buy at the level that zone unlocks - the aircraft is the
+# investment, the pad it stands on is the lesser half of it. That ratio is
+# what keeps a pad meaningful without ever being the thing you're saving for.
+#
+# Dreamland and the carrier used to be absent here, so they fell through to
+# the 1000 default: at level 110, earning ~210k an hour, Dreamland's sixteen
+# pads cost 1000 each. They are priced now.
+#
+# Zone1 stays at 1000 - it's the zone you learn in.
 const ZONE_BASE_COST := {
 	"Zone1": 1000,
-	"Zone2": 5000,
-	"DarkZone": 12500,
-	"Forest": 30000,
-	"Desert": 80000,
-	"Beach": 150000,
-	"Snow": 500000,
+	"Zone2": 2500,
+	"DarkZone": 6000,
+	"Forest": 12000,
+	"Desert": 40000,
+	"Beach": 100000,
+	"Snow": 150000,
+	"Dreamland1": 170000,
+	"Dreamland2": 250000,
+	"Dreamland3": 300000,
+	"Carrier": 350000,
 }
 
 var built_ids: Dictionary = {}  # str(apron_id) -> true, persisted

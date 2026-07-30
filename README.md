@@ -35,9 +35,11 @@ tools/
                 source-assets/aircraft for dump world sprites that arrive
                 already shadow-free (WORLD_CLEAN - the A400M); also splits
                 prop strips into hub-aligned per-frame files
-  blackhawk_derive.py separate because the Black Hawk needs a different
-                shadow test (hue, not alpha) and a rotor blur built by
-                rotate-accumulating its own blades
+  sheet_derive.py     cuts world sprites out of the dump's multi-element
+                sheets (Black Hawk, UFO, airship, Ark) - liveries, rotor
+                states, thruster states and shadows, located as connected
+                components. Replaces blackhawk_derive.py, which only existed
+                to reconstruct the Black Hawk before its real sheet turned up
 game/           Godot project root (engine, scenes, scripts)
 manifest.json   generated - do not hand-edit
 ```

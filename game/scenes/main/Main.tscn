@@ -48,6 +48,19 @@
 [ext_resource type="Texture2D" path="res://assets/buttons/button_map_current@2x.png" id="50"]
 [ext_resource type="Texture2D" path="res://assets/buttons/button_esc@2x.png" id="51"]
 [ext_resource type="Script" path="res://scenes/main/DebugMenu.gd" id="52"]
+[ext_resource type="Texture2D" path="res://assets/buttons/button_home1@2x.png" id="53"]
+[ext_resource type="Texture2D" path="res://assets/buttons/button_home2@2x.png" id="54"]
+[ext_resource type="Script" path="res://scenes/main/HomeButton.gd" id="55"]
+[ext_resource type="Script" path="res://scenes/main/VisitorPanel.gd" id="56"]
+[ext_resource type="Script" path="res://scenes/main/FriendsPanel.gd" id="57"]
+[ext_resource type="Script" path="res://scenes/main/FriendInfoPanel.gd" id="60"]
+[ext_resource type="Script" path="res://scenes/main/RoutesPanel.gd" id="61"]
+[ext_resource type="Texture2D" path="res://assets/buttons/button_airline@2x.png" id="62"]
+[ext_resource type="Texture2D" path="res://assets/buttons/button_airline2@2x.png" id="63"]
+[ext_resource type="Texture2D" path="res://assets/buttons/button_social@2x.png" id="58"]
+[ext_resource type="Texture2D" path="res://assets/buttons/button_social2@2x.png" id="59"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_bg"]
 
 [node name="Main" type="Node2D" unique_id=1252586279]
 script = ExtResource("1")
@@ -280,6 +293,28 @@ grow_vertical = 0
 theme_override_constants/separation = 12
 alignment = 2
 
+[node name="HomeButton" type="TextureButton" parent="UI/Toolbar/Buttons"]
+custom_minimum_size = Vector2(109, 102)
+layout_mode = 2
+texture_normal = ExtResource("53")
+texture_pressed = ExtResource("54")
+texture_hover = ExtResource("54")
+ignore_texture_size = true
+stretch_mode = 5
+script = ExtResource("55")
+
+[node name="Label" type="Label" parent="UI/Toolbar/Buttons/HomeButton"]
+offset_left = 0.0
+offset_top = 69.0
+offset_right = 109.0
+offset_bottom = 95.0
+mouse_filter = 2
+theme_override_font_sizes/font_size = 14
+theme_override_colors/font_color = Color(0.18, 0.13, 0.09, 1)
+text = "Home"
+horizontal_alignment = 1
+vertical_alignment = 1
+
 [node name="ShopButton" type="TextureButton" parent="UI/Toolbar/Buttons" unique_id=798617765]
 custom_minimum_size = Vector2(109, 102)
 layout_mode = 2
@@ -290,9 +325,9 @@ ignore_texture_size = true
 stretch_mode = 5
 
 [node name="Label" type="Label" parent="UI/Toolbar/Buttons/ShopButton"]
-offset_left = 2.0
+offset_left = 0.0
 offset_top = 69.0
-offset_right = 91.0
+offset_right = 109.0
 offset_bottom = 95.0
 mouse_filter = 2
 theme_override_font_sizes/font_size = 14
@@ -311,9 +346,9 @@ ignore_texture_size = true
 stretch_mode = 5
 
 [node name="Label" type="Label" parent="UI/Toolbar/Buttons/HangarButton"]
-offset_left = 2.0
+offset_left = 0.0
 offset_top = 69.0
-offset_right = 91.0
+offset_right = 109.0
 offset_bottom = 95.0
 mouse_filter = 2
 theme_override_font_sizes/font_size = 14
@@ -321,6 +356,59 @@ theme_override_colors/font_color = Color(0.18, 0.13, 0.09, 1)
 text = "Hangar"
 horizontal_alignment = 1
 vertical_alignment = 1
+
+[node name="FriendsButton" type="TextureButton" parent="UI/Toolbar/Buttons"]
+custom_minimum_size = Vector2(109, 102)
+layout_mode = 2
+toggle_mode = true
+texture_normal = ExtResource("58")
+texture_pressed = ExtResource("59")
+ignore_texture_size = true
+stretch_mode = 5
+
+[node name="Label" type="Label" parent="UI/Toolbar/Buttons/FriendsButton"]
+offset_left = 0.0
+offset_top = 69.0
+offset_right = 109.0
+offset_bottom = 95.0
+mouse_filter = 2
+theme_override_font_sizes/font_size = 14
+theme_override_colors/font_color = Color(0.18, 0.13, 0.09, 1)
+text = "Friends"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="RoutesButton" type="TextureButton" parent="UI/Toolbar/Buttons"]
+custom_minimum_size = Vector2(109, 102)
+layout_mode = 2
+toggle_mode = true
+texture_normal = ExtResource("62")
+texture_pressed = ExtResource("63")
+ignore_texture_size = true
+stretch_mode = 5
+
+[node name="Label" type="Label" parent="UI/Toolbar/Buttons/RoutesButton"]
+offset_left = 0.0
+offset_top = 69.0
+offset_right = 109.0
+offset_bottom = 95.0
+mouse_filter = 2
+theme_override_font_sizes/font_size = 14
+theme_override_colors/font_color = Color(0.18, 0.13, 0.09, 1)
+text = "Routes"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="VisitorPanel" type="Control" parent="UI"]
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -138.0
+offset_top = 0.0
+offset_right = 138.0
+offset_bottom = 95.0
+grow_horizontal = 2
+mouse_filter = 2
+script = ExtResource("56")
 
 [node name="DebugMenu" type="Control" parent="UI"]
 visible = false
@@ -572,6 +660,7 @@ layout_mode = 2
 text = "Close"
 
 [node name="ExpansionShopPanel" type="PanelContainer" parent="UI"]
+theme_override_styles/panel = SubResource("StyleBoxEmpty_bg")
 visible = false
 anchors_preset = 15
 anchor_right = 1.0
@@ -648,6 +737,7 @@ layout_mode = 2
 text = "Close"
 
 [node name="HangarPanel" type="PanelContainer" parent="UI" unique_id=1514080592]
+theme_override_styles/panel = SubResource("StyleBoxEmpty_bg")
 visible = false
 anchors_preset = 15
 anchor_right = 1.0
@@ -705,7 +795,140 @@ columns = 4
 layout_mode = 2
 text = "Close"
 
+[node name="FriendsPanel" type="PanelContainer" parent="UI"]
+theme_override_styles/panel = SubResource("StyleBoxEmpty_bg")
+visible = false
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("57")
+
+[node name="Background" type="TextureRect" parent="UI/FriendsPanel"]
+show_behind_parent = true
+layout_mode = 2
+mouse_filter = 2
+texture = ExtResource("22")
+expand_mode = 1
+stretch_mode = 6
+
+[node name="Frame" type="Control" parent="UI/FriendsPanel"]
+layout_mode = 2
+
+[node name="SafeArea" type="Control" parent="UI/FriendsPanel/Frame"]
+anchor_top = 0.24
+anchor_right = 1.0
+anchor_bottom = 0.72
+offset_left = 40.0
+offset_right = -40.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Margin" type="MarginContainer" parent="UI/FriendsPanel/Frame/SafeArea"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 8
+
+[node name="VBox" type="VBoxContainer" parent="UI/FriendsPanel/Frame/SafeArea/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="TitleLabel" type="Label" parent="UI/FriendsPanel/Frame/SafeArea/Margin/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "Friends"
+
+[node name="Grid" type="GridContainer" parent="UI/FriendsPanel/Frame/SafeArea/Margin/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+size_flags_horizontal = 4
+theme_override_constants/h_separation = 30
+theme_override_constants/v_separation = 20
+columns = 4
+
+[node name="CloseButton" type="Button" parent="UI/FriendsPanel/Frame/SafeArea/Margin/VBox"]
+layout_mode = 2
+text = "Close"
+
+[node name="RoutesPanel" type="PanelContainer" parent="UI"]
+theme_override_styles/panel = SubResource("StyleBoxEmpty_bg")
+visible = false
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("61")
+
+[node name="Background" type="TextureRect" parent="UI/RoutesPanel"]
+show_behind_parent = true
+layout_mode = 2
+mouse_filter = 2
+texture = ExtResource("22")
+expand_mode = 1
+stretch_mode = 6
+
+[node name="Frame" type="Control" parent="UI/RoutesPanel"]
+layout_mode = 2
+
+[node name="SafeArea" type="Control" parent="UI/RoutesPanel/Frame"]
+anchor_top = 0.24
+anchor_right = 1.0
+anchor_bottom = 0.72
+offset_left = 40.0
+offset_right = -40.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Margin" type="MarginContainer" parent="UI/RoutesPanel/Frame/SafeArea"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 8
+
+[node name="VBox" type="VBoxContainer" parent="UI/RoutesPanel/Frame/SafeArea/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="TitleLabel" type="Label" parent="UI/RoutesPanel/Frame/SafeArea/Margin/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "Routes"
+
+[node name="Grid" type="GridContainer" parent="UI/RoutesPanel/Frame/SafeArea/Margin/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+size_flags_horizontal = 4
+theme_override_constants/h_separation = 0
+theme_override_constants/v_separation = 6
+columns = 1
+
+[node name="CloseButton" type="Button" parent="UI/RoutesPanel/Frame/SafeArea/Margin/VBox"]
+layout_mode = 2
+text = "Close"
+
+[node name="FriendInfoPanel" type="Control" parent="UI"]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -439.0
+offset_top = -211.0
+offset_right = 439.0
+offset_bottom = 211.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("60")
+
 [node name="ApronInfoPanel" type="PanelContainer" parent="UI" unique_id=521176117]
+theme_override_styles/panel = SubResource("StyleBoxEmpty_bg")
 visible = false
 anchor_left = 0.5
 anchor_right = 0.5

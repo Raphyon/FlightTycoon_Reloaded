@@ -13,11 +13,21 @@ const CALLOUT_CONE_TEXTURE := preload("res://assets/bubbles/cone_icon@2x.png")
 const CALLOUT_PLANE_TEXTURE := preload("res://assets/bubbles/black_plane_icon@2x.png")
 const CALLOUT_DOLLAR_TEXTURE := preload("res://assets/bubbles/dollar_icon@2x.png")
 const CALLOUT_DRUM_TEXTURE := preload("res://assets/bubbles/drum_icon@2x.png")
+# A whole composed bubble rather than an icon in the round one - the word, the
+# bar and the plane are all baked in (tools/arrived_label.py). Shown on a home
+# apron whose aircraft is waiting at the robot airport; clicking it travels
+# there.
+const CALLOUT_ARRIVED_TEXTURE := preload("res://assets/bubbles/arrived_bubble@2x.png")
 const CALLOUT_BUBBLE_SIZE := Vector2(42, 50)
 const CALLOUT_CONE_SIZE := Vector2(25, 24)
 const CALLOUT_PLANE_SIZE := Vector2(29, 24)
 const CALLOUT_DOLLAR_SIZE := Vector2(22, 27)
 const CALLOUT_DRUM_SIZE := Vector2(20, 27)
+const CALLOUT_ARRIVED_SIZE := Vector2(109, 58)
+# Where the arrived bubble's tail sits horizontally. Not half its width: the
+# plane icon overhangs the bubble's left edge, so the tail is off-centre at
+# ~34%, and centring the sprite would leave it pointing wide of the apron.
+const CALLOUT_ARRIVED_TAIL_X := 37.0
 # Where the bubble's tail tip lands, relative to the apron's center (0,0) -
 # negative is above center. A little above center, not up at the top vertex.
 const CALLOUT_TAIL_Y := -20.0
@@ -35,6 +45,7 @@ var _hovering := false
 var _under_construction: TextureRect
 var _skin_overlay: TextureRect
 var _callout: Control
+var _callout_bubble: TextureRect
 var _callout_icon: TextureRect
 var _pending_action: Callable = Callable()
 
@@ -107,13 +118,13 @@ func _ready() -> void:
 	_callout.z_as_relative = false
 	add_child(_callout)
 
-	var bubble := TextureRect.new()
-	bubble.texture = CALLOUT_BUBBLE_TEXTURE
-	bubble.size = CALLOUT_BUBBLE_SIZE
-	bubble.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	bubble.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	bubble.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_callout.add_child(bubble)
+	_callout_bubble = TextureRect.new()
+	_callout_bubble.texture = CALLOUT_BUBBLE_TEXTURE
+	_callout_bubble.size = CALLOUT_BUBBLE_SIZE
+	_callout_bubble.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_callout_bubble.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	_callout_bubble.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_callout.add_child(_callout_bubble)
 
 	_callout_icon = TextureRect.new()
 	_callout_icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
@@ -125,9 +136,25 @@ func _ready() -> void:
 
 
 func _set_callout_icon(texture: Texture2D, size: Vector2, action: Callable = Callable()) -> void:
+	_callout_bubble.texture = CALLOUT_BUBBLE_TEXTURE
+	_callout_bubble.size = CALLOUT_BUBBLE_SIZE
+	_callout.size = CALLOUT_BUBBLE_SIZE
+	_callout.position = Vector2(-CALLOUT_BUBBLE_SIZE.x * 0.5, CALLOUT_TAIL_Y - CALLOUT_BUBBLE_SIZE.y)
+	_callout_icon.visible = true
 	_callout_icon.texture = texture
 	_callout_icon.size = size
 	_callout_icon.position = Vector2((CALLOUT_BUBBLE_SIZE.x - size.x) * 0.5 - 3.0, 6.0)
+	_pending_action = action
+
+
+# The "Arrived" callout: one composed sprite, so there's no separate icon, and
+# it's placed by its tail rather than its centre.
+func _set_callout_arrived(action: Callable) -> void:
+	_callout_bubble.texture = CALLOUT_ARRIVED_TEXTURE
+	_callout_bubble.size = CALLOUT_ARRIVED_SIZE
+	_callout.size = CALLOUT_ARRIVED_SIZE
+	_callout.position = Vector2(-CALLOUT_ARRIVED_TAIL_X, CALLOUT_TAIL_Y - CALLOUT_ARRIVED_SIZE.y)
+	_callout_icon.visible = false
 	_pending_action = action
 
 
@@ -187,9 +214,24 @@ func _draw() -> void:
 	else:
 		_skin_overlay.visible = false
 
-	if not apron.occupied:
-		_set_callout_icon(CALLOUT_PLANE_TEXTURE, CALLOUT_PLANE_SIZE)
+	# A pad at the robot airport, holding an aircraft you've flown out. Checked
+	# first: robot pads have their own ids, so nothing else can be here.
+	var visitor := Fleet.get_aircraft_at_robot_apron(apron.id)
+	if visitor:
+		if visitor.state == FleetAircraft.State.AWAITING_DEST_CLAIM:
+			_set_callout_icon(CALLOUT_DOLLAR_TEXTURE, CALLOUT_DOLLAR_SIZE, Fleet.claim_destination_reward.bind(visitor.id))
+		else:
+			_set_callout_icon(CALLOUT_DRUM_TEXTURE, CALLOUT_DRUM_SIZE, Fleet.refuel_at_destination.bind(visitor.id))
 		_callout.visible = true
+	elif not apron.occupied:
+		# The free-pad plane bubble means "assign one here", which you can't do
+		# at the robot airport - its empty pads are just unused landing slots,
+		# so offering the prompt there would invite a blocked action.
+		if Maps.current == Maps.ROBOT_MAP:
+			_callout.visible = false
+		else:
+			_set_callout_icon(CALLOUT_PLANE_TEXTURE, CALLOUT_PLANE_SIZE)
+			_callout.visible = true
 	else:
 		var a := Fleet.get_aircraft_at_apron(apron.id)
 		var state: int = a.state if a else -1
@@ -197,11 +239,11 @@ func _draw() -> void:
 			FleetAircraft.State.PARKED:
 				_set_callout_icon(CALLOUT_DRUM_TEXTURE, CALLOUT_DRUM_SIZE, Fleet.fuel_and_depart.bind(a.id))
 				_callout.visible = true
-			FleetAircraft.State.AWAITING_DEST_CLAIM:
-				_set_callout_icon(CALLOUT_DOLLAR_TEXTURE, CALLOUT_DOLLAR_SIZE, Fleet.claim_destination_reward.bind(a.id))
-				_callout.visible = true
-			FleetAircraft.State.AWAITING_DEST_REFUEL:
-				_set_callout_icon(CALLOUT_DRUM_TEXTURE, CALLOUT_DRUM_SIZE, Fleet.refuel_at_destination.bind(a.id))
+			FleetAircraft.State.AWAITING_DEST_CLAIM, FleetAircraft.State.AWAITING_DEST_REFUEL:
+				# The aircraft isn't here - it's sitting at the robot airport.
+				# This is its home pad, so it shows the way there instead of the
+				# reward/fuel bubble it would show if the plane were present.
+				_set_callout_arrived(Maps.travel_to.bind(Maps.ROBOT_MAP))
 				_callout.visible = true
 			FleetAircraft.State.AWAITING_HOME_CLAIM:
 				_set_callout_icon(CALLOUT_DOLLAR_TEXTURE, CALLOUT_DOLLAR_SIZE, Fleet.claim_home_reward.bind(a.id))
@@ -210,7 +252,7 @@ func _draw() -> void:
 				_set_callout_icon(CALLOUT_DRUM_TEXTURE, CALLOUT_DRUM_SIZE, Fleet.refuel_at_home.bind(a.id))
 				_callout.visible = true
 			_:
-				# Flying out/back - away, nothing to click here yet.
+				# In the air - nothing to click at either airport.
 				_callout.visible = false
 
 	# The hover highlight stays on always - it's the affordance telling you the

@@ -41,8 +41,26 @@ static func save_all(all_data: Dictionary) -> void:
 	f.close()
 
 
-# One airport's traced paths - the current one unless told otherwise. Each
-# airport has its own runway and its own roads, so none of this is shared.
+# What gameplay should actually fly and drive along. Normally the map's own
+# paths, but an airport that is a copy of another (the robot mirrors airport1)
+# borrows that one's until it has any of its own.
+#
+# Deliberately separate from load_data: PathEditor must keep seeing the map's
+# OWN data, because whatever it holds is what it saves back. Handing it
+# borrowed paths would write homeland's runway into the robot's slot the first
+# time anything was edited there - the same contamination the per-map split was
+# introduced to stop.
+static func load_effective(map_key: String = "") -> Dictionary:
+	var key := map_key if map_key != "" else Maps.current
+	var own := load_data(key)
+	if not own.is_empty():
+		return own
+	var borrow_from: String = Maps.entry(key).get("paths_from", "")
+	return load_data(borrow_from) if borrow_from != "" else own
+
+
+# One airport's own traced paths - the current one unless told otherwise, and
+# never another map's. This is what the editor reads and writes.
 static func load_data(map_key: String = "") -> Dictionary:
 	var key := map_key if map_key != "" else Maps.current
 	return load_all().get(key, {})

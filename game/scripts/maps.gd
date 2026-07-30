@@ -9,6 +9,10 @@ extends Node
 signal map_changed(map_key: String)
 
 const DEFAULT_MAP := "homeland"
+# The airport dispatched aircraft fly to, and its single area. Named here
+# because both the fleet and the apron layout need them.
+const ROBOT_MAP := "robot"
+const ROBOT_AREA := "RobotZone1"
 
 # Area names are globally unique, not per-map, for two reasons: ZoneProgress
 # keys its unlocks by area name, and apron ids are handed out across every
@@ -36,6 +40,51 @@ const MAPS := {
 		# inventing prettier names here would leave the cards unable to unlock
 		# anything.
 		"areas": ["Dreamland1", "Dreamland2", "Dreamland3"],
+	},
+	# The robot's own airport - where aircraft you dispatch actually land, and
+	# which you have to travel to in order to collect them. Same art and same
+	# Zone1 layout as homeland, deliberately: it reads as a mirror of home.
+	#
+	# One zone only, always unlocked (see ZoneProgress). There are no spare
+	# expansion-shop cards for more, and its pads are landing slots rather than
+	# something you buy - the capacity limit is the point.
+	#
+	# Not on the world-map board: you get here by clicking the "Arrived" bubble
+	# on the home apron of a plane that's waiting for you.
+	"robot": {
+		"name": "Robot",
+		"background": "res://assets/background/airport001.png",
+		"size": Vector2i(3072, 2304),
+		"areas": ["RobotZone1"],
+		# The background is homeland's, so it shows all seven of its regions
+		# even though only one is in play here. Everything outside the landing
+		# zone is permanently under cloud: not "locked, buy it later" - there is
+		# nothing to buy - just out of bounds. Drawn from homeland's own
+		# hand-placed cloud positions, so the two airports line up exactly.
+		"cloud_cover_from": "homeland",
+		# Same reasoning for the traced runway, approach and road paths: this is
+		# airport1's layout, so its runway is in the same place and departures
+		# should look identical. Without this the robot has no paths at all and
+		# a departing aircraft just fades on the spot instead of taxiing out.
+		"paths_from": "homeland",
+		# Who you're visiting, shown top-left while you're here. PLACEHOLDER
+		# values - there's no model of other players yet, so the name and level
+		# are literals rather than anything derived.
+		"visiting": {
+			"name": "robot_222",
+			"level": 2,
+			"avatar": "res://assets/player_avatar/avatar_robot@2x.png",
+			# The robot is where your dispatched aircraft land, so unfriending it
+			# would strand them. Not removable, and the friends list disables its
+			# remove button rather than hiding it.
+			"removable": false,
+		},
+		# How far away this destination is. Shown on the visitor panel as that
+		# many cloud icons, and it's what sets the flight time - see
+		# Fleet.flight_seconds_to. 1 keeps the robot at the short duration the
+		# flat constant used to give, so nothing changes until a further
+		# destination exists to contrast with.
+		"distance": 1,
 	},
 	"carriership": {
 		"name": "Carrier Ship",
@@ -81,6 +130,17 @@ func all_areas() -> Array:
 	var out: Array = []
 	for key in MAPS:
 		out.append_array(MAPS[key]["areas"])
+	return out
+
+
+# Airports belonging to someone else - anything carrying a "visiting" entry.
+# That entry is also their friend-list card, so a friend and a visitable
+# airport are the same thing and their name/level/avatar live in one place.
+func visitable_maps() -> Array:
+	var out: Array = []
+	for key in MAPS:
+		if MAPS[key].has("visiting"):
+			out.append(key)
 	return out
 
 

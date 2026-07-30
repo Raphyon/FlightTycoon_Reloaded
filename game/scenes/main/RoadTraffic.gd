@@ -45,7 +45,7 @@ func _on_map_changed(_map_key: String) -> void:
 
 
 func _reload_roads() -> void:
-	var data := PathLayout.load_data()
+	var data := PathLayout.load_effective()
 	# .get(): an airport with no traced roads has no "roads" key at all.
 	var roads: Dictionary = data.get("roads", {})
 	_roads.clear()

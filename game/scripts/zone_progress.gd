@@ -4,17 +4,22 @@ signal unlocked_changed
 
 const SAVE_PATH := "res://data/zone_progress.json"
 
-# Exact numbers from the user - level + one-time money cost to unlock each
-# zone (separate from the per-apron build costs in ApronProgress). Zone1
-# isn't listed here - it's the start zone, always unlocked.
+# Level + one-time money cost to unlock each zone (separate from the per-apron
+# build costs in ApronProgress). Zone1 is free - it's where you start.
+#
+# LEVELS are the user's, unchanged. COSTS are set at about half what filling
+# the zone's pads costs, so unlocking a zone is a real milestone rather than a
+# formality - the old numbers had Zone2 at 17% of its own pads, which made the
+# gate itself barely noticeable. Snow is the one that had to move furthest
+# (1.0M -> 1.4M): the V-22 arrives at level 100 and lifts income by half, so
+# the old price made Snow cheaper in real time than Beach twenty levels below.
 const ZONE_REQUIREMENTS := {
-	# homeland
-	"Zone2": {"level": 10, "cost": 10000},
-	"DarkZone": {"level": 20, "cost": 20000},
-	"Forest": {"level": 40, "cost": 100000},
-	"Desert": {"level": 60, "cost": 250000},
-	"Beach": {"level": 80, "cost": 500000},
-	"Snow": {"level": 100, "cost": 1000000},
+	"Zone2": {"level": 10, "cost": 25000},
+	"DarkZone": {"level": 20, "cost": 40000},
+	"Forest": {"level": 40, "cost": 85000},
+	"Desert": {"level": 60, "cost": 300000},
+	"Beach": {"level": 80, "cost": 700000},
+	"Snow": {"level": 100, "cost": 1400000},
 	# Dreamland and the carrier - PLACEHOLDER level/cost, not from the user,
 	# continuing the homeland curve past Snow (level 100).
 	"Dreamland1": {"level": 110, "cost": 1500000},
@@ -41,8 +46,14 @@ func _ready() -> void:
 # and the carrier, both of which have their own card (see ZoneCatalog). So
 # arriving somewhere new means arriving with nothing buildable until you buy
 # in, which is the intended progression rather than an oversight.
+# Zones that never need buying: homeland's start zone, and the robot airport's
+# single zone - its pads are landing slots for aircraft you dispatch, not
+# something you purchase, and a locked robot would strand your fleet.
+const ALWAYS_UNLOCKED := ["Zone1", "RobotZone1"]
+
+
 func is_unlocked(area_name: String) -> bool:
-	return area_name == "Zone1" or unlocked_zones.has(area_name)
+	return area_name in ALWAYS_UNLOCKED or unlocked_zones.has(area_name)
 
 
 func requirement_for(area_name: String) -> Dictionary:

@@ -18,7 +18,14 @@ const COUNT_BOARD_TEXTURE := preload("res://assets/board/board_airline4@2x.png")
 # "free" tag genuinely shorter instead of padding it to match the others.
 const COUNT_BOARD_SIZE := Vector2(410, 62)
 const TAB_SEPARATION := 10
+# Each tag is captioned underneath, so a cell is taller than its art.
+const TAB_LABEL_FONT := 15
+const TAB_LABEL_HEIGHT := 22.0
 const TAB_RIGHT_MARGIN := 10.0
+# The strip sits above centre, not on it. Captioning the tags added ~66px to
+# its height, half of which pushed downward into the back arrow's corner - the
+# arrow can't move down because the cabin floor is right below it.
+const TAB_STRIP_Y_OFFSET := -70.0
 const BOARD_RIGHT_MARGIN := 20.0
 const BOARD_TOP_MARGIN := 24.0
 
@@ -57,6 +64,9 @@ var _empty_label: Label
 
 func _ready() -> void:
 	_close_button.pressed.connect(hide)
+	# The reference uses a bottom-right arrow, not a full-width bar.
+	_close_button.visible = false
+	BackButton.add_to($Frame, hide)
 	Fleet.fleet_changed.connect(_refresh)
 	AircraftAffinity.affinity_changed.connect(_refresh_affinity)
 	get_tree().root.size_changed.connect(_fit_content)
@@ -110,7 +120,7 @@ func _build_tab_strip() -> void:
 		var lit_texture: Texture2D = load("res://assets/buttons/%s" % entry["lit"])
 		var art_size := normal_texture.get_size()
 		widest = maxf(widest, art_size.x)
-		total_height += art_size.y
+		total_height += art_size.y + TAB_LABEL_HEIGHT
 
 		var button := TextureButton.new()
 		button.texture_normal = normal_texture
@@ -127,18 +137,34 @@ func _build_tab_strip() -> void:
 		button.ignore_texture_size = true
 		button.stretch_mode = TextureButton.STRETCH_KEEP_ASPECT_CENTERED
 		button.custom_minimum_size = art_size
-		# Right-aligned so the tags' points line up against the screen edge
-		# even though the "free" tag is a few pixels narrower.
-		button.size_flags_horizontal = Control.SIZE_SHRINK_END
 		button.button_pressed = entry["filter"] == _active_filter
 		button.pressed.connect(_on_tab_pressed.bind(entry["filter"]))
-		strip.add_child(button)
+		# The reference art carries no wording, so each tag gets a caption - a
+		# handshake, an envelope and a smiley are not self-explanatory, and the
+		# hangar's cup and cloud are no better on their own.
+		var cell := VBoxContainer.new()
+		cell.alignment = BoxContainer.ALIGNMENT_CENTER
+		cell.size_flags_horizontal = Control.SIZE_SHRINK_END
+		cell.add_theme_constant_override("separation", 1)
+		cell.add_child(button)
+
+		var caption := Label.new()
+		caption.text = entry["label"]
+		caption.custom_minimum_size = Vector2(art_size.x, 0)
+		caption.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		caption.add_theme_font_size_override("font_size", TAB_LABEL_FONT)
+		caption.add_theme_color_override("font_color", Color.WHITE)
+		caption.add_theme_color_override("font_outline_color", Color(0.20, 0.09, 0.02, 1))
+		caption.add_theme_constant_override("outline_size", 5)
+		caption.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		cell.add_child(caption)
+		strip.add_child(cell)
 
 	total_height += TAB_SEPARATION * (TABS.size() - 1)
 	strip.offset_left = -(widest + TAB_RIGHT_MARGIN)
 	strip.offset_right = -TAB_RIGHT_MARGIN
-	strip.offset_top = -total_height * 0.5
-	strip.offset_bottom = total_height * 0.5
+	strip.offset_top = -total_height * 0.5 + TAB_STRIP_Y_OFFSET
+	strip.offset_bottom = total_height * 0.5 + TAB_STRIP_Y_OFFSET
 	_frame.add_child(strip)
 
 
