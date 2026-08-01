@@ -59,6 +59,8 @@
 [ext_resource type="Texture2D" path="res://assets/buttons/button_airline2@2x.png" id="63"]
 [ext_resource type="Texture2D" path="res://assets/buttons/button_social@2x.png" id="58"]
 [ext_resource type="Texture2D" path="res://assets/buttons/button_social2@2x.png" id="59"]
+[ext_resource type="Script" path="res://scenes/main/RoutePickerPanel.gd" id="64"]
+[ext_resource type="Script" path="res://scenes/main/LiveryPickerPanel.gd" id="65"]
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_bg"]
 
@@ -926,6 +928,30 @@ offset_bottom = 211.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("60")
+
+[node name="LiveryPickerPanel" type="PanelContainer" parent="UI"]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -260.0
+offset_top = -150.0
+offset_right = 260.0
+offset_bottom = 150.0
+script = ExtResource("65")
+
+[node name="RoutePickerPanel" type="Control" parent="UI"]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -429.5
+offset_top = -215.0
+offset_right = 429.5
+offset_bottom = 215.0
+script = ExtResource("64")
 
 [node name="ApronInfoPanel" type="PanelContainer" parent="UI" unique_id=521176117]
 theme_override_styles/panel = SubResource("StyleBoxEmpty_bg")

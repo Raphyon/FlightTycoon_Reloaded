@@ -13,6 +13,20 @@ const DEFAULT_MAP := "homeland"
 # because both the fleet and the apron layout need them.
 const ROBOT_MAP := "robot"
 const ROBOT_AREA := "RobotZone1"
+# The robot's airport IS homeland's, so every area you can build on has a
+# counterpart there. A dispatched aircraft flies to the SAME apron it took off
+# from - that's what the live game does (a route record shows startApron and
+# endApron both airport001_area001_apron0014, for two different users) - so the
+# destination can never run out of room, and there is no "robot is full".
+const ROBOT_AREAS := ["RobotZone1", "RobotZone2", "RobotDarkZone", "RobotForest",
+	"RobotDesert", "RobotBeach", "RobotSnow"]
+# Which homeland area each robot area mirrors, for cloud cover: a robot zone is
+# under cloud exactly while its homeland counterpart is still locked.
+const ROBOT_MIRRORS := {
+	"RobotZone1": "Zone1", "RobotZone2": "Zone2", "RobotDarkZone": "DarkZone",
+	"RobotForest": "Forest", "RobotDesert": "Desert", "RobotBeach": "Beach",
+	"RobotSnow": "Snow",
+}
 
 # Area names are globally unique, not per-map, for two reasons: ZoneProgress
 # keys its unlocks by area name, and apron ids are handed out across every
@@ -55,7 +69,7 @@ const MAPS := {
 		"name": "Robot",
 		"background": "res://assets/background/airport001.png",
 		"size": Vector2i(3072, 2304),
-		"areas": ["RobotZone1"],
+		"areas": ROBOT_AREAS,
 		# The background is homeland's, so it shows all seven of its regions
 		# even though only one is in play here. Everything outside the landing
 		# zone is permanently under cloud: not "locked, buy it later" - there is

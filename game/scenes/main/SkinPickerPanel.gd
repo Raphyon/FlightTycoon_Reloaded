@@ -15,6 +15,8 @@ func _ready() -> void:
 		_grid.add_child(_build_skin_option(entry))
 	ApronSkins.owned_changed.connect(_refresh)
 	Coins.coins_changed.connect(_refresh)
+	# Levelling up is what makes a new skin appear, so it has to redraw.
+	Progression.level_changed.connect(_refresh)
 
 
 func show_for_apron(apron_id: int) -> void:
@@ -62,6 +64,10 @@ func _refresh(_unused = null) -> void:
 		if ApronSkins.is_owned(_apron_id, entry["key"]):
 			button.text = "Select"
 			button.disabled = false
+		elif not ApronSkins.is_unlocked(entry["key"]):
+			# Locked by level, which coins can't fix - name the level instead.
+			button.text = "Level %d" % ApronSkins.level_for(entry["key"])
+			button.disabled = true
 		else:
 			button.text = "Buy (%d coins)" % ApronSkins.SKIN_COST
 			button.disabled = Coins.amount < ApronSkins.SKIN_COST

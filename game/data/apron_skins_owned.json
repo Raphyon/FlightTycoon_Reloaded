@@ -1,5 +1,17 @@
 {
 	"1": {
-		"apronpaint07": true
+		"apronpaint01": true
+	},
+	"2": {
+		"apronpaint02": true
+	},
+	"3": {
+		"apronpaint03": true
+	},
+	"4": {
+		"apronpaint04": true
+	},
+	"5": {
+		"apronpaint05": true
 	}
 }

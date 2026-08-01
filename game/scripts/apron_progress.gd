@@ -4,28 +4,33 @@ signal built_changed
 
 const SAVE_PATH := "res://data/apron_progress.json"
 
-# What one apron costs to build, per zone. Set at roughly a fifth of the best
-# aircraft you can buy at the level that zone unlocks - the aircraft is the
-# investment, the pad it stands on is the lesser half of it. That ratio is
-# what keeps a pad meaningful without ever being the thing you're saving for.
+# What one apron costs to build, per zone.
 #
-# Dreamland and the carrier used to be absent here, so they fell through to
-# the 1000 default: at level 110, earning ~210k an hour, Dreamland's sixteen
-# pads cost 1000 each. They are priced now.
+# These are the biggest sink in the game and they set the pace of everything
+# else: money spent on pads is money not saved toward the next zone. At the
+# old figures (Snow at 150,000 a pad) pad-building swallowed roughly four
+# fifths of late-game income, so a zone's level gate opened up to 108 minutes
+# before you could afford the zone itself - the gate meant nothing, and the
+# price tag was never the reason. Simulated across the whole curve, these
+# figures put the early gates at zero wait and keep the late ones to a real
+# but bounded save.
 #
 # Zone1 stays at 1000 - it's the zone you learn in.
 const ZONE_BASE_COST := {
-	"Zone1": 1000,
-	"Zone2": 2500,
-	"DarkZone": 6000,
-	"Forest": 12000,
-	"Desert": 40000,
-	"Beach": 100000,
-	"Snow": 150000,
-	"Dreamland1": 170000,
-	"Dreamland2": 250000,
-	"Dreamland3": 300000,
-	"Carrier": 350000,
+	"Zone1": 500,
+	"Zone2": 800,
+	"DarkZone": 1500,
+	"Forest": 3000,
+	"Desert": 8000,
+	"Beach": 15000,
+	"Snow": 25000,
+	# Dreamland and the carrier used to be absent here entirely, so they fell
+	# through to the 1000 default: at level 110, earning ~27k a minute, its
+	# sixteen pads cost 1000 each.
+	"Dreamland1": 30000,
+	"Dreamland2": 40000,
+	"Dreamland3": 50000,
+	"Carrier": 60000,
 }
 
 var built_ids: Dictionary = {}  # str(apron_id) -> true, persisted

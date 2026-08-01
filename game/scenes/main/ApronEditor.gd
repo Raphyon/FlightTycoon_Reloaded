@@ -256,7 +256,7 @@ func _sync_world_aircraft() -> void:
 		if not _world_aircraft.has(a.id):
 			var node := WORLD_AIRCRAFT_SCENE.instantiate()
 			get_node("../WorldAircraft").add_child(node)
-			node.setup(a.model_key, slot.position)
+			node.setup(a.model_key, slot.position, a.livery)
 			_world_aircraft[a.id] = node
 			# A plane appearing straight out of a return flight flies the
 			# traced approach in rather than blinking onto the apron. Any

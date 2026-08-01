@@ -61,10 +61,20 @@ var _animating := false
 var _holds_runway := false
 
 
-func setup(model_key: String, screen_pos: Vector2) -> void:
+# `livery` is the one this particular aircraft is wearing (AircraftSkins), not
+# the model's default - two Black Hawks on neighbouring pads can differ.
+func setup(model_key: String, screen_pos: Vector2, livery: String = "") -> void:
 	position = screen_pos
 	_home_position = screen_pos
-	var sprites: Dictionary = Fleet.WORLD_SPRITES.get(model_key, {})
+	var sprites: Dictionary = Fleet.WORLD_SPRITES.get(model_key, {}).duplicate()
+	# A livery replaces the hull art only. Shadow, rotors and offsets are the
+	# airframe's and stay exactly as they were - the paint doesn't change shape.
+	if livery != "":
+		var entry: Dictionary = AircraftSkins.entry(model_key, livery)
+		if entry.has("body"):
+			sprites["body"] = entry["body"]
+		if entry.has("body_spin"):
+			sprites["body_spin"] = entry["body_spin"]
 	_is_vtol = sprites.get("vtol", false)
 	if sprites.has("shadow"):
 		_shadow = Sprite2D.new()

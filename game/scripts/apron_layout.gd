@@ -140,7 +140,7 @@ static func build_area_aprons(points: Array, start_id: int, area_name: String) -
 		# aircraft you dispatch, not something you construct, so they all start
 		# built. Left buildable they'd show the "needs building" cone and the
 		# aircraft would land on an unbuilt pad.
-		apron.free_by_default = (area_name == Maps.ROBOT_AREA
+		apron.free_by_default = (area_name in Maps.ROBOT_AREAS
 			or (area_name == "Zone1" and i < 5))
 		result.append(apron)
 	return result

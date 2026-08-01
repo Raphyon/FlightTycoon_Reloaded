@@ -1,7 +1,18 @@
 extends PanelContainer
 
 @onready var _title: Label = $Margin/VBox/TitleLabel
+# Both slots ship an empty and a filled frame - dark with a plain tab when
+# nothing is in them, gold with a coloured tab when something is. Swapping the
+# frame is what makes a filled slot read as filled at a glance, rather than
+# relying on the preview thumbnail alone.
+const PLANE_FRAME_EMPTY := preload("res://assets/board/board_apron_info_icon1@2x.png")
+const PLANE_FRAME_FILLED := preload("res://assets/board/board_apron_info_icon2@2x.png")
+const SKIN_FRAME_EMPTY := preload("res://assets/board/board_apron_info_icon3@2x.png")
+const SKIN_FRAME_FILLED := preload("res://assets/board/board_apron_info_icon4@2x.png")
+
 @onready var _slots_row: Control = $Margin/VBox/SlotsRow
+@onready var _skin_frame: TextureRect = $Margin/VBox/SlotsRow/SkinColumn/SkinSlot/SkinFrame
+@onready var _plane_frame: TextureRect = $Margin/VBox/SlotsRow/PlaneColumn/PlaneSlot/PlaneFrame
 @onready var _skin_column: Control = $Margin/VBox/SlotsRow/SkinColumn
 @onready var _plane_column: Control = $Margin/VBox/SlotsRow/PlaneColumn
 @onready var _skin_preview: TextureRect = $Margin/VBox/SlotsRow/SkinColumn/SkinSlot/SkinPreview
@@ -14,19 +25,33 @@ extends PanelContainer
 @onready var _status: Label = $Margin/VBox/SlotsRow/StatusColumn/StatusLabel
 @onready var _action_button: Button = $Margin/VBox/SlotsRow/StatusColumn/ActionButton
 @onready var _close_button: Button = $Margin/VBox/CloseButton
+var _route_button: Button
 
 var _apron_id: int = -1
 var _apron: Apron
 
 
 func _ready() -> void:
+	_build_route_button()
 	_close_button.pressed.connect(hide)
 	_action_button.pressed.connect(_on_action_pressed)
 	_plane_button.pressed.connect(_on_plane_button_pressed)
+	_route_button.pressed.connect(_on_route_button_pressed)
 	_skin_button.pressed.connect(_on_skin_button_pressed)
 	Fleet.fleet_changed.connect(_refresh)
 	ApronProgress.built_changed.connect(_refresh)
 	ApronSkins.skin_changed.connect(_refresh)
+
+
+# Sits under the three slots, spanning the panel - it's the primary action on
+# this screen now, not one of a row of equals.
+func _build_route_button() -> void:
+	_route_button = Button.new()
+	_route_button.text = "Set route"
+	_route_button.custom_minimum_size = Vector2(0, 46)
+	var vbox: Control = $Margin/VBox
+	vbox.add_child(_route_button)
+	vbox.move_child(_route_button, _slots_row.get_index() + 1)
 
 
 func _process(_delta: float) -> void:
@@ -129,12 +154,14 @@ func _refresh() -> void:
 func _refresh_skin_slot() -> void:
 	var entry := ApronSkins.get_skin_entry(_apron_id)
 	if entry.size() > 0:
+		_skin_frame.texture = SKIN_FRAME_FILLED
 		_skin_preview.texture = load(entry["texture"])
 		_skin_preview.visible = true
 		_skin_empty_label.visible = false
 		_skin_bonus_label.text = "+%d%% bonus" % ApronSkins.BONUS_PERCENT
 		_skin_button.text = "Change Skin"
 	else:
+		_skin_frame.texture = SKIN_FRAME_EMPTY
 		_skin_preview.visible = false
 		_skin_empty_label.visible = true
 		_skin_bonus_label.text = "No bonus"
@@ -150,6 +177,7 @@ func _refresh_plane_slot(a: FleetAircraft) -> void:
 	# its pads are landing slots for planes you dispatched, so there is nothing
 	# to assign to or replace here.
 	if Maps.current == Maps.ROBOT_MAP:
+		_plane_frame.texture = PLANE_FRAME_FILLED if a else PLANE_FRAME_EMPTY
 		_plane_icon.visible = a != null
 		if a:
 			var e := _catalog_entry(a.model_key)
@@ -161,28 +189,37 @@ func _refresh_plane_slot(a: FleetAircraft) -> void:
 		return
 
 	if not a:
+		_plane_frame.texture = PLANE_FRAME_EMPTY
 		_plane_icon.visible = false
 		_plane_empty_label.visible = true
-		_plane_button.text = "Assign"
-		_plane_button.disabled = false
+		_plane_button.text = "Livery"
+		_plane_button.disabled = true
 		return
 
 	var entry := _catalog_entry(a.model_key)
+	_plane_frame.texture = PLANE_FRAME_FILLED
 	if entry.size() > 0:
 		_plane_icon.texture = load("res://assets/shop/%s" % entry["icon"])
 		_plane_icon.visible = true
 	_plane_empty_label.visible = false
-	_plane_button.text = "Replace"
-	# Only a parked aircraft can be pulled back to reassign - one mid-route
-	# doesn't make sense to just vanish (matches Fleet.unassign's own rule).
-	_plane_button.disabled = a.state != FleetAircraft.State.PARKED
+	# Liveries exist only for the models we have alternate hull art for.
+	_plane_button.text = "Livery"
+	_plane_button.disabled = not AircraftSkins.has_any(a.model_key)
 
 
+# The plane slot's button no longer assigns - that moved to the route screen,
+# which picks the aircraft and where it flies together. What it does now is
+# paint the aircraft standing on this pad: liveries are bought per aircraft and
+# buy a speed grade (see AircraftSkins), and this is the only way in.
 func _on_plane_button_pressed() -> void:
 	var a := Fleet.get_aircraft_at_apron(_apron_id)
-	if a:
-		Fleet.unassign(a.id)
-	get_node("../AssignPickerPanel").show_for_apron(_apron_id)
+	if not a:
+		return
+	get_node("../LiveryPickerPanel").show_for_aircraft(a.id)
+
+
+func _on_route_button_pressed() -> void:
+	get_node("../RoutePickerPanel").show_for_apron(_apron_id)
 
 
 func _catalog_entry(model_key: String) -> Dictionary:

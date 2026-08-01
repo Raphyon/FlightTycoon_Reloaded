@@ -58,6 +58,11 @@ const TABS := [
 
 var _cards: Dictionary = {}  # model_key -> HangarTypeCard
 var _active_filter: int = Filter.ALL
+# When set, the hangar is being used as a chooser: it opens on the idle tab and
+# every card becomes a button that reports its model back instead of the panel
+# being a read-only roster. See open_for_selection.
+var _on_pick: Callable = Callable()
+var _tab_buttons: Dictionary = {}   # filter -> TextureButton
 var _count_label: Label
 var _empty_label: Label
 
@@ -73,6 +78,10 @@ func _ready() -> void:
 	_build_count_board()
 	_build_empty_label()
 	_build_tab_strip()
+
+
+func _clear_selection_mode() -> void:
+	_on_pick = Callable()
 
 
 func _notification(what: int) -> void:
@@ -139,6 +148,7 @@ func _build_tab_strip() -> void:
 		button.custom_minimum_size = art_size
 		button.button_pressed = entry["filter"] == _active_filter
 		button.pressed.connect(_on_tab_pressed.bind(entry["filter"]))
+		_tab_buttons[entry["filter"]] = button
 		# The reference art carries no wording, so each tag gets a caption - a
 		# handshake, an envelope and a smiley are not self-explanatory, and the
 		# hangar's cup and cloud are no better on their own.
@@ -214,6 +224,26 @@ func _build_empty_label() -> void:
 	_vbox.move_child(_empty_label, _grid.get_index() + 1)
 
 
+# Open the hangar to pick an aircraft, rather than to look at one. Forces the
+# idle submenu, because those are the only aircraft free to be given a route.
+func open_for_selection(on_pick: Callable) -> void:
+	_on_pick = on_pick
+	_active_filter = Filter.IDLE
+	for f in _tab_buttons:
+		_tab_buttons[f].button_pressed = f == Filter.IDLE
+	move_to_front()
+	show()
+	_refresh()
+
+
+func _on_card_picked(model_key: String) -> void:
+	var cb := _on_pick
+	_on_pick = Callable()
+	hide()
+	if cb.is_valid():
+		cb.call(model_key)
+
+
 func _on_tab_pressed(filter: int) -> void:
 	if filter == _active_filter:
 		return
@@ -258,6 +288,12 @@ func _refresh(_unused = null) -> void:
 		_grid.add_child(card)
 		var icon_texture: Texture2D = load("res://assets/shop/%s" % entry["icon"]) if entry.size() > 0 else null
 		card.setup(model_key, entry.get("name", model_key), icon_texture, counts[model_key])
+		# Only the idle submenu offers a sale - that tab IS "unused aircraft".
+		# Selling and choosing are mutually exclusive: while the hangar is a
+		# chooser, a card is a thing you pick, not a thing you scrap.
+		var choosing := _on_pick.is_valid()
+		card.show_sell(_active_filter == Filter.IDLE and not choosing)
+		card.show_choose(choosing, _on_card_picked)
 		_cards[model_key] = card
 
 	var tab: Dictionary = _tab_entry(_active_filter)

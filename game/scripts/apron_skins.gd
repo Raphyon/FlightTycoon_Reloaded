@@ -8,15 +8,23 @@ signal owned_changed
 const SKIN_COST := 10
 const BONUS_PERCENT := 15
 
+# Each skin unlocks at its own level, which is the point of them: between the
+# starting aircraft at level 1 and the P-51 at level 10 there was nothing at
+# all to earn, and that is the stretch that has to hold a new player. Eight
+# skins arriving one at a time fill it, then keep going at a widening spacing.
+#
+# The art is identical in value - the bonus and the price are the same for all
+# eight (the user's spec) - so what a skin buys you is the choice, and what the
+# level buys you is a new choice arriving.
 const SKINS := [
-	{"key": "apronpaint01", "name": "Target", "texture": "res://assets/aprons/apronpaint01@2x.png"},
-	{"key": "apronpaint02", "name": "Ocean Gems", "texture": "res://assets/aprons/apronpaint02@2x.png"},
-	{"key": "apronpaint03", "name": "Celebration Cake", "texture": "res://assets/aprons/apronpaint03@2x.png"},
-	{"key": "apronpaint04", "name": "Gold Rush", "texture": "res://assets/aprons/apronpaint04@2x.png"},
-	{"key": "apronpaint05", "name": "Skull & Bones", "texture": "res://assets/aprons/apronpaint05@2x.png"},
-	{"key": "apronpaint06", "name": "Sweetheart", "texture": "res://assets/aprons/apronpaint06@2x.png"},
-	{"key": "apronpaint07", "name": "Starlight", "texture": "res://assets/aprons/apronpaint07@2x.png"},
-	{"key": "apronpaint08", "name": "Pyramid", "texture": "res://assets/aprons/apronpaint08@2x.png"},
+	{"key": "apronpaint01", "name": "Target", "level": 2, "texture": "res://assets/aprons/apronpaint01@2x.png"},
+	{"key": "apronpaint02", "name": "Ocean Gems", "level": 3, "texture": "res://assets/aprons/apronpaint02@2x.png"},
+	{"key": "apronpaint03", "name": "Celebration Cake", "level": 5, "texture": "res://assets/aprons/apronpaint03@2x.png"},
+	{"key": "apronpaint04", "name": "Gold Rush", "level": 7, "texture": "res://assets/aprons/apronpaint04@2x.png"},
+	{"key": "apronpaint05", "name": "Skull & Bones", "level": 9, "texture": "res://assets/aprons/apronpaint05@2x.png"},
+	{"key": "apronpaint06", "name": "Sweetheart", "level": 12, "texture": "res://assets/aprons/apronpaint06@2x.png"},
+	{"key": "apronpaint07", "name": "Starlight", "level": 16, "texture": "res://assets/aprons/apronpaint07@2x.png"},
+	{"key": "apronpaint08", "name": "Pyramid", "level": 20, "texture": "res://assets/aprons/apronpaint08@2x.png"},
 ]
 
 const SAVE_PATH := "res://data/apron_skins.json"
@@ -72,6 +80,17 @@ func get_skin_entry(apron_id: int) -> Dictionary:
 	return {}
 
 
+func level_for(skin_key: String) -> int:
+	for entry in SKINS:
+		if entry["key"] == skin_key:
+			return int(entry.get("level", 1))
+	return 1
+
+
+func is_unlocked(skin_key: String) -> bool:
+	return Progression.level >= level_for(skin_key)
+
+
 func is_owned(apron_id: int, skin_key: String) -> bool:
 	var for_apron: Dictionary = owned.get(str(apron_id), {})
 	return for_apron.has(skin_key)
@@ -89,6 +108,9 @@ func bonus_percent_for(apron_id: int) -> int:
 
 func buy_skin(apron_id: int, skin_key: String) -> bool:
 	if is_owned(apron_id, skin_key):
+		return false
+	# Gated here rather than only on the button, same as aircraft in Fleet.buy.
+	if not is_unlocked(skin_key):
 		return false
 	if not Coins.spend(SKIN_COST):
 		return false

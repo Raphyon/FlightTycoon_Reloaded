@@ -271,7 +271,29 @@ func _draw() -> void:
 		)
 
 
+# A press is not a click yet - it might be the start of a camera drag.
+#
+# The slots are 220x110 but sit 128px apart, so they overlap and tile the whole
+# airport with no gaps between them. Consuming the press outright therefore ate
+# every drag that started anywhere near the pads, and the more you built the
+# less of the world was left to grab: at 35 pads there was almost nowhere to
+# pan from. So the press is left alone, and the panel opens on RELEASE only if
+# the pointer stayed put - a tap opens the apron, a drag moves the camera.
+const DRAG_SLOP := 6.0
+
+var _press_position := Vector2.ZERO
+var _pressed := false
+
+
 func _on_input_event(_viewport: Node, event: InputEvent, _shape_idx: int) -> void:
-	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-		get_viewport().set_input_as_handled()
-		clicked.emit(apron)
+	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
+		if event.pressed:
+			_pressed = true
+			_press_position = event.position
+			# Deliberately NOT handled here - the camera needs to see it to
+			# start a drag.
+		elif _pressed:
+			_pressed = false
+			if event.position.distance_to(_press_position) <= DRAG_SLOP:
+				get_viewport().set_input_as_handled()
+				clicked.emit(apron)

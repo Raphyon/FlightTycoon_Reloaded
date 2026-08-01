@@ -7,25 +7,28 @@ const SAVE_PATH := "res://data/zone_progress.json"
 # Level + one-time money cost to unlock each zone (separate from the per-apron
 # build costs in ApronProgress). Zone1 is free - it's where you start.
 #
-# LEVELS are the user's, unchanged. COSTS are set at about half what filling
-# the zone's pads costs, so unlocking a zone is a real milestone rather than a
-# formality - the old numbers had Zone2 at 17% of its own pads, which made the
-# gate itself barely noticeable. Snow is the one that had to move furthest
-# (1.0M -> 1.4M): the V-22 arrives at level 100 and lifts income by half, so
-# the old price made Snow cheaper in real time than Beach twenty levels below.
+# LEVELS are the user's, unchanged. COSTS are set against what you can actually
+# afford when the level gate opens, which is NOT the same as what the zone is
+# worth: an earlier pass priced these off income rate and got Zone2 badly
+# wrong - level 10 arrives around 12 minutes in with about 9,900 to your name,
+# against a 25,000 price. The gate opened and then you waited.
+#
+# Measured with the full economy (buying pads and aircraft too, which is where
+# the money really goes), these give no wait at all on the first three and a
+# real but bounded save on the last three.
 const ZONE_REQUIREMENTS := {
-	"Zone2": {"level": 10, "cost": 25000},
-	"DarkZone": {"level": 20, "cost": 40000},
-	"Forest": {"level": 40, "cost": 85000},
-	"Desert": {"level": 60, "cost": 300000},
-	"Beach": {"level": 80, "cost": 700000},
-	"Snow": {"level": 100, "cost": 1400000},
+	"Zone2": {"level": 10, "cost": 8000},
+	"DarkZone": {"level": 20, "cost": 12000},
+	"Forest": {"level": 40, "cost": 30000},
+	"Desert": {"level": 60, "cost": 75000},
+	"Beach": {"level": 80, "cost": 130000},
+	"Snow": {"level": 100, "cost": 210000},
 	# Dreamland and the carrier - PLACEHOLDER level/cost, not from the user,
-	# continuing the homeland curve past Snow (level 100).
-	"Dreamland1": {"level": 110, "cost": 1500000},
-	"Dreamland2": {"level": 130, "cost": 2500000},
-	"Dreamland3": {"level": 150, "cost": 4000000},
-	"Carrier": {"level": 175, "cost": 8000000},
+	# continuing the homeland curve past Snow.
+	"Dreamland1": {"level": 110, "cost": 300000},
+	"Dreamland2": {"level": 130, "cost": 450000},
+	"Dreamland3": {"level": 150, "cost": 650000},
+	"Carrier": {"level": 175, "cost": 950000},
 }
 
 var unlocked_zones: Dictionary = {}  # area_name -> true, persisted
@@ -49,11 +52,18 @@ func _ready() -> void:
 # Zones that never need buying: homeland's start zone, and the robot airport's
 # single zone - its pads are landing slots for aircraft you dispatch, not
 # something you purchase, and a locked robot would strand your fleet.
-const ALWAYS_UNLOCKED := ["Zone1", "RobotZone1"]
+const ALWAYS_UNLOCKED := ["Zone1"]
+
+
+func is_robot_area(area_name: String) -> bool:
+	return area_name in Maps.ROBOT_AREAS
 
 
 func is_unlocked(area_name: String) -> bool:
-	return area_name in ALWAYS_UNLOCKED or unlocked_zones.has(area_name)
+	# The robot's pads are landing slots for aircraft you dispatched, not
+	# something you buy - all of them, not just its first zone.
+	return (area_name in ALWAYS_UNLOCKED or is_robot_area(area_name)
+		or unlocked_zones.has(area_name))
 
 
 func requirement_for(area_name: String) -> Dictionary:

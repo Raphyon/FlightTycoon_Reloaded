@@ -10,6 +10,8 @@ extends PanelContainer
 # back for every aircraft. Here the whole loop is driveable from home.
 const ROW_BOARD := preload("res://assets/board/board_aircraft_list@2x.png")
 const ACTION_TEXTURE := preload("res://assets/buttons/button_orange2@2x.png")
+# The wide variant, for the one button whose label doesn't fit the short one.
+const WIDE_ACTION_TEXTURE := preload("res://assets/buttons/button_orange4@2x.png")
 const COUNT_BOARD_TEXTURE := preload("res://assets/board/board_airline4@2x.png")
 
 const COUNT_BOARD_SIZE := Vector2(410, 62)
@@ -34,6 +36,19 @@ const COL_DEST := 330.0
 const COL_TIME := 560.0
 const COL_ACTION := 752.0
 const ROW_FONT := 17
+
+# The bulk control. A round trip is five presses per aircraft, so a fleet of
+# five costs twenty-five to go round once - this does the lot in one.
+#
+# Drawn at button_orange4's native 192x62. It used to be the 136x62 button
+# pulled out to 300x46 to fit a longer label - stretched 2.2x wide and squashed
+# to three quarters height, which reads as exactly what it was. The wide art
+# exists for this; the label is cut to suit it rather than the reverse.
+const RUN_ALL_SIZE := Vector2(192, 62)
+const RUN_ALL_FONT := 19
+const RESULT_FONT := 15
+const RESULT_HOLD := 3.0
+const RESULT_WIDTH := 300.0
 
 enum Sort { TYPE, TIME, COMPLETED }
 
@@ -63,6 +78,10 @@ var _sort: int = Sort.TIME
 var _count_label: Label
 var _empty_label: Label
 var _sort_buttons: Dictionary = {}
+var _run_all: TextureButton
+var _run_all_label: Label
+var _result_label: Label
+var _result_timer := 0.0
 
 
 func _ready() -> void:
@@ -74,6 +93,7 @@ func _ready() -> void:
 	get_tree().root.size_changed.connect(_fit_content)
 	_build_count_board()
 	_build_sort_row()
+	_build_run_all()
 	_build_empty_label()
 	_make_scrollable()
 
@@ -91,9 +111,13 @@ func _on_fleet_changed(_unused = null) -> void:
 
 # Times tick down every frame, so the rows would go stale sitting open. Only
 # the labels are rewritten - rebuilding the rows would fight the buttons.
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
 	if not visible:
 		return
+	if _result_timer > 0.0:
+		_result_timer -= delta
+		if _result_timer <= 0.0 and is_instance_valid(_result_label):
+			_result_label.text = ""
 	for row in _grid.get_children():
 		var a := Fleet.get_aircraft(int(row.get_meta("aircraft_id", -1)))
 		if a:
@@ -200,6 +224,87 @@ func _build_sort_row() -> void:
 	_vbox.move_child(row, _grid.get_index())
 
 
+func _build_run_all() -> void:
+	var row := HBoxContainer.new()
+	row.alignment = BoxContainer.ALIGNMENT_CENTER
+	row.add_theme_constant_override("separation", 14)
+
+	# The result readout sits to the right of the button and reserves its width
+	# even while empty, which drags the button off centre. An equal spacer on
+	# the left balances it, so the button holds still whether or not a result
+	# is showing.
+	var spacer := Control.new()
+	spacer.custom_minimum_size = Vector2(RESULT_WIDTH, 0)
+	spacer.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	row.add_child(spacer)
+
+	_run_all = TextureButton.new()
+	# Before the texture, or the button takes the art's own 136x62 as its
+	# minimum and the size below is silently clamped up to it.
+	_run_all.ignore_texture_size = true
+	_run_all.stretch_mode = TextureButton.STRETCH_SCALE
+	_run_all.texture_normal = WIDE_ACTION_TEXTURE
+	_run_all.custom_minimum_size = RUN_ALL_SIZE
+	_run_all.pressed.connect(_on_run_all_pressed)
+	row.add_child(_run_all)
+
+	_run_all_label = Label.new()
+	_run_all_label.size = RUN_ALL_SIZE
+	_run_all_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_run_all_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	_run_all_label.add_theme_font_size_override("font_size", RUN_ALL_FONT)
+	_run_all_label.add_theme_color_override("font_color", Color.WHITE)
+	_run_all_label.add_theme_color_override("font_outline_color", Color(0.25, 0.10, 0.02, 1))
+	_run_all_label.add_theme_constant_override("outline_size", 4)
+	_run_all_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_run_all.add_child(_run_all_label)
+
+	_result_label = Label.new()
+	_result_label.custom_minimum_size = Vector2(RESULT_WIDTH, 0)
+	_result_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	_result_label.add_theme_font_size_override("font_size", RESULT_FONT)
+	_result_label.add_theme_color_override("font_color", Color(1, 1, 1, 0.8))
+	row.add_child(_result_label)
+
+	_vbox.add_child(row)
+	_vbox.move_child(row, _grid.get_index())
+
+
+# Says how many aircraft are waiting, so you know what the press will do
+# before you make it - and goes dead when the answer is none.
+func _refresh_run_all() -> void:
+	if not is_instance_valid(_run_all):
+		return
+	var pending := Fleet.pending_count()
+	_run_all.disabled = pending == 0
+	_run_all.modulate = Color.WHITE if pending > 0 else Color(0.55, 0.55, 0.55, 1.0)
+	_run_all_label.text = "Depart all (%d)" % pending if pending > 0 else "Nothing waiting"
+
+
+# What the press actually did. Aircraft can refuse - no fuel, no free pad at
+# the destination, out of range - so a silent button would leave you guessing
+# which.
+func _flash_result(result: Dictionary) -> void:
+	var bits: Array = []
+	if int(result["earned"]) > 0:
+		bits.append("collected $%d" % int(result["earned"]))
+	if int(result["departed"]) > 0:
+		bits.append("%d departed" % int(result["departed"]))
+	if int(result["fuel_spent"]) > 0:
+		bits.append("%d fuel" % int(result["fuel_spent"]))
+	# Name the causes rather than a bare count - "3 need 5 fuel" tells you to
+	# go and buy fuel; "3 stuck" tells you nothing.
+	var reasons: Dictionary = result.get("reasons", {})
+	if reasons.is_empty():
+		if int(result["blocked"]) > 0:
+			bits.append("%d stuck" % int(result["blocked"]))
+	else:
+		for why in reasons:
+			bits.append("%d %s" % [int(reasons[why]), why])
+	_result_label.text = ", ".join(bits) if not bits.is_empty() else ""
+	_result_timer = RESULT_HOLD
+
+
 func _build_empty_label() -> void:
 	_empty_label = Label.new()
 	_empty_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -267,7 +372,12 @@ func _catalog_icon(a: FleetAircraft) -> Texture2D:
 func _time_text(a: FleetAircraft) -> String:
 	if a.is_in_transit():
 		return "%ds" % ceili(a.flight_time_left)
-	return "Ready" if _has_action(a) else "-"
+	if not _has_action(a):
+		return "-"
+	# An aircraft that can't move says why. "Ready" beside a button that
+	# refuses to do anything is worse than no label at all.
+	var why := Fleet.block_reason(a)
+	return why if why != "" else "Ready"
 
 
 func _destination_text(a: FleetAircraft) -> String:
@@ -291,6 +401,7 @@ func _refresh() -> void:
 			if _has_action(a):
 				ready += 1
 		_count_label.text = "In service: %d   ·   Ready: %d" % [routes.size(), ready]
+	_refresh_run_all()
 	if _empty_label:
 		_empty_label.visible = routes.is_empty()
 		_empty_label.text = "No aircraft in service - assign one to an apron first."
@@ -380,17 +491,9 @@ func _cell(text: String, x: float, width: float, align: int) -> Label:
 # The one button. Which call it makes depends only on where the aircraft is in
 # its trip, so the player never has to know the difference.
 func _on_action(aircraft_id: int) -> void:
-	var a := Fleet.get_aircraft(aircraft_id)
-	if not a:
-		return
-	match a.state:
-		FleetAircraft.State.PARKED:
-			Fleet.fuel_and_depart(a.id)
-		FleetAircraft.State.AWAITING_DEST_CLAIM:
-			Fleet.claim_destination_reward(a.id)
-		FleetAircraft.State.AWAITING_DEST_REFUEL:
-			Fleet.refuel_at_destination(a.id)
-		FleetAircraft.State.AWAITING_HOME_CLAIM:
-			Fleet.claim_home_reward(a.id)
-		FleetAircraft.State.AWAITING_HOME_REFUEL:
-			Fleet.refuel_at_home(a.id)
+	Fleet.advance(aircraft_id)
+
+
+func _on_run_all_pressed() -> void:
+	var result := Fleet.advance_all()
+	_flash_result(result)

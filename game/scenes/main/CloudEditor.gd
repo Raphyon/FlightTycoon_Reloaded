@@ -92,6 +92,7 @@ func _input(event: InputEvent) -> void:
 		if event.keycode == KEY_O:
 			editing = !editing
 			_update_hud()
+			_apply_pickable()
 		elif editing and event.keycode >= KEY_1 and event.keycode <= KEY_7:
 			var idx: int = event.keycode - KEY_1
 			if idx < Maps.areas_for().size():
@@ -135,11 +136,20 @@ func _rebuild_all() -> void:
 		for area_name in CloudLayout.lockable_areas(cover_from):
 			if not borrowed.has(area_name):
 				continue
+			# The robot's airport mirrors yours pad for pad, so a region there
+			# is under cloud exactly while the region it mirrors is still
+			# locked for you - your aircraft land on the same aprons you own.
+			# Covering everything outside the first zone (which is what this
+			# did when the robot had only one) would now hide pads your fleet
+			# is actually using.
+			if _mirrored_area_unlocked(area_name):
+				continue
 			var bp: Array = borrowed[area_name]
 			var cover: Node2D = CLOUD_SLOT_SCENE.instantiate()
 			get_node("../Clouds").add_child(cover)
 			cover.setup(area_name, Vector2(bp[0], bp[1]))
 			_slots[area_name] = cover
+		_apply_pickable()
 		return
 
 	for area_name in CloudLayout.lockable_areas():
@@ -151,6 +161,22 @@ func _rebuild_all() -> void:
 		slot.setup(area_name, Vector2(p[0], p[1]))
 		slot.clicked.connect(_on_cloud_clicked)
 		_slots[area_name] = slot
+	_apply_pickable()
+
+
+# Covers take clicks only while they're being placed - see CloudSlot.set_pickable.
+func _apply_pickable() -> void:
+	for slot in _slots.values():
+		if is_instance_valid(slot):
+			slot.set_pickable(editing)
+
+
+# A borrowed cover hides the region it was drawn for. On the robot that region
+# mirrors one of yours, so it lifts when you unlock the original.
+func _mirrored_area_unlocked(borrowed_area: String) -> bool:
+	if Maps.current != Maps.ROBOT_MAP:
+		return false
+	return ZoneProgress.is_unlocked(borrowed_area)
 
 
 # Only the placement tool cares about cloud clicks now. Zones are bought in

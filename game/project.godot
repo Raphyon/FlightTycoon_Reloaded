@@ -34,28 +34,13 @@ ApronSkins="*res://scripts/apron_skins.gd"
 AircraftAffinity="*res://scripts/aircraft_affinity.gd"
 RunwayControl="*res://scripts/runway_control.gd"
 DebugState="*res://scripts/debug_state.gd"
-; Last, so it loads over autoloads that are already initialised.
+AircraftSkins="*res://scripts/aircraft_skins.gd"
 SaveGame="*res://scripts/save_game.gd"
 
 [display]
 
-; 1152x648 is the reference frame everything was laid out against - it's
-; Godot's own default viewport, so this pins the framing the editor has
-; been showing all along rather than leaving it to whatever the window
-; happens to be.
-window/size/viewport_width=1152
-window/size/viewport_height=648
-; 3 = fullscreen.
 window/size/mode=3
-; Without this the stretch mode is "disabled", so a bigger window simply
-; revealed more of the map instead of scaling anything - which is why
-; fullscreen zoomed out rather than filling the screen. canvas_items
-; scales the 2D content by the window/base ratio instead.
 window/stretch/mode="canvas_items"
-; "expand" keeps pixels square and fills the screen; a display whose aspect
-; differs from 16:9 sees slightly more map on the wider axis rather than
-; getting letterbox bars. "keep" instead would guarantee an identical frame
-; but bar the edges.
 window/stretch/aspect="expand"
 
 [rendering]

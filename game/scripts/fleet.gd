@@ -223,8 +223,13 @@ const WORLD_SPRITES := {
 const DESTINATION_NAME := "Robot"
 
 # XP tracks what the leg was worth, so a 700-seat A380 doesn't hand out the
-# same 20 XP the 50-seat starter did. One XP per this much earned.
-const MONEY_PER_XP := 50
+# same XP the 50-seat starter did. One XP per this much earned.
+#
+# 25, giving 16 XP a leg for the starter against the live game's 5. Solved
+# from the pacing target, not the record: level 10 by the time Zone1 is full
+# needs roughly three times the live XP rate, because our Zone1 fills in a
+# quarter of an hour rather than over an evening.
+const MONEY_PER_XP := 25
 
 
 func xp_for_claim(model_key: String) -> int:
@@ -238,7 +243,11 @@ func xp_for_claim(model_key: String) -> int:
 # Aircraft that carry almost nobody override it (ShopCatalog "ticket"), which
 # is the only way a 2-seat P-51 can be worth owning - the reference does the
 # same, charging 2000 a head on an F-15 and 200 on a balloon.
-const TICKET_PRICE := 10
+# 8. The live game pays 200 a leg for a 50-seat 328 Jet, i.e. a fare of 4 -
+# but that pace can't fill Zone1 in fifteen minutes, which is the opening this
+# game wants. Doubled deliberately, and the aircraft ladder is repriced to
+# match. Fuel, flight time and the level curve are still the live values.
+const TICKET_PRICE := 8
 
 
 func ticket_price(model_key: String) -> int:
@@ -248,6 +257,29 @@ func ticket_price(model_key: String) -> int:
 # an S-class aircraft flies a cloud in the flat SECONDS_PER_DISTANCE, and
 # every grade below it takes proportionally longer, up to 3x for an E.
 const SPEED_FACTOR := {"S": 1.0, "A": 1.25, "B": 1.5, "C": 2.0, "D": 2.5, "E": 3.0}
+# Worst to best. A livery moves an aircraft one place along it.
+const GRADE_LADDER := ["E", "D", "C", "B", "A", "S"]
+
+
+# The grade this particular aircraft flies at: its model's, moved one step up
+# if it's wearing a livery. S is the top - nothing to gain, and no livery is
+# offered for an S-class model.
+func grade_for(a: FleetAircraft) -> String:
+	var base := str(ShopCatalog.stat(a.model_key, "force"))
+	if a.livery.is_empty():
+		return base
+	var i := GRADE_LADDER.find(base)
+	if i == -1 or i >= GRADE_LADDER.size() - 1:
+		return base
+	return GRADE_LADDER[i + 1]
+
+
+# Flight time for a specific aircraft, livery included. flight_seconds_to()
+# below is the model-level estimate the shop and routes table use, where there
+# is no particular aircraft to ask about.
+func flight_seconds_for(a: FleetAircraft, map_key: String) -> float:
+	var base := SECONDS_PER_DISTANCE * maxf(1.0, float(Maps.entry(map_key).get("distance", 1)))
+	return base * float(SPEED_FACTOR.get(grade_for(a), 1.0))
 
 
 # How many passengers a leg carries: all of them.
@@ -323,6 +355,8 @@ func to_save() -> Dictionary:
 			"id": a.id, "model": a.model_key, "apron": a.assigned_apron_id,
 			"robot_apron": a.robot_apron_id, "state": a.state,
 			"left": a.flight_time_left,
+			"livery": a.livery, "owned_liveries": a.owned_liveries.keys(),
+			"destination": a.destination,
 		})
 	return {"aircraft": out, "next_id": _next_id}
 
@@ -340,6 +374,10 @@ func load_save(data: Dictionary, elapsed: float) -> void:
 		a.robot_apron_id = int(d.get("robot_apron", -1))
 		a.state = int(d.get("state", FleetAircraft.State.PARKED))
 		a.flight_time_left = float(d.get("left", 0.0))
+		a.livery = str(d.get("livery", ""))
+		a.destination = str(d.get("destination", ""))
+		for key in d.get("owned_liveries", []):
+			a.owned_liveries[str(key)] = true
 		aircraft.append(a)
 	_next_id = int(data.get("next_id", aircraft.size() + 1))
 	if elapsed > 0.0:
@@ -361,6 +399,58 @@ func buy(model_key: String, price: int, currency: String = ShopCatalog.CASH) -> 
 	_next_id += 1
 	fleet_changed.emit()
 	return true
+
+
+# What an aircraft fetches back. Half of what it cost, rounded - enough that
+# replacing a hangar full of starters with something better is worth doing,
+# not so much that churning aircraft is free.
+const RESALE_FRACTION := 0.5
+
+
+func sell_value(model_key: String) -> int:
+	var entry := ShopCatalog.entry_for(model_key)
+	if ShopCatalog.currency_of(entry) == ShopCatalog.COINS:
+		return 0
+	return int(round(int(entry.get("price", 0)) * RESALE_FRACTION))
+
+
+# Coin-bought aircraft are never sellable: they cost real money, so turning
+# them back into cash would be a laundering route out of the premium currency.
+# Nor is anything mid-route - it isn't yours to scrap while it's in the air or
+# sitting at someone else's airport.
+func can_sell(a: FleetAircraft) -> bool:
+	if not a:
+		return false
+	if ShopCatalog.currency_of(ShopCatalog.entry_for(a.model_key)) == ShopCatalog.COINS:
+		return false
+	return a.state == FleetAircraft.State.PARKED or a.is_idle()
+
+
+func sell(aircraft_id: int) -> bool:
+	var a := get_aircraft(aircraft_id)
+	if not can_sell(a):
+		return false
+	Economy.add_money(sell_value(a.model_key))
+	aircraft.erase(a)
+	fleet_changed.emit()
+	return true
+
+
+# Sells one idle aircraft of this model - what the hangar offers, since it
+# groups by type rather than listing individuals.
+func sell_one_idle(model_key: String) -> bool:
+	for a in aircraft:
+		if a.model_key == model_key and a.is_idle() and can_sell(a):
+			return sell(a.id)
+	return false
+
+
+func idle_count(model_key: String) -> int:
+	var n := 0
+	for a in aircraft:
+		if a.model_key == model_key and a.is_idle():
+			n += 1
+	return n
 
 
 func count(model_key: String) -> int:
@@ -415,19 +505,19 @@ func fuel_and_depart(aircraft_id: int) -> bool:
 	# Claim the landing pad before spending anything: with the robot airport
 	# full there is nowhere to land, and taking the fuel first would charge for
 	# a trip that can't happen.
-	var pad := free_robot_apron()
+	var pad := robot_apron_for(a)
 	if pad == -1:
 		return false
 	# Range is a real gate, not a number on a card: a short-legged aircraft
 	# can't reach a distant airport at all. Checked before the fuel is spent,
 	# same as the pad.
-	if not in_range(a.model_key, Maps.ROBOT_MAP):
+	if not in_range(a.model_key, destination_of(a)):
 		return false
 	if not FuelStore.consume(fuel_cost(a.model_key)):
 		return false
 	a.robot_apron_id = pad
 	a.state = FleetAircraft.State.FLYING_OUT
-	a.flight_time_left = flight_seconds_to(Maps.ROBOT_MAP, a.model_key)
+	a.flight_time_left = flight_seconds_for(a, destination_of(a))
 	fleet_changed.emit()
 	return true
 
@@ -450,7 +540,7 @@ func refuel_at_destination(aircraft_id: int) -> void:
 		# return leg would halve the airport's usable capacity.
 		a.robot_apron_id = -1
 		a.state = FleetAircraft.State.FLYING_BACK
-		a.flight_time_left = flight_seconds_to(Maps.ROBOT_MAP, a.model_key)
+		a.flight_time_left = flight_seconds_for(a, destination_of(a))
 		fleet_changed.emit()
 
 
@@ -482,6 +572,118 @@ func refuel_at_home(aircraft_id: int) -> bool:
 	return true
 
 
+# Where this aircraft is routed. Falls back to the robot so an aircraft from a
+# save written before destinations existed still has somewhere to go.
+func destination_of(a: FleetAircraft) -> String:
+	return a.destination if a.destination != "" else Maps.ROBOT_MAP
+
+
+# Whether there is anything to do for this aircraft right now. False while
+# it's in the air - that's a wait, not a decision.
+func has_pending_action(a: FleetAircraft) -> bool:
+	return not (a.state == FleetAircraft.State.FLYING_OUT
+		or a.state == FleetAircraft.State.FLYING_BACK)
+
+
+# Why this aircraft can't move, in words a player can act on. Empty when it
+# can. "Stuck" on its own tells you something is wrong but not what to do
+# about it - and the four causes want four different responses.
+func block_reason(a: FleetAircraft) -> String:
+	match a.state:
+		FleetAircraft.State.PARKED:
+			if not in_range(a.model_key, destination_of(a)):
+				return "out of range"
+			if robot_apron_for(a) == -1:
+				return "no pad at %s" % DESTINATION_NAME
+			if FuelStore.amount < fuel_cost(a.model_key):
+				return "needs %d fuel" % fuel_cost(a.model_key)
+		FleetAircraft.State.AWAITING_HOME_REFUEL:
+			if FuelStore.amount < fuel_cost(a.model_key):
+				return "needs %d fuel" % fuel_cost(a.model_key)
+	return ""
+
+
+# One step of whatever this aircraft needs next. The state machine lives here
+# rather than in the routes table, because two callers drive it now: the
+# per-row button and the bulk one.
+#
+# Returns whether anything actually happened. False means it's flying, or it's
+# blocked - out of fuel, out of range, or the destination has no free pad.
+func advance(aircraft_id: int) -> bool:
+	var a := get_aircraft(aircraft_id)
+	if not a:
+		return false
+	var before := a.state
+	match a.state:
+		FleetAircraft.State.PARKED:
+			fuel_and_depart(a.id)
+		FleetAircraft.State.AWAITING_DEST_CLAIM:
+			claim_destination_reward(a.id)
+		FleetAircraft.State.AWAITING_DEST_REFUEL:
+			refuel_at_destination(a.id)
+		FleetAircraft.State.AWAITING_HOME_CLAIM:
+			claim_home_reward(a.id)
+		FleetAircraft.State.AWAITING_HOME_REFUEL:
+			refuel_at_home(a.id)
+	return a.state != before
+
+
+# A full round trip is five separate actions per aircraft - depart, collect,
+# send home, collect, refuel - so a fleet of five costs twenty-five presses to
+# go round once. This runs every aircraft as far forward as it will go in one
+# press: collect what has landed, send it home, refuel it and put it back in
+# the air.
+#
+# Six steps is one full lap plus slack; the loop ends on its own as soon as an
+# aircraft reaches a flying state or an action refuses.
+const MAX_ADVANCE_STEPS := 6
+
+
+func advance_all() -> Dictionary:
+	var money_before := Economy.money
+	var fuel_before := FuelStore.amount
+	var moved := 0
+	var departed := 0
+	var blocked := 0
+	var reasons := {}
+	for a in aircraft:
+		if a.is_idle():
+			continue
+		var steps := 0
+		while steps < MAX_ADVANCE_STEPS and advance(a.id):
+			steps += 1
+		if steps > 0:
+			moved += 1
+			if a.state == FleetAircraft.State.FLYING_OUT:
+				departed += 1
+		# Stuck is measured AFTER the pass, not before: an aircraft that
+		# collected its reward and then couldn't afford the fuel to leave has
+		# moved AND is still waiting on you. Counting only the ones that did
+		# nothing reported "0 stuck" with the whole fleet grounded.
+		if has_pending_action(a):
+			blocked += 1
+			var why := block_reason(a)
+			if why != "":
+				reasons[why] = int(reasons.get(why, 0)) + 1
+	return {
+		"moved": moved,
+		"departed": departed,
+		"blocked": blocked,
+		"reasons": reasons,
+		"earned": Economy.money - money_before,
+		"fuel_spent": fuel_before - FuelStore.amount,
+	}
+
+
+# How many in-service aircraft are waiting on you.
+func pending_count() -> int:
+	var n := 0
+	for a in aircraft:
+		if not a.is_idle() and has_pending_action(a):
+			n += 1
+	return n
+
+
 func get_aircraft(aircraft_id: int) -> FleetAircraft:
 	for a in aircraft:
 		if a.id == aircraft_id:
@@ -507,28 +709,45 @@ func get_aircraft_at_robot_apron(apron_id: int) -> FleetAircraft:
 
 
 # Every pad at the robot airport, in id order.
+# Every pad at the robot, across all seven mirrored areas, in id order.
 func robot_apron_ids() -> Array:
 	var starts: Dictionary = ApronLayout.compute_id_starts()
-	if not starts.has(Maps.ROBOT_AREA):
-		return []
-	var start: int = starts[Maps.ROBOT_AREA]
-	var count: int = (ApronLayout.load_area_data(Maps.ROBOT_MAP).get(Maps.ROBOT_AREA, []) as Array).size()
+	var data: Dictionary = ApronLayout.load_area_data(Maps.ROBOT_MAP)
 	var ids: Array = []
-	for i in range(count):
-		ids.append(start + i)
+	for area in Maps.ROBOT_AREAS:
+		if not starts.has(area):
+			continue
+		var start: int = starts[area]
+		for i in range((data.get(area, []) as Array).size()):
+			ids.append(start + i)
 	return ids
 
 
-# The first robot pad nobody has claimed, or -1 when the airport is full. A pad
-# is held from dispatch right through to the return leg, so a full robot means
-# no more departures until something is collected - that capacity limit is what
-# gives the trip its weight.
+# The destination pad for an aircraft: the SAME one it flies from.
+#
+# The robot's airport mirrors homeland pad for pad, so apron 14 at home has a
+# counterpart there, and a route occupies both ends. That's what the live game
+# does - a real route record carries startApron and endApron both reading
+# airport001_area001_apron0014, for two different users - and it means capacity
+# cannot run out: you can't have more aircraft in the air than you have aprons,
+# and each one's slot is reserved by definition.
+#
+# This replaced claiming the first unclaimed pad from a pool of twenty, which
+# quietly capped the whole game at twenty aircraft - past that, dispatching
+# just refused.
+func robot_apron_for(a: FleetAircraft) -> int:
+	if a.assigned_apron_id < 1:
+		return -1
+	var ids := robot_apron_ids()
+	# Homeland is the first map, so its aprons are ids 1..n and the index of
+	# this one is simply id - 1.
+	var offset: int = a.assigned_apron_id - 1
+	return ids[offset] if offset < ids.size() else -1
+
+
+# RETIRED. With 1:1 apron mapping there is no pool to allocate from and no
+# "full" state - see robot_apron_for. Kept as a thin shim so any caller that
+# still asks gets a sensible answer rather than an error.
 func free_robot_apron() -> int:
-	var taken := {}
-	for a in aircraft:
-		if a.robot_apron_id != -1:
-			taken[a.robot_apron_id] = true
-	for id in robot_apron_ids():
-		if not taken.has(id):
-			return id
-	return -1
+	var ids := robot_apron_ids()
+	return ids[0] if ids.size() > 0 else -1

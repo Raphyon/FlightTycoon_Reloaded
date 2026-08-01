@@ -18,6 +18,16 @@ var assigned_apron_id: int = -1  # -1 = idle/in hangar, otherwise the apron it's
 # from dispatch until it heads home again, so it doubles as the capacity lock -
 # see Fleet.claim_robot_apron. -1 = not out on a trip.
 var robot_apron_id: int = -1
+# Liveries are bought per aircraft, not per model (see AircraftSkins), so both
+# what this one wears and what it has paid for live here rather than in a
+# central table keyed by model.
+# Where this aircraft flies when dispatched. Chosen with the aircraft when the
+# route is assigned (see RoutePickerPanel); a friend's airport, keyed the same
+# way Maps and Friends key them. Empty means the default destination, which
+# keeps aircraft saved before routes existed flying somewhere sensible.
+var destination: String = ""
+var livery: String = ""
+var owned_liveries: Dictionary = {}
 var state: int = State.PARKED
 var flight_time_left: float = 0.0
 
