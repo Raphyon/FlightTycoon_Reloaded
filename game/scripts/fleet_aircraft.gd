@@ -26,6 +26,11 @@ var robot_apron_id: int = -1
 # way Maps and Friends key them. Empty means the default destination, which
 # keeps aircraft saved before routes existed flying somewhere sensible.
 var destination: String = ""
+# How long this aircraft holds on the pad before its takeoff run, when a whole
+# airport is dispatched at once. The SAME value is added to its flight time, so
+# what you see and what the clock does agree: it leaves late and lands late by
+# exactly as much. Transient - not saved, and cleared once consumed.
+var launch_delay: float = 0.0
 var livery: String = ""
 var owned_liveries: Dictionary = {}
 var state: int = State.PARKED

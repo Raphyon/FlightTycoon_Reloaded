@@ -21,6 +21,7 @@ extends Node2D
 # remember to do manually.
 
 const APRON_SLOT_SCENE := preload("res://scenes/main/ApronSlot.tscn")
+
 const ApronSlotScript := preload("res://scenes/main/ApronSlot.gd")
 const WORLD_AIRCRAFT_SCENE := preload("res://scenes/main/WorldAircraft.tscn")
 const MATCH_RADIUS := 8.0  # px - how close a click has to be to hit an existing point
@@ -39,7 +40,10 @@ func _ready() -> void:
 	# Pre-fills homeland's Zone1 and the robot airport's mirror of it, whichever
 	# airport we happen to boot into.
 	ApronLayout.ensure_seeded()
-	Fleet.fleet_changed.connect(_rebuild_all)
+	# Coalesced: several fleet changes in one frame cause ONE rebuild, not one
+	# each. _rebuild_all frees and recreates every apron slot and world sprite,
+	# so at 110 aprons that is 220 nodes a time.
+	Fleet.fleet_changed.connect(_request_rebuild)
 	_hud = EditorHud.create(self)
 	reload_for_map()
 
@@ -197,6 +201,21 @@ func _point_in_apron_footprint(pos: Vector2, center: Vector2) -> bool:
 	return (d.x / hw + d.y / hh) <= 1.0
 
 
+var _rebuild_queued := false
+
+
+func _request_rebuild() -> void:
+	if _rebuild_queued:
+		return
+	_rebuild_queued = true
+	call_deferred("_do_queued_rebuild")
+
+
+func _do_queued_rebuild() -> void:
+	_rebuild_queued = false
+	_rebuild_all()
+
+
 func _rebuild_all() -> void:
 	var starts: Dictionary = ApronLayout.compute_id_starts()
 	for area_name in _areas():
@@ -274,7 +293,13 @@ func _sync_world_aircraft() -> void:
 			# removal - see WorldAircraft.play_departure(). Dropped from
 			# _world_aircraft immediately either way so a quick reassignment
 			# can spawn a fresh node instead of fighting the departing one.
-			_world_aircraft[aircraft_id].play_departure()
+			# The hold the aircraft was given when it was dispatched, so the
+			# animation and the flight clock agree (Fleet.BULK_LAUNCH_STAGGER).
+			var departing := Fleet.get_aircraft(aircraft_id)
+			var hold: float = departing.launch_delay if departing else 0.0
+			if departing:
+				departing.launch_delay = 0.0
+			_world_aircraft[aircraft_id].play_departure(hold)
 			_world_aircraft.erase(aircraft_id)
 
 

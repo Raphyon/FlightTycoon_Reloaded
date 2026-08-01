@@ -385,8 +385,19 @@ func _add_startup_wobble(tween: Tween) -> void:
 		.set_trans(Tween.TRANS_SINE)
 
 
-func play_departure() -> void:
+# `delay` staggers a mass departure. Dispatching a full airport sends every
+# aircraft on the same tick, and 110 takeoffs igniting on one frame - each
+# spinning up tweens, rotors and a downwash - is a visible hitch. Spreading
+# them over a few frames costs nothing and looks better besides: an airport
+# emptying in sequence reads as traffic, all at once reads as a glitch.
+func play_departure(delay: float = 0.0) -> void:
 	_animating = true
+	if delay > 0.0:
+		# Bound to this node, so freeing it mid-wait cancels cleanly rather
+		# than firing into a freed object.
+		await get_tree().create_timer(delay).timeout
+		if not is_instance_valid(self):
+			return
 	if _is_vtol:
 		_play_vertical_liftoff()
 		return

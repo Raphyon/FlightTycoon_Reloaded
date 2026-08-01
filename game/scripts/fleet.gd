@@ -312,6 +312,20 @@ const SECONDS_PER_DISTANCE := 60.0
 
 var aircraft: Array[FleetAircraft] = []
 var _next_id := 1
+# Bulk operations (advance_all) touch every aircraft and would otherwise fire
+# fleet_changed once per action per aircraft - and ApronEditor rebuilds every
+# apron slot and world sprite on that signal. With 110 aircraft that was
+# hundreds of full rebuilds of 220 nodes in one press, which exhausted Godot's
+# 32MB deferred-call queue outright. One signal at the end instead.
+var _batching := false
+var _changed_while_batching := false
+
+
+func _emit_changed() -> void:
+	if _batching:
+		_changed_while_batching = true
+		return
+	fleet_changed.emit()
 
 
 func _ready() -> void:
@@ -326,7 +340,7 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	if _advance_flights(delta):
-		fleet_changed.emit()
+		_emit_changed()
 
 
 # Ticks every in-flight aircraft forward and lands the ones that arrive.
@@ -382,7 +396,7 @@ func load_save(data: Dictionary, elapsed: float) -> void:
 	_next_id = int(data.get("next_id", aircraft.size() + 1))
 	if elapsed > 0.0:
 		_advance_flights(elapsed)
-	fleet_changed.emit()
+	_emit_changed()
 
 
 # Exotics are sold for coins rather than cash (see ShopCatalog), so which
@@ -397,7 +411,7 @@ func buy(model_key: String, price: int, currency: String = ShopCatalog.CASH) -> 
 		return false
 	aircraft.append(FleetAircraft.new(_next_id, model_key))
 	_next_id += 1
-	fleet_changed.emit()
+	_emit_changed()
 	return true
 
 
@@ -432,7 +446,7 @@ func sell(aircraft_id: int) -> bool:
 		return false
 	Economy.add_money(sell_value(a.model_key))
 	aircraft.erase(a)
-	fleet_changed.emit()
+	_emit_changed()
 	return true
 
 
@@ -469,7 +483,7 @@ func assign_to_apron(aircraft_id: int, apron_id: int) -> void:
 	var a := get_aircraft(aircraft_id)
 	if a:
 		a.assigned_apron_id = apron_id
-		fleet_changed.emit()
+		_emit_changed()
 
 
 func unassign(aircraft_id: int) -> void:
@@ -479,7 +493,7 @@ func unassign(aircraft_id: int) -> void:
 	# to/from.
 	if a and a.state == FleetAircraft.State.PARKED:
 		a.assigned_apron_id = -1
-		fleet_changed.emit()
+		_emit_changed()
 
 
 # How long a one-way leg to this destination takes. Clamped at 1 so a map that
@@ -518,7 +532,7 @@ func fuel_and_depart(aircraft_id: int) -> bool:
 	a.robot_apron_id = pad
 	a.state = FleetAircraft.State.FLYING_OUT
 	a.flight_time_left = flight_seconds_for(a, destination_of(a))
-	fleet_changed.emit()
+	_emit_changed()
 	return true
 
 
@@ -528,7 +542,7 @@ func claim_destination_reward(aircraft_id: int) -> void:
 		_grant_reward(payout_for(a.model_key), a.assigned_apron_id, a.model_key)
 		AircraftAffinity.grant_use(a.model_key)
 		a.state = FleetAircraft.State.AWAITING_DEST_REFUEL
-		fleet_changed.emit()
+		_emit_changed()
 
 
 func refuel_at_destination(aircraft_id: int) -> void:
@@ -541,7 +555,7 @@ func refuel_at_destination(aircraft_id: int) -> void:
 		a.robot_apron_id = -1
 		a.state = FleetAircraft.State.FLYING_BACK
 		a.flight_time_left = flight_seconds_for(a, destination_of(a))
-		fleet_changed.emit()
+		_emit_changed()
 
 
 func claim_home_reward(aircraft_id: int) -> void:
@@ -550,7 +564,7 @@ func claim_home_reward(aircraft_id: int) -> void:
 		_grant_reward(payout_for(a.model_key), a.assigned_apron_id, a.model_key)
 		AircraftAffinity.grant_use(a.model_key)
 		a.state = FleetAircraft.State.AWAITING_HOME_REFUEL
-		fleet_changed.emit()
+		_emit_changed()
 
 
 # Apron skins (see ApronSkins) give a flat bonus to both the cash and XP
@@ -568,7 +582,7 @@ func refuel_at_home(aircraft_id: int) -> bool:
 	if not FuelStore.consume(fuel_cost(a.model_key)):
 		return false
 	a.state = FleetAircraft.State.PARKED
-	fleet_changed.emit()
+	_emit_changed()
 	return true
 
 
@@ -638,8 +652,34 @@ func advance(aircraft_id: int) -> bool:
 # aircraft reaches a flying state or an action refuses.
 const MAX_ADVANCE_STEPS := 6
 
+# Dispatching a full airport sends every aircraft on one tick: 110 takeoff
+# animations on a single frame, and - since they share a model and destination
+# - 110 landings resolving on a single tick later too.
+#
+# One value fixes both. Each aircraft in a bulk dispatch gets a small holding
+# delay, added BOTH to its flight time and to when its takeoff plays, so it
+# behaves exactly as though it had departed that much later. Applied only in
+# bulk; a single departure is untouched.
+#
+# The step SHRINKS as the batch grows, so the whole fleet always fits inside
+# the window. A flat step with a cap bunched everything past the ceiling back
+# onto one tick - 110 aircraft gave 41 distinct times and a 70-plane pile-up
+# at the end, which is the problem this exists to solve.
+const BULK_LAUNCH_STAGGER := 0.15
+const BULK_LAUNCH_WINDOW := 6.0
+
 
 func advance_all() -> Dictionary:
+	_batching = true
+	_changed_while_batching = false
+	# How many could leave this pass - sets the spacing before any of them do.
+	var launching := 0
+	for a in aircraft:
+		if not a.is_idle() and a.state == FleetAircraft.State.PARKED:
+			launching += 1
+	var step := BULK_LAUNCH_STAGGER
+	if launching > 1:
+		step = minf(BULK_LAUNCH_STAGGER, BULK_LAUNCH_WINDOW / float(launching - 1))
 	var money_before := Economy.money
 	var fuel_before := FuelStore.amount
 	var moved := 0
@@ -655,6 +695,8 @@ func advance_all() -> Dictionary:
 		if steps > 0:
 			moved += 1
 			if a.state == FleetAircraft.State.FLYING_OUT:
+				a.launch_delay = departed * step
+				a.flight_time_left += a.launch_delay
 				departed += 1
 		# Stuck is measured AFTER the pass, not before: an aircraft that
 		# collected its reward and then couldn't afford the fuel to leave has
@@ -665,6 +707,9 @@ func advance_all() -> Dictionary:
 			var why := block_reason(a)
 			if why != "":
 				reasons[why] = int(reasons.get(why, 0)) + 1
+	_batching = false
+	if _changed_while_batching:
+		fleet_changed.emit()
 	return {
 		"moved": moved,
 		"departed": departed,
