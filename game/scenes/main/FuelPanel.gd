@@ -1,20 +1,25 @@
 extends PanelContainer
 
 # Fuel Shop - bulk purchase tiers at a fluctuating market price (see
-# FuelStore), laid out 2x2: 50/500 fuel for $ on top, 5000 fuel for $ and
-# an alternate 5000-for-coins option on the bottom (see Coins/FuelStore).
+# FuelStore), laid out 2x2: 50/500 on top, 5000/50000 on the bottom, all four
+# bought with cash.
+#
+# The fourth cell used to be 5000 fuel for 5 coins. It was replaced rather than
+# added to because the top tier had stopped being a top tier: a full apron of
+# 110 Arks burns 100 a leg each, so a single round trip of the fleet costs
+# 22,000 - the old 5000 ceiling was a fifth of one cycle, and late game meant
+# tapping the same button over and over. 50,000 covers a bit over two cycles.
+# Fuel is no longer buyable with coins as a result; the coin sinks that remain
+# are aprons, apron skins, liveries and the coin-priced aircraft.
 #
 # The 4 cells are real FuelOption.tscn instances baked directly into the
 # Grid below (see Frame/SafeArea/Margin/VBox/Row/Grid in this scene), not
 # code-generated - open this scene in the editor and they're visible and
 # draggable immediately, no need to press Play. This script just wires them
 # up to real data on _ready().
-const COIN_ICON := preload("res://assets/hud/icon_medium_coin@2x.png")
 const MONEY_ICON := preload("res://assets/hud/icon_medium_money1@2x.png")
 
-const QUANTITIES := [50, 500, 5000]
-const COIN_QUANTITY := 5000
-const COIN_COST := 5
+const QUANTITIES := [50, 500, 5000, 50000]
 
 @onready var _grid: GridContainer = $Frame/SafeArea/Margin/VBox/Row/Grid
 @onready var _close_button: Button = $Frame/SafeArea/Margin/VBox/CloseButton
@@ -22,8 +27,8 @@ const COIN_COST := 5
 	50: $Frame/SafeArea/Margin/VBox/Row/Grid/Option50,
 	500: $Frame/SafeArea/Margin/VBox/Row/Grid/Option500,
 	5000: $Frame/SafeArea/Margin/VBox/Row/Grid/Option5000,
+	50000: $Frame/SafeArea/Margin/VBox/Row/Grid/Option50000,
 }
-@onready var _coin_option: Node = $Frame/SafeArea/Margin/VBox/Row/Grid/OptionCoins
 
 var _options: Dictionary = {}  # qty -> FuelOption instance
 
@@ -36,7 +41,6 @@ func _ready() -> void:
 	FuelStore.price_changed.connect(_refresh)
 	FuelStore.fuel_changed.connect(_refresh)
 	Economy.money_changed.connect(_refresh)
-	Coins.coins_changed.connect(_refresh)
 
 	for qty in QUANTITIES:
 		var opt: Node = _option_nodes[qty]
@@ -45,12 +49,6 @@ func _ready() -> void:
 			FuelStore.buy(qty)
 		)
 		_options[qty] = opt
-
-	_coin_option.setup(COIN_QUANTITY, COIN_ICON, false)
-	_coin_option.set_price_text("%d" % COIN_COST)
-	_coin_option.buy_pressed.connect(func() -> void:
-		FuelStore.buy_with_coins(COIN_QUANTITY, COIN_COST)
-	)
 
 	_refresh()
 	get_tree().root.size_changed.connect(_fit_content)
@@ -85,4 +83,3 @@ func _refresh(_unused = null) -> void:
 		var cost: int = qty * FuelStore.current_price
 		_options[qty].set_price_text("%d" % cost)
 		_options[qty].set_affordable(Economy.money >= cost)
-	_coin_option.set_affordable(Coins.amount >= COIN_COST)

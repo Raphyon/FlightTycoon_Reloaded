@@ -73,7 +73,7 @@ layout_mode = 2
 [node name="Option5000" parent="Frame/SafeArea/Margin/VBox/Row/Grid" unique_id=2145406834 instance=ExtResource("4")]
 layout_mode = 2
 
-[node name="OptionCoins" parent="Frame/SafeArea/Margin/VBox/Row/Grid" unique_id=200867618 instance=ExtResource("4")]
+[node name="Option50000" parent="Frame/SafeArea/Margin/VBox/Row/Grid" unique_id=200867618 instance=ExtResource("4")]
 layout_mode = 2
 
 [node name="PriceGraph" type="Control" parent="Frame/SafeArea/Margin/VBox/Row" unique_id=1903138311]

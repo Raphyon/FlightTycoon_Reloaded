@@ -6,7 +6,7 @@ const PROGRESS_WIDTH := 70.0
 @onready var _count_label: Label = $CountBadgeBg/CountLabel
 @onready var _name_label: Label = $NameLabel
 @onready var _level_label: Label = $AffinityRow/StarWrap/LevelLabel
-@onready var _progress_fill: ColorRect = $AffinityRow/ProgressWrap/ProgressFill
+@onready var _progress_clip: Control = $AffinityRow/ProgressWrap/ProgressClip
 
 var _model_key: String
 var _sell_button: Button
@@ -88,4 +88,7 @@ func setup(model_key: String, display_name: String, icon_texture: Texture2D, cou
 func refresh() -> void:
 	_level_label.text = str(AircraftAffinity.level_for(_model_key))
 	var progress := AircraftAffinity.progress_for(_model_key)
-	_progress_fill.size.x = PROGRESS_WIDTH * progress
+	# Widen the clip, not the bolt. The bar is a lightning shape rather than a
+	# rectangle, so scaling the fill would stretch its tip and its kink along
+	# with it; sliding the clip edge wipes the bolt in from the left instead.
+	_progress_clip.size.x = PROGRESS_WIDTH * progress

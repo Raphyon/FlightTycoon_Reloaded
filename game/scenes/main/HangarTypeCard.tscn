@@ -1,7 +1,9 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=5 format=3]
 
 [ext_resource type="Script" path="res://scenes/main/HangarTypeCard.gd" id="1"]
-[ext_resource type="Texture2D" path="res://assets/bubbles/star_icon@2x.png" id="2"]
+[ext_resource type="Texture2D" path="res://assets/ui/affinity_star.svg" id="2"]
+[ext_resource type="Texture2D" path="res://assets/ui/affinity_bar_track.svg" id="3"]
+[ext_resource type="Texture2D" path="res://assets/ui/affinity_bar_fill.svg" id="4"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_badge"]
 bg_color = Color(0.15, 0.45, 0.85, 1)
@@ -59,9 +61,12 @@ offset_bottom = 184.0
 alignment = 1
 theme_override_constants/separation = 8
 
+; SHRINK_CENTER, not the default FILL: the row is 34 tall and these are 32 and
+; 14, so filling would stretch the star and squash the bolt out of proportion.
 [node name="StarWrap" type="Control" parent="AffinityRow"]
 custom_minimum_size = Vector2(34, 32)
 layout_mode = 2
+size_flags_vertical = 4
 
 [node name="StarIcon" type="TextureRect" parent="AffinityRow/StarWrap"]
 anchors_preset = 15
@@ -76,7 +81,9 @@ anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 theme_override_font_sizes/font_size = 14
-theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_color = Color(0.12, 0.24, 0.05, 1)
+theme_override_colors/font_outline_color = Color(1, 1, 1, 0.85)
+theme_override_constants/outline_size = 3
 text = "1"
 horizontal_alignment = 1
 vertical_alignment = 1
@@ -84,14 +91,27 @@ vertical_alignment = 1
 [node name="ProgressWrap" type="Control" parent="AffinityRow"]
 custom_minimum_size = Vector2(70, 14)
 layout_mode = 2
+size_flags_vertical = 4
 
-[node name="ProgressBg" type="ColorRect" parent="AffinityRow/ProgressWrap"]
+[node name="ProgressTrack" type="TextureRect" parent="AffinityRow/ProgressWrap"]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-color = Color(0.2, 0.2, 0.2, 1)
+texture = ExtResource("3")
+expand_mode = 1
+stretch_mode = 0
 
-[node name="ProgressFill" type="ColorRect" parent="AffinityRow/ProgressWrap"]
+; The fill is REVEALED, not resized. This clip is what changes width (see
+; HangarTypeCard.refresh); the bolt inside it stays at full size, so its tip
+; keeps its shape instead of being dragged in as the bar empties.
+[node name="ProgressClip" type="Control" parent="AffinityRow/ProgressWrap"]
+clip_contents = true
 offset_right = 0.0
 offset_bottom = 14.0
-color = Color(0.95, 0.7, 0.15, 1)
+
+[node name="ProgressFill" type="TextureRect" parent="AffinityRow/ProgressWrap/ProgressClip"]
+offset_right = 70.0
+offset_bottom = 14.0
+texture = ExtResource("4")
+expand_mode = 1
+stretch_mode = 0

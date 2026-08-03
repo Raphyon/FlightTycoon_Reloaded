@@ -62,10 +62,20 @@ const COINS := "coins"
 # stay on the same scale as the construction economy they compete with for
 # money (ApronProgress, ZoneProgress).
 #
-# The P-51 is the one entry capacity can't solve: it has two seats and is
-# meant to. It gets a fare instead (400), set to the same target ratio as
-# everything else, which lands it just above the 328 Jet and just below the
-# A318 rather than dominating the middle of the game.
+# Three entries capacity can't solve, because they're meant to be tiny: the
+# P-51 and F-15 carry two, the paper plane carries one. They get a fare
+# instead, set to the same target ratio as everything else, so they land on the
+# curve rather than dominating the middle of the game. The balloon is the same
+# trick read the other way - 16 seats at a sightseeing fare, because an E-class
+# balloon needing 255 seats to hit its rate is a shape no balloon has.
+#
+# The cash ladder below is strictly monotone in BOTH price and rate: each
+# aircraft you unlock costs more than the last and earns more per second than
+# the last, so there is never a level where the new thing is a downgrade. The
+# coin aircraft sit deliberately ABOVE the cash aircraft at their level - that
+# premium is what you're paying coins for - and so break the shared curve on
+# purpose. Their `level` is a note of where they'd sit if earned, and is only
+# used to order them in the shop (see unlocked).
 const ENTRIES := [
 	# The starting aircraft. 50 seats at the flat fare of 8 is 400 a leg, 800
 	# the round trip, and it costs two round trips to pay for itself - which is
@@ -73,28 +83,71 @@ const ENTRIES := [
 	# against it.
 	{"key": "328jet", "name": "328 Jet", "icon": "328jet_blue.png", "price": 1500, "level": 1,
 		"force": "S", "seats": 50, "fuel": 5, "range": 2, "has_world_sprite": true},
+	# The cheapest thing in the game and the first taste of the coin lane: five
+	# coins for something marginally better than the aircraft you started with.
+	{"key": "paperplane", "name": "Paper Plane", "icon": "paperplane_default.png", "price": 5, "currency": COINS, "level": 2,
+		"force": "A", "seats": 1, "fuel": 7, "ticket": 540, "range": 2, "has_world_sprite": true},
+	# The live game's own opening pair, at the live game's own prices - the DC-3
+	# at 3,000 and the EMB-120 at 5,000. Ours aren't the starter (the 328 Jet
+	# is, and the fifteen-minute Zone1 pacing is calibrated on it), so they sit
+	# just after it as the first two upgrades you buy.
+	{"key": "dc3", "name": "Douglas DC-3", "icon": "dc3_default.png", "price": 3000, "level": 3,
+		"force": "C", "seats": 115, "fuel": 18, "range": 2, "has_world_sprite": true},
+	{"key": "emb120", "name": "EMB-120", "icon": "emb120_default.png", "price": 5000, "level": 5,
+		"force": "C", "seats": 130, "fuel": 21, "range": 2, "has_world_sprite": true},
+	{"key": "dhc8", "name": "Dash 8", "icon": "dhc8_default.png", "price": 7000, "level": 8,
+		"force": "B", "seats": 110, "fuel": 13, "range": 2, "has_world_sprite": true},
 	{"key": "p51", "name": "P-51 Mustang", "icon": "p51_white.png", "price": 8500, "level": 10,
 		"force": "A", "seats": 2, "fuel": 10, "ticket": 400, "range": 2, "has_world_sprite": true},
+	# Sightseeing, not transport: sixteen seats at a fare seventeen times the
+	# flat rate. Slowest class in the game and priced like a joyride.
+	{"key": "balloon", "name": "Hot Air Balloon", "icon": "balloon_default.png", "price": 14000, "level": 12,
+		"force": "E", "seats": 16, "fuel": 62, "ticket": 130, "range": 2, "has_world_sprite": true},
 	{"key": "a318", "name": "Airbus A318", "icon": "a318_default.png", "price": 19000, "level": 15,
 		"force": "C", "seats": 180, "fuel": 29, "range": 3, "has_world_sprite": true},
+	{"key": "dc6", "name": "Douglas DC-6", "icon": "dc6_default.png", "price": 27000, "level": 20,
+		"force": "D", "seats": 240, "fuel": 48, "range": 3, "has_world_sprite": true},
 	{"key": "a319", "name": "Airbus A319", "icon": "a319_default.png", "price": 35000, "level": 25,
 		"force": "C", "seats": 200, "fuel": 32, "range": 3, "has_world_sprite": true},
+	{"key": "tu104", "name": "Tupolev Tu-104", "icon": "tu104_default.png", "price": 40000, "level": 30,
+		"force": "C", "seats": 225, "fuel": 36, "range": 3, "has_world_sprite": true},
 	{"key": "blackh", "name": "Black Hawk", "icon": "blackh_green.png", "price": 45000, "level": 35,
 		"force": "B", "seats": 190, "fuel": 23, "range": 3, "has_world_sprite": true},
+	{"key": "b727", "name": "Boeing 727", "icon": "b727_default.png", "price": 65000, "level": 40,
+		"force": "C", "seats": 285, "fuel": 46, "range": 3, "has_world_sprite": true},
 	{"key": "a300", "name": "Airbus A300", "icon": "a300_default.png", "price": 95000, "level": 45,
 		"force": "D", "seats": 390, "fuel": 78, "range": 4, "has_world_sprite": true},
+	{"key": "b707", "name": "Boeing 707", "icon": "b707_default.png", "price": 110000, "level": 50,
+		"force": "D", "seats": 420, "fuel": 84, "range": 4, "has_world_sprite": true},
+	{"key": "dc10", "name": "Douglas DC-10", "icon": "dc10_default.png", "price": 130000, "level": 55,
+		"force": "D", "seats": 450, "fuel": 90, "range": 4, "has_world_sprite": true},
 	{"key": "airship", "name": "Airship", "icon": "airship_default.png", "price": 150000, "level": 60,
 		"force": "E", "seats": 570, "fuel": 137, "range": 4, "has_world_sprite": true},
+	# Two seats like the P-51, and the same fare treatment - but S-class, so
+	# it's the fastest thing you can buy with cash and the last aircraft that
+	# earns on speed rather than capacity.
+	{"key": "f15", "name": "F-15 Eagle", "icon": "f15_default.png", "price": 175000, "level": 65,
+		"force": "S", "seats": 2, "fuel": 17, "ticket": 860, "range": 4, "has_world_sprite": true},
 	{"key": "ufo", "name": "UFO", "icon": "ufo_blue.png", "price": 100, "currency": COINS, "level": 70,
 		"force": "S", "seats": 300, "fuel": 24, "range": 5, "has_world_sprite": true},
+	{"key": "b787", "name": "Boeing 787", "icon": "b787_default.png", "price": 215000, "level": 75,
+		"force": "C", "seats": 525, "fuel": 84, "range": 5, "has_world_sprite": true},
 	{"key": "747", "name": "Boeing 747", "icon": "747_default.png", "price": 250000, "level": 80,
 		"force": "D", "seats": 725, "fuel": 145, "range": 5, "has_world_sprite": true},
+	{"key": "concorde", "name": "Concorde", "icon": "concorde_default.png", "price": 275000, "level": 85,
+		"force": "A", "seats": 395, "fuel": 40, "range": 5, "has_world_sprite": true},
 	{"key": "a400m", "name": "A400M", "icon": "a400m_white.png", "price": 300000, "level": 90,
 		"force": "C", "seats": 680, "fuel": 109, "range": 5, "has_world_sprite": true},
 	{"key": "v22", "name": "V-22", "icon": "v22_green.png", "price": 350000, "level": 100,
 		"force": "B", "seats": 600, "fuel": 72, "range": 5, "has_world_sprite": true},
+	{"key": "ncc1701", "name": "NCC-1701", "icon": "ncc1701_default.png", "price": 150, "currency": COINS, "level": 105,
+		"force": "S", "seats": 430, "fuel": 34, "range": 5, "has_world_sprite": true},
 	{"key": "an-225", "name": "An-225", "icon": "an-225_default.png", "price": 700000, "level": 110,
 		"force": "E", "seats": 1500, "fuel": 360, "range": 5, "has_world_sprite": true},
+	# A separate airframe from the 747 above, not a repaint of it - the user's
+	# call on the art. Sits between the An-225 and the A380 on the same curve.
+	{"key": "b747", "name": "Boeing 747-8", "icon": "b747_default.png", "price": 725000, "level": 120,
+		"force": "D", "seats": 1290, "fuel": 258, "range": 5, "has_world_sprite": true},
 	{"key": "a380-300", "name": "Airbus A380", "icon": "a380-300_default.png", "price": 750000, "level": 130,
 		"force": "D", "seats": 1325, "fuel": 265, "range": 5, "has_world_sprite": true},
 	{"key": "ark", "name": "Ark", "icon": "ark_default.png", "price": 250, "currency": COINS, "level": 150,

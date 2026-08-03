@@ -45,6 +45,8 @@ func _ready() -> void:
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_VISIBILITY_CHANGED and visible:
 		call_deferred("_fit_content")
+		# Catch up on everything skipped while hidden - see _refresh_items.
+		_refresh_items()
 
 
 func _fit_content() -> void:
@@ -90,6 +92,15 @@ func _show_page(page: int) -> void:
 		_dots.get_child(i).text = "●" if i == page else "○"
 
 
+# Money, coins, level and the fleet all change constantly while the shop is
+# shut, and each one used to re-evaluate every card. That was 14 cards; the
+# hand-made fleet took it to 29, and with a full apron of aircraft landing it
+# runs on nearly every frame. Nothing is on screen to update, so don't - the
+# visibility notification above refreshes on the way back in.
 func _refresh_items(_unused = null) -> void:
+	# In-tree, not the local flag: a shown panel under a hidden parent is still
+	# off screen, and the notification fires again when the parent comes back.
+	if not is_visible_in_tree():
+		return
 	for item in _items:
 		item.refresh()

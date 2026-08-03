@@ -154,6 +154,9 @@ func _add_rotors(model_key: String, sprites: Dictionary) -> void:
 	# Reparenting to self would work too but would lose the body's position
 	# and flip, which these inherit for free as its children.
 	var behind := AircraftRig.get_rotor_behind(model_key)
+	# The propliners share the A400M's disc art at their own sizes - see
+	# AircraftRig.get_rotor_scales.
+	var scales := AircraftRig.get_rotor_scales(model_key)
 	for i in range(offsets.size()):
 		var frames := hub_frames(sprites, i)
 		var spin_frames: Array = frames["spin"]
@@ -162,12 +165,13 @@ func _add_rotors(model_key: String, sprites: Dictionary) -> void:
 		var offset: Vector2 = offsets[i]
 		var phase_delay := i * ROTOR_FRAME_DURATION * 0.5
 		var draw_behind: bool = i < behind.size() and behind[i]
+		var disc_scale: float = scales[i] if i < scales.size() else 1.0
 		var idle_frames: Array = frames["idle"]
 		if not idle_frames.is_empty():
-			var idle := _add_flipbook(idle_frames, offset, phase_delay)
+			var idle := _add_flipbook(idle_frames, offset, phase_delay, null, disc_scale)
 			idle.show_behind_parent = draw_behind
 			_rotors_idle.append(idle)
-		var spin := _add_flipbook(spin_frames, offset, phase_delay)
+		var spin := _add_flipbook(spin_frames, offset, phase_delay, null, disc_scale)
 		spin.show_behind_parent = draw_behind
 		_rotors_spin.append(spin)
 	for rotor in _rotors_spin:
@@ -179,7 +183,8 @@ func _add_rotors(model_key: String, sprites: Dictionary) -> void:
 # lockstep. Parents to the body by default so rotors inherit its
 # position/flip; the ground effect passes self instead, to stay on the pad
 # while the body climbs away.
-func _add_flipbook(frame_paths: Array, offset: Vector2, phase_delay: float, parent: Node2D = null) -> Sprite2D:
+func _add_flipbook(frame_paths: Array, offset: Vector2, phase_delay: float, parent: Node2D = null,
+		disc_scale: float = 1.0) -> Sprite2D:
 	var textures: Array[Texture2D] = []
 	for path in frame_paths:
 		textures.append(load(path))
@@ -187,6 +192,8 @@ func _add_flipbook(frame_paths: Array, offset: Vector2, phase_delay: float, pare
 	var sprite := Sprite2D.new()
 	sprite.texture = textures[0]
 	sprite.position = offset
+	if not is_equal_approx(disc_scale, 1.0):
+		sprite.scale = Vector2.ONE * disc_scale
 	(parent if parent else _body).add_child(sprite)
 
 	if textures.size() > 1:

@@ -10,6 +10,13 @@ extends RefCounted
 # view an inboard prop on the far wing sits partly *behind* the hull, so
 # painting its blur disc over the fuselage reads as floating in front of the
 # aircraft. Two-element entries are still valid and mean "in front".
+#
+# An optional fourth - [x, y, behind, scale] - resizes that hub's disc. The
+# propliners all borrow the A400M's prop art, and they are not the A400M's
+# size, so without this the disc would be hand-placed but wrongly scaled -
+# guessing moved from position to size rather than removed. Per hub rather
+# than per model because the near and far wing sit at different depths in an
+# isometric view, so their discs do not read at the same size.
 const SAVE_PATH := "res://data/aircraft_rig.json"
 
 
@@ -70,4 +77,31 @@ static func get_rotor_behind(model_key: String) -> Array[bool]:
 	var defaults: Array = sprites.get("rotor_behind_body", [])
 	for i in range(get_rotor_offsets(model_key).size()):
 		out.append(i in defaults)
+	return out
+
+
+# Disc size per hub, parallel to get_rotor_offsets(). Same deferral rule as the
+# behind flag: an entry shorter than four elements has never had a scale placed,
+# so it falls back to the model's rotor_scale rather than silently forcing 1.0
+# and undoing whatever the model set.
+static func get_rotor_scales(model_key: String) -> Array[float]:
+	var out: Array[float] = []
+	var data := load_data()
+	var entries: Array = data.get(model_key, [])
+
+	var rig_has_scales := false
+	for p in entries:
+		if (p as Array).size() > 3:
+			rig_has_scales = true
+			break
+
+	if rig_has_scales:
+		for p in entries:
+			out.append(float(p[3]) if (p as Array).size() > 3 else 1.0)
+		return out
+
+	var sprites: Dictionary = Fleet.WORLD_SPRITES.get(model_key, {})
+	var fallback := float(sprites.get("rotor_scale", 1.0))
+	for i in range(get_rotor_offsets(model_key).size()):
+		out.append(fallback)
 	return out

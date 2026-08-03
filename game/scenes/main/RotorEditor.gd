@@ -15,11 +15,18 @@ extends Node2D
 #   B          toggle whether the selected rotor draws behind the fuselage
 #              (an inboard prop on the far wing is partly hidden by the hull,
 #              so its disc must not paint over it)
+#   [ / ]      shrink/grow the selected rotor's disc. The propliners borrow the
+#              A400M's prop art at four different airframe sizes, so a disc
+#              placed perfectly can still be the wrong size - without this the
+#              guessing would just move from position to scale.
 #
 # Saves immediately to res://data/aircraft_rig.json, one entry per model.
 
 const WorldAircraftScript := preload("res://scenes/main/WorldAircraft.gd")
 const MARKER_RADIUS := 5.0
+const SCALE_STEP := 0.05
+const SCALE_MIN := 0.2
+const SCALE_MAX := 3.0
 # One distinct colour per hub. Needs to cover the largest rotor count in the
 # fleet - the A400M's four turboprops wrapped a three-colour list, giving
 # rotors 1 and 4 the same marker with no way to tell them apart while placing.
@@ -41,6 +48,7 @@ var selected := 0
 var _model_keys: Array[String] = []
 var _offsets: Array[Vector2] = []
 var _behind: Array[bool] = []
+var _scales: Array[float] = []
 var _reference_pos := Vector2.ZERO
 var _preview_body: Sprite2D
 var _preview_rotors: Array[Sprite2D] = []
@@ -80,6 +88,13 @@ func _input(event: InputEvent) -> void:
 				_apply_behind()
 				_save()
 				_update_hud()
+		elif editing and (event.keycode == KEY_BRACKETLEFT or event.keycode == KEY_BRACKETRIGHT):
+			if selected < _scales.size():
+				var step := SCALE_STEP if event.keycode == KEY_BRACKETRIGHT else -SCALE_STEP
+				_scales[selected] = clampf(_scales[selected] + step, SCALE_MIN, SCALE_MAX)
+				_apply_scales()
+				_save()
+				_update_hud()
 		elif editing and event.keycode >= KEY_1 and event.keycode <= KEY_9:
 			var idx: int = event.keycode - KEY_1
 			if idx < _offsets.size():
@@ -107,6 +122,9 @@ func _drop_preview() -> void:
 	_behind = AircraftRig.get_rotor_behind(_model_key())
 	while _behind.size() < _offsets.size():
 		_behind.append(false)
+	_scales = AircraftRig.get_rotor_scales(_model_key())
+	while _scales.size() < _offsets.size():
+		_scales.append(1.0)
 
 	_preview_body = Sprite2D.new()
 	_preview_body.texture = load(sprites["body"])
@@ -133,6 +151,7 @@ func _drop_preview() -> void:
 		_preview_body.add_child(rotor)
 		_preview_rotors.append(rotor)
 	_apply_behind()
+	_apply_scales()
 
 
 func _clear_preview() -> void:
@@ -156,13 +175,25 @@ func _apply_behind() -> void:
 		_preview_rotors[i].show_behind_parent = i < _behind.size() and _behind[i]
 
 
+# Same, for [ and ].
+func _apply_scales() -> void:
+	for i in range(_preview_rotors.size()):
+		var s: float = _scales[i] if i < _scales.size() else 1.0
+		_preview_rotors[i].scale = Vector2.ONE * s
+
+
 func _save() -> void:
 	var data := AircraftRig.load_data()
 	var stored: Array = []
 	for i in range(_offsets.size()):
-		# Always written as [x, y, behind] - a two-element entry means "flag
-		# never set", which AircraftRig reads as deferring to the model default.
-		stored.append([_offsets[i].x, _offsets[i].y, 1 if (i < _behind.size() and _behind[i]) else 0])
+		# Always written as [x, y, behind, scale] - a shorter entry means that
+		# field was never set, which AircraftRig reads as deferring to the
+		# model default rather than overriding it with a neutral value.
+		stored.append([
+			_offsets[i].x, _offsets[i].y,
+			1 if (i < _behind.size() and _behind[i]) else 0,
+			_scales[i] if i < _scales.size() else 1.0,
+		])
 	data[_model_key()] = stored
 	AircraftRig.save_data(data)
 
@@ -190,7 +221,10 @@ func _update_hud() -> void:
 	]
 	for i in range(_offsets.size()):
 		var tag := "  BEHIND hull" if (i < _behind.size() and _behind[i]) else ""
-		lines.append("  rotor %d offset: (%.1f, %.1f)%s" % [i + 1, _offsets[i].x, _offsets[i].y, tag])
+		var s: float = _scales[i] if i < _scales.size() else 1.0
+		lines.append("  rotor %d offset: (%.1f, %.1f)  scale %.2f%s"
+			% [i + 1, _offsets[i].x, _offsets[i].y, s, tag])
 	lines.append("")
-	lines.append("1-%d = select rotor   click = place it   B = behind/front" % _offsets.size())
+	lines.append("1-%d = select rotor   click = place it   B = behind/front   [ ] = size"
+		% _offsets.size())
 	_hud.set_lines(true, lines)

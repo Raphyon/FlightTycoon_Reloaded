@@ -6,6 +6,17 @@ signal fleet_changed
 # (shop calls it "p51", the world sprite folder is "p-51mustang" - a known
 # mismatch flagged since the very first README). Resolved here, in one
 # place, rather than papering over it everywhere that needs a world sprite.
+# The A400M's turboprop flipbook, shared by every propeller aircraft in the
+# fleet. Split hub-aligned (tools/plane_derive.py split_prop_strip) so the disc
+# spins about a fixed point rather than wandering between frames. Named here
+# because four other models borrow it - see the propliner block below.
+const A400M_PROP := [
+	"res://assets/aircraft/a400m/prop_a_2x.png",
+	"res://assets/aircraft/a400m/prop_b_2x.png",
+	"res://assets/aircraft/a400m/prop_c_2x.png",
+	"res://assets/aircraft/a400m/prop_d_2x.png",
+]
+
 const WORLD_SPRITES := {
 	"328jet": {
 		"body": "res://assets/aircraft/328jet/body_2x.png",
@@ -34,15 +45,8 @@ const WORLD_SPRITES := {
 		# during takeoff. Same arrangement as the P-51.
 		#
 		# Four frames rather than the usual two - the source strip carries a
-		# full rotation cycle. They're split hub-aligned (see
-		# tools/plane_derive.py split_prop_strip) so the disc spins about a
-		# fixed point instead of wandering between frames.
-		"rotor_spin_frames": [
-			"res://assets/aircraft/a400m/prop_a_2x.png",
-			"res://assets/aircraft/a400m/prop_b_2x.png",
-			"res://assets/aircraft/a400m/prop_c_2x.png",
-			"res://assets/aircraft/a400m/prop_d_2x.png",
-		],
+		# full rotation cycle. See A400M_PROP above; the propliners borrow it.
+		"rotor_spin_frames": A400M_PROP,
 		# STARTING POINTS ONLY - place these properly with RotorEditor (press
 		# R in-game, M to reach a400m, 1-4 to pick a hub, click to set). These
 		# came from clustering the yellow prop tips painted into the body, but
@@ -210,6 +214,116 @@ const WORLD_SPRITES := {
 		"shadow": "res://assets/aircraft/ufo/shadow_2x.png",
 		"vtol": true,
 	},
+	# ------------------------------------------------------------------
+	# The hand-made fleet (tools/newfleet_derive.py). Art made FOR this
+	# project, so unlike the dump it carries no placeholder-only restriction.
+	# It arrived clean and shadowless, so every ground shadow here is derived
+	# from the airframe's own silhouette - the same recipe as the jets above.
+	#
+	# The four propliners (DC-3, DC-6, EMB-120, Dash 8) BORROW the A400M's
+	# turboprop disc rather than waiting on prop art of their own. It fits
+	# because the disc's shape is set by the viewing angle, not the engine:
+	# every wing-mounted prop in this fleet is seen from the same isometric
+	# angle, so the A400M's narrow 17x41 disc is the right silhouette for all
+	# of them. Only the SIZE differs, which is what rotor_scale is for.
+	#
+	# The P-51's disc is the other one available and is deliberately not used
+	# here - it's a nose prop seen head-on, so it's a much wider ellipse, and
+	# none of these four has a nose prop.
+	#
+	# Like the A400M, their static props are painted into the body art, so
+	# there's no idle overlay: parked shows the painted props and the spin
+	# flipbook is layered on during takeoff.
+	#
+	# EVERY offset below is a STARTING POINT, evenly spaced along the wing line
+	# the A400M's own placed hubs describe. They are not measured off the art -
+	# place them with RotorEditor (R, then M to the model, 1-4 to pick a hub,
+	# click to set, [ and ] to size).
+	# ------------------------------------------------------------------
+	"paperplane": {
+		"body": "res://assets/aircraft/paperplane/body_2x.png",
+		"shadow": "res://assets/aircraft/paperplane/shadow_2x.png",
+	},
+	# Floats up off the pad like the airship rather than taxiing - a balloon
+	# queuing for a runway would be absurd.
+	"balloon": {
+		"body": "res://assets/aircraft/balloon/body_2x.png",
+		"shadow": "res://assets/aircraft/balloon/shadow_2x.png",
+		"vtol": true,
+	},
+	"dc3": {
+		"body": "res://assets/aircraft/dc3/body_2x.png",
+		"shadow": "res://assets/aircraft/dc3/shadow_2x.png",
+		"rotor_spin_frames": A400M_PROP,
+		"rotor_offsets": [Vector2(-40, 8), Vector2(-8, 26)],
+		"rotor_scale": 0.88,
+	},
+	"emb120": {
+		"body": "res://assets/aircraft/emb120/body_2x.png",
+		"shadow": "res://assets/aircraft/emb120/shadow_2x.png",
+		"rotor_spin_frames": A400M_PROP,
+		"rotor_offsets": [Vector2(-32, 6), Vector2(-4, 22)],
+		"rotor_scale": 0.71,
+	},
+	"dhc8": {
+		"body": "res://assets/aircraft/dhc8/body_2x.png",
+		"shadow": "res://assets/aircraft/dhc8/shadow_2x.png",
+		"rotor_spin_frames": A400M_PROP,
+		"rotor_offsets": [Vector2(-34, 6), Vector2(-5, 23)],
+		"rotor_scale": 0.74,
+	},
+	"f15": {
+		"body": "res://assets/aircraft/f15/body_2x.png",
+		"shadow": "res://assets/aircraft/f15/shadow_2x.png",
+	},
+	# Four radials, so four hubs - the only one here that uses all four.
+	"dc6": {
+		"body": "res://assets/aircraft/dc6/body_2x.png",
+		"shadow": "res://assets/aircraft/dc6/shadow_2x.png",
+		"rotor_spin_frames": A400M_PROP,
+		"rotor_offsets": [
+			Vector2(-48, 4), Vector2(-34, 12), Vector2(-6, 26), Vector2(8, 33),
+		],
+		"rotor_scale": 0.89,
+		# Same problem the A400M has: the inboard prop on the far wing is partly
+		# covered by the hull, so its disc must not paint over the fuselage.
+		"rotor_behind_body": [1],
+	},
+	"tu104": {
+		"body": "res://assets/aircraft/tu104/body_2x.png",
+		"shadow": "res://assets/aircraft/tu104/shadow_2x.png",
+	},
+	"b727": {
+		"body": "res://assets/aircraft/b727/body_2x.png",
+		"shadow": "res://assets/aircraft/b727/shadow_2x.png",
+	},
+	"b707": {
+		"body": "res://assets/aircraft/b707/body_2x.png",
+		"shadow": "res://assets/aircraft/b707/shadow_2x.png",
+	},
+	"dc10": {
+		"body": "res://assets/aircraft/dc10/body_2x.png",
+		"shadow": "res://assets/aircraft/dc10/shadow_2x.png",
+	},
+	"concorde": {
+		"body": "res://assets/aircraft/concorde/body_2x.png",
+		"shadow": "res://assets/aircraft/concorde/shadow_2x.png",
+	},
+	"b787": {
+		"body": "res://assets/aircraft/b787/body_2x.png",
+		"shadow": "res://assets/aircraft/b787/shadow_2x.png",
+	},
+	# A distinct airframe from "747" above, not a repaint of it.
+	"b747": {
+		"body": "res://assets/aircraft/b747/body_2x.png",
+		"shadow": "res://assets/aircraft/b747/shadow_2x.png",
+	},
+	# Leaves the pad straight up, same as the UFO and the Ark.
+	"ncc1701": {
+		"body": "res://assets/aircraft/ncc1701/body_2x.png",
+		"shadow": "res://assets/aircraft/ncc1701/shadow_2x.png",
+		"vtol": true,
+	},
 }
 
 # Route economy. What a leg is worth is the aircraft's business now, not a
@@ -253,17 +367,24 @@ const TICKET_PRICE := 8
 func ticket_price(model_key: String) -> int:
 	return int(ShopCatalog.entry_for(model_key).get("ticket", TICKET_PRICE))
 
-# Flight time multiplier per force grade, best to worst. S is the top class -
-# an S-class aircraft flies a cloud in the flat SECONDS_PER_DISTANCE, and
-# every grade below it takes proportionally longer, up to 3x for an E.
-const SPEED_FACTOR := {"S": 1.0, "A": 1.25, "B": 1.5, "C": 2.0, "D": 2.5, "E": 3.0}
+# Flight time multiplier per force grade, best to worst. S is the top class an
+# aircraft can be SOLD at - an S-class flies a cloud in the flat
+# SECONDS_PER_DISTANCE, and every grade below it takes proportionally longer,
+# up to 3x for an E.
+#
+# S+ is above that, and is not a class any model ships with: it exists only as
+# the step an S-class aircraft takes when you paint it. Without it a livery on
+# an S-class bought a repaint and nothing else, since the speed step is the
+# whole point of the purchase. 0.8 keeps the ladder's own spacing (each step up
+# is a 0.75-0.83x multiplier on the one below), so painting an S-class is worth
+# the same ~25% it's worth anywhere else on the ladder.
+const SPEED_FACTOR := {"S+": 0.8, "S": 1.0, "A": 1.25, "B": 1.5, "C": 2.0, "D": 2.5, "E": 3.0}
 # Worst to best. A livery moves an aircraft one place along it.
-const GRADE_LADDER := ["E", "D", "C", "B", "A", "S"]
+const GRADE_LADDER := ["E", "D", "C", "B", "A", "S", "S+"]
 
 
 # The grade this particular aircraft flies at: its model's, moved one step up
-# if it's wearing a livery. S is the top - nothing to gain, and no livery is
-# offered for an S-class model.
+# if it's wearing a livery. Only S+ is a dead end, and no model starts there.
 func grade_for(a: FleetAircraft) -> String:
 	var base := str(ShopCatalog.stat(a.model_key, "force"))
 	if a.livery.is_empty():

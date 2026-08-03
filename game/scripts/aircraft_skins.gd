@@ -8,10 +8,13 @@ extends Node
 # the aircraft (FleetAircraft.owned_liveries), not here.
 #
 # What it buys is a speed grade. A livery moves the aircraft one step up the
-# S-A-B-C-D-E ladder, which is worth 20-33% of its income depending where it
-# starts, because the grade is what sets flight time (Fleet.SPEED_FACTOR).
-# An S-class is already top of the ladder and gains nothing - it has no livery
-# on offer, and wouldn't benefit from one.
+# S-A-B-C-D-E ladder, which is worth 20-33% of its income wherever it starts,
+# because the grade is what sets flight time (Fleet.SPEED_FACTOR).
+#
+# S used to be the ceiling, which made a livery on an S-class model a repaint
+# with no effect - ten coins for nothing. The ladder now runs one step past it
+# to S+, a grade no model ships with and only a paint job reaches, so every
+# aircraft in the game gains the same thing from being painted.
 signal liveries_changed
 
 const COST := 10
@@ -32,6 +35,52 @@ const LIVERIES := {
 		{"key": "stone", "name": "Stone",
 			"body": "res://assets/aircraft/ufo/body_stone_2x.png",
 			"body_spin": "res://assets/aircraft/ufo/body_stone_spin_2x.png"},
+	],
+	# From the hand-made fleet (tools/newfleet_derive.py). Until these landed
+	# only three models had alternate art and the earliest was level 35, so the
+	# whole feature was unreachable for most of a playthrough. These start at
+	# level 2 and run to the top of the ladder.
+	#
+	# The paper plane is A rather than S because a paper plane has no business
+	# being the fastest thing in the game, not because of any ceiling - S+ means
+	# an S-class model can be painted too, and the UFO's Stone livery below is
+	# the one that proves it.
+	"paperplane": [
+		{"key": "dollar", "name": "Dollar",
+			"body": "res://assets/aircraft/paperplane/body_dollar_2x.png"},
+	],
+	"dc3": [
+		{"key": "duggy", "name": "Duggy",
+			"body": "res://assets/aircraft/dc3/body_duggy_2x.png"},
+	],
+	"tu104": [
+		{"key": "beard", "name": "Beard",
+			"body": "res://assets/aircraft/tu104/body_beard_2x.png"},
+	],
+	"b727": [
+		{"key": "welcome", "name": "Welcome",
+			"body": "res://assets/aircraft/b727/body_welcome_2x.png"},
+	],
+	# The default is the zebra scheme; the firebird is the coin unlock.
+	"concorde": [
+		{"key": "firebird", "name": "Firebird",
+			"body": "res://assets/aircraft/concorde/body_firebird_2x.png"},
+	],
+	"b787": [
+		{"key": "klm", "name": "KLM",
+			"body": "res://assets/aircraft/b787/body_klm_2x.png"},
+	],
+	"b747": [
+		{"key": "yellow", "name": "Yellow",
+			"body": "res://assets/aircraft/b747/body_yellow_2x.png"},
+	],
+	# The A380 arrived as a second airframe and turned out to be the same one
+	# in different paint, so it's a livery of the model we already had rather
+	# than a new entry in the shop. The default keeps the airline scheme; this
+	# is the blue-and-magenta one.
+	"a380-300": [
+		{"key": "midnight", "name": "Midnight",
+			"body": "res://assets/aircraft/a380-300/body_midnight_2x.png"},
 	],
 }
 

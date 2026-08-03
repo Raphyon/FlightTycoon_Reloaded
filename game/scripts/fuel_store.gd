@@ -65,8 +65,7 @@ func buy(units: int) -> bool:
 	return true
 
 
-func buy_with_coins(units: int, coin_cost: int) -> bool:
-	if not Coins.spend(coin_cost):
-		return false
-	amount += units
-	return true
+# NOTE: buy_with_coins() lived here until the fuel shop's fourth tier stopped
+# being a coin purchase (see FuelPanel). Nothing else ever called it, so it went
+# with the button rather than sitting here as an entry point to a payment method
+# the shop no longer offers.
