@@ -14,7 +14,13 @@ extends RefCounted
 # An earlier version of this file stored placed BUILDINGS, which had me
 # authoring the player's airport for them.
 #
-#     {map_key: [{"id": 1, "x": 0.0, "y": 0.0}, ...]}
+#     {map_key: [{"id": 1, "x": 0.0, "y": 0.0, "site": "forest"}, ...]}
+#
+# "site" picks which construction-site art an EMPTY plot shows and defaults to
+# "buildings". A plot on tarmac gets the fenced version; one on grass gets bare
+# machinery, because a fenced concrete pad drawn on a forest floor reads as a
+# mistake. Which plot is which is a placement decision, so it is set by hand in
+# BuildingEditor rather than guessed from coordinates.
 #
 # Ids are stable and are what BuildingProgress keys against, so re-ordering or
 # deleting a plot cannot silently move somebody's building to another site.
@@ -94,6 +100,21 @@ static func rent_of(key: String) -> int:
 
 static func cycle_seconds(key: String) -> float:
 	return float(entry(key).get("minutes", 0)) * 60.0
+
+
+# The empty-plot art, by site type. Keys are what a plot's "site" field holds.
+const SITE_TEXTURES := {
+	"buildings": "res://assets/buildings/construction_site_2x.png",
+	"forest": "res://assets/buildings/construction_site_forest_2x.png",
+}
+
+
+static func site_types() -> Array:
+	return SITE_TEXTURES.keys()
+
+
+static func site_texture_path(site: String) -> String:
+	return str(SITE_TEXTURES.get(site, SITE_TEXTURES["buildings"]))
 
 
 static func texture_path(key: String) -> String:

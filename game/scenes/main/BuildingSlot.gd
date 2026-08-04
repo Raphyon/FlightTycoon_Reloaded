@@ -17,6 +17,9 @@ signal clicked(plot_id: int)
 #
 # Drawn at their native 42x49: that is the real extent of the art (the source
 # is a 1024 canvas that is mostly padding), so scaling up would just soften it.
+# What an empty plot looks like: a construction site rather than bare ground
+# with a bubble floating over nothing. Which variant it uses is the plot's own
+# "site" field - see BuildingLayout.SITE_TEXTURES.
 const CALLOUT_CONE := preload("res://assets/bubbles/cone_bubble@2x.png")
 const CALLOUT_CASH := preload("res://assets/bubbles/cash_bubble@2x.png")
 # How far above the plot's ground point the callout floats - FIXED, and the
@@ -33,6 +36,7 @@ const CALLOUT_LIFT := 70.0
 const CALLOUT_Z_INDEX := 100
 
 var plot_id: int = -1
+var site_type: String = "buildings"
 
 var _sprite: Sprite2D
 var _bubble: Sprite2D
@@ -40,8 +44,9 @@ var _area: Area2D
 var _shape: CollisionShape2D
 
 
-func setup(id: int, pos: Vector2) -> void:
+func setup(id: int, pos: Vector2, site: String = "buildings") -> void:
 	plot_id = id
+	site_type = site
 	position = pos
 	name = "BuildingSlot%d" % id
 
@@ -74,7 +79,8 @@ func refresh() -> void:
 	var empty := key == ""
 
 	if empty:
-		_sprite.texture = null
+		var site_path := BuildingLayout.site_texture_path(site_type)
+		_sprite.texture = load(site_path) if ResourceLoader.exists(site_path) else null
 	else:
 		var path := BuildingLayout.texture_path(key)
 		_sprite.texture = load(path) if ResourceLoader.exists(path) else null

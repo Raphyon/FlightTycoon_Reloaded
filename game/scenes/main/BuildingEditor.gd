@@ -18,6 +18,11 @@ extends Node2D
 #              site. The Office is 338px wide against a 229px apron tile, so
 #              "does it fit" is a real question.
 #   H          hide/show the ghost
+#   C          cycle the SELECTED plot's construction-site art. Tarmac plots
+#              get the fenced version, grass ones bare machinery - a fenced
+#              concrete pad drawn on a forest floor reads as a mistake, and
+#              which plot is which is a placement call, not something to guess
+#              from coordinates.
 #
 # Saves immediately to res://data/building_layout.json, per airport.
 
@@ -77,6 +82,8 @@ func _input(event: InputEvent) -> void:
 			show_ghost = not show_ghost
 			_update_ghost()
 			_update_hud()
+		elif event.keycode == KEY_C:
+			_cycle_site()
 		elif event.keycode == KEY_X:
 			_delete_selected()
 
@@ -116,6 +123,21 @@ func _pick(pos: Vector2) -> int:
 			best_d = d
 			best = i
 	return best
+
+
+func _cycle_site() -> void:
+	if selected < 0 or selected >= _plots.size():
+		return
+	_plots = BuildingLayout.load_data()
+	if selected >= _plots.size():
+		return
+	var types: Array = BuildingLayout.site_types()
+	var cur := str(_plots[selected].get("site", "buildings"))
+	var i := types.find(cur)
+	_plots[selected]["site"] = str(types[(i + 1) % types.size()])
+	BuildingLayout.save_data(_plots)
+	_rebuild_world()
+	_update_hud()
 
 
 func _delete_selected() -> void:
@@ -191,11 +213,20 @@ func _update_hud() -> void:
 	lines.append("")
 	if selected >= 0 and selected < _plots.size():
 		var p: Dictionary = _plots[selected]
-		lines.append("selected: plot %d at (%d,%d)" % [
-			int(p.get("id", 0)), roundi(float(p.get("x", 0.0))), roundi(float(p.get("y", 0.0)))])
+		lines.append("selected: plot %d at (%d,%d)   site: %s" % [
+			int(p.get("id", 0)), roundi(float(p.get("x", 0.0))),
+			roundi(float(p.get("y", 0.0))), str(p.get("site", "buildings"))])
 	else:
 		lines.append("selected: none   (right click a plot)")
 	lines.append("")
-	lines.append("%d plots here  ·  click = place  ·  right click = select  ·  X = delete  ·  H = ghost %s"
-		% [_plots.size(), "on" if show_ghost else "off"])
+	var counts := {}
+	for e in _plots:
+		var t := str(e.get("site", "buildings"))
+		counts[t] = int(counts.get(t, 0)) + 1
+	var breakdown := []
+	for t in BuildingLayout.site_types():
+		breakdown.append("%d %s" % [int(counts.get(t, 0)), t])
+	lines.append("%d plots (%s)" % [_plots.size(), ", ".join(breakdown)])
+	lines.append("click = place  ·  right click = select  ·  C = site art  ·  X = delete  ·  H = ghost %s"
+		% ("on" if show_ghost else "off"))
 	_hud.set_lines(true, lines)

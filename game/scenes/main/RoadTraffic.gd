@@ -37,8 +37,26 @@ func _ready() -> void:
 	Maps.map_changed.connect(_on_map_changed)
 
 
+# The y-sorted node the cars live in, falling back to this node if it is
+# missing so traffic still runs rather than vanishing.
+func _layer() -> Node2D:
+	var l := get_node_or_null("../Buildings")
+	return l if l is Node2D else self
+
+
+# Only OUR vehicles - the layer also holds the building slots, and clearing
+# those on a map change would leave every plot invisible until something else
+# rebuilt them.
+func _vehicles() -> Array:
+	var out: Array = []
+	for c in _layer().get_children():
+		if c is Sprite2D:
+			out.append(c)
+	return out
+
+
 func _on_map_changed(_map_key: String) -> void:
-	for vehicle in get_children():
+	for vehicle in _vehicles():
 		vehicle.queue_free()
 	_next_spawn.clear()
 	_reload_roads()
@@ -82,7 +100,12 @@ func _spawn(road: Dictionary) -> void:
 
 	var vehicle := Sprite2D.new()
 	vehicle.position = points[0]
-	add_child(vehicle)
+	# Parented into the y-sorted world layer, NOT to this node. RoadTraffic sits
+	# after Buildings in the scene, so its own children drew on top of every
+	# building unconditionally - cars driving over rooftops. As siblings of the
+	# building slots inside a y-sorted parent they sort by depth instead: a car
+	# lower on screen passes in front, one further up goes behind.
+	_layer().add_child(vehicle)
 	_update_facing(vehicle, key, PathLayout.direction_along_path(points, 0.0))
 
 	var total_distance := 0.0

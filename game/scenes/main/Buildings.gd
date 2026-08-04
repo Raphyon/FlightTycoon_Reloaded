@@ -42,7 +42,8 @@ func rebuild() -> void:
 		slot.set_script(SLOT_SCRIPT)
 		add_child(slot)
 		slot.setup(int(plot.get("id", 0)),
-			Vector2(float(plot.get("x", 0.0)), float(plot.get("y", 0.0))))
+			Vector2(float(plot.get("x", 0.0)), float(plot.get("y", 0.0))),
+			str(plot.get("site", "buildings")))
 		slot.clicked.connect(_on_slot_clicked)
 
 

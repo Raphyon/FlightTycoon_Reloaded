@@ -48,7 +48,11 @@ SHOP_ICON_SCALE = 1.2
 # Heights carry the fleet's size hierarchy: the existing fleet runs 83 (328 Jet)
 # to 112 (An-225, the largest airframe), and these are placed inside that.
 MODELS = {
-    "paperplane": (46, {"body": "paper_airplane_default.png",
+    # 46 was "a paper plane is tiny", which is true and unhelpful - at 89x46 it
+    # read as a speck on a 220x110 pad, less than half the height of the next
+    # smallest aircraft. 70 keeps it clearly the littlest thing in the fleet
+    # while still occupying its pad.
+    "paperplane": (70, {"body": "paper_airplane_default.png",
                         "body_dollar": "paper_airplane_dollar.png"}),
     # The one aircraft allowed past the ceiling: a balloon is tall by nature,
     # and squashing it to airliner height would read as a beach ball.

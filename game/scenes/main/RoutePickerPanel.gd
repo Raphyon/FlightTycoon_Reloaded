@@ -163,7 +163,13 @@ func _aircraft_column(a: FleetAircraft) -> void:
 		var art := TextureRect.new()
 		art.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		art.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-		art.texture = load("res://assets/shop/%s" % entry["icon"])
+		# Painted hull if it wears one - see ApronInfoPanel._refresh_plane_slot.
+		var art_path := ""
+		if a.livery != "":
+			art_path = str(AircraftSkins.entry(a.model_key, a.livery).get("body", ""))
+		if art_path == "" or not ResourceLoader.exists(art_path):
+			art_path = "res://assets/shop/%s" % entry["icon"]
+		art.texture = load(art_path)
 		art.size = Vector2(BOARD_SIZE.x * 0.22, BOARD_SIZE.y * ART_H)
 		art.position = Vector2(BOARD_SIZE.x * COL_X[0] - art.size.x * 0.5, BOARD_SIZE.y * ART_Y)
 		art.mouse_filter = Control.MOUSE_FILTER_IGNORE

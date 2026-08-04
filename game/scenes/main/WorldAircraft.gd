@@ -59,6 +59,41 @@ var _ground_effect: Sprite2D
 var _home_position := Vector2.ZERO
 var _animating := false
 var _holds_runway := false
+# Kept so a livery change can repaint an EXISTING node. Without them the only
+# way the hull art ever got chosen was setup(), which runs once when the node
+# is created - so painting an aircraft already standing on a pad changed
+# nothing you could see.
+var _model_key := ""
+var _livery := ""
+
+
+# Repaints an aircraft that is already on a pad. Only the hull changes: shadow,
+# rotors and offsets belong to the airframe, and paint does not change shape.
+#
+# Returns false when nothing needed doing, so the caller can skip the work.
+func set_livery(livery: String) -> bool:
+	if livery == _livery:
+		return false
+	_livery = livery
+	var sprites: Dictionary = Fleet.WORLD_SPRITES.get(_model_key, {})
+	var body_path := str(sprites.get("body", ""))
+	var spin_path := str(sprites.get("body_spin", ""))
+	if livery != "":
+		var entry: Dictionary = AircraftSkins.entry(_model_key, livery)
+		if entry.has("body"):
+			body_path = str(entry["body"])
+		if entry.has("body_spin"):
+			spin_path = str(entry["body_spin"])
+	if is_instance_valid(_body) and body_path != "" and ResourceLoader.exists(body_path):
+		_body_parked = load(body_path)
+		# Mid-takeoff the spin hull is showing, so don't yank it back to parked.
+		if _body.texture == _body_spinning or _animating:
+			pass
+		else:
+			_body.texture = _body_parked
+	if spin_path != "" and ResourceLoader.exists(spin_path):
+		_body_spinning = load(spin_path)
+	return true
 
 
 # `livery` is the one this particular aircraft is wearing (AircraftSkins), not
@@ -66,6 +101,8 @@ var _holds_runway := false
 func setup(model_key: String, screen_pos: Vector2, livery: String = "") -> void:
 	position = screen_pos
 	_home_position = screen_pos
+	_model_key = model_key
+	_livery = livery
 	var sprites: Dictionary = Fleet.WORLD_SPRITES.get(model_key, {}).duplicate()
 	# A livery replaces the hull art only. Shadow, rotors and offsets are the
 	# airframe's and stay exactly as they were - the paint doesn't change shape.

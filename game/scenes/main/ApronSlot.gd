@@ -7,7 +7,15 @@ const COLOR_FREE := Color(0.2, 0.9, 0.4, 0.25)
 const COLOR_OCCUPIED := Color(0.9, 0.5, 0.2, 0.35)
 const COLOR_HOVER := Color(1, 1, 1, 0.4)
 const COLOR_LOCKED_FALLBACK := Color(0.4, 0.4, 0.4, 0.35)
+# An unbuilt pad, by terrain. The paved zones keep the apron art they always
+# had; the unpaved ones get machinery standing on the ground.
+#
+# The unpaved zones had NO art at all before this and fell back to a flat
+# coloured diamond - COLOR_LOCKED_FALLBACK, which is still what a LOCKED zone
+# draws, but an unlocked-and-unbuilt pad in the Forest was a grey lozenge with
+# a cone floating over it.
 const UNDER_CONSTRUCTION_TEXTURE := preload("res://assets/aprons/apron9@2x.png")
+const UNDER_CONSTRUCTION_WILD_TEXTURE := preload("res://assets/buildings/construction_site_forest_2x.png")
 # One-piece callouts: the icon is part of the art, so there is nothing to
 # centre. These were a shared bubble with an icon laid on top, positioned by
 # "(bubble width - icon width) * 0.5 - 3.0, 6.0" - a fudge per axis that never
@@ -180,21 +188,25 @@ func _diamond_points() -> PackedVector2Array:
 func _draw() -> void:
 	if not apron.built:
 		var on_paved_zone := apron.area_name in PAVED_ZONES
-		_under_construction.visible = on_paved_zone
+		_under_construction.texture = (UNDER_CONSTRUCTION_TEXTURE if on_paved_zone
+			else UNDER_CONSTRUCTION_WILD_TEXTURE)
+		_under_construction.visible = true
 		# Nothing in a locked zone can be built until the zone itself is
 		# bought in the expansion shop, so it gets no "build me" prompt and
 		# no price. The bubble in particular has to go: it sits on an
 		# absolute z-layer (see CALLOUT_Z_INDEX) and would otherwise float
 		# on top of the cloud that's meant to be covering the whole zone.
+		# A locked zone shows nothing at all - it is under cloud cover, and a
+		# construction site peeking through would say "build here" about a zone
+		# you cannot build in.
 		if not ZoneProgress.is_unlocked(apron.area_name):
 			_callout.visible = false
+			_under_construction.visible = false
 			if not on_paved_zone:
 				draw_colored_polygon(_diamond_points(), COLOR_LOCKED_FALLBACK)
 			return
 		_set_callout_icon(CALLOUT_CONE_TEXTURE)
 		_callout.visible = true
-		if not on_paved_zone:
-			draw_colored_polygon(_diamond_points(), COLOR_LOCKED_FALLBACK)
 		if DebugState.show_apron_costs:
 			draw_string(
 				ThemeDB.fallback_font, Vector2(-40, 5),

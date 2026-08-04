@@ -286,6 +286,10 @@ func _sync_world_aircraft() -> void:
 			# Not setup() - that adds a fresh set of child sprites every
 			# call, so re-running it each rebuild stacked duplicates.
 			_world_aircraft[a.id].sync_position(slot.position)
+			# A livery bought or switched while the aircraft is already parked
+			# has to repaint the node that exists, because setup() is never
+			# called again for it.
+			_world_aircraft[a.id].set_livery(a.livery)
 
 	for aircraft_id in _world_aircraft.keys().duplicate():
 		if not seen.has(aircraft_id):

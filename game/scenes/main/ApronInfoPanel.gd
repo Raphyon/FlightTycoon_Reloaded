@@ -416,9 +416,20 @@ func _refresh_plane_slot(a: FleetAircraft) -> void:
 	_plane_frame.texture = PLANE_FRAME_FILLED if a else PLANE_FRAME_EMPTY
 	_plane_icon.visible = a != null
 	if a:
-		var e := ShopCatalog.entry_for(a.model_key)
-		if e.has("icon"):
-			_plane_icon.texture = load("res://assets/shop/%s" % e["icon"])
+		# The PAINTED hull when this aircraft wears a livery, not the model's
+		# shop icon - otherwise the slot right next to the Liveries button is
+		# the one picture in the game that never reflects the livery you just
+		# bought, which reads as the purchase having done nothing.
+		var path := ""
+		if a.livery != "":
+			var liv := AircraftSkins.entry(a.model_key, a.livery)
+			path = str(liv.get("body", ""))
+		if path == "":
+			var e := ShopCatalog.entry_for(a.model_key)
+			if e.has("icon"):
+				path = "res://assets/shop/%s" % e["icon"]
+		if path != "" and ResourceLoader.exists(path):
+			_plane_icon.texture = load(path)
 
 	# The robot airport is somewhere you visit, not somewhere you base aircraft.
 	if Maps.current == Maps.ROBOT_MAP:
