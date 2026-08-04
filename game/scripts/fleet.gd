@@ -494,13 +494,13 @@ func _emit_changed() -> void:
 
 
 func _ready() -> void:
-	# Starting plane - always aircraft id 1, parked at Zone1's apron id 1
-	# (the historical "home" spot). Nothing else assumes id 1 specifically;
-	# this is just the one starting fact of a fresh game.
-	var starter := FleetAircraft.new(_next_id, STARTER_MODEL)
-	_next_id += 1
-	starter.assigned_apron_id = 1
-	aircraft.append(starter)
+	# A fresh game owns NOTHING. It used to be handed a free DC-3 parked on
+	# apron 1; buying the first aircraft yourself is the opening now, which is
+	# what Economy.STARTING_MONEY is sized for.
+	#
+	# STARTER_MODEL still exists and is still the DC-3 - it is the fallback for
+	# a save entry missing its model, not a thing that gets granted.
+	pass
 
 
 func _process(delta: float) -> void:

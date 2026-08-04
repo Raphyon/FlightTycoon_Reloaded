@@ -28,7 +28,7 @@ func _ready() -> void:
 		{"icon": "button_store03@2x.png", "label": "Gold"},
 		{"icon": "button_store04@2x.png", "label": "Terminal"},
 		{"icon": "button_store06@2x.png", "label": "Expanding Airport", "on_pressed": _open_expansion_shop},
-		{"icon": "button_store09@2x.png", "label": "Prop Shop"},
+		{"icon": "button_store09@2x.png", "label": "Prop Shop", "on_pressed": _open_prop_shop},
 	]
 	for entry in _categories:
 		_grid.add_child(_build_category_button(entry))
@@ -130,3 +130,14 @@ func _open_fuel_shop() -> void:
 func _open_expansion_shop() -> void:
 	hide()
 	get_node("../ExpansionShopPanel").show()
+
+
+# The Prop Shop always builds ON a site, so this picks the first free one
+# rather than opening a browse mode that would then have to ask. With every
+# site taken there is nothing to offer, so it says so instead of opening empty.
+func _open_prop_shop() -> void:
+	var panel := get_node("../PropShopPanel")
+	if panel.open_for_first_free_plot():
+		hide()
+	else:
+		print("No empty construction sites - place some with G, or build on one directly.")

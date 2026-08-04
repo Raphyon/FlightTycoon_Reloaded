@@ -61,6 +61,9 @@
 [ext_resource type="Texture2D" path="res://assets/buttons/button_social2@2x.png" id="59"]
 [ext_resource type="Script" path="res://scenes/main/RoutePickerPanel.gd" id="64"]
 [ext_resource type="Script" path="res://scenes/main/LiveryPickerPanel.gd" id="65"]
+[ext_resource type="Script" path="res://scenes/main/BuildingEditor.gd" id="66"]
+[ext_resource type="Script" path="res://scenes/main/Buildings.gd" id="67"]
+[ext_resource type="Script" path="res://scenes/main/PropShopPanel.gd" id="68"]
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_bg"]
 
@@ -101,6 +104,13 @@ script = ExtResource("6")
 
 [node name="ApronEditor" type="Node2D" parent="." unique_id=1040825060]
 script = ExtResource("7")
+
+[node name="Buildings" type="Node2D" parent="."]
+y_sort_enabled = true
+script = ExtResource("67")
+
+[node name="BuildingEditor" type="Node2D" parent="."]
+script = ExtResource("66")
 
 [node name="Clouds" type="Node2D" parent="." unique_id=140231114]
 
@@ -735,6 +745,67 @@ layout_mode = 2
 text = ">"
 
 [node name="CloseButton" type="Button" parent="UI/ExpansionShopPanel/Frame/SafeArea/Margin/VBox"]
+layout_mode = 2
+text = "Close"
+
+[node name="PropShopPanel" type="PanelContainer" parent="UI"]
+theme_override_styles/panel = SubResource("StyleBoxEmpty_bg")
+visible = false
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("68")
+
+[node name="Background" type="TextureRect" parent="UI/PropShopPanel"]
+show_behind_parent = true
+layout_mode = 2
+mouse_filter = 2
+texture = ExtResource("22")
+expand_mode = 1
+stretch_mode = 6
+
+[node name="Frame" type="Control" parent="UI/PropShopPanel"]
+layout_mode = 2
+
+[node name="SafeArea" type="Control" parent="UI/PropShopPanel/Frame"]
+anchors_preset = 0
+anchor_top = 0.2
+anchor_right = 1.0
+anchor_bottom = 0.78
+offset_left = 40.0
+offset_right = -40.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Margin" type="MarginContainer" parent="UI/PropShopPanel/Frame/SafeArea"]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 8
+
+[node name="VBox" type="VBoxContainer" parent="UI/PropShopPanel/Frame/SafeArea/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="TitleLabel" type="Label" parent="UI/PropShopPanel/Frame/SafeArea/Margin/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "Prop Shop"
+horizontal_alignment = 1
+
+[node name="Grid" type="GridContainer" parent="UI/PropShopPanel/Frame/SafeArea/Margin/VBox"]
+layout_mode = 2
+size_flags_horizontal = 4
+columns = 5
+theme_override_constants/h_separation = 10
+theme_override_constants/v_separation = 10
+
+[node name="CloseButton" type="Button" parent="UI/PropShopPanel/Frame/SafeArea/Margin/VBox"]
 layout_mode = 2
 text = "Close"
 
