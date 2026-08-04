@@ -76,15 +76,25 @@ func can_afford(building_key: String) -> bool:
 # pays. The walkthrough's popularity system: "as you add more businesses... you
 # will become more popular. This causes your Airport to earn more money."
 #
-# 250 puts a starting airport of a few hundred inhabitants at a couple of
-# percent, a mid-game one of 5,000 at +20%, and the ~22,780 the original's
-# level-32 account showed at +91% - so buildings begin as a rent trickle and
-# end up close to doubling the fleet. That arc is the point of them.
+# 800, set against the SIZE OF THE AIRPORT rather than against a feel for what
+# one building is worth. Homeland has 41 plots; filling them all with the best
+# cash building is 164,000 inhabitants, which at this rate is +205% - the city
+# roughly triples what the fleet earns, for $1.64M and 41 purchases.
+#
+# It was 250, chosen when I was picturing a handful of sites. At 41 plots that
+# came to +656%, seven times the +91% the original's level-32 account showed,
+# and made the city worth several times the entire fleet.
+#
+# The cost of the fix is the other end: three buildings is now +0.9% rather
+# than +2.9%, so the early game barely feels it. ONE LINEAR RATE CANNOT make
+# three buildings matter and forty-one not be absurd. If the opening needs to
+# feel it, that wants a curve - more per head early, diminishing after - which
+# is a different mechanic, not a different constant.
 #
 # CASH ONLY, never XP (see Fleet._grant_reward). Levelling is calibrated
 # against flights alone, and letting the city accelerate it would drag every
 # unlock forward as a side effect of decorating.
-const PEOPLE_PER_PERCENT := 250.0
+const PEOPLE_PER_PERCENT := 800.0
 
 
 # Multiplier on flight cash from the population, as a plain factor: 1.0 with no
