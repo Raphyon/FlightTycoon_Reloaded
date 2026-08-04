@@ -276,6 +276,14 @@ const WORLD_SPRITES := {
 		"body": "res://assets/aircraft/crj700/body_2x.png",
 		"shadow": "res://assets/aircraft/crj700/shadow_2x.png",
 	},
+	"atr72": {
+		"body": "res://assets/aircraft/atr72/body_2x.png",
+		"shadow": "res://assets/aircraft/atr72/shadow_2x.png",
+	},
+	"an140": {
+		"body": "res://assets/aircraft/an140/body_2x.png",
+		"shadow": "res://assets/aircraft/an140/shadow_2x.png",
+	},
 	"dhc8": {
 		"body": "res://assets/aircraft/dhc8/body_2x.png",
 		"shadow": "res://assets/aircraft/dhc8/shadow_2x.png",
@@ -328,6 +336,19 @@ const WORLD_SPRITES := {
 	"b747": {
 		"body": "res://assets/aircraft/b747/body_2x.png",
 		"shadow": "res://assets/aircraft/b747/shadow_2x.png",
+	},
+	# NOT vtol - it has wings and it lands on a runway, so it queues like the
+	# rest of the fleet. (It was briefly vtol on the reasoning that a space
+	# vehicle should go straight up; the user's call, and the right one.)
+	"x37b": {
+		"body": "res://assets/aircraft/x37b/body_2x.png",
+		"shadow": "res://assets/aircraft/x37b/shadow_2x.png",
+	},
+	# A flying saucer by any other name - straight up off the pad.
+	"uss51": {
+		"body": "res://assets/aircraft/uss51/body_2x.png",
+		"shadow": "res://assets/aircraft/uss51/shadow_2x.png",
+		"vtol": true,
 	},
 	# Leaves the pad straight up, same as the UFO and the Ark.
 	"ncc1701": {

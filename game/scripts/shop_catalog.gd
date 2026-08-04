@@ -94,9 +94,17 @@ const ENTRIES := [
 	# the rating is worth.
 	{"key": "paperplane", "name": "Paper Plane", "icon": "paperplane_default.png", "price": 5, "currency": COINS, "level": 1,
 		"force": "A", "seats": 10, "fuel": 0, "xp": 150, "range": 3, "has_world_sprite": true},
-	# LIVE 5000/A/80/6/2cl. Carries the NEW badge at level 2 in the
-	# original.
-	{"key": "emb120", "name": "EMB-120", "icon": "emb120_default.png", "price": 5000, "level": 2,
+	# LIVE stats: A / 100 seats / 20 fuel / 15 fare / 1 cloud. The PRICE is not
+	# live - the original charges 40,000 for it, which against 1,500 a leg is a
+	# 27-leg payback when every other building and aircraft it sells is about
+	# 15. Importing that would have put a strictly-worse aircraft above the
+	# EMB-120 in both level and price, which is the one thing this ladder
+	# promises never happens. Priced on its own income instead.
+	{"key": "atr72", "name": "ATR 72", "icon": "atr72_default.png", "price": 4000, "level": 2,
+		"force": "A", "seats": 100, "fuel": 20, "xp": 42, "range": 1, "has_world_sprite": true},
+	# LIVE 5000/A/80/6/2cl. It carries the NEW badge at level 2 in the original;
+	# ours sits at 3 because the ATR-72 goes in ahead of it on income.
+	{"key": "emb120", "name": "EMB-120", "icon": "emb120_default.png", "price": 5000, "level": 3,
 		"force": "A", "seats": 80, "fuel": 6, "xp": 76, "range": 2, "has_world_sprite": true},
 	# ---- 4-10 . feeder and regional -----------------------------------
 	{"key": "dhc8", "name": "Dash 8", "icon": "dhc8_default.png", "price": 12000, "level": 4,
@@ -106,9 +114,14 @@ const ENTRIES := [
 	# reach one.
 	{"key": "crj700", "name": "CRJ-700", "icon": "crj700_default.png", "price": 18000, "level": 5,
 		"force": "A", "seats": 140, "fuel": 9, "xp": 100, "range": 2, "has_world_sprite": true},
+	# LIVE stats: C / 150 seats / 25 fuel / 15 fare / 2 clouds. Price is ours
+	# again - the original's 50,000 would have leapfrogged the 328 Jet, which
+	# out-earns it.
+	{"key": "an140", "name": "An-140", "icon": "an140_default.png", "price": 21000, "level": 6,
+		"force": "C", "seats": 150, "fuel": 25, "xp": 104, "range": 2, "has_world_sprite": true},
 	# First rating-3 airframe, which is worth more than its cabin: 3x on
 	# every leg.
-	{"key": "328jet", "name": "328 Jet", "icon": "328jet_blue.png", "price": 25000, "level": 6,
+	{"key": "328jet", "name": "328 Jet", "icon": "328jet_blue.png", "price": 25000, "level": 7,
 		"force": "S", "seats": 110, "fuel": 10, "xp": 133, "range": 3, "has_world_sprite": true},
 	# Two seats, so it earns on fare - the same trick the original uses on
 	# its F-15.
@@ -136,6 +149,10 @@ const ENTRIES := [
 	# The rating-4 threshold.
 	{"key": "b707", "name": "Boeing 707", "icon": "b707_default.png", "price": 108000, "level": 19,
 		"force": "D", "seats": 320, "fuel": 38, "xp": 304, "range": 4, "has_world_sprite": true},
+	# LIVE stats: C / 100 seats / 30 fuel / 80 fare / 5 clouds. A saucer, and
+	# the coin lane's middle rung - 40,000 a leg against the F-15's 16,000.
+	{"key": "uss51", "name": "USS 51", "icon": "uss51_default.png", "price": 28, "currency": COINS, "level": 18,
+		"force": "C", "seats": 100, "fuel": 30, "xp": 212, "ticket": 80, "range": 5, "has_world_sprite": true},
 	# LIVE stats (20c/D/50/10/200 fare/5cl); level and coin price are ours,
 	# moved up the coin lane so it doesn't outclass everything cash at level
 	# 12.
@@ -165,6 +182,11 @@ const ENTRIES := [
 	# ours.
 	{"key": "ncc1701", "name": "NCC-1701", "icon": "ncc1701_default.png", "price": 45, "currency": COINS, "level": 30,
 		"force": "A", "seats": 200, "fuel": 100, "xp": 300, "ticket": 150, "range": 5, "has_world_sprite": true},
+	# An unmanned spaceplane: it carries almost nothing, so like the P-51 and
+	# the F-15 it earns on fare rather than capacity. Four "seats" at 2000 is
+	# the payload, not passengers.
+	{"key": "x37b", "name": "X-37B", "icon": "x37b_default.png", "price": 650000, "level": 31,
+		"force": "S", "seats": 4, "fuel": 90, "xp": 42, "ticket": 2000, "range": 5, "has_world_sprite": true},
 	{"key": "b747", "name": "Boeing 747-8", "icon": "b747_default.png", "price": 800000, "level": 32,
 		"force": "E", "seats": 600, "fuel": 72, "xp": 520, "range": 5, "has_world_sprite": true},
 	# LIVE 1000000/E/700/70/5cl.
