@@ -16,19 +16,33 @@ const SAVE_PATH := "res://data/zone_progress.json"
 # Measured with the full economy (buying pads and aircraft too, which is where
 # the money really goes), these give no wait at all on the first three and a
 # real but bounded save on the last three.
+# RESCALED with the aircraft ladder. The levels above Zone2/DarkZone used to run
+# 40 -> 175, which under the XP curve was tens of hours for a zone nobody would
+# reach; the fleet now finishes at level 36 (see ShopCatalog). Zones deliberately
+# run PAST the fleet, to 50, so there is still something to earn once you own
+# every aircraft.
+#
+# Zone2 at 10 and DarkZone at 20 are the user's, unchanged - level 10 is still
+# the fifteen-minute mark, and 10 -> 20 is still the "another half hour" the
+# pacing target asks for.
+#
+# COSTS doubled across the board. Not a rebalance: the fare went from 8 to 15
+# and every aircraft price went from halved to live, so holding these would have
+# quietly made every zone half price against the fleet it competes with for
+# money.
 const ZONE_REQUIREMENTS := {
-	"Zone2": {"level": 10, "cost": 8000},
-	"DarkZone": {"level": 20, "cost": 12000},
-	"Forest": {"level": 40, "cost": 30000},
-	"Desert": {"level": 60, "cost": 75000},
-	"Beach": {"level": 80, "cost": 130000},
-	"Snow": {"level": 100, "cost": 210000},
+	"Zone2": {"level": 10, "cost": 16000},
+	"DarkZone": {"level": 20, "cost": 24000},
+	"Forest": {"level": 26, "cost": 60000},
+	"Desert": {"level": 30, "cost": 150000},
+	"Beach": {"level": 34, "cost": 260000},
+	"Snow": {"level": 38, "cost": 420000},
 	# Dreamland and the carrier - PLACEHOLDER level/cost, not from the user,
 	# continuing the homeland curve past Snow.
-	"Dreamland1": {"level": 110, "cost": 300000},
-	"Dreamland2": {"level": 130, "cost": 450000},
-	"Dreamland3": {"level": 150, "cost": 650000},
-	"Carrier": {"level": 175, "cost": 950000},
+	"Dreamland1": {"level": 41, "cost": 600000},
+	"Dreamland2": {"level": 44, "cost": 900000},
+	"Dreamland3": {"level": 47, "cost": 1300000},
+	"Carrier": {"level": 50, "cost": 1900000},
 }
 
 var unlocked_zones: Dictionary = {}  # area_name -> true, persisted

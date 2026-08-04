@@ -6,6 +6,12 @@ signal fleet_changed
 # (shop calls it "p51", the world sprite folder is "p-51mustang" - a known
 # mismatch flagged since the very first README). Resolved here, in one
 # place, rather than papering over it everywhere that needs a world sprite.
+# What a fresh game starts with, and the fallback for a save entry missing its
+# model. Named because it's referenced in both places and used to be the string
+# "328jet" written twice - which is exactly the sort of thing that gets changed
+# in one spot when the starter moves. See ShopCatalog for why it's the DC-3.
+const STARTER_MODEL := "dc3"
+
 # The A400M's turboprop flipbook, shared by every propeller aircraft in the
 # fleet. Split hub-aligned (tools/plane_derive.py split_prop_strip) so the disc
 # spins about a fixed point rather than wandering between frames. Named here
@@ -339,52 +345,79 @@ const DESTINATION_NAME := "Robot"
 # XP tracks what the leg was worth, so a 700-seat A380 doesn't hand out the
 # same XP the 50-seat starter did. One XP per this much earned.
 #
-# 25, giving 16 XP a leg for the starter against the live game's 5. Solved
-# from the pacing target, not the record: level 10 by the time Zone1 is full
-# needs roughly three times the live XP rate, because our Zone1 fills in a
-# quarter of an hour rather than over an evening.
-const MONEY_PER_XP := 25
-
-
-func xp_for_claim(model_key: String) -> int:
-	return maxi(1, roundi(float(payout_for(model_key)) / MONEY_PER_XP))
-
-# A leg pays capacity * fare. Distance does NOT come into it - a further
-# destination costs you time, not money.
+# GONE: XP used to be payout / MONEY_PER_XP, on the assumption that a leg's XP
+# tracked its cash. The original disproves it outright - its DC-3 pays 400 for
+# 30 XP and its Paper Plane pays 450 for 150. XP is a per-aircraft stat now
+# (ShopCatalog "xp"), which is the only way that aircraft makes sense.
 #
-# The fare is a flat 10 for anything with a normal cabin, so the 50-seat 328
-# Jet earns 500 a leg and 1000 for the round trip it flies out and back.
+# The constant is not replaced by another constant, and nothing needs to divide
+# anything: the live DC-3's 30 XP a leg lands level 10 at fifteen minutes on its
+# own, which is the pacing target it was invented to hit.
+
+
+# map_key is accepted and ignored, matching payout_for - XP is the aircraft's
+# own stat and the route's distance does not enter it.
+func xp_for_claim(model_key: String, _map_key: String = "") -> int:
+	return maxi(1, int(ShopCatalog.stat(model_key, "xp")))
+
+# The flat fare for anything with a normal cabin. 15, which is the LIVE game's
+# own value, read straight off its shop cards - every airliner on every page
+# shows a 15 beside the money icon.
+#
+# This was 8, from a belief that the original charged 4 and that we needed to
+# double it to fill Zone1 in fifteen minutes. Both halves of that were wrong:
+# the fare is 15, and at 15 the DC-3 earns 750 a leg against its own 3,000
+# price - two round trips to pay for itself, which is the fifteen-minute
+# opening we were trying to buy by doubling. Every price in ShopCatalog had
+# been halved to compensate for the mistake; they are the live prices now.
+#
 # Aircraft that carry almost nobody override it (ShopCatalog "ticket"), which
-# is the only way a 2-seat P-51 can be worth owning - the reference does the
-# same, charging 2000 a head on an F-15 and 200 on a balloon.
-# 8. The live game pays 200 a leg for a 50-seat 328 Jet, i.e. a fare of 4 -
-# but that pace can't fill Zone1 in fifteen minutes, which is the opening this
-# game wants. Doubled deliberately, and the aircraft ladder is repriced to
-# match. Fuel, flight time and the level curve are still the live values.
-const TICKET_PRICE := 8
+# is the only way a 2-seat P-51 can be worth owning - and the original does the
+# same, charging 2000 a head on its F-15 and 200 on its balloon.
+const TICKET_PRICE := 15
 
 
 func ticket_price(model_key: String) -> int:
 	return int(ShopCatalog.entry_for(model_key).get("ticket", TICKET_PRICE))
 
-# Flight time multiplier per force grade, best to worst. S is the top class an
-# aircraft can be SOLD at - an S-class flies a cloud in the flat
-# SECONDS_PER_DISTANCE, and every grade below it takes proportionally longer,
-# up to 3x for an E.
+# HOW LONG A LEG TAKES.
 #
-# S+ is above that, and is not a class any model ships with: it exists only as
-# the step an S-class aircraft takes when you paint it. Without it a livery on
-# an S-class bought a repaint and nothing else, since the speed step is the
-# whole point of the purchase. 0.8 keeps the ladder's own spacing (each step up
-# is a 0.75-0.83x multiplier on the one below), so painting an S-class is worth
-# the same ~25% it's worth anywhere else on the ladder.
-const SPEED_FACTOR := {"S+": 0.8, "S": 1.0, "A": 1.25, "B": 1.5, "C": 2.0, "D": 2.5, "E": 3.0}
+# Set by how far you SEND it - the route's clouds, not the aircraft's rating.
+# The walkthrough is explicit that duration comes from "how advanced the plane
+# and distance of the flights", and that short hops run "two to fifteen minutes
+# for each direction", which is what the first two columns below give.
+#
+# It was briefly keyed to the aircraft's rating instead. That inverted the
+# ladder outright: a rating-5 A380 was gone for 17 hours whatever it did, so it
+# earned a ninth of what a level-4 Dash 8 made per hour, and every step up the
+# shop was an economic downgrade. Keying it to the ROUTE fixes that at the root
+# - at any given distance a bigger aircraft simply earns more.
+#
+# The force grade is an ADDITIVE step, not a multiplier - which is what makes
+# the class a trim rather than a headline. Both ends are anchored:
+#
+#     rating 1:  S = 1 min,  A = 2 min       (one minute per grade)
+#     rating 5:  S = 12 h,   A = 13 h        (one hour per grade)
+#
+# so the base runs 1m/5m/27m/139m/720m and the per-grade step 1m/3m/8m/22m/60m,
+# both geometric, both solved from those four numbers rather than picked.
+const CLOUD_BASE_MINUTES := [1.0, 5.0, 27.0, 139.0, 720.0]
+const CLASS_STEP_MINUTES := [1.0, 3.0, 8.0, 22.0, 60.0]
+
+# Steps along CLASS_STEP_MINUTES. S is the zero point - it pays no penalty at
+# all - and S+ (which only a livery reaches, see AircraftSkins) goes half a step
+# BELOW it, so painting a top-class aircraft still buys something.
+const CLASS_STEPS := {"S+": -0.5, "S": 0.0, "A": 1.0, "B": 2.0, "C": 3.0, "D": 4.0, "E": 5.0}
+
 # Worst to best. A livery moves an aircraft one place along it.
 const GRADE_LADDER := ["E", "D", "C", "B", "A", "S", "S+"]
 
+# Minutes for one leg: how far it is going, stepped by the grade flying it.
+func _leg_minutes(clouds: int, grade: String) -> float:
+	var i := clampi(clouds, 1, CLOUD_BASE_MINUTES.size()) - 1
+	return CLOUD_BASE_MINUTES[i] + float(CLASS_STEPS.get(grade, 0.0)) * CLASS_STEP_MINUTES[i]
 
-# The grade this particular aircraft flies at: its model's, moved one step up
-# if it's wearing a livery. Only S+ is a dead end, and no model starts there.
+
 func grade_for(a: FleetAircraft) -> String:
 	var base := str(ShopCatalog.stat(a.model_key, "force"))
 	if a.livery.is_empty():
@@ -399,8 +432,7 @@ func grade_for(a: FleetAircraft) -> String:
 # below is the model-level estimate the shop and routes table use, where there
 # is no particular aircraft to ask about.
 func flight_seconds_for(a: FleetAircraft, map_key: String) -> float:
-	var base := SECONDS_PER_DISTANCE * maxf(1.0, float(Maps.entry(map_key).get("distance", 1)))
-	return base * float(SPEED_FACTOR.get(grade_for(a), 1.0))
+	return _leg_minutes(distance_to(map_key), grade_for(a)) * 60.0
 
 
 # How many passengers a leg carries: all of them.
@@ -408,28 +440,40 @@ func passengers(model_key: String) -> int:
 	return int(ShopCatalog.stat(model_key, "seats"))
 
 
-func fuel_cost(model_key: String) -> int:
+# Flat per leg, like pay - it is the number on the card. map_key is accepted and
+# ignored to match payout_for.
+func fuel_cost(model_key: String, _map_key: String = "") -> int:
 	return int(ShopCatalog.stat(model_key, "fuel"))
 
 
-# What one leg pays, wherever it goes. map_key is accepted and ignored so the
-# call sites read the same as the flight-time ones.
-func payout_for(model_key: String, _map_key: String = "") -> int:
-	return passengers(model_key) * ticket_price(model_key)
+# What one leg pays, and it is the ORIGINAL'S OWN FORMULA:
+#
+#     ticket * seats * cloud rating
+#
+# All three are printed on the shop card, and the game's A400M checks out
+# exactly - 100 a head, 500 seats, rating 5, 250,000 a leg.
+#
+# Range being a straight multiplier is why it is the most guarded stat in the
+# shop: a rating-5 aircraft earns five times a rating-1 one of the same cabin,
+# before capacity even comes into it.
+#
+# The original's own formula - ticket * seats * cloud rating - with the rating
+# read as the ROUTE'S clouds, which is what "the longer the route the more money
+# you will make" means. The shop card's figure is this evaluated at the
+# aircraft's MAXIMUM rating, which is why it looks like a property of the
+# aircraft; fly it somewhere nearer and it earns proportionally less.
+#
+# Confirmed against the A400M: 100 a head, 500 seats, at its full 5 clouds is
+# the 250,000 a leg the game shows.
+func payout_for(model_key: String, map_key: String = "") -> int:
+	return passengers(model_key) * ticket_price(model_key) * distance_to(map_key)
 
 
 func in_range(model_key: String, map_key: String) -> bool:
 	return int(ShopCatalog.stat(model_key, "range")) >= distance_to(map_key)
 
 
-# Seconds of flight per cloud of distance, for an S-class aircraft - so the
-# S-class 328 Jet reaches a 1-cloud destination in exactly one minute, and
-# slower grades take their SPEED_FACTOR multiple of that. Distance is the
-# destination's own property (Maps "distance", drawn as cloud icons on the
-# visitor panel), so a further airport is a longer trip without touching this.
-#
-# This is the only thing distance changes: it costs time, never money.
-const SECONDS_PER_DISTANCE := 60.0
+
 
 var aircraft: Array[FleetAircraft] = []
 var _next_id := 1
@@ -453,7 +497,7 @@ func _ready() -> void:
 	# Starting plane - always aircraft id 1, parked at Zone1's apron id 1
 	# (the historical "home" spot). Nothing else assumes id 1 specifically;
 	# this is just the one starting fact of a fresh game.
-	var starter := FleetAircraft.new(_next_id, "328jet")
+	var starter := FleetAircraft.new(_next_id, STARTER_MODEL)
 	_next_id += 1
 	starter.assigned_apron_id = 1
 	aircraft.append(starter)
@@ -504,7 +548,7 @@ func to_save() -> Dictionary:
 func load_save(data: Dictionary, elapsed: float) -> void:
 	aircraft.clear()
 	for d in data.get("aircraft", []):
-		var a := FleetAircraft.new(int(d.get("id", 0)), str(d.get("model", "328jet")))
+		var a := FleetAircraft.new(int(d.get("id", 0)), str(d.get("model", STARTER_MODEL)))
 		a.assigned_apron_id = int(d.get("apron", -1))
 		a.robot_apron_id = int(d.get("robot_apron", -1))
 		a.state = int(d.get("state", FleetAircraft.State.PARKED))
@@ -619,14 +663,12 @@ func unassign(aircraft_id: int) -> void:
 
 # How long a one-way leg to this destination takes. Clamped at 1 so a map that
 # forgets to declare a distance still flies rather than arriving instantly.
-# model_key is optional so callers that only want the destination's baseline
-# (the routes table's estimate, tests) don't have to name an aircraft.
+# model_key is optional so callers that only want a baseline (the routes table's
+# estimate, tests) don't have to name an aircraft - they get the S-class figure.
 func flight_seconds_to(map_key: String, model_key: String = "") -> float:
-	var base := SECONDS_PER_DISTANCE * maxf(1.0, float(Maps.entry(map_key).get("distance", 1)))
-	if model_key == "":
-		return base
-	var grade: String = ShopCatalog.stat(model_key, "force")
-	return base * float(SPEED_FACTOR.get(grade, 1.0))
+	var grade := str(ShopCatalog.stat(model_key, "force")) if model_key != "" else "S"
+	return _leg_minutes(distance_to(map_key), grade) * 60.0
+
 
 
 func distance_to(map_key: String) -> int:
@@ -648,7 +690,7 @@ func fuel_and_depart(aircraft_id: int) -> bool:
 	# same as the pad.
 	if not in_range(a.model_key, destination_of(a)):
 		return false
-	if not FuelStore.consume(fuel_cost(a.model_key)):
+	if not FuelStore.consume(fuel_cost(a.model_key, destination_of(a))):
 		return false
 	a.robot_apron_id = pad
 	a.state = FleetAircraft.State.FLYING_OUT
@@ -660,7 +702,7 @@ func fuel_and_depart(aircraft_id: int) -> bool:
 func claim_destination_reward(aircraft_id: int) -> void:
 	var a := get_aircraft(aircraft_id)
 	if a and a.state == FleetAircraft.State.AWAITING_DEST_CLAIM:
-		_grant_reward(payout_for(a.model_key), a.assigned_apron_id, a.model_key)
+		_grant_reward(a, a.assigned_apron_id)
 		AircraftAffinity.grant_use(a.model_key)
 		a.state = FleetAircraft.State.AWAITING_DEST_REFUEL
 		_emit_changed()
@@ -682,7 +724,7 @@ func refuel_at_destination(aircraft_id: int) -> void:
 func claim_home_reward(aircraft_id: int) -> void:
 	var a := get_aircraft(aircraft_id)
 	if a and a.state == FleetAircraft.State.AWAITING_HOME_CLAIM:
-		_grant_reward(payout_for(a.model_key), a.assigned_apron_id, a.model_key)
+		_grant_reward(a, a.assigned_apron_id)
 		AircraftAffinity.grant_use(a.model_key)
 		a.state = FleetAircraft.State.AWAITING_HOME_REFUEL
 		_emit_changed()
@@ -690,17 +732,21 @@ func claim_home_reward(aircraft_id: int) -> void:
 
 # Apron skins (see ApronSkins) give a flat bonus to both the cash and XP
 # reward for whichever apron the aircraft is parked at.
-func _grant_reward(base_amount: int, apron_id: int, model_key: String) -> void:
+# Takes the aircraft rather than a bare amount so cash and XP are both read
+# off the SAME route - paying for a 5-cloud leg while granting a 1-cloud leg's
+# XP is exactly the kind of drift two separate lookups invite.
+func _grant_reward(a: FleetAircraft, apron_id: int) -> void:
+	var dest := destination_of(a)
 	var bonus := 1.0 + ApronSkins.bonus_percent_for(apron_id) / 100.0
-	Economy.add_money(roundi(base_amount * bonus))
-	Progression.add_xp(roundi(xp_for_claim(model_key) * bonus))
+	Economy.add_money(roundi(payout_for(a.model_key, dest) * bonus))
+	Progression.add_xp(roundi(xp_for_claim(a.model_key, dest) * bonus))
 
 
 func refuel_at_home(aircraft_id: int) -> bool:
 	var a := get_aircraft(aircraft_id)
 	if not a or a.state != FleetAircraft.State.AWAITING_HOME_REFUEL:
 		return false
-	if not FuelStore.consume(fuel_cost(a.model_key)):
+	if not FuelStore.consume(fuel_cost(a.model_key, destination_of(a))):
 		return false
 	a.state = FleetAircraft.State.PARKED
 	_emit_changed()
@@ -730,11 +776,11 @@ func block_reason(a: FleetAircraft) -> String:
 				return "out of range"
 			if robot_apron_for(a) == -1:
 				return "no pad at %s" % DESTINATION_NAME
-			if FuelStore.amount < fuel_cost(a.model_key):
-				return "needs %d fuel" % fuel_cost(a.model_key)
+			if FuelStore.amount < fuel_cost(a.model_key, destination_of(a)):
+				return "needs %d fuel" % fuel_cost(a.model_key, destination_of(a))
 		FleetAircraft.State.AWAITING_HOME_REFUEL:
-			if FuelStore.amount < fuel_cost(a.model_key):
-				return "needs %d fuel" % fuel_cost(a.model_key)
+			if FuelStore.amount < fuel_cost(a.model_key, destination_of(a)):
+				return "needs %d fuel" % fuel_cost(a.model_key, destination_of(a))
 	return ""
 
 

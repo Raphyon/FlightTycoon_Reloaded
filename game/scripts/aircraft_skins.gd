@@ -9,7 +9,7 @@ extends Node
 #
 # What it buys is a speed grade. A livery moves the aircraft one step up the
 # S-A-B-C-D-E ladder, which is worth 20-33% of its income wherever it starts,
-# because the grade is what sets flight time (Fleet.SPEED_FACTOR).
+# because the grade steps the leg time (Fleet.CLASS_STEP_MINUTES).
 #
 # S used to be the ceiling, which made a livery on an S-class model a repaint
 # with no effect - ten coins for nothing. The ladder now runs one step past it

@@ -114,8 +114,9 @@ func _refresh() -> void:
 	_action_button.disabled = false
 	# Fuel burn and payout are the aircraft's own now (see ShopCatalog stats),
 	# so both have to be read per aircraft rather than off a shared constant.
-	var fuel := Fleet.fuel_cost(a.model_key)
-	var payout := Fleet.payout_for(a.model_key, Maps.ROBOT_MAP)
+	var dest := Fleet.destination_of(a)
+	var fuel := Fleet.fuel_cost(a.model_key, dest)
+	var payout := Fleet.payout_for(a.model_key, dest)
 	match a.state:
 		FleetAircraft.State.PARKED:
 			# Out of range is a dead end, not a wait, so say so instead of

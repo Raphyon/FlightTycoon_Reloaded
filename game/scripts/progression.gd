@@ -19,7 +19,7 @@ var level: int = 1
 # is exactly the "you level up too fast" the playtest found: our low levels
 # were about right and everything above them was nearly free.
 #
-# Reward is calibrated to match: see Fleet.MONEY_PER_XP.
+# Reward is calibrated to match: see the per-aircraft "xp" in ShopCatalog.
 const XP_COEFFICIENT := 0.1
 const XP_EXPONENT := 4.2
 

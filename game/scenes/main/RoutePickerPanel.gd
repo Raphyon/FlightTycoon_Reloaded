@@ -176,8 +176,8 @@ func _aircraft_column(a: FleetAircraft) -> void:
 	var cells := [
 		[FORCE_ICON, Fleet.grade_for(a)],
 		[MONEY_ICON, str(Fleet.payout_for(a.model_key, dest))],
-		[FUEL_ICON, str(Fleet.fuel_cost(a.model_key))],
-		[XP_ICON, str(Fleet.xp_for_claim(a.model_key))],
+		[FUEL_ICON, str(Fleet.fuel_cost(a.model_key, dest))],
+		[XP_ICON, str(Fleet.xp_for_claim(a.model_key, dest))],
 	]
 	for i in cells.size():
 		var cx: float = COL_X[0] + (-0.055 if i % 2 == 0 else 0.055)
@@ -251,9 +251,9 @@ func _details_column(a: FleetAircraft) -> void:
 	var bonus := 1.0 + ApronSkins.bonus_percent_for(_apron_id) / 100.0
 	var rows := [
 		["Total Time", _time_text(secs)],
-		["Total fuel consumption", str(Fleet.fuel_cost(a.model_key))],
+		["Total fuel consumption", str(Fleet.fuel_cost(a.model_key, dest))],
 		["Total Revenue", str(roundi(Fleet.payout_for(a.model_key, dest) * bonus))],
-		["XP revenue", str(roundi(Fleet.xp_for_claim(a.model_key) * bonus))],
+		["XP revenue", str(roundi(Fleet.xp_for_claim(a.model_key, dest) * bonus))],
 	]
 	for i in rows.size():
 		var y := DETAIL_Y + i * DETAIL_STEP
@@ -270,11 +270,19 @@ func _details_column(a: FleetAircraft) -> void:
 	_action_button(a)
 
 
+# Reads up to days, not just minutes. A rating-5 aircraft is away for twelve
+# hours or more (Fleet.CLOUD_BASE_MINUTES), and "768 minutes" is not a thing
+# anyone wants to read off a card.
 func _time_text(secs: float) -> String:
 	if secs < 60.0:
 		return "%d seconds" % roundi(secs)
-	var m := secs / 60.0
-	return "1 minute" if absf(m - 1.0) < 0.01 else "%.0f minutes" % m
+	if secs < 3600.0:
+		var m := secs / 60.0
+		return "1 minute" if absf(m - 1.0) < 0.01 else "%.0f minutes" % m
+	if secs < 86400.0:
+		var h := secs / 3600.0
+		return "1 hour" if absf(h - 1.0) < 0.01 else "%.1f hours" % h
+	return "%.1f days" % (secs / 86400.0)
 
 
 # Set the route, or clear it. A pad that already has an aircraft offers the

@@ -371,13 +371,27 @@ func _catalog_icon(a: FleetAircraft) -> Texture2D:
 
 func _time_text(a: FleetAircraft) -> String:
 	if a.is_in_transit():
-		return "%ds" % ceili(a.flight_time_left)
+		return _countdown(a.flight_time_left)
 	if not _has_action(a):
 		return "-"
 	# An aircraft that can't move says why. "Ready" beside a button that
 	# refuses to do anything is worse than no label at all.
 	var why := Fleet.block_reason(a)
 	return why if why != "" else "Ready"
+
+
+# A row in a table, so this stays compact - "11h 42m", not "11.7 hours". Long
+# high-rating aircraft are away for hours (Fleet.CLOUD_BASE_MINUTES), and a bare
+# seconds count would have read "61200s".
+func _countdown(secs: float) -> String:
+	var t := int(ceilf(secs))
+	if t >= 86400:
+		return "%dd %02dh" % [t / 86400, (t % 86400) / 3600]
+	if t >= 3600:
+		return "%dh %02dm" % [t / 3600, (t % 3600) / 60]
+	if t >= 60:
+		return "%dm %02ds" % [t / 60, t % 60]
+	return "%ds" % t
 
 
 func _destination_text(a: FleetAircraft) -> String:
