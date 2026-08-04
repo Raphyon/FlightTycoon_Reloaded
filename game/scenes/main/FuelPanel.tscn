@@ -5,7 +5,10 @@
 [ext_resource type="Script" uid="uid://b1msfnj4ksemh" path="res://scenes/main/PriceGraph.gd" id="3"]
 [ext_resource type="PackedScene" path="res://scenes/main/FuelOption.tscn" id="4"]
 
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_bg"]
+
 [node name="FuelPanel" type="PanelContainer" unique_id=1749763009]
+theme_override_styles/panel = SubResource("StyleBoxEmpty_bg")
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0

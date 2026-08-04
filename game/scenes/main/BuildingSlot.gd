@@ -19,11 +19,18 @@ signal clicked(plot_id: int)
 # is a 1024 canvas that is mostly padding), so scaling up would just soften it.
 const CALLOUT_CONE := preload("res://assets/bubbles/cone_bubble@2x.png")
 const CALLOUT_CASH := preload("res://assets/bubbles/cash_bubble@2x.png")
-# How far above the ground point the callout floats on an empty site. Nothing
-# is drawn there, so it needs its own height rather than sitting on a sprite.
-const EMPTY_CALLOUT_LIFT := 70.0
-# Clickable radius of an empty site, which has no art to hit-test against.
-const EMPTY_RADIUS := 44.0
+# How far above the plot's ground point the callout floats - FIXED, and the
+# same whatever is standing there.
+#
+# It used to be derived from the building's own height, so the cone on an empty
+# site sat at 70 and a Grand Hotel's cash bubble at 242. The callout jumped up
+# the moment you built, and every plot's bubble sat somewhere different. A
+# bubble is a button; buttons do not move.
+#
+# Tall buildings therefore overlap it, which is what CALLOUT_Z_INDEX is for -
+# the callout draws over its own building rather than being swallowed by it.
+const CALLOUT_LIFT := 70.0
+const CALLOUT_Z_INDEX := 100
 
 var plot_id: int = -1
 
@@ -43,6 +50,10 @@ func setup(id: int, pos: Vector2) -> void:
 	add_child(_sprite)
 
 	_bubble = Sprite2D.new()
+	# Over its own building, and over the one behind it - y_sort on the parent
+	# would otherwise let a nearer building cover this one's callout.
+	_bubble.z_index = CALLOUT_Z_INDEX
+	_bubble.z_as_relative = false
 	add_child(_bubble)
 
 	_area = Area2D.new()
@@ -68,14 +79,10 @@ func refresh() -> void:
 		var path := BuildingLayout.texture_path(key)
 		_sprite.texture = load(path) if ResourceLoader.exists(path) else null
 
-	var lift := EMPTY_CALLOUT_LIFT
 	if _sprite.texture:
 		var w: float = _sprite.texture.get_width()
 		var h: float = _sprite.texture.get_height()
 		_sprite.offset = Vector2(-w * 0.5, -h)
-		# Float the callout just above the roof rather than at a fixed height,
-		# or the Eiffel Tower's would sit halfway down its legs.
-		lift = h + 18.0
 
 	# Cone on an empty site, cash on one with rent waiting, nothing while a
 	# building is still earning - the same three-state callout the aprons use.
@@ -84,27 +91,31 @@ func refresh() -> void:
 	_bubble.visible = show_callout
 	if show_callout:
 		_bubble.texture = CALLOUT_CONE if empty else CALLOUT_CASH
-		_bubble.position = Vector2(0, -lift - _bubble.texture.get_height() * 0.5)
+		_bubble.position = Vector2(0, -CALLOUT_LIFT - _bubble.texture.get_height() * 0.5)
 
-	_rebuild_hit_area(empty)
+	_rebuild_hit_area(show_callout)
 
 
-# An empty site is a plain circle at the ground point. A built one takes its
-# own footprint, so a tall building is clickable up its whole height rather
-# than only where it meets the ground.
-func _rebuild_hit_area(empty: bool) -> void:
-	if empty or _sprite.texture == null:
-		var c := CircleShape2D.new()
-		c.radius = EMPTY_RADIUS
-		_shape.shape = c
-		_shape.position = Vector2(0, -EMPTY_CALLOUT_LIFT * 0.5)
+# THE BUBBLE IS THE ONLY HIT AREA. Not the building.
+#
+# It used to be the whole sprite, which made a Grand Hotel a 200x224 button -
+# so brushing the roof of something you had already paid for collected its
+# rent, and there was no way to click a building without acting on it. The
+# aprons have always worked this way (ApronSlot._input tests the bubble rect
+# before firing, and a tap on the pad itself opens the apron menu instead), and
+# this now matches: the callout is the button, the building is scenery.
+#
+# With no callout up there is nothing to press, so the area goes away entirely
+# rather than sitting there silently swallowing clicks.
+func _rebuild_hit_area(has_callout: bool) -> void:
+	if not has_callout or _bubble.texture == null:
+		_shape.disabled = true
 		return
-	var w: float = _sprite.texture.get_width()
-	var h: float = _sprite.texture.get_height()
+	_shape.disabled = false
 	var r := RectangleShape2D.new()
-	r.size = Vector2(w, h)
+	r.size = Vector2(_bubble.texture.get_width(), _bubble.texture.get_height())
 	_shape.shape = r
-	_shape.position = Vector2(0, -h * 0.5)
+	_shape.position = _bubble.position
 
 
 func set_pickable(on: bool) -> void:

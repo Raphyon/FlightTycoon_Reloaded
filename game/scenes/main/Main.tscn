@@ -140,6 +140,8 @@ script = ExtResource("5")
 [node name="UI" type="CanvasLayer" parent="." unique_id=872881012]
 
 [node name="TopBarRight" type="TextureRect" parent="UI"]
+z_index = 100
+mouse_filter = 2
 anchor_right = 1.0
 offset_left = 220.0
 offset_top = 0.0
@@ -151,6 +153,8 @@ expand_mode = 1
 stretch_mode = 0
 
 [node name="TopBarLeft" type="TextureRect" parent="UI"]
+z_index = 100
+mouse_filter = 2
 offset_left = 0.0
 offset_top = 0.0
 offset_right = 220.0
@@ -225,6 +229,8 @@ horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="TopBar" type="HBoxContainer" parent="UI" unique_id=1347047334]
+z_index = 100
+mouse_filter = 2
 offset_left = 240.0
 offset_top = 0.0
 offset_right = 1140.0
@@ -547,6 +553,7 @@ ignore_texture_size = true
 stretch_mode = 5
 
 [node name="ShopHubPanel" type="PanelContainer" parent="UI" unique_id=352734037]
+theme_override_styles/panel = SubResource("StyleBoxEmpty_bg")
 visible = false
 anchors_preset = 15
 anchor_right = 1.0
@@ -610,6 +617,7 @@ text = "Close"
 visible = false
 
 [node name="ShopPanel" type="PanelContainer" parent="UI" unique_id=813678258]
+theme_override_styles/panel = SubResource("StyleBoxEmpty_bg")
 visible = false
 anchors_preset = 15
 anchor_right = 1.0
@@ -1031,6 +1039,7 @@ grow_vertical = 2
 script = ExtResource("60")
 
 [node name="LiveryPickerPanel" type="PanelContainer" parent="UI"]
+theme_override_styles/panel = SubResource("StyleBoxEmpty_bg")
 anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
@@ -1054,173 +1063,22 @@ offset_right = 429.5
 offset_bottom = 215.0
 script = ExtResource("64")
 
-[node name="ApronInfoPanel" type="PanelContainer" parent="UI" unique_id=521176117]
-theme_override_styles/panel = SubResource("StyleBoxEmpty_bg")
+[node name="ApronInfoPanel" type="Control" parent="UI" unique_id=521176117]
 visible = false
 anchor_left = 0.5
 anchor_right = 0.5
 anchor_top = 1.0
 anchor_bottom = 1.0
-offset_left = -310.0
-offset_top = -210.0
-offset_right = 310.0
-offset_bottom = 0.0
+offset_left = -300.0
+offset_top = -160.0
+offset_right = 299.0
+offset_bottom = -15.0
 grow_horizontal = 2
 grow_vertical = 0
 script = ExtResource("8")
 
-[node name="Background" type="TextureRect" parent="UI/ApronInfoPanel"]
-show_behind_parent = true
-layout_mode = 2
-mouse_filter = 2
-texture = ExtResource("26")
-expand_mode = 1
-stretch_mode = 0
-
-[node name="Margin" type="MarginContainer" parent="UI/ApronInfoPanel" unique_id=1729622351]
-layout_mode = 2
-theme_override_constants/margin_left = 20
-theme_override_constants/margin_top = 16
-theme_override_constants/margin_right = 20
-theme_override_constants/margin_bottom = 16
-
-[node name="VBox" type="VBoxContainer" parent="UI/ApronInfoPanel/Margin" unique_id=1090286239]
-layout_mode = 2
-theme_override_constants/separation = 8
-
-[node name="TitleLabel" type="Label" parent="UI/ApronInfoPanel/Margin/VBox" unique_id=935475672]
-layout_mode = 2
-theme_override_font_sizes/font_size = 20
-text = "Apron"
-
-[node name="SlotsRow" type="HBoxContainer" parent="UI/ApronInfoPanel/Margin/VBox"]
-layout_mode = 2
-size_flags_vertical = 3
-theme_override_constants/separation = 24
-
-[node name="SkinColumn" type="VBoxContainer" parent="UI/ApronInfoPanel/Margin/VBox/SlotsRow"]
-layout_mode = 2
-alignment = 1
-theme_override_constants/separation = 6
-
-[node name="SkinSlot" type="Control" parent="UI/ApronInfoPanel/Margin/VBox/SlotsRow/SkinColumn"]
-custom_minimum_size = Vector2(110, 65)
-layout_mode = 2
-
-[node name="SkinFrame" type="TextureRect" parent="UI/ApronInfoPanel/Margin/VBox/SlotsRow/SkinColumn/SkinSlot"]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-mouse_filter = 2
-texture = ExtResource("27")
-expand_mode = 1
-stretch_mode = 0
-
-[node name="SkinPreview" type="TextureRect" parent="UI/ApronInfoPanel/Margin/VBox/SlotsRow/SkinColumn/SkinSlot"]
-visible = false
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = 14.0
-offset_top = 8.0
-offset_right = -14.0
-offset_bottom = -8.0
-mouse_filter = 2
-expand_mode = 1
-stretch_mode = 5
-
-[node name="SkinEmptyLabel" type="Label" parent="UI/ApronInfoPanel/Margin/VBox/SlotsRow/SkinColumn/SkinSlot"]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-mouse_filter = 2
-text = "None"
-horizontal_alignment = 1
-vertical_alignment = 1
-
-[node name="SkinBonusLabel" type="Label" parent="UI/ApronInfoPanel/Margin/VBox/SlotsRow/SkinColumn"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 12
-text = "No bonus"
-horizontal_alignment = 1
-
-[node name="SkinButton" type="Button" parent="UI/ApronInfoPanel/Margin/VBox/SlotsRow/SkinColumn"]
-layout_mode = 2
-text = "Choose Skin"
-
-[node name="PlaneColumn" type="VBoxContainer" parent="UI/ApronInfoPanel/Margin/VBox/SlotsRow"]
-layout_mode = 2
-alignment = 1
-theme_override_constants/separation = 6
-
-[node name="PlaneSlot" type="Control" parent="UI/ApronInfoPanel/Margin/VBox/SlotsRow/PlaneColumn"]
-custom_minimum_size = Vector2(110, 65)
-layout_mode = 2
-
-[node name="PlaneFrame" type="TextureRect" parent="UI/ApronInfoPanel/Margin/VBox/SlotsRow/PlaneColumn/PlaneSlot"]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-mouse_filter = 2
-texture = ExtResource("28")
-expand_mode = 1
-stretch_mode = 0
-
-[node name="PlaneIcon" type="TextureRect" parent="UI/ApronInfoPanel/Margin/VBox/SlotsRow/PlaneColumn/PlaneSlot"]
-visible = false
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = 22.0
-offset_top = 8.0
-offset_right = -22.0
-offset_bottom = -8.0
-mouse_filter = 2
-expand_mode = 1
-stretch_mode = 5
-
-[node name="PlaneEmptyLabel" type="Label" parent="UI/ApronInfoPanel/Margin/VBox/SlotsRow/PlaneColumn/PlaneSlot"]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-mouse_filter = 2
-theme_override_font_sizes/font_size = 24
-text = "?"
-horizontal_alignment = 1
-vertical_alignment = 1
-
-[node name="PlaneButton" type="Button" parent="UI/ApronInfoPanel/Margin/VBox/SlotsRow/PlaneColumn"]
-layout_mode = 2
-text = "Assign"
-
-[node name="StatusColumn" type="VBoxContainer" parent="UI/ApronInfoPanel/Margin/VBox/SlotsRow"]
-layout_mode = 2
-size_flags_horizontal = 3
-alignment = 1
-theme_override_constants/separation = 6
-
-[node name="StatusLabel" type="Label" parent="UI/ApronInfoPanel/Margin/VBox/SlotsRow/StatusColumn"]
-layout_mode = 2
-horizontal_alignment = 1
-autowrap_mode = 2
-text = "Status"
-
-[node name="ActionButton" type="Button" parent="UI/ApronInfoPanel/Margin/VBox/SlotsRow/StatusColumn"]
-visible = false
-layout_mode = 2
-text = "Action"
-
-[node name="CloseButton" type="Button" parent="UI/ApronInfoPanel/Margin/VBox" unique_id=1944186977]
-layout_mode = 2
-text = "Close"
-
 [node name="SkinPickerPanel" type="PanelContainer" parent="UI"]
+theme_override_styles/panel = SubResource("StyleBoxEmpty_bg")
 visible = false
 anchor_left = 0.5
 anchor_top = 0.5
@@ -1262,6 +1120,7 @@ layout_mode = 2
 text = "Close"
 
 [node name="AssignPickerPanel" type="PanelContainer" parent="UI"]
+theme_override_styles/panel = SubResource("StyleBoxEmpty_bg")
 visible = false
 anchor_left = 0.5
 anchor_top = 0.5
@@ -1308,6 +1167,7 @@ layout_mode = 2
 text = "Close"
 
 [node name="ZoneUnlockPanel" type="PanelContainer" parent="UI" unique_id=785618106]
+theme_override_styles/panel = SubResource("StyleBoxEmpty_bg")
 visible = false
 anchors_preset = 8
 anchor_left = 0.5
