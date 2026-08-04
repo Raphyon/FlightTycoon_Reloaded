@@ -49,6 +49,10 @@ const LIVERIES := {
 		{"key": "dollar", "name": "Dollar",
 			"body": "res://assets/aircraft/paperplane/body_dollar_2x.png"},
 	],
+	"crj700": [
+		{"key": "sas", "name": "SAS",
+			"body": "res://assets/aircraft/crj700/body_sas_2x.png"},
+	],
 	"dc3": [
 		{"key": "duggy", "name": "Duggy",
 			"body": "res://assets/aircraft/dc3/body_duggy_2x.png"},

@@ -271,6 +271,11 @@ const WORLD_SPRITES := {
 		"rotor_offsets": [Vector2(-32, 6), Vector2(-4, 22)],
 		"rotor_scale": 0.71,
 	},
+	# A regional JET, so no props - it just queues for the runway.
+	"crj700": {
+		"body": "res://assets/aircraft/crj700/body_2x.png",
+		"shadow": "res://assets/aircraft/crj700/shadow_2x.png",
+	},
 	"dhc8": {
 		"body": "res://assets/aircraft/dhc8/body_2x.png",
 		"shadow": "res://assets/aircraft/dhc8/shadow_2x.png",
@@ -732,13 +737,23 @@ func claim_home_reward(aircraft_id: int) -> void:
 
 # Apron skins (see ApronSkins) give a flat bonus to both the cash and XP
 # reward for whichever apron the aircraft is parked at.
+#
+# The city's popularity is a SECOND multiplier, and a cash-only one: every 250
+# inhabitants your buildings house adds 1% to what a flight pays (see
+# BuildingProgress.PEOPLE_PER_PERCENT). That is what ties the two economies
+# together - the buildings are not a side pot, they make the fleet worth more.
+#
+# It deliberately does NOT touch XP. The level curve is calibrated against
+# flights on their own, and letting the city speed it up would pull every
+# aircraft and zone unlock forward as a side effect of decorating.
 # Takes the aircraft rather than a bare amount so cash and XP are both read
 # off the SAME route - paying for a 5-cloud leg while granting a 1-cloud leg's
 # XP is exactly the kind of drift two separate lookups invite.
 func _grant_reward(a: FleetAircraft, apron_id: int) -> void:
 	var dest := destination_of(a)
 	var bonus := 1.0 + ApronSkins.bonus_percent_for(apron_id) / 100.0
-	Economy.add_money(roundi(payout_for(a.model_key, dest) * bonus))
+	Economy.add_money(roundi(payout_for(a.model_key, dest) * bonus
+		* BuildingProgress.popularity_multiplier()))
 	Progression.add_xp(roundi(xp_for_claim(a.model_key, dest) * bonus))
 
 

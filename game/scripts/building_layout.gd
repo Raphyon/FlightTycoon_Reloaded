@@ -20,20 +20,80 @@ extends RefCounted
 # deleting a plot cannot silently move somebody's building to another site.
 const SAVE_PATH := "res://data/building_layout.json"
 
-# Everything tools/buildings_derive.py produces - what the shop will offer for
-# a plot, and what the editor cycles as a PREVIEW so you can check the biggest
-# one still fits where you put the site. Smallest first.
+# Everything tools/buildings_derive.py produces - what the shop offers for a
+# plot, and what the editor cycles as a PREVIEW so you can check the biggest one
+# still fits where you put the site.
+#
+# PRICE, RENT and PEOPLE are the LIVE game's, read off its own shop cards. Our
+# names differ from its: its Coffee House is our roadside hotel and its Bar is
+# our residential building.
+#
+#   price    cash, or coins where "coins" is set
+#   rent     what one completed cycle pays
+#   people   INHABITANTS the building adds - the second stat on every card, and
+#            the brown counter in its HUD. Cumulative and permanent; unlike rent
+#            it is not collected, you just have it once the building is up.
+#   minutes  how long a cycle takes. THE ONE FIGURE THAT IS OURS - it is not
+#            printed on the card, and nothing we have records it.
+#   level    pilot level to unlock. Only the TV Tower (15) and the locked
+#            "Level 16" card are confirmed; the rest are inferred from which
+#            were already purchasable on a level-15 account.
+#
+# PAYBACK IS A CONSTANT in the original: every building costs almost exactly 15
+# cycles of its own rent - 3000/200, 4000/260, 25000/1600, 32000/2100,
+# 35000/2400 all land between 14.6 and 15.6. So price and rent are one decision
+# there, not two, and the cycle length is what actually separates a cafe from a
+# hotel. Ours rise gently with price so a bigger building still earns more per
+# hour while asking you to come back less often.
 const BUILDINGS := [
-	{"key": "cafe", "name": "Cafe"},
-	{"key": "roadside_hotel", "name": "Roadside Hotel"},
-	{"key": "residential_building", "name": "Residential"},
-	{"key": "tv_tower", "name": "TV Tower"},
-	{"key": "office_building", "name": "Office"},
-	{"key": "business_center", "name": "Business Center"},
-	{"key": "garden_hotel", "name": "Garden Hotel"},
-	{"key": "grand_hotel", "name": "Grand Hotel"},
-	{"key": "eifel_tower", "name": "Eiffel Tower"},
+	{"key": "roadside_hotel", "name": "Coffee House", "price": 3000, "level": 1,
+		"rent": 200, "people": 200, "minutes": 5},
+	{"key": "cafe", "name": "Cafe", "price": 4000, "level": 1,
+		"rent": 260, "people": 260, "minutes": 6},
+	{"key": "residential_building", "name": "Bar", "price": 5000, "level": 2,
+		"rent": 320, "people": 320, "minutes": 7},
+	{"key": "business_center", "name": "Business Center", "price": 25000, "level": 10,
+		"rent": 1600, "people": 2000, "minutes": 12},
+	{"key": "grand_hotel", "name": "Grand Hotel", "price": 32000, "level": 12,
+		"rent": 2100, "people": 3000, "minutes": 14},
+	{"key": "garden_hotel", "name": "Garden Hotel", "price": 35000, "level": 13,
+		"rent": 2400, "people": 3500, "minutes": 15},
+	{"key": "tv_tower", "name": "TV Tower", "price": 28000, "level": 15,
+		"rent": 1900, "people": 2500, "minutes": 13},
+	# The locked card on the level-15 page: 40,000 at level 16. Which building
+	# it is wasn't legible, so the Office takes the slot - it is the one model
+	# we have with no live figures of its own.
+	{"key": "office_building", "name": "Office", "price": 40000, "level": 16,
+		"rent": 2700, "people": 4000, "minutes": 16},
+	# The one coin building, and the only one whose people figure outruns its
+	# rent by that much - a landmark rather than a business.
+	{"key": "eifel_tower", "name": "Eiffel Tower", "price": 30, "currency": "coins", "level": 1,
+		"rent": 5000, "people": 8000, "minutes": 20},
 ]
+
+
+static func price_of(key: String) -> int:
+	return int(entry(key).get("price", 0))
+
+
+static func currency_of(key: String) -> String:
+	return str(entry(key).get("currency", "cash"))
+
+
+static func level_of(key: String) -> int:
+	return int(entry(key).get("level", 1))
+
+
+static func people_of(key: String) -> int:
+	return int(entry(key).get("people", 0))
+
+
+static func rent_of(key: String) -> int:
+	return int(entry(key).get("rent", 0))
+
+
+static func cycle_seconds(key: String) -> float:
+	return float(entry(key).get("minutes", 0)) * 60.0
 
 
 static func texture_path(key: String) -> String:

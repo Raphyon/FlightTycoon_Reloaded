@@ -10,10 +10,15 @@ extends Node2D
 
 signal clicked(plot_id: int)
 
-const CALLOUT_BUBBLE := preload("res://assets/bubbles/callout_bubble@2x.png")
-const CALLOUT_CONE := preload("res://assets/bubbles/cone_icon@2x.png")
-const CONE_SIZE := Vector2(30, 30)
-const BUBBLE_SIZE := Vector2(58, 62)
+# One-piece callouts. These used to be a bubble sprite with an icon sprite
+# positioned on top, which never sat quite centred - two independently placed
+# things that only LOOK like one. The art now includes the icon, so there is
+# nothing to align.
+#
+# Drawn at their native 42x49: that is the real extent of the art (the source
+# is a 1024 canvas that is mostly padding), so scaling up would just soften it.
+const CALLOUT_CONE := preload("res://assets/bubbles/cone_bubble@2x.png")
+const CALLOUT_CASH := preload("res://assets/bubbles/cash_bubble@2x.png")
 # How far above the ground point the callout floats on an empty site. Nothing
 # is drawn there, so it needs its own height rather than sitting on a sprite.
 const EMPTY_CALLOUT_LIFT := 70.0
@@ -24,7 +29,6 @@ var plot_id: int = -1
 
 var _sprite: Sprite2D
 var _bubble: Sprite2D
-var _icon: Sprite2D
 var _area: Area2D
 var _shape: CollisionShape2D
 
@@ -39,14 +43,7 @@ func setup(id: int, pos: Vector2) -> void:
 	add_child(_sprite)
 
 	_bubble = Sprite2D.new()
-	_bubble.texture = CALLOUT_BUBBLE
-	_bubble.scale = BUBBLE_SIZE / Vector2(CALLOUT_BUBBLE.get_width(), CALLOUT_BUBBLE.get_height())
 	add_child(_bubble)
-
-	_icon = Sprite2D.new()
-	_icon.texture = CALLOUT_CONE
-	_icon.scale = CONE_SIZE / Vector2(CALLOUT_CONE.get_width(), CALLOUT_CONE.get_height())
-	add_child(_icon)
 
 	_area = Area2D.new()
 	_area.input_pickable = true
@@ -58,8 +55,9 @@ func setup(id: int, pos: Vector2) -> void:
 	refresh()
 
 
-# Re-reads what's built here. Called on setup and whenever BuildingProgress
-# changes, so buying redraws this slot without rebuilding every other one.
+# Re-reads what's built here and whether its rent is up. Called on setup, when
+# BuildingProgress changes, and on the slow tick that watches timers - so this
+# has to stay cheap.
 func refresh() -> void:
 	var key := BuildingProgress.building_at(plot_id)
 	var empty := key == ""
@@ -70,18 +68,23 @@ func refresh() -> void:
 		var path := BuildingLayout.texture_path(key)
 		_sprite.texture = load(path) if ResourceLoader.exists(path) else null
 
+	var lift := EMPTY_CALLOUT_LIFT
 	if _sprite.texture:
 		var w: float = _sprite.texture.get_width()
 		var h: float = _sprite.texture.get_height()
 		_sprite.offset = Vector2(-w * 0.5, -h)
+		# Float the callout just above the roof rather than at a fixed height,
+		# or the Eiffel Tower's would sit halfway down its legs.
+		lift = h + 18.0
 
-	# The callout marks an empty site; a built one has nothing to say yet (rent
-	# collection will go here once buildings actually earn).
-	_bubble.visible = empty
-	_icon.visible = empty
-	if empty:
-		_bubble.position = Vector2(0, -EMPTY_CALLOUT_LIFT)
-		_icon.position = _bubble.position + Vector2(0, -2)
+	# Cone on an empty site, cash on one with rent waiting, nothing while a
+	# building is still earning - the same three-state callout the aprons use.
+	var ready := not empty and BuildingProgress.is_rent_ready(plot_id)
+	var show_callout := empty or ready
+	_bubble.visible = show_callout
+	if show_callout:
+		_bubble.texture = CALLOUT_CONE if empty else CALLOUT_CASH
+		_bubble.position = Vector2(0, -lift - _bubble.texture.get_height() * 0.5)
 
 	_rebuild_hit_area(empty)
 

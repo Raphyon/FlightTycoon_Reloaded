@@ -116,7 +116,10 @@ func _refresh() -> void:
 	# so both have to be read per aircraft rather than off a shared constant.
 	var dest := Fleet.destination_of(a)
 	var fuel := Fleet.fuel_cost(a.model_key, dest)
-	var payout := Fleet.payout_for(a.model_key, dest)
+	# With the city's popularity bonus, so this reads what actually lands in
+	# your balance - see Fleet._grant_reward.
+	var payout := roundi(Fleet.payout_for(a.model_key, dest)
+		* BuildingProgress.popularity_multiplier())
 	match a.state:
 		FleetAircraft.State.PARKED:
 			# Out of range is a dead end, not a wait, so say so instead of

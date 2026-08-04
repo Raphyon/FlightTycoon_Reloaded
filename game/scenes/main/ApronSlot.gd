@@ -8,21 +8,21 @@ const COLOR_OCCUPIED := Color(0.9, 0.5, 0.2, 0.35)
 const COLOR_HOVER := Color(1, 1, 1, 0.4)
 const COLOR_LOCKED_FALLBACK := Color(0.4, 0.4, 0.4, 0.35)
 const UNDER_CONSTRUCTION_TEXTURE := preload("res://assets/aprons/apron9@2x.png")
-const CALLOUT_BUBBLE_TEXTURE := preload("res://assets/bubbles/callout_bubble@2x.png")
-const CALLOUT_CONE_TEXTURE := preload("res://assets/bubbles/cone_icon@2x.png")
-const CALLOUT_PLANE_TEXTURE := preload("res://assets/bubbles/black_plane_icon@2x.png")
-const CALLOUT_DOLLAR_TEXTURE := preload("res://assets/bubbles/dollar_icon@2x.png")
-const CALLOUT_DRUM_TEXTURE := preload("res://assets/bubbles/drum_icon@2x.png")
+# One-piece callouts: the icon is part of the art, so there is nothing to
+# centre. These were a shared bubble with an icon laid on top, positioned by
+# "(bubble width - icon width) * 0.5 - 3.0, 6.0" - a fudge per axis that never
+# quite landed, and looked it.
+const CALLOUT_CONE_TEXTURE := preload("res://assets/bubbles/cone_bubble@2x.png")
+const CALLOUT_PLANE_TEXTURE := preload("res://assets/bubbles/aircraft_bubble@2x.png")
+const CALLOUT_DOLLAR_TEXTURE := preload("res://assets/bubbles/cash_bubble@2x.png")
+const CALLOUT_DRUM_TEXTURE := preload("res://assets/bubbles/fuel_bubble@2x.png")
 # A whole composed bubble rather than an icon in the round one - the word, the
 # bar and the plane are all baked in (tools/arrived_label.py). Shown on a home
 # apron whose aircraft is waiting at the robot airport; clicking it travels
 # there.
 const CALLOUT_ARRIVED_TEXTURE := preload("res://assets/bubbles/arrived_bubble@2x.png")
-const CALLOUT_BUBBLE_SIZE := Vector2(42, 50)
-const CALLOUT_CONE_SIZE := Vector2(25, 24)
-const CALLOUT_PLANE_SIZE := Vector2(29, 24)
-const CALLOUT_DOLLAR_SIZE := Vector2(22, 27)
-const CALLOUT_DRUM_SIZE := Vector2(20, 27)
+# Native art size - drawn 1:1, so it stays crisp.
+const CALLOUT_BUBBLE_SIZE := Vector2(42, 49)
 const CALLOUT_ARRIVED_SIZE := Vector2(109, 58)
 # Where the arrived bubble's tail sits horizontally. Not half its width: the
 # plane icon overhangs the bubble's left edge, so the tail is off-centre at
@@ -119,7 +119,7 @@ func _ready() -> void:
 	add_child(_callout)
 
 	_callout_bubble = TextureRect.new()
-	_callout_bubble.texture = CALLOUT_BUBBLE_TEXTURE
+	_callout_bubble.texture = CALLOUT_CONE_TEXTURE
 	_callout_bubble.size = CALLOUT_BUBBLE_SIZE
 	_callout_bubble.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	_callout_bubble.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
@@ -132,18 +132,15 @@ func _ready() -> void:
 	_callout_icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_callout.add_child(_callout_icon)
 
-	_set_callout_icon(CALLOUT_CONE_TEXTURE, CALLOUT_CONE_SIZE)
+	_set_callout_icon(CALLOUT_CONE_TEXTURE)
 
 
-func _set_callout_icon(texture: Texture2D, size: Vector2, action: Callable = Callable()) -> void:
-	_callout_bubble.texture = CALLOUT_BUBBLE_TEXTURE
+func _set_callout_icon(texture: Texture2D, action: Callable = Callable()) -> void:
+	_callout_bubble.texture = texture
 	_callout_bubble.size = CALLOUT_BUBBLE_SIZE
 	_callout.size = CALLOUT_BUBBLE_SIZE
 	_callout.position = Vector2(-CALLOUT_BUBBLE_SIZE.x * 0.5, CALLOUT_TAIL_Y - CALLOUT_BUBBLE_SIZE.y)
-	_callout_icon.visible = true
-	_callout_icon.texture = texture
-	_callout_icon.size = size
-	_callout_icon.position = Vector2((CALLOUT_BUBBLE_SIZE.x - size.x) * 0.5 - 3.0, 6.0)
+	_callout_icon.visible = false
 	_pending_action = action
 
 
@@ -194,7 +191,7 @@ func _draw() -> void:
 			if not on_paved_zone:
 				draw_colored_polygon(_diamond_points(), COLOR_LOCKED_FALLBACK)
 			return
-		_set_callout_icon(CALLOUT_CONE_TEXTURE, CALLOUT_CONE_SIZE)
+		_set_callout_icon(CALLOUT_CONE_TEXTURE)
 		_callout.visible = true
 		if not on_paved_zone:
 			draw_colored_polygon(_diamond_points(), COLOR_LOCKED_FALLBACK)
@@ -219,9 +216,9 @@ func _draw() -> void:
 	var visitor := Fleet.get_aircraft_at_robot_apron(apron.id)
 	if visitor:
 		if visitor.state == FleetAircraft.State.AWAITING_DEST_CLAIM:
-			_set_callout_icon(CALLOUT_DOLLAR_TEXTURE, CALLOUT_DOLLAR_SIZE, Fleet.claim_destination_reward.bind(visitor.id))
+			_set_callout_icon(CALLOUT_DOLLAR_TEXTURE, Fleet.claim_destination_reward.bind(visitor.id))
 		else:
-			_set_callout_icon(CALLOUT_DRUM_TEXTURE, CALLOUT_DRUM_SIZE, Fleet.refuel_at_destination.bind(visitor.id))
+			_set_callout_icon(CALLOUT_DRUM_TEXTURE, Fleet.refuel_at_destination.bind(visitor.id))
 		_callout.visible = true
 	elif not apron.occupied:
 		# The free-pad plane bubble means "assign one here", which you can't do
@@ -230,14 +227,14 @@ func _draw() -> void:
 		if Maps.current == Maps.ROBOT_MAP:
 			_callout.visible = false
 		else:
-			_set_callout_icon(CALLOUT_PLANE_TEXTURE, CALLOUT_PLANE_SIZE)
+			_set_callout_icon(CALLOUT_PLANE_TEXTURE)
 			_callout.visible = true
 	else:
 		var a := Fleet.get_aircraft_at_apron(apron.id)
 		var state: int = a.state if a else -1
 		match state:
 			FleetAircraft.State.PARKED:
-				_set_callout_icon(CALLOUT_DRUM_TEXTURE, CALLOUT_DRUM_SIZE, Fleet.fuel_and_depart.bind(a.id))
+				_set_callout_icon(CALLOUT_DRUM_TEXTURE, Fleet.fuel_and_depart.bind(a.id))
 				_callout.visible = true
 			FleetAircraft.State.AWAITING_DEST_CLAIM, FleetAircraft.State.AWAITING_DEST_REFUEL:
 				# The aircraft isn't here - it's sitting at the robot airport.
@@ -246,10 +243,10 @@ func _draw() -> void:
 				_set_callout_arrived(Maps.travel_to.bind(Maps.ROBOT_MAP))
 				_callout.visible = true
 			FleetAircraft.State.AWAITING_HOME_CLAIM:
-				_set_callout_icon(CALLOUT_DOLLAR_TEXTURE, CALLOUT_DOLLAR_SIZE, Fleet.claim_home_reward.bind(a.id))
+				_set_callout_icon(CALLOUT_DOLLAR_TEXTURE, Fleet.claim_home_reward.bind(a.id))
 				_callout.visible = true
 			FleetAircraft.State.AWAITING_HOME_REFUEL:
-				_set_callout_icon(CALLOUT_DRUM_TEXTURE, CALLOUT_DRUM_SIZE, Fleet.refuel_at_home.bind(a.id))
+				_set_callout_icon(CALLOUT_DRUM_TEXTURE, Fleet.refuel_at_home.bind(a.id))
 				_callout.visible = true
 			_:
 				# In the air - nothing to click at either airport.

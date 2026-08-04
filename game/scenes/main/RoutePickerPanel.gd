@@ -249,10 +249,14 @@ func _details_column(a: FleetAircraft) -> void:
 	# part of the deal, and the reference shows the total with it applied (a
 	# 200-a-leg aircraft on a skinned pad reads 230).
 	var bonus := 1.0 + ApronSkins.bonus_percent_for(_apron_id) / 100.0
+	# The city's cut too, or this panel would quietly understate every flight -
+	# the two multipliers are applied together in Fleet._grant_reward, so they
+	# have to be shown together here. Cash only: XP is not multiplied.
+	var city := BuildingProgress.popularity_multiplier()
 	var rows := [
 		["Total Time", _time_text(secs)],
 		["Total fuel consumption", str(Fleet.fuel_cost(a.model_key, dest))],
-		["Total Revenue", str(roundi(Fleet.payout_for(a.model_key, dest) * bonus))],
+		["Total Revenue", str(roundi(Fleet.payout_for(a.model_key, dest) * bonus * city))],
 		["XP revenue", str(roundi(Fleet.xp_for_claim(a.model_key, dest) * bonus))],
 	]
 	for i in rows.size():

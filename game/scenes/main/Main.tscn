@@ -37,6 +37,7 @@
 [ext_resource type="Script" path="res://scenes/main/XpBar.gd" id="39"]
 [ext_resource type="Texture2D" path="res://assets/hud/xp_fill.png" id="40"]
 [ext_resource type="Texture2D" path="res://assets/hud/icon_medium_oil@2x.png" id="41"]
+[ext_resource type="Texture2D" path="res://assets/hud/icon_medium_people@2x.png" id="69"]
 [ext_resource type="Texture2D" path="res://assets/hud/toolbar@2x.png" id="42"]
 [ext_resource type="Script" path="res://scenes/main/Toolbar.gd" id="43"]
 [ext_resource type="Script" path="res://scenes/main/WorldMapPanel.gd" id="44"]
@@ -265,6 +266,19 @@ expand_mode = 1
 stretch_mode = 5
 
 [node name="FuelLabel" type="Label" parent="UI/TopBar" unique_id=2013012711]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "0"
+vertical_alignment = 1
+
+[node name="PeopleIcon" type="TextureRect" parent="UI/TopBar"]
+custom_minimum_size = Vector2(44, 31)
+layout_mode = 2
+texture = ExtResource("69")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="PeopleLabel" type="Label" parent="UI/TopBar"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 20
 text = "0"
@@ -771,9 +785,9 @@ layout_mode = 2
 
 [node name="SafeArea" type="Control" parent="UI/PropShopPanel/Frame"]
 anchors_preset = 0
-anchor_top = 0.2
+anchor_top = 0.24
 anchor_right = 1.0
-anchor_bottom = 0.78
+anchor_bottom = 0.72
 offset_left = 40.0
 offset_right = -40.0
 grow_horizontal = 2
@@ -796,14 +810,30 @@ theme_override_constants/separation = 12
 layout_mode = 2
 theme_override_font_sizes/font_size = 24
 text = "Prop Shop"
-horizontal_alignment = 1
 
-[node name="Grid" type="GridContainer" parent="UI/PropShopPanel/Frame/SafeArea/Margin/VBox"]
+[node name="CardRow" type="HBoxContainer" parent="UI/PropShopPanel/Frame/SafeArea/Margin/VBox"]
+custom_minimum_size = Vector2(0, 232)
 layout_mode = 2
-size_flags_horizontal = 4
-columns = 5
-theme_override_constants/h_separation = 10
-theme_override_constants/v_separation = 10
+size_flags_vertical = 3
+theme_override_constants/separation = 12
+alignment = 1
+
+[node name="PageControls" type="HBoxContainer" parent="UI/PropShopPanel/Frame/SafeArea/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 16
+alignment = 1
+
+[node name="PrevButton" type="Button" parent="UI/PropShopPanel/Frame/SafeArea/Margin/VBox/PageControls"]
+layout_mode = 2
+text = "<"
+
+[node name="Dots" type="HBoxContainer" parent="UI/PropShopPanel/Frame/SafeArea/Margin/VBox/PageControls"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="NextButton" type="Button" parent="UI/PropShopPanel/Frame/SafeArea/Margin/VBox/PageControls"]
+layout_mode = 2
+text = ">"
 
 [node name="CloseButton" type="Button" parent="UI/PropShopPanel/Frame/SafeArea/Margin/VBox"]
 layout_mode = 2

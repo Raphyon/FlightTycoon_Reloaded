@@ -101,6 +101,11 @@ const ENTRIES := [
 	# ---- 4-10 . feeder and regional -----------------------------------
 	{"key": "dhc8", "name": "Dash 8", "icon": "dhc8_default.png", "price": 12000, "level": 4,
 		"force": "A", "seats": 120, "fuel": 8, "xp": 93, "range": 2, "has_world_sprite": true},
+	# Sits between the Dash 8 and the 328 Jet: a bigger cabin than the turboprop
+	# without the jet's third cloud, so it is a capacity step rather than a
+	# reach one.
+	{"key": "crj700", "name": "CRJ-700", "icon": "crj700_default.png", "price": 18000, "level": 5,
+		"force": "A", "seats": 140, "fuel": 9, "xp": 100, "range": 2, "has_world_sprite": true},
 	# First rating-3 airframe, which is worth more than its cabin: 3x on
 	# every leg.
 	{"key": "328jet", "name": "328 Jet", "icon": "328jet_blue.png", "price": 25000, "level": 6,

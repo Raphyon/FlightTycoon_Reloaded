@@ -1,7 +1,16 @@
 {
 	"homeland": {
-		"1": "cafe",
-		"2": "roadside_hotel",
-		"3": "cafe"
+		"1": {
+			"key": "cafe",
+			"since": 1785873973.69406
+		},
+		"2": {
+			"key": "roadside_hotel",
+			"since": 1785873974.24424
+		},
+		"3": {
+			"key": "cafe",
+			"since": 1785873973.04448
+		}
 	}
 }

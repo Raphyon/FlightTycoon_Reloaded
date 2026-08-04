@@ -57,6 +57,7 @@ MODELS = {
     "dc3":        (78, {"body": "dc3_default.png", "body_duggy": "dc3_duggy.png"}),
     "emb120":     (84, {"body": "emb_120_default.png"}),
     "dhc8":       (88, {"body": "dhc8_qantas.png"}),
+    "crj700":     (86, {"body": "crj_700_default.png", "body_sas": "crj_700_sas.png"}),
     "ncc1701":    (88, {"body": "ncc_1701_default.png"}),
     "concorde":   (88, {"body": "concorde_zebra.png",
                         "body_firebird": "concorde_firebird.png"}),
