@@ -40,9 +40,16 @@ const DETAIL_STEP := 0.078
 # Buttons sit lower and the type above them sits higher - the two were both at
 # 0.72 and the column read as one crowded block. See _clear_button for where
 # the destructive one went.
-const ACTION_Y := 0.795
-const CLEAR_X := 0.115
-const CLEAR_Y := 0.845
+const ACTION_Y := 0.70
+# Delete sits BELOW the action row and smaller, under the aircraft column. It
+# was at the bottom-left corner at full size, where it overlapped "Change
+# aircraft" by 120px and, being added later, swallowed its clicks - and both
+# reason labels were positioned off the bottom of the 430px board entirely.
+const CLEAR_X := 0.162
+const CLEAR_Y := 0.86
+const CLEAR_SCALE := 0.62
+# Reasons go under the ACTION column only, where there is room for them.
+const REASON_Y := 0.855
 
 const CLOUD_SIZE := Vector2(16, 11)
 # Native type sizes - _fs() scales them with the board.
@@ -108,6 +115,9 @@ func show_for_apron(apron_id: int) -> void:
 	# An empty pad ASKS which aircraft rather than picking one for you - there
 	# is no sensible default, and silently choosing the first idle 328 Jet made
 	# the column look like a fixed label instead of a choice.
+	# An aircraft already on the pad keeps its own route; an empty pad has no
+	# aircraft to size a default against yet, so it takes the nearest and gets
+	# re-defaulted the moment one is chosen - see _on_hangar_picked.
 	_destination = Fleet.destination_of(current) if current else _first_destination()
 	visible = true
 	_rebuild()
@@ -214,6 +224,7 @@ func _aircraft_column(a: FleetAircraft) -> void:
 
 # Hands over to the hangar in selection mode and comes back with the answer.
 func _choose_button(empty: bool) -> void:
+	var current := Fleet.get_aircraft(_aircraft_id)
 	var native := CONFIRM_TEXTURE.get_size()
 	var b := TextureButton.new()
 	b.ignore_texture_size = true
@@ -224,6 +235,11 @@ func _choose_button(empty: bool) -> void:
 	b.position = Vector2(BOARD_SIZE.x * COL_X[0] - native.x * 0.5, BOARD_SIZE.y * ACTION_Y)
 	b.pressed.connect(_open_hangar_chooser)
 	_content.add_child(b)
+	# Taking a machine off a pad it is actively using is not the same as
+	# re-aiming its route, and stays blocked while it is away.
+	if current and not _can_change_aircraft(current):
+		b.disabled = true
+		b.modulate = DISABLED_MODULATE
 	var text := "Choose aircraft" if empty else "Change aircraft"
 	var l := _label(text, _fitted_font(text, native.x - ACTION_PADDING), true)
 	l.size = native
@@ -244,6 +260,12 @@ func _on_hangar_picked(model_key: String) -> void:
 	for a in _selectable():
 		if a.model_key == model_key:
 			_aircraft_id = a.id
+			# Point it at the destination matching its rating unless it is
+			# already routed somewhere. A rating-5 flagship defaulting to the
+			# 1-cloud robot earns a fifth of what it should, and the player has
+			# to notice and fix that by hand on every single purchase.
+			if a.destination == "":
+				_destination = Fleet.best_destination_for(model_key)
 			break
 	move_to_front()
 	visible = true
@@ -267,6 +289,20 @@ func _destination_column() -> void:
 	_centred("Lv.%d" % int(info.get("level", 1)), COL_X[1], SUB_Y, _fs(FONT_SUB))
 
 	_friend_button()
+
+	# UNSAVED CHANGES ARE INVISIBLE OTHERWISE. Choosing a friend only sets what
+	# the panel is showing; nothing reaches the aircraft until Update route is
+	# pressed. So the flow was: pick a destination, come back to a panel that
+	# looks exactly as it did, close it - and the change is silently gone. That
+	# reads as "you cannot change the destination", which is what it amounts to.
+	var a := Fleet.get_aircraft(_aircraft_id)
+	if a and a.assigned_apron_id == _apron_id and _destination != Fleet.destination_of(a):
+		var warn := _label("unsaved - press Update route", _fs(FONT_SUB))
+		warn.position = Vector2(BOARD_SIZE.x * (COL_X[1] - 0.15), BOARD_SIZE.y * STAT_Y)
+		warn.size = Vector2(BOARD_SIZE.x * 0.30, BOARD_SIZE.y * 0.09)
+		warn.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		warn.add_theme_color_override("font_color", Color(1.0, 0.86, 0.45))
+		_content.add_child(warn)
 
 
 # Under the destination column, matching the aircraft column's chooser exactly:
@@ -369,7 +405,14 @@ func _time_text(secs: float) -> String:
 func _action_button(a: FleetAircraft) -> void:
 	var assigned := a.assigned_apron_id == _apron_id
 	var native := CONFIRM_TEXTURE.get_size()
-	var text := "Update route" if assigned else "Set route"
+	# Says which of the two it will do, because with an aircraft in the air the
+	# destination applies from its NEXT departure rather than right now.
+	# Says there is something to save, so the button reads as the commit step
+	# rather than as a no-op you can skip.
+	var pending := assigned and _destination != Fleet.destination_of(a)
+	var text := "Set route"
+	if assigned:
+		text = "Update route *" if pending else "Update route"
 
 	var b := TextureButton.new()
 	b.ignore_texture_size = true
@@ -387,7 +430,7 @@ func _action_button(a: FleetAircraft) -> void:
 	if not _can_edit_route(a):
 		b.disabled = true
 		b.modulate = DISABLED_MODULATE
-		_reason_under(_blocked_reason(a), COL_X[2], ACTION_Y + native.y / BOARD_SIZE.y)
+		_reason_under(_blocked_reason(a), COL_X[2], REASON_Y)
 
 	var l := _label(text, _fitted_font(text, native.x - ACTION_PADDING), true)
 	l.size = native
@@ -403,7 +446,7 @@ func _action_button(a: FleetAircraft) -> void:
 # under the same finger as the one you press every time is how routes get
 # deleted by accident.
 func _clear_button(a: FleetAircraft) -> void:
-	var native := CLEAR_NORMAL.get_size()
+	var native := CLEAR_NORMAL.get_size() * CLEAR_SCALE
 	var b := TextureButton.new()
 	b.ignore_texture_size = true
 	b.stretch_mode = TextureButton.STRETCH_SCALE
@@ -419,7 +462,6 @@ func _clear_button(a: FleetAircraft) -> void:
 	if not _can_clear(a):
 		b.disabled = true
 		b.modulate = DISABLED_MODULATE
-		_reason_under(_blocked_reason(a), CLEAR_X, CLEAR_Y + native.y / BOARD_SIZE.y)
 
 	var l := _label("Delete", _fitted_font("Delete", native.x - ACTION_PADDING), true)
 	l.size = native
@@ -437,20 +479,38 @@ func _reason_under(text: String, cx: float, y: float) -> void:
 	_content.add_child(why)
 
 
-# Both buttons want the aircraft home and settled. Deleting additionally
-# tidies up a finished trip on your behalf - see _on_clear - so the two share
-# one rule: it must not be out there.
 func _away(a: FleetAircraft) -> bool:
 	return a.state in [FleetAircraft.State.FLYING_OUT, FleetAircraft.State.FLYING_BACK,
 		FleetAircraft.State.AWAITING_DEST_CLAIM, FleetAircraft.State.AWAITING_DEST_REFUEL]
 
 
+# A PARKED aircraft can be re-pointed freely; one that is away cannot, because
+# its pay and its return clock are both read off the destination while the trip
+# is in progress. Re-aiming mid-flight would rewrite a journey already made.
 func _can_edit_route(a: FleetAircraft) -> bool:
-	return a.assigned_apron_id != _apron_id or a.state == FleetAircraft.State.PARKED
+	return a.assigned_apron_id != _apron_id or not _away(a)
+
+
+func _can_change_aircraft(a: FleetAircraft) -> bool:
+	return a.assigned_apron_id != _apron_id or not _away(a)
 
 
 func _can_clear(a: FleetAircraft) -> bool:
 	return not _away(a)
+
+
+# Collect and refuel an aircraft that has come home, leaving it PARKED. Shared
+# by both buttons: finishing a trip is bookkeeping, not a decision, and making
+# the player do it by hand before they are allowed to change anything was three
+# taps to express nothing. Refuelling can still fail for want of fuel, which
+# leaves it mid-tidy - callers check the state afterwards.
+func _settle(a: FleetAircraft) -> void:
+	if a.assigned_apron_id != _apron_id:
+		return
+	if a.state == FleetAircraft.State.AWAITING_HOME_CLAIM:
+		Fleet.claim_home_reward(a.id)
+	if a.state == FleetAircraft.State.AWAITING_HOME_REFUEL:
+		Fleet.refuel_at_home(a.id)
 
 
 # What the player has to do about it - "not parked" is a state name, not an
@@ -479,6 +539,16 @@ func _on_confirm() -> void:
 	var a := Fleet.get_aircraft(_aircraft_id)
 	if not a or not _can_edit_route(a):
 		return
+	# TIDY UP A FINISHED TRIP FIRST - the same thing Delete does, and for the
+	# same reason. An aircraft that has landed sits in AWAITING_HOME_CLAIM: home,
+	# but not parked. Re-pointing it without claiming left the reward
+	# uncollected and the tank empty, so the route you had just set could not
+	# depart - and only Delete cleaned that up, which is why changing a
+	# destination appeared to require deleting the route first.
+	#
+	# Claiming BEFORE the destination changes also pays the trip that was
+	# actually flown, rather than the fare of wherever it is being re-aimed at.
+	_settle(a)
 	# SWAPPING LEAVES THE OLD ONE HOLDING THE PAD otherwise - assign_to_apron
 	# only sets the incoming aircraft's id, so both would claim apron 5 and both
 	# would draw on it. Unreachable while the only way to change an aircraft was
@@ -486,6 +556,9 @@ func _on_confirm() -> void:
 	# requiring that.
 	var sitting := Fleet.get_aircraft_at_apron(_apron_id)
 	if sitting and sitting.id != a.id:
+		# Swapping is the part that needs it home; re-pointing is not.
+		if not _can_change_aircraft(sitting):
+			return
 		if sitting.state != FleetAircraft.State.PARKED:
 			return
 		Fleet.unassign(sitting.id)
@@ -506,10 +579,7 @@ func _on_clear() -> void:
 		return
 	if not _can_clear(a):
 		return
-	if a.state == FleetAircraft.State.AWAITING_HOME_CLAIM:
-		Fleet.claim_home_reward(a.id)
-	if a.state == FleetAircraft.State.AWAITING_HOME_REFUEL:
-		Fleet.refuel_at_home(a.id)
+	_settle(a)
 	# Refuelling can fail for want of fuel, which leaves it mid-tidy rather
 	# than parked. Say so instead of closing on a route that is still there.
 	if a.state != FleetAircraft.State.PARKED:

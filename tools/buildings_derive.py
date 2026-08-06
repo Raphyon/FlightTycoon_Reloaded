@@ -41,7 +41,21 @@ OUT = os.path.join(ROOT, "game", "assets", "buildings")
 TARGET_WIDTH = 200
 
 # Only for buildings that should break from the common footprint.
-WIDTHS = {}
+#
+# The terminal is not a Prop Shop building at all - it is THE airport, one per
+# map, placed by hand (see LandmarkLayout). It shares this pipeline because the
+# work is identical (crop the margin, scale, no shadow), but normalising it to a
+# plot's 200px footprint would make the building every flight departs from
+# smaller than the cafe next door.
+#
+# 589 comes from the palms: the terminal art has four of them, the background
+# art has fifteen, and matching their crown widths puts the terminal at 0.765 of
+# its source. That is a measurement rather than a judgement, but the two palm
+# references in this project disagree - the standalone palm cut from the sprite
+# sheet is a smaller variety and would argue for 371 - so this is a STARTING
+# POINT. Fine-tune it in game with LandmarkEditor's [ and ] and the scale is
+# saved with the placement; change this only if the base art needs re-deriving.
+WIDTHS = {"terminal": 589}
 
 
 def main() -> None:

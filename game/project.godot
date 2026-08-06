@@ -37,6 +37,7 @@ RunwayControl="*res://scripts/runway_control.gd"
 DebugState="*res://scripts/debug_state.gd"
 AircraftSkins="*res://scripts/aircraft_skins.gd"
 SaveGame="*res://scripts/save_game.gd"
+Scenarios="*res://scripts/scenarios.gd"
 
 [display]
 

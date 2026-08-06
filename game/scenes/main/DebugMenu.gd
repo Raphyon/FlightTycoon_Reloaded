@@ -10,7 +10,7 @@ extends Control
 # the tables below.
 
 const TOGGLE_KEY := KEY_F1
-const PANEL_SIZE := Vector2(430, 470)
+const PANEL_SIZE := Vector2(430, 610)
 
 # The overlay flags on DebugState, as checkbox rows.
 const FLAGS := [
@@ -36,11 +36,17 @@ const EDITORS := [
 		"help": "1-4 plane paths  ·  5 roads (N new, C category, [ ] switch, X delete)  ·  H clouds",
 	},
 	{
+		"node": "LandmarkEditor", "label": "Landmark placement", "key": "L",
+		"help": "click place/move  ·  M next  ·  - + resize  ·  X delete",
+	},
+	{
 		"node": "RotorEditor", "label": "Rotor placement", "key": "R",
 		"help": "M switch model  ·  1-9 pick rotor  ·  click to place  ·  B behind/front of hull",
 	},
 ]
 
+var _scenario_buttons: Array = []
+var _armed_scenario := ""
 var _rows: Array = []
 
 
@@ -92,6 +98,16 @@ func _build() -> void:
 		_rows.append({"kind": "flag", "flag": entry["flag"], "control": row})
 
 	col.add_child(HSeparator.new())
+	col.add_child(_heading("Jump to a scenario", 14))
+	col.add_child(_note("Wipes the save and rebuilds it. There is no undo - see Scenarios.gd."))
+	for key in Scenarios.names():
+		var b := Button.new()
+		b.text = Scenarios.label_for(key)
+		b.pressed.connect(_on_scenario_pressed.bind(key))
+		col.add_child(b)
+		_scenario_buttons.append({"button": b, "key": key})
+
+	col.add_child(HSeparator.new())
 	col.add_child(_heading("Placement tools", 14))
 	col.add_child(_note("Only one should be active at a time - they all claim clicks."))
 	for entry in EDITORS:
@@ -102,6 +118,28 @@ func _build() -> void:
 		col.add_child(_note("        " + entry["help"]))
 		_rows.append({"kind": "editor", "node": entry["node"], "label": entry["label"],
 			"key": entry["key"], "control": button})
+
+
+# Two presses, like every other destructive control here - the first arms the
+# button and the second does it. A scenario throws away whatever you were
+# holding, and these sit one row above the placement tools.
+func _on_scenario_pressed(key: String, ) -> void:
+	if _armed_scenario != key:
+		_armed_scenario = key
+		_refresh_scenario_labels()
+		return
+	_armed_scenario = ""
+	Scenarios.apply(key)
+	_refresh_scenario_labels()
+	visible = false
+
+
+func _refresh_scenario_labels() -> void:
+	for row in _scenario_buttons:
+		var b: Button = row["button"]
+		var key: String = row["key"]
+		b.text = ("Confirm - wipe and load \"%s\"" % Scenarios.label_for(key)
+			if _armed_scenario == key else Scenarios.label_for(key))
 
 
 func _heading(text: String, size: int) -> Label:

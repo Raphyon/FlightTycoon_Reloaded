@@ -520,6 +520,27 @@ func payout_for(model_key: String, map_key: String = "") -> int:
 	return passengers(model_key) * ticket_price(model_key) * distance_to(map_key)
 
 
+# The destination that MATCHES this aircraft's cloud rating - the one it was
+# built for. Pay is ticket * seats * the ROUTE's clouds, so anything nearer
+# wastes the rating you paid for, and anything further it cannot reach at all.
+#
+# Falls back to the furthest it can reach when the exact match is still locked,
+# and to the nearest when nothing is. Used to pick a sensible default rather
+# than leaving every new route pointed at the tutorial hop.
+func best_destination_for(model_key: String) -> String:
+	var reach := int(ShopCatalog.stat(model_key, "range"))
+	var best := Maps.ROBOT_MAP
+	var best_d := 0
+	for key in Maps.visitable_maps():
+		var d := distance_to(key)
+		if d == reach:
+			return key
+		if d < reach and d > best_d:
+			best = key
+			best_d = d
+	return best
+
+
 func in_range(model_key: String, map_key: String) -> bool:
 	return int(ShopCatalog.stat(model_key, "range")) >= distance_to(map_key)
 
@@ -853,6 +874,7 @@ func refuel_at_home(aircraft_id: int) -> bool:
 # save written before destinations existed still has somewhere to go.
 func destination_of(a: FleetAircraft) -> String:
 	return a.destination if a.destination != "" else Maps.ROBOT_MAP
+
 
 
 # Whether there is anything to do for this aircraft right now. False while
