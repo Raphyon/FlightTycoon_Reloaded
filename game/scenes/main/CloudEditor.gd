@@ -174,7 +174,7 @@ func _apply_pickable() -> void:
 # A borrowed cover hides the region it was drawn for. On the robot that region
 # mirrors one of yours, so it lifts when you unlock the original.
 func _mirrored_area_unlocked(borrowed_area: String) -> bool:
-	if Maps.current != Maps.ROBOT_MAP:
+	if not Maps.is_robot_map():
 		return false
 	return ZoneProgress.is_unlocked(borrowed_area)
 

@@ -61,7 +61,7 @@ func _ready() -> void:
 
 
 func _apply_map() -> void:
-	var visiting := Maps.current == Maps.ROBOT_MAP
+	var visiting := Maps.is_robot_map()
 	_shop_button.visible = not visiting
 	_hangar_button.visible = not visiting
 	get_node("Buttons/FriendsButton").visible = not visiting

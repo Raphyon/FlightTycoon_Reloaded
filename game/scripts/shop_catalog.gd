@@ -102,6 +102,18 @@ const ENTRIES := [
 	# promises never happens. Priced on its own income instead.
 	{"key": "atr72", "name": "ATR 72", "icon": "atr72_default.png", "price": 4000, "level": 2,
 		"force": "A", "seats": 100, "fuel": 20, "xp": 42, "range": 1, "has_world_sprite": true},
+	# NO LIVE DATA - the original doesn't sell a Twin Otter, so every number
+	# here is ours. It shares level 2 with the ATR-72 deliberately (the ladder
+	# already doubles up at 1, 18 and 36) because the two are a CHOICE rather
+	# than a step: the ATR carries 100 for 20 fuel, this carries 60 for 4. Per
+	# leg the ATR nets more; per unit of fuel this is five times better, and
+	# fuel is what actually grounds a new player - see tools/econ_sim.py, where
+	# the only way out of a dead start is an aircraft cheap enough to fly.
+	# Priced above the DC-3 because it strictly out-carries it on the same burn;
+	# a bigger cabin for the same fuel at a lower price would make the starter
+	# aircraft pointless the moment this appeared.
+	{"key": "dhc6", "name": "Twin Otter", "icon": "dhc6_default.png", "price": 3500, "level": 2,
+		"force": "A", "seats": 60, "fuel": 4, "xp": 36, "range": 1, "has_world_sprite": true},
 	# LIVE 5000/A/80/6/2cl. It carries the NEW badge at level 2 in the original;
 	# ours sits at 3 because the ATR-72 goes in ahead of it on income.
 	{"key": "emb120", "name": "EMB-120", "icon": "emb120_default.png", "price": 5000, "level": 3,

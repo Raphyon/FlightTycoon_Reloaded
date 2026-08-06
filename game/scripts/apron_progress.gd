@@ -50,8 +50,44 @@ func is_built(apron_id: int) -> bool:
 	return built_ids.has(str(apron_id))
 
 
+# Each pad in an area costs more than the last one there.
+#
+# Flat pricing was the runaway. Pads are the ONLY thing limiting fleet size, an
+# early aircraft pays for itself in about three legs (six minutes), and pad #20
+# cost the same $500 as pad #2 - so past the first hour every dollar bought
+# another money printer at a price that never moved. The simulator has the
+# economy tight for thirteen days and then vertical in three: $374 on day 12,
+# $1.9M on day 16, everything owned by day 30.
+#
+# Geometric rather than linear, because the thing it has to keep up with is
+# itself geometric: each pad adds an aircraft, which adds income, which buys the
+# next pad. A flat surcharge is outrun immediately; a ratio is not.
+#
+# 1.35 is set so the FIRST few stay affordable - Zone1's second pad is 675, not
+# a wall in front of a new player - while the twentieth costs about 118,000,
+# which is real money against a fleet that size. Tuned in tools/econ_sim.py.
+const PAD_COST_GROWTH := 1.35
+
+
 func cost_for_area(area_name: String) -> int:
-	return ZONE_BASE_COST.get(area_name, 1000)
+	var base: int = ZONE_BASE_COST.get(area_name, 1000)
+	return int(round(base * pow(PAD_COST_GROWTH, built_in_area(area_name))))
+
+
+# How many pads are already standing in this area. Counted off the layout rather
+# than tracked separately, so it cannot drift from what is actually built.
+func built_in_area(area_name: String) -> int:
+	var starts: Dictionary = ApronLayout.compute_id_starts()
+	if not starts.has(area_name):
+		return 0
+	var map_key := Maps.map_of_area(area_name)
+	var points: Array = ApronLayout.effective_area_data(map_key).get(area_name, [])
+	var start: int = starts[area_name]
+	var n := 0
+	for i in range(points.size()):
+		if is_built(start + i):
+			n += 1
+	return n
 
 
 func can_build(apron_id: int, area_name: String) -> bool:

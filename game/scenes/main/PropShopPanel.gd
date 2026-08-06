@@ -17,8 +17,10 @@ const ITEMS_PER_PAGE := 4
 @onready var _card_row: HBoxContainer = $Frame/SafeArea/Margin/VBox/CardRow
 @onready var _title: Label = $Frame/SafeArea/Margin/VBox/TitleLabel
 @onready var _dots: HBoxContainer = $Frame/SafeArea/Margin/VBox/PageControls/Dots
-@onready var _prev_button: Button = $Frame/SafeArea/Margin/VBox/PageControls/PrevButton
-@onready var _next_button: Button = $Frame/SafeArea/Margin/VBox/PageControls/NextButton
+const ARROW_DIM := Color(1, 1, 1, 0.35)
+
+@onready var _prev_button: TextureButton = $Frame/SafeArea/Margin/VBox/PageControls/PrevButton
+@onready var _next_button: TextureButton = $Frame/SafeArea/Margin/VBox/PageControls/NextButton
 @onready var _close_button: Button = $Frame/SafeArea/Margin/VBox/CloseButton
 
 var _plot_id: int = -1
@@ -51,8 +53,10 @@ func _ready() -> void:
 
 
 func open_for_plot(plot_id: int) -> void:
-	# An occupied site has nothing to offer - demolition isn't a thing yet, so
-	# opening the shop on one would be a dead end.
+	if not BuildingProgress.buildings_unlocked():
+		return
+	# An occupied site has nothing to offer here - what you can do to one is
+	# demolish it, and that has its own window now (BuildingInfoPanel).
 	if BuildingProgress.is_built(plot_id):
 		return
 	_plot_id = plot_id
@@ -65,6 +69,8 @@ func open_for_plot(plot_id: int) -> void:
 
 # The hub button's shortcut: first site with nothing on it.
 func open_for_first_free_plot() -> bool:
+	if not BuildingProgress.buildings_unlocked():
+		return false
 	for plot in BuildingLayout.load_data():
 		var id := int(plot.get("id", 0))
 		if not BuildingProgress.is_built(id):
@@ -73,11 +79,36 @@ func open_for_first_free_plot() -> bool:
 	return false
 
 
+# Buying used to close the shop, which made kitting out an airport a loop of
+# find-a-site, open, buy, closed, find-the-next-site. Nobody builds one
+# building. It now walks to the next empty site and stays open, so the shop can
+# be held down until the airport is full or the money runs out - and only
+# closes when there is genuinely nothing left to build on.
 func _on_build_pressed(building_key: String) -> void:
 	if _plot_id < 0:
 		return
-	if BuildingProgress.build(_plot_id, building_key):
+	if not BuildingProgress.build(_plot_id, building_key):
+		return
+	var next := _next_free_plot(_plot_id)
+	if next < 0:
 		hide()
+		return
+	open_for_plot(next)
+
+
+# The next empty site after this one, wrapping - so building on the last plot
+# carries on from the front rather than stopping.
+func _next_free_plot(after: int) -> int:
+	var ids: Array = []
+	for plot in BuildingLayout.load_data():
+		ids.append(int(plot.get("id", 0)))
+	ids.sort()
+	var start := ids.find(after)
+	for i in range(ids.size()):
+		var id: int = ids[(start + 1 + i) % ids.size()]
+		if not BuildingProgress.is_built(id):
+			return id
+	return -1
 
 
 func _page_count() -> int:
@@ -105,6 +136,12 @@ func _show_page(page: int) -> void:
 
 	_prev_button.disabled = page == 0
 	_next_button.disabled = page >= _page_count() - 1
+	# The arrow art has no disabled variant, and a TextureButton draws the
+	# normal texture at full strength when disabled - so a dead arrow looked
+	# exactly like a live one. The "<" and ">" Buttons these replaced greyed
+	# themselves out; this puts that feedback back.
+	_prev_button.modulate = ARROW_DIM if _prev_button.disabled else Color.WHITE
+	_next_button.modulate = ARROW_DIM if _next_button.disabled else Color.WHITE
 	for i in range(_dots.get_child_count()):
 		_dots.get_child(i).text = "●" if i == page else "○"
 

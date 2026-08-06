@@ -70,7 +70,7 @@ const ALWAYS_UNLOCKED := ["Zone1"]
 
 
 func is_robot_area(area_name: String) -> bool:
-	return area_name in Maps.ROBOT_AREAS
+	return Maps.is_robot_area(area_name)
 
 
 func is_unlocked(area_name: String) -> bool:

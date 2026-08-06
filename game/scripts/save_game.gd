@@ -111,3 +111,56 @@ func _load() -> void:
 func wipe() -> void:
 	if FileAccess.file_exists(SAVE_PATH):
 		DirAccess.remove_absolute(ProjectSettings.globalize_path(SAVE_PATH))
+
+
+# Every file the player's progress lives in - NOT the authored level data.
+#
+# That split is the whole point. apron_layout, cloud_layout, building_layout,
+# paths and aircraft_rig are hand-placed level design that ships with the game;
+# wiping those would destroy work no player could recreate. These five are
+# somebody's playthrough.
+const PROGRESS_FILES := [
+	"res://data/apron_progress.json",
+	"res://data/zone_progress.json",
+	"res://data/apron_skins_owned.json",
+	"res://data/aircraft_affinity.json",
+	"res://data/building_progress.json",
+]
+
+
+# Back to a brand new game, in memory AND on disk.
+#
+# Deleting the files alone is not enough: every autoload is already holding its
+# state, and the next save would write it all straight back out. So each one is
+# reset in place too, and the save is disarmed while that happens or the
+# debounce timer would persist a half-cleared world.
+func reset_to_defaults() -> void:
+	_dirty = false
+	wipe()
+	for path in PROGRESS_FILES:
+		if FileAccess.file_exists(path):
+			DirAccess.remove_absolute(ProjectSettings.globalize_path(path))
+
+	Economy.money = Economy.STARTING_MONEY
+	Coins.amount = Coins.DEFAULT_AMOUNT
+	FuelStore.amount = FuelStore.STARTING_AMOUNT
+	Progression.xp = 0
+	Progression.level = 1
+	Fleet.aircraft.clear()
+	Fleet.reset_ids()
+	ApronProgress.built_ids.clear()
+	ZoneProgress.unlocked_zones.clear()
+	AircraftAffinity.reset()
+	BuildingProgress.built.clear()
+
+	# Everything that draws from the above has to be told, or the world keeps
+	# showing the airport you just deleted until something else happens to
+	# trigger a rebuild.
+	Progression.xp_changed.emit(0)
+	Progression.level_changed.emit(1)
+	ApronProgress.built_changed.emit()
+	ZoneProgress.unlocked_changed.emit()
+	AircraftAffinity.affinity_changed.emit()
+	BuildingProgress.built_changed.emit()
+	Fleet.fleet_changed.emit()
+	_dirty = false

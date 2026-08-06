@@ -291,6 +291,22 @@ const WORLD_SPRITES := {
 		"rotor_offsets": [Vector2(-34, 6), Vector2(-5, 23)],
 		"rotor_scale": 0.74,
 	},
+	# Twin Otter. Two wing turboprops, so two hubs - and unlike the Dash 8 its
+	# props are NOT painted into the body art, they are drawn stopped, which
+	# means a badly placed disc is obvious rather than merely wrong.
+	#
+	# The offsets below are a STARTING POINT copied off the Dash 8 and nudged
+	# for a narrower airframe (94px wide against 107) - place them properly
+	# with RotorEditor: R, then M to reach dhc6, 1/2 to pick a hub, click to
+	# set, [ and ] to size the disc, B if the far prop should sit behind the
+	# hull. The rig file wins once anything is saved there.
+	"dhc6": {
+		"body": "res://assets/aircraft/dhc6/body_2x.png",
+		"shadow": "res://assets/aircraft/dhc6/shadow_2x.png",
+		"rotor_spin_frames": A400M_PROP,
+		"rotor_offsets": [Vector2(-30, 4), Vector2(-4, 20)],
+		"rotor_scale": 0.70,
+	},
 	"f15": {
 		"body": "res://assets/aircraft/f15/body_2x.png",
 		"shadow": "res://assets/aircraft/f15/shadow_2x.png",
@@ -425,9 +441,17 @@ func ticket_price(model_key: String) -> int:
 #     rating 1:  S = 1 min,  A = 2 min       (one minute per grade)
 #     rating 5:  S = 12 h,   A = 13 h        (one hour per grade)
 #
-# so the base runs 1m/5m/27m/139m/720m and the per-grade step 1m/3m/8m/22m/60m,
-# both geometric, both solved from those four numbers rather than picked.
-const CLOUD_BASE_MINUTES := [1.0, 5.0, 27.0, 139.0, 720.0]
+# THE CEILING IS THE LEG, AND IT IS 12 HOURS - which makes the round trip 24,
+# and those are the two numbers the original is remembered by. It was 17h a leg
+# and 34h the round trip, from anchoring 12h on the S-class leg rather than on
+# the slowest one: a 34-hour round trip is not an overnight aircraft, it is a
+# skip-a-day aircraft, and nothing in the game is meant to outlast a day.
+#
+# So the worst case - E-class, five clouds - is 720 minutes exactly, and the
+# classes step down from there to 7h for an S. The base is geometric from 1
+# minute to that ceiling (x4.53 a cloud) and the per-grade step is geometric to
+# an hour (x2.78), both solved rather than picked.
+const CLOUD_BASE_MINUTES := [1.0, 5.0, 20.0, 93.0, 420.0]
 const CLASS_STEP_MINUTES := [1.0, 3.0, 8.0, 22.0, 60.0]
 
 # Steps along CLASS_STEP_MINUTES. S is the zero point - it pays no penalty at
@@ -458,7 +482,8 @@ func grade_for(a: FleetAircraft) -> String:
 # below is the model-level estimate the shop and routes table use, where there
 # is no particular aircraft to ask about.
 func flight_seconds_for(a: FleetAircraft, map_key: String) -> float:
-	return _leg_minutes(distance_to(map_key), grade_for(a)) * 60.0
+	return (_leg_minutes(distance_to(map_key), grade_for(a)) * 60.0
+		* AircraftAffinity.speed_multiplier(a.model_key))
 
 
 # How many passengers a leg carries: all of them.
@@ -527,6 +552,12 @@ func _ready() -> void:
 	# STARTER_MODEL still exists and is still the DC-3 - it is the fallback for
 	# a save entry missing its model, not a thing that gets granted.
 	pass
+
+
+# Aircraft ids restart from 1 on a reset, so a fresh game reads like a fresh
+# game rather than continuing somebody else's numbering.
+func reset_ids() -> void:
+	_next_id = 1
 
 
 func _process(delta: float) -> void:
@@ -693,7 +724,8 @@ func unassign(aircraft_id: int) -> void:
 # estimate, tests) don't have to name an aircraft - they get the S-class figure.
 func flight_seconds_to(map_key: String, model_key: String = "") -> float:
 	var grade := str(ShopCatalog.stat(model_key, "force")) if model_key != "" else "S"
-	return _leg_minutes(distance_to(map_key), grade) * 60.0
+	var affinity := AircraftAffinity.speed_multiplier(model_key) if model_key != "" else 1.0
+	return _leg_minutes(distance_to(map_key), grade) * 60.0 * affinity
 
 
 
@@ -811,7 +843,7 @@ func block_reason(a: FleetAircraft) -> String:
 			if not in_range(a.model_key, destination_of(a)):
 				return "out of range"
 			if robot_apron_for(a) == -1:
-				return "no pad at %s" % DESTINATION_NAME
+				return "no pad at %s" % Maps.display_name(destination_of(a))
 			if FuelStore.amount < fuel_cost(a.model_key, destination_of(a)):
 				return "needs %d fuel" % fuel_cost(a.model_key, destination_of(a))
 		FleetAircraft.State.AWAITING_HOME_REFUEL:
@@ -956,13 +988,14 @@ func get_aircraft_at_robot_apron(apron_id: int) -> FleetAircraft:
 	return null
 
 
-# Every pad at the robot airport, in id order.
-# Every pad at the robot, across all seven mirrored areas, in id order.
-func robot_apron_ids() -> Array:
+# Every pad at one destination, across all seven mirrored areas, in id order.
+# Defaults to the nearest, which is where a save with no destination goes.
+func robot_apron_ids(map_key: String = "") -> Array:
+	var key := map_key if map_key != "" else Maps.ROBOT_MAP
 	var starts: Dictionary = ApronLayout.compute_id_starts()
-	var data: Dictionary = ApronLayout.load_area_data(Maps.ROBOT_MAP)
+	var data: Dictionary = ApronLayout.effective_area_data(key)
 	var ids: Array = []
-	for area in Maps.ROBOT_AREAS:
+	for area in Maps.robot_areas_for(key):
 		if not starts.has(area):
 			continue
 		var start: int = starts[area]
@@ -983,10 +1016,13 @@ func robot_apron_ids() -> Array:
 # This replaced claiming the first unclaimed pad from a pool of twenty, which
 # quietly capped the whole game at twenty aircraft - past that, dispatching
 # just refused.
+#
+# Each of the five destinations has its own block of ids, so the pad an aircraft
+# claims depends on where it is going as well as where it is based.
 func robot_apron_for(a: FleetAircraft) -> int:
 	if a.assigned_apron_id < 1:
 		return -1
-	var ids := robot_apron_ids()
+	var ids := robot_apron_ids(destination_of(a))
 	# Homeland is the first map, so its aprons are ids 1..n and the index of
 	# this one is simply id - 1.
 	var offset: int = a.assigned_apron_id - 1

@@ -21,6 +21,8 @@ var _tick := 0.0
 func _ready() -> void:
 	BuildingProgress.built_changed.connect(_refresh_all)
 	BuildingProgress.rent_changed.connect(_refresh_all)
+	# Plots appear with Zone2 - see BuildingProgress.buildings_unlocked.
+	ZoneProgress.unlocked_changed.connect(rebuild)
 	rebuild()
 
 
@@ -35,8 +37,15 @@ func _process(delta: float) -> void:
 # Full rebuild - plots changed (the editor placed or deleted one) or the map
 # did. Buying a building only needs _refresh_all, which is much cheaper.
 func rebuild() -> void:
+	# Cars live in here too and are not ours to free - see RoadTraffic._layer.
 	for child in get_children():
-		child.queue_free()
+		if not (child is Sprite2D):
+			child.queue_free()
+	# No sites at all until the Prop Shop opens. Drawing them earlier would put
+	# 42 construction sites on the map advertising a shop you cannot use, and
+	# the camera is clamped away from them anyway.
+	if not BuildingProgress.buildings_unlocked():
+		return
 	for plot in BuildingLayout.load_data():
 		var slot := Node2D.new()
 		slot.set_script(SLOT_SCRIPT)
@@ -45,6 +54,7 @@ func rebuild() -> void:
 			Vector2(float(plot.get("x", 0.0)), float(plot.get("y", 0.0))),
 			str(plot.get("site", "buildings")))
 		slot.clicked.connect(_on_slot_clicked)
+		slot.body_clicked.connect(_on_slot_body_clicked)
 
 
 func _refresh_all() -> void:
@@ -62,6 +72,20 @@ func _on_slot_clicked(plot_id: int) -> void:
 	if BuildingProgress.is_built(plot_id):
 		BuildingProgress.collect_rent(plot_id)
 		return
+	_open_shop(plot_id)
+
+
+# Tapping the building itself opens ITS OWN window - what it earns, who lives
+# there, and the one thing you can do about it. The Prop Shop is for empty
+# sites; a destructive action does not belong in a window full of buy buttons.
+func _on_slot_body_clicked(plot_id: int) -> void:
+	plot_clicked.emit(plot_id)
+	var panel := get_node_or_null("../UI/BuildingInfoPanel")
+	if panel and panel.has_method("show_plot"):
+		panel.show_plot(plot_id)
+
+
+func _open_shop(plot_id: int) -> void:
 	var panel := get_node_or_null("../UI/PropShopPanel")
 	if panel and panel.has_method("open_for_plot"):
 		panel.open_for_plot(plot_id)

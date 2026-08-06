@@ -32,12 +32,17 @@ const HEADER_Y := 0.10
 const CLOUD_Y := 0.215
 const ART_Y := 0.30
 const ART_H := 0.26
-const NAME_Y := 0.585
-const SUB_Y := 0.655
-const STAT_Y := 0.72
+const NAME_Y := 0.545
+const SUB_Y := 0.610
+const STAT_Y := 0.665
 const DETAIL_Y := 0.30
-const DETAIL_STEP := 0.085
-const ACTION_Y := 0.72
+const DETAIL_STEP := 0.078
+# Buttons sit lower and the type above them sits higher - the two were both at
+# 0.72 and the column read as one crowded block. See _clear_button for where
+# the destructive one went.
+const ACTION_Y := 0.795
+const CLEAR_X := 0.115
+const CLEAR_Y := 0.845
 
 const CLOUD_SIZE := Vector2(16, 11)
 # Native type sizes - _fs() scales them with the board.
@@ -53,6 +58,8 @@ const FONT_STAT := 14
 const ACTION_MAX_FONT := 17
 const ACTION_MIN_FONT := 11
 const ACTION_PADDING := 20.0
+# Same grey ApronInfoPanel uses for a button you can see but can't press.
+const DISABLED_MODULATE := Color(0.6, 0.6, 0.6, 1)
 
 var _apron_id: int = -1
 var _aircraft_id: int = -1
@@ -124,12 +131,27 @@ func _first_destination() -> String:
 	return str(l[0]) if l.size() > 0 else Maps.ROBOT_MAP
 
 
-func _cycle_destination() -> void:
-	var l := Friends.list()
-	if l.is_empty():
-		return
-	var i := l.find(_destination)
-	_destination = str(l[(i + 1) % l.size()])
+# Hands over to the friends list and comes back with the answer - the same
+# arrangement the aircraft column has with the hangar, and for the same reason:
+# that screen already draws the options as cards, at a size you can read, with
+# their avatar and level on them.
+#
+# This replaced cycling the destination by clicking the middle column. With one
+# destination that read as a dead label; with five it is a guessing game whose
+# only way to see the options is to click through all of them.
+func _open_friend_chooser() -> void:
+	hide()
+	get_node("../FriendsPanel").open_for_selection(_on_friend_picked)
+
+
+func _on_friend_picked(map_key: String) -> void:
+	# "" means the list was closed without choosing - keep the destination that
+	# was already set rather than clearing it, but come back either way, or the
+	# route screen stays hidden behind a panel the player thinks they dismissed.
+	if map_key != "":
+		_destination = map_key
+	move_to_front()
+	visible = true
 	_rebuild()
 
 
@@ -153,7 +175,6 @@ func _rebuild() -> void:
 	_choose_button(a == null)
 	_destination_column()
 	_details_column(a)
-	_hit_area(1, _cycle_destination)
 
 
 func _aircraft_column(a: FleetAircraft) -> void:
@@ -245,6 +266,34 @@ func _destination_column() -> void:
 	_centred(str(info.get("name", _destination)), COL_X[1], NAME_Y, _fs(FONT_NAME), true)
 	_centred("Lv.%d" % int(info.get("level", 1)), COL_X[1], SUB_Y, _fs(FONT_SUB))
 
+	_friend_button()
+
+
+# Under the destination column, matching the aircraft column's chooser exactly:
+# same art, same place, same "this is a thing you change" reading.
+func _friend_button() -> void:
+	var native := CONFIRM_TEXTURE.get_size()
+	var b := TextureButton.new()
+	b.ignore_texture_size = true
+	b.stretch_mode = TextureButton.STRETCH_SCALE
+	b.texture_normal = CONFIRM_TEXTURE
+	b.custom_minimum_size = native
+	b.size = native
+	b.position = Vector2(BOARD_SIZE.x * COL_X[1] - native.x * 0.5, BOARD_SIZE.y * ACTION_Y)
+	b.pressed.connect(_open_friend_chooser)
+	_content.add_child(b)
+
+	# Says how many there are to choose from, because with one unlocked the
+	# screen it opens has a single card on it and that needs to read as a gate
+	# rather than as a broken list.
+	var n := Friends.list().size()
+	var text := "Choose friend (%d)" % n if n > 1 else "Choose friend"
+	var l := _label(text, _fitted_font(text, native.x - ACTION_PADDING), true)
+	l.size = native
+	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	l.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	b.add_child(l)
+
 
 func _details_column(a: FleetAircraft) -> void:
 	if not a:
@@ -277,6 +326,22 @@ func _details_column(a: FleetAircraft) -> void:
 		v.size = Vector2(BOARD_SIZE.x * 0.10, BOARD_SIZE.y * 0.07)
 		v.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 		_content.add_child(v)
+
+	# The two cloud rows above already carry it - the aircraft's rating on the
+	# left, the route's in the middle - but that is a comparison the player has
+	# to make, and the refusal itself happens later and elsewhere (the pad's
+	# depart bubble just does nothing). With five destinations to choose
+	# between, that is a trap, so the verdict is stated here.
+	if not Fleet.in_range(a.model_key, dest):
+		var warn := _label("Out of range - needs %d clouds"
+			% Fleet.distance_to(dest), _fs(FONT_DETAIL), true)
+		warn.add_theme_color_override("font_color", Color(1.0, 0.45, 0.36))
+		warn.position = Vector2(BOARD_SIZE.x * 0.655,
+			BOARD_SIZE.y * (DETAIL_Y + rows.size() * DETAIL_STEP))
+		warn.size = Vector2(BOARD_SIZE.x * 0.32, BOARD_SIZE.y * 0.07)
+		warn.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		_content.add_child(warn)
+
 	_action_button(a)
 
 
@@ -295,34 +360,109 @@ func _time_text(secs: float) -> String:
 	return "%.1f days" % (secs / 86400.0)
 
 
-# Set the route, or clear it. A pad that already has an aircraft offers the
-# red "clear" the reference shows; an empty one offers the orange confirm.
+# APPLY, and separately CLEAR. These used to be one button that swapped
+# meaning: a pad with an aircraft on it offered only "Delete", so the sole way
+# to fly somewhere else - or to swap the aircraft - was to tear the route down
+# and build it again from an empty pad. Changing your mind is the ordinary case,
+# not the exceptional one, so applying is now the primary button and deleting is
+# a separate, deliberately distant one.
 func _action_button(a: FleetAircraft) -> void:
 	var assigned := a.assigned_apron_id == _apron_id
-	var texture: Texture2D = CLEAR_NORMAL if assigned else CONFIRM_TEXTURE
-	# "Delete" alone - the button sits in a route screen, so saying "route"
-	# again adds nothing and only crowds the art.
-	var text := "Delete" if assigned else "Set route"
-	var native := texture.get_size()
+	var native := CONFIRM_TEXTURE.get_size()
+	var text := "Update route" if assigned else "Set route"
 
 	var b := TextureButton.new()
 	b.ignore_texture_size = true
 	b.stretch_mode = TextureButton.STRETCH_SCALE
-	b.texture_normal = texture
-	if assigned:
-		b.texture_pressed = CLEAR_PRESSED
-		b.texture_hover = CLEAR_PRESSED
+	b.texture_normal = CONFIRM_TEXTURE
 	b.custom_minimum_size = native
 	b.size = native
 	b.position = Vector2(BOARD_SIZE.x * COL_X[2] - native.x * 0.5, BOARD_SIZE.y * ACTION_Y)
-	b.pressed.connect(_on_clear if assigned else _on_confirm)
+	b.pressed.connect(_on_confirm)
 	_content.add_child(b)
+
+	# A route can only be re-pointed while its aircraft is standing on the pad.
+	# Re-aiming one mid-flight would teleport it, and swapping the aircraft
+	# under a live route would strand the one that is actually out there.
+	if not _can_edit_route(a):
+		b.disabled = true
+		b.modulate = DISABLED_MODULATE
+		_reason_under(_blocked_reason(a), COL_X[2], ACTION_Y + native.y / BOARD_SIZE.y)
 
 	var l := _label(text, _fitted_font(text, native.x - ACTION_PADDING), true)
 	l.size = native
 	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	l.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	b.add_child(l)
+
+	if assigned:
+		_clear_button(a)
+
+
+# Bottom-left, away from everything else on the board. A destructive button
+# under the same finger as the one you press every time is how routes get
+# deleted by accident.
+func _clear_button(a: FleetAircraft) -> void:
+	var native := CLEAR_NORMAL.get_size()
+	var b := TextureButton.new()
+	b.ignore_texture_size = true
+	b.stretch_mode = TextureButton.STRETCH_SCALE
+	b.texture_normal = CLEAR_NORMAL
+	b.texture_pressed = CLEAR_PRESSED
+	b.texture_hover = CLEAR_PRESSED
+	b.custom_minimum_size = native
+	b.size = native
+	b.position = Vector2(BOARD_SIZE.x * CLEAR_X - native.x * 0.5, BOARD_SIZE.y * CLEAR_Y)
+	b.pressed.connect(_on_clear)
+	_content.add_child(b)
+
+	if not _can_clear(a):
+		b.disabled = true
+		b.modulate = DISABLED_MODULATE
+		_reason_under(_blocked_reason(a), CLEAR_X, CLEAR_Y + native.y / BOARD_SIZE.y)
+
+	var l := _label("Delete", _fitted_font("Delete", native.x - ACTION_PADDING), true)
+	l.size = native
+	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	l.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	b.add_child(l)
+
+
+func _reason_under(text: String, cx: float, y: float) -> void:
+	var why := _label(text, _fs(FONT_SUB))
+	why.position = Vector2(BOARD_SIZE.x * (cx - 0.15), BOARD_SIZE.y * y + 2.0)
+	why.size = Vector2(BOARD_SIZE.x * 0.30, BOARD_SIZE.y * 0.09)
+	why.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	why.add_theme_color_override("font_color", Color(1.0, 0.72, 0.6))
+	_content.add_child(why)
+
+
+# Both buttons want the aircraft home and settled. Deleting additionally
+# tidies up a finished trip on your behalf - see _on_clear - so the two share
+# one rule: it must not be out there.
+func _away(a: FleetAircraft) -> bool:
+	return a.state in [FleetAircraft.State.FLYING_OUT, FleetAircraft.State.FLYING_BACK,
+		FleetAircraft.State.AWAITING_DEST_CLAIM, FleetAircraft.State.AWAITING_DEST_REFUEL]
+
+
+func _can_edit_route(a: FleetAircraft) -> bool:
+	return a.assigned_apron_id != _apron_id or a.state == FleetAircraft.State.PARKED
+
+
+func _can_clear(a: FleetAircraft) -> bool:
+	return not _away(a)
+
+
+# What the player has to do about it - "not parked" is a state name, not an
+# instruction.
+func _blocked_reason(a: FleetAircraft) -> String:
+	match a.state:
+		FleetAircraft.State.FLYING_OUT, FleetAircraft.State.FLYING_BACK:
+			return "in the air - wait for it to land"
+		FleetAircraft.State.AWAITING_DEST_CLAIM, FleetAircraft.State.AWAITING_DEST_REFUEL:
+			return "still at the destination"
+		_:
+			return "land it first"
 
 
 # Largest size in range whose rendered width fits, so a longer label loses a
@@ -337,20 +477,45 @@ func _fitted_font(text: String, available: float) -> int:
 
 func _on_confirm() -> void:
 	var a := Fleet.get_aircraft(_aircraft_id)
-	if not a:
+	if not a or not _can_edit_route(a):
 		return
+	# SWAPPING LEAVES THE OLD ONE HOLDING THE PAD otherwise - assign_to_apron
+	# only sets the incoming aircraft's id, so both would claim apron 5 and both
+	# would draw on it. Unreachable while the only way to change an aircraft was
+	# to delete the route first; reachable the moment "Update route" stopped
+	# requiring that.
+	var sitting := Fleet.get_aircraft_at_apron(_apron_id)
+	if sitting and sitting.id != a.id:
+		if sitting.state != FleetAircraft.State.PARKED:
+			return
+		Fleet.unassign(sitting.id)
 	a.destination = _destination
 	Fleet.assign_to_apron(a.id, _apron_id)
 	Fleet.fleet_changed.emit()
 	hide()
 
 
+# Deleting a route on an aircraft that has come home now CLAIMS AND REFUELS it
+# first. Making the player collect the money, then refuel, and only then be
+# allowed to delete was three taps of bookkeeping to express one decision - and
+# the reward is theirs either way; the route being over does not forfeit it.
 func _on_clear() -> void:
 	var a := Fleet.get_aircraft(_aircraft_id)
-	# Only a parked aircraft can be pulled off a pad - one mid-route would
-	# simply vanish (Fleet.unassign enforces the same rule).
-	if a and a.state == FleetAircraft.State.PARKED:
-		Fleet.unassign(a.id)
+	if a == null:
+		hide()
+		return
+	if not _can_clear(a):
+		return
+	if a.state == FleetAircraft.State.AWAITING_HOME_CLAIM:
+		Fleet.claim_home_reward(a.id)
+	if a.state == FleetAircraft.State.AWAITING_HOME_REFUEL:
+		Fleet.refuel_at_home(a.id)
+	# Refuelling can fail for want of fuel, which leaves it mid-tidy rather
+	# than parked. Say so instead of closing on a route that is still there.
+	if a.state != FleetAircraft.State.PARKED:
+		_rebuild()
+		return
+	Fleet.unassign(a.id)
 	hide()
 
 
@@ -409,15 +574,3 @@ func _stat(icon: Texture2D, value: String, cx: float, y: float) -> void:
 	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 	_content.add_child(l)
 
-
-# An invisible button covering a whole column, added last so it sits over the
-# artwork but below nothing that needs its own clicks.
-func _hit_area(col: int, handler: Callable) -> void:
-	var b := Button.new()
-	b.flat = true
-	b.focus_mode = Control.FOCUS_NONE
-	b.modulate = Color(1, 1, 1, 0)
-	b.position = Vector2(BOARD_SIZE.x * (COL_X[col] - 0.15), BOARD_SIZE.y * 0.18)
-	b.size = Vector2(BOARD_SIZE.x * 0.30, BOARD_SIZE.y * 0.66)
-	b.pressed.connect(handler)
-	_content.add_child(b)

@@ -9,6 +9,11 @@ extends Node2D
 # being centred on it.
 
 signal clicked(plot_id: int)
+# Tapping the BUILDING rather than its bubble - "show me this site", not "act on
+# it". Mirrors the aprons exactly: the callout is the button, the thing under it
+# opens the menu. Only fires on a site that has something standing on it; an
+# empty one has nothing to show that its cone does not already offer.
+signal body_clicked(plot_id: int)
 
 # One-piece callouts. These used to be a bubble sprite with an icon sprite
 # positioned on top, which never sat quite centred - two independently placed
@@ -42,6 +47,9 @@ var _sprite: Sprite2D
 var _bubble: Sprite2D
 var _area: Area2D
 var _shape: CollisionShape2D
+var _body_shape: CollisionShape2D
+# See _on_input_event - two shapes means two callbacks for one tap.
+var _last_click_frame := -1
 
 
 func setup(id: int, pos: Vector2, site: String = "buildings") -> void:
@@ -65,6 +73,11 @@ func setup(id: int, pos: Vector2, site: String = "buildings") -> void:
 	_area.input_pickable = true
 	_shape = CollisionShape2D.new()
 	_area.add_child(_shape)
+	# A second shape over the building itself. Separate from the bubble's, not a
+	# union of the two, because the two mean different things and a union rect
+	# would also swallow the empty air between them.
+	_body_shape = CollisionShape2D.new()
+	_area.add_child(_body_shape)
 	add_child(_area)
 	_area.input_event.connect(_on_input_event)
 
@@ -100,6 +113,7 @@ func refresh() -> void:
 		_bubble.position = Vector2(0, -CALLOUT_LIFT - _bubble.texture.get_height() * 0.5)
 
 	_rebuild_hit_area(show_callout)
+	_rebuild_body_area(not empty)
 
 
 # THE BUBBLE IS THE ONLY HIT AREA. Not the building.
@@ -124,11 +138,52 @@ func _rebuild_hit_area(has_callout: bool) -> void:
 	_shape.position = _bubble.position
 
 
+# The building's own footprint, live only once something is standing here. This
+# is what makes demolition reachable: a built site whose rent is not up yet has
+# no callout at all, so without this there is no way to touch it again, ever.
+func _rebuild_body_area(built: bool) -> void:
+	if not built or _sprite.texture == null:
+		_body_shape.disabled = true
+		return
+	_body_shape.disabled = false
+	var w: float = _sprite.texture.get_width()
+	var h: float = _sprite.texture.get_height()
+	var r := RectangleShape2D.new()
+	r.size = Vector2(w, h)
+	# The sprite hangs up and left from the ground point (see setup), so its
+	# centre is half a width left and half a height up.
+	_body_shape.shape = r
+	_body_shape.position = Vector2(0.0, -h * 0.5)
+
+
 func set_pickable(on: bool) -> void:
 	if is_instance_valid(_area):
 		_area.input_pickable = on
 
 
+# Which of the two things was hit. The bubble wins where they overlap - a tall
+# building draws behind its own callout, and the callout is the button.
+#
+# ONE CLICK, ONE CALLBACK. An Area2D fires input_event once PER SHAPE hit, and
+# the callout floats inside a tall building's own footprint, so a tap on the
+# bubble hits both shapes and calls this twice. The first call collected the
+# rent, which refreshed the slot and hid the bubble; the second call then found
+# no bubble, fell through, and opened the demolition menu behind it. The frame
+# guard is what makes the second call a no-op - without it the routing is
+# correct and the STATE has already moved underneath it.
 func _on_input_event(_viewport: Node, event: InputEvent, _shape_idx: int) -> void:
-	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-		clicked.emit(plot_id)
+	if not (event is InputEventMouseButton and event.pressed
+			and event.button_index == MOUSE_BUTTON_LEFT):
+		return
+	var frame := Engine.get_process_frames()
+	if frame == _last_click_frame:
+		return
+	_last_click_frame = frame
+	if _bubble.visible and _bubble.texture and not _shape.disabled:
+		var half := Vector2(_bubble.texture.get_width(), _bubble.texture.get_height()) * 0.5
+		var local := to_local(get_global_mouse_position())
+		if Rect2(_bubble.position - half, half * 2.0).has_point(local):
+			clicked.emit(plot_id)
+			return
+	if not _body_shape.disabled:
+		body_clicked.emit(plot_id)

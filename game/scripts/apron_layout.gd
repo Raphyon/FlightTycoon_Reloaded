@@ -68,15 +68,28 @@ static func ensure_seeded() -> void:
 		save_all(all_data)
 
 
+# Parsed once and held, because this is now read a lot: robot_apron_for walks
+# the destination's pads and is asked per aircraft on every fleet refresh, and
+# with five destinations that was five file reads and five JSON parses deep
+# inside a UI update. Handing out a copy rather than the cache itself keeps the
+# old contract - ApronEditor mutates what it gets back before saving it.
+static var _cache: Dictionary = {}
+static var _cache_valid := false
+
+
 # {map_key: {area_name: [[x,y], ...]}} for every airport at once.
 static func load_all() -> Dictionary:
+	if _cache_valid:
+		return _cache.duplicate(true)
 	if not FileAccess.file_exists(SAVE_PATH):
 		return {}
 	var f := FileAccess.open(SAVE_PATH, FileAccess.READ)
 	var text := f.get_as_text()
 	f.close()
 	var parsed: Variant = JSON.parse_string(text)
-	return Maps.unwrap_layout(parsed) if parsed is Dictionary else {}
+	_cache = Maps.unwrap_layout(parsed) if parsed is Dictionary else {}
+	_cache_valid = true
+	return _cache.duplicate(true)
 
 
 static func save_all(all_data: Dictionary) -> void:
@@ -84,6 +97,8 @@ static func save_all(all_data: Dictionary) -> void:
 	var f := FileAccess.open(SAVE_PATH, FileAccess.WRITE)
 	f.store_string(JSON.stringify(all_data, "\t"))
 	f.close()
+	_cache = all_data.duplicate(true)
+	_cache_valid = true
 
 
 # {area_name: [[x,y], ...]} for one airport - the current one unless told
@@ -100,6 +115,38 @@ static func save_area_data(data: Dictionary, map_key: String = "") -> void:
 	save_all(all_data)
 
 
+# What gameplay should actually draw and land on. Normally the map's own pads,
+# but a map declaring "aprons_from" borrows another's - the four further robot
+# destinations are the same airport seen from further away, so re-clicking 110
+# pads for each of them would be busywork.
+#
+# The borrowed points come back under THIS map's area names, matched by
+# position: both lists are the same seven regions in the same order, so index i
+# means the same region in both. That renaming is the whole trick - ids are
+# handed out per area name (compute_id_starts), so each destination still gets
+# its own block and an aircraft parked at one is not parked at another.
+#
+# Deliberately separate from load_area_data, which stays the map's OWN data:
+# ApronEditor writes back whatever it was given, and handing it borrowed points
+# would fork 110 pads into a second copy on the first click. See PathLayout,
+# which draws the same line for the same reason.
+static func effective_area_data(map_key: String = "") -> Dictionary:
+	var key := map_key if map_key != "" else Maps.current
+	var own := load_area_data(key)
+	var source: String = str(Maps.entry(key).get("aprons_from", ""))
+	if source == "":
+		return own
+	var src := load_area_data(source)
+	var src_areas: Array = Maps.areas_for(source)
+	var dst_areas: Array = Maps.areas_for(key)
+	var out := {}
+	for i in mini(src_areas.size(), dst_areas.size()):
+		# Anything genuinely placed here wins, so borrowing is a default and
+		# not a cage: give a destination its own pads and they take over.
+		out[dst_areas[i]] = own.get(dst_areas[i], src.get(src_areas[i], []))
+	return out
+
+
 # {area_name: starting_id}, gap-free across EVERY map's areas in Maps order.
 # Ids have to be globally unique, not per-map: ApronProgress records built
 # aprons by id and FleetAircraft.assigned_apron_id points at one, so two
@@ -110,11 +157,13 @@ static func save_area_data(data: Dictionary, map_key: String = "") -> void:
 # it, which is why Maps lists homeland first - its aprons are already placed
 # and referenced, so placing in the newer maps can't disturb them.
 static func compute_id_starts() -> Dictionary:
-	var all_data := load_all()
 	var starts := {}
 	var next_id := 1
 	for map_key in Maps.MAPS:
-		var map_data: Dictionary = all_data.get(map_key, {})
+		# Effective, not own: a borrowing map has no pads of its own, and
+		# reserving nothing for it would put every destination's aircraft on
+		# the same ids.
+		var map_data: Dictionary = effective_area_data(map_key)
 		for area_name in Maps.MAPS[map_key]["areas"]:
 			starts[area_name] = next_id
 			next_id += (map_data.get(area_name, []) as Array).size()
@@ -140,7 +189,7 @@ static func build_area_aprons(points: Array, start_id: int, area_name: String) -
 		# aircraft you dispatch, not something you construct, so they all start
 		# built. Left buildable they'd show the "needs building" cone and the
 		# aircraft would land on an unbuilt pad.
-		apron.free_by_default = (area_name in Maps.ROBOT_AREAS
+		apron.free_by_default = (Maps.is_robot_area(area_name)
 			or (area_name == "Zone1" and i < 5))
 		result.append(apron)
 	return result

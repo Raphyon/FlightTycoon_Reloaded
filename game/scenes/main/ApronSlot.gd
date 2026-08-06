@@ -236,7 +236,7 @@ func _draw() -> void:
 		# The free-pad plane bubble means "assign one here", which you can't do
 		# at the robot airport - its empty pads are just unused landing slots,
 		# so offering the prompt there would invite a blocked action.
-		if Maps.current == Maps.ROBOT_MAP:
+		if Maps.is_robot_map():
 			_callout.visible = false
 		else:
 			_set_callout_icon(CALLOUT_PLANE_TEXTURE)
@@ -249,10 +249,12 @@ func _draw() -> void:
 				_set_callout_icon(CALLOUT_DRUM_TEXTURE, Fleet.fuel_and_depart.bind(a.id))
 				_callout.visible = true
 			FleetAircraft.State.AWAITING_DEST_CLAIM, FleetAircraft.State.AWAITING_DEST_REFUEL:
-				# The aircraft isn't here - it's sitting at the robot airport.
-				# This is its home pad, so it shows the way there instead of the
-				# reward/fuel bubble it would show if the plane were present.
-				_set_callout_arrived(Maps.travel_to.bind(Maps.ROBOT_MAP))
+				# The aircraft isn't here - it's sitting at the destination it
+				# flew to. This is its home pad, so it shows the way there
+				# instead of the reward/fuel bubble it would show if the plane
+				# were present. Which destination depends on the route, now
+				# that there are five of them.
+				_set_callout_arrived(Maps.travel_to.bind(Fleet.destination_of(a)))
 				_callout.visible = true
 			FleetAircraft.State.AWAITING_HOME_CLAIM:
 				_set_callout_icon(CALLOUT_DOLLAR_TEXTURE, Fleet.claim_home_reward.bind(a.id))

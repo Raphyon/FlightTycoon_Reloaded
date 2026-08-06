@@ -5,10 +5,59 @@ const MIN_ZOOM := 0.3
 const MAX_ZOOM := 2.5
 const ZOOM_SMOOTHING := 10.0
 
+# How far past the outermost thing you own the view may reach. Enough to see a
+# pad's whole tile plus a little air, not enough to show the next zone.
+const EDGE_MARGIN := 130.0
+
 var _dragging := false
 var _drag_start_mouse := Vector2.ZERO
 var _drag_start_camera := Vector2.ZERO
 var _target_zoom := 1.0
+
+
+func _ready() -> void:
+	# The camera shows what you OWN, and grows as you buy. On a fresh game that
+	# is Zone1 alone, which is also what keeps the building plots out of sight
+	# until Zone2 opens - they sit south-west of Zone1 and are not inside its
+	# box at all, so no special case is needed for them.
+	ZoneProgress.unlocked_changed.connect(_fit_limits_to_unlocked)
+	Maps.map_changed.connect(_on_map_changed)
+	call_deferred("_fit_limits_to_unlocked")
+
+
+func _on_map_changed(_map_key: String) -> void:
+	_fit_limits_to_unlocked()
+
+
+# The bounding box of every apron in an unlocked area, plus the building plots
+# once there are any to see. Falls back to the scene's authored limits if an
+# airport has nothing unlocked yet, so the camera can never end up with an
+# inside-out box it cannot clamp into.
+func _fit_limits_to_unlocked() -> void:
+	var pts: Array[Vector2] = []
+	var layout := ApronLayout.effective_area_data()
+	for area_name in layout:
+		if not ZoneProgress.is_unlocked(area_name):
+			continue
+		for p in layout[area_name]:
+			pts.append(Vector2(float(p[0]), float(p[1])))
+	# Building plots only count once the Prop Shop is open - see
+	# BuildingProgress.buildings_unlocked.
+	if BuildingProgress.buildings_unlocked():
+		for plot in BuildingLayout.load_data():
+			pts.append(Vector2(float(plot.get("x", 0.0)), float(plot.get("y", 0.0))))
+	if pts.is_empty():
+		return
+	var lo := pts[0]
+	var hi := pts[0]
+	for v in pts:
+		lo = lo.min(v)
+		hi = hi.max(v)
+	limit_left = int(lo.x - EDGE_MARGIN)
+	limit_top = int(lo.y - EDGE_MARGIN)
+	limit_right = int(hi.x + EDGE_MARGIN)
+	limit_bottom = int(hi.y + EDGE_MARGIN)
+	position = _clamp_to_limits(position)
 
 
 func _process(delta: float) -> void:

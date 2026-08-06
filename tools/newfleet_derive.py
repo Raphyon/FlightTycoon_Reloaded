@@ -61,6 +61,10 @@ MODELS = {
     "dc3":        (78, {"body": "dc3_default.png", "body_duggy": "dc3_duggy.png"}),
     "emb120":     (84, {"body": "emb_120_default.png"}),
     "dhc8":       (88, {"body": "dhc8_qantas.png"}),
+    # Twin Otter, on floats. 84 rather than the DC-3's 78 because a chunk of
+    # this render's height is float and strut rather than airframe - matched on
+    # how big the fuselage reads, not on the bounding box.
+    "dhc6":       (84, {"body": "dhc_6_twin_otter.png"}),
     "atr72":      (88, {"body": "atr_72_default.png"}),
     "an140":      (86, {"body": "an_140_default.png"}),
     "uss51":      (84, {"body": "uss_51_default.png"}),
@@ -75,7 +79,9 @@ MODELS = {
     "b727":       (92, {"body": "b727_default.png", "body_welcome": "b727_welcome.png"}),
     "b707":       (96, {"body": "b707_default.png"}),
     "dc10":       (100, {"body": "dc10_default.png"}),
-    "b787":       (104, {"body": "b787_default.png", "body_klm": "b787_klm.png"}),
+    "b787":       (104, {"body": "b787_default.png", "body_klm": "b787_klm.png",
+                         "body_flash": "b787_flash.png",
+                         "body_sharky": "b787_sharky.png"}),
     "b747":       (112, {"body": "b747_default.png", "body_yellow": "b747_yellow.png"}),
 }
 

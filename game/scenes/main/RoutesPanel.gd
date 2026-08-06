@@ -397,7 +397,7 @@ func _countdown(secs: float) -> String:
 func _destination_text(a: FleetAircraft) -> String:
 	if a.state == FleetAircraft.State.PARKED:
 		return "-"
-	var info: Dictionary = Maps.entry(Maps.ROBOT_MAP).get("visiting", {})
+	var info: Dictionary = Maps.entry(Fleet.destination_of(a)).get("visiting", {})
 	return str(info.get("name", Fleet.DESTINATION_NAME))
 
 

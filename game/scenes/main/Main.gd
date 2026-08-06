@@ -60,11 +60,11 @@ const VISITING_HIDDEN := ["TopBarRight", "TopBarLeft", "TopBar", "MapTab"]
 # Panels that must not be left open behind us when we arrive.
 const VISITING_CLOSED := ["WorldMapPanel", "ShopHubPanel", "HangarPanel", "FriendsPanel", "FriendInfoPanel", "RoutesPanel", "ShopPanel",
 	"FuelPanel", "ExpansionShopPanel", "ApronInfoPanel", "SkinPickerPanel",
-	"AssignPickerPanel"]
+	"AssignPickerPanel", "BuildingInfoPanel"]
 
 
 func _apply_visiting_ui() -> void:
-	var visiting := Maps.current == Maps.ROBOT_MAP
+	var visiting := Maps.is_robot_map()
 	for node_name in VISITING_HIDDEN:
 		var node: CanvasItem = $UI.get_node_or_null(node_name)
 		if node:

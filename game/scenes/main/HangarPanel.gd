@@ -29,6 +29,13 @@ const TAB_STRIP_Y_OFFSET := -70.0
 const BOARD_RIGHT_MARGIN := 20.0
 const BOARD_TOP_MARGIN := 24.0
 
+# TWO ROWS OF FOUR, then a page - matching the aircraft shop, because it is the
+# same act (look through a list of aircraft) on the same background. The grid
+# was already four wide but unbounded downwards, so a fleet of thirty models
+# ran off the bottom of the cabin and out of the panel entirely.
+const CARDS_PER_PAGE := 8
+const ARROW_DIM := Color(1, 1, 1, 0.35)
+
 enum Filter { ALL, IDLE, IN_USE }
 
 const TABS := [
@@ -47,6 +54,9 @@ const TABS := [
 ]
 
 @onready var _grid: GridContainer = $Frame/SafeArea/Margin/VBox/Grid
+@onready var _dots: HBoxContainer = $Frame/SafeArea/Margin/VBox/PageControls/Dots
+@onready var _prev_button: TextureButton = $Frame/SafeArea/Margin/VBox/PageControls/PrevButton
+@onready var _next_button: TextureButton = $Frame/SafeArea/Margin/VBox/PageControls/NextButton
 @onready var _close_button: Button = $Frame/SafeArea/Margin/VBox/CloseButton
 @onready var _vbox: VBoxContainer = $Frame/SafeArea/Margin/VBox
 # Both bits of submenu chrome are anchored by hand, so they hang off Frame
@@ -56,7 +66,12 @@ const TABS := [
 # a plain Control filling the panel, so anchors behave normally inside it.
 @onready var _frame: Control = $Frame
 
-var _cards: Dictionary = {}  # model_key -> HangarTypeCard
+var _cards: Dictionary = {}  # model_key -> HangarTypeCard, VISIBLE PAGE ONLY
+# Every model in the current submenu, in catalogue order, and how many of each.
+# Held across page turns so turning a page does not re-walk the whole fleet.
+var _page_keys: Array = []
+var _counts: Dictionary = {}
+var _page := 0
 var _active_filter: int = Filter.ALL
 # When set, the hangar is being used as a chooser: it opens on the idle tab and
 # every card becomes a button that reports its model back instead of the panel
@@ -75,6 +90,8 @@ func _ready() -> void:
 	Fleet.fleet_changed.connect(_refresh)
 	AircraftAffinity.affinity_changed.connect(_refresh_affinity)
 	get_tree().root.size_changed.connect(_fit_content)
+	_prev_button.pressed.connect(func() -> void: _show_page(_page - 1))
+	_next_button.pressed.connect(func() -> void: _show_page(_page + 1))
 	_build_count_board()
 	_build_empty_label()
 	_build_tab_strip()
@@ -229,6 +246,7 @@ func _build_empty_label() -> void:
 func open_for_selection(on_pick: Callable) -> void:
 	_on_pick = on_pick
 	_active_filter = Filter.IDLE
+	_page = 0
 	for f in _tab_buttons:
 		_tab_buttons[f].button_pressed = f == Filter.IDLE
 	move_to_front()
@@ -248,6 +266,7 @@ func _on_tab_pressed(filter: int) -> void:
 	if filter == _active_filter:
 		return
 	_active_filter = filter
+	_page = 0
 	_refresh()
 
 
@@ -272,29 +291,28 @@ func _aircraft_for_filter() -> Array:
 # --- roster -------------------------------------------------------------
 
 func _refresh(_unused = null) -> void:
-	for child in _grid.get_children():
-		child.queue_free()
-	_cards.clear()
-
 	var subset := _aircraft_for_filter()
 
-	var counts: Dictionary = {}  # model_key -> count within this submenu
+	_counts = {}
 	for a in subset:
-		counts[a.model_key] = counts.get(a.model_key, 0) + 1
+		_counts[a.model_key] = _counts.get(a.model_key, 0) + 1
 
-	for model_key in counts:
-		var entry := _catalog_entry(model_key)
-		var card := HANGAR_TYPE_CARD_SCENE.instantiate()
-		_grid.add_child(card)
-		var icon_texture: Texture2D = load("res://assets/shop/%s" % entry["icon"]) if entry.size() > 0 else null
-		card.setup(model_key, entry.get("name", model_key), icon_texture, counts[model_key])
-		# Only the idle submenu offers a sale - that tab IS "unused aircraft".
-		# Selling and choosing are mutually exclusive: while the hangar is a
-		# chooser, a card is a thing you pick, not a thing you scrap.
-		var choosing := _on_pick.is_valid()
-		card.show_sell(_active_filter == Filter.IDLE and not choosing)
-		card.show_choose(choosing, _on_card_picked)
-		_cards[model_key] = card
+	# CATALOGUE ORDER, not the order aircraft happen to sit in the fleet array.
+	# Insertion order was fine while every card was on screen at once; with
+	# pages it decides which models share a page, and "whichever you bought
+	# first" would reshuffle the whole roster every time you sold something.
+	_page_keys = []
+	for entry in ShopCatalog.ENTRIES:
+		if _counts.has(entry["key"]):
+			_page_keys.append(entry["key"])
+	# Anything owned that the catalogue no longer lists still gets a card
+	# rather than vanishing from your own hangar.
+	for model_key in _counts:
+		if not _page_keys.has(model_key):
+			_page_keys.append(model_key)
+
+	_build_dots()
+	_show_page(_page)
 
 	var tab: Dictionary = _tab_entry(_active_filter)
 	if _count_label:
@@ -309,6 +327,59 @@ func _refresh(_unused = null) -> void:
 			_:
 				_empty_label.text = "No aircraft yet - buy one in the Aircraft Shop."
 
+	call_deferred("_fit_content")
+
+
+func _page_count() -> int:
+	return maxi(1, ceili(float(_page_keys.size()) / CARDS_PER_PAGE))
+
+
+func _build_dots() -> void:
+	for child in _dots.get_children():
+		child.queue_free()
+	# One page needs no page indicator - and no arrows either, same rule the
+	# livery shop follows.
+	var many := _page_count() > 1
+	_prev_button.visible = many
+	_next_button.visible = many
+	if not many:
+		return
+	for i in range(_page_count()):
+		var dot := Label.new()
+		dot.text = "\u25cf" if i == _page else "\u25cb"
+		_dots.add_child(dot)
+
+
+func _show_page(page: int) -> void:
+	_page = clampi(page, 0, _page_count() - 1)
+
+	for child in _grid.get_children():
+		_grid.remove_child(child)
+		child.queue_free()
+	_cards.clear()
+
+	var start := _page * CARDS_PER_PAGE
+	for i in range(start, mini(start + CARDS_PER_PAGE, _page_keys.size())):
+		var model_key: String = _page_keys[i]
+		var entry := _catalog_entry(model_key)
+		var card := HANGAR_TYPE_CARD_SCENE.instantiate()
+		_grid.add_child(card)
+		var icon_texture: Texture2D = load("res://assets/shop/%s" % entry["icon"]) if entry.size() > 0 else null
+		card.setup(model_key, entry.get("name", model_key), icon_texture, _counts[model_key])
+		# Only the idle submenu offers a sale - that tab IS "unused aircraft".
+		# Selling and choosing are mutually exclusive: while the hangar is a
+		# chooser, a card is a thing you pick, not a thing you scrap.
+		var choosing := _on_pick.is_valid()
+		card.show_sell(_active_filter == Filter.IDLE and not choosing)
+		card.show_choose(choosing, _on_card_picked)
+		_cards[model_key] = card
+
+	_prev_button.disabled = _page == 0
+	_next_button.disabled = _page >= _page_count() - 1
+	_prev_button.modulate = ARROW_DIM if _prev_button.disabled else Color.WHITE
+	_next_button.modulate = ARROW_DIM if _next_button.disabled else Color.WHITE
+	for i in range(_dots.get_child_count()):
+		_dots.get_child(i).text = "\u25cf" if i == _page else "\u25cb"
 	call_deferred("_fit_content")
 
 

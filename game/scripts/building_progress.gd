@@ -54,6 +54,21 @@ func _migrate_bare_strings() -> void:
 		_save()
 
 
+# Buildings arrive with Zone2, not at level 1.
+#
+# Starting with no aircraft means the Prop Shop could take the money you needed
+# to buy your first one: 5,000 start, a 3,000 Coffee House, and you are left at
+# 2,000 against a 3,000 DC-3 with nothing to fly and one building to tap for
+# twenty-five minutes. The original never has this hole because it hands you a
+# DC-3; we ask you to buy one.
+#
+# Gating on the ZONE rather than a level, because Zone2 costs money as well as
+# a level - being level 10 and broke is exactly the state that made the trap
+# possible, and it should not open the shop.
+func buildings_unlocked() -> bool:
+	return ZoneProgress.is_unlocked("Zone2")
+
+
 func cost_of(building_key: String) -> int:
 	return BuildingLayout.price_of(building_key)
 
@@ -61,6 +76,8 @@ func cost_of(building_key: String) -> int:
 # Unlocked by level, except the coin building - same rule the aircraft shop
 # uses, where paying real money skips the earned ladder.
 func is_unlocked(building_key: String) -> bool:
+	if not buildings_unlocked():
+		return false
 	if BuildingLayout.currency_of(building_key) == "coins":
 		return true
 	return Progression.level >= BuildingLayout.level_of(building_key)
@@ -162,12 +179,51 @@ func is_rent_ready(plot_id: int, map_key: String = "") -> bool:
 # banks one. That is what the walkthrough describes ("can be collected after a
 # certain amount of time"), and it is also what stops going away being strictly
 # better than playing.
+# A lottery on every rent collection, and the first way coins ENTER the game -
+# until now the only coins in existence were the starting float, with aprons,
+# skins, liveries and the coin aircraft all draining a pool that never refilled.
+#
+# On rent rather than on flights deliberately: it gives the city a job the fleet
+# cannot do, and it is the reward for a thing you already tap.
+#
+# THE RATE IS THE WHOLE DESIGN. Rent does not stack, so collections are bounded
+# by how often you open the game, not by how many buildings you own - a full 42
+# plots collected four times a day is 168 rolls, and no more. See the table in
+# tools/econ_sim.py --coins for what a given chance actually pays out.
+# PER MINUTE OF THE BUILDING'S CYCLE, not per collection. A flat per-collection
+# chance pays out fastest on whatever cycles fastest, and the fastest cycles are
+# the cheapest buildings - a 5-minute Coffee House would roll four times as
+# often as a 16-minute Office. That makes the coin lottery push players to fill
+# all 42 plots with the cheapest thing available, which is the exact trap
+# demolish() was added to let them escape. Scaling by cycle length makes
+# coins-per-hour identical across the catalogue, so what you build is a
+# decision about rent and inhabitants and nothing else.
+#
+# 0.00083 puts a 12-minute building - about the catalogue average - at 1% a
+# collection, which measures at roughly 5 coins a month for a casual player and
+# 36 for a regular one against a 5-coin Paper Plane and a 70-coin Ark. See
+# tools/econ_sim.py --coins.
+const COIN_CHANCE_PER_CYCLE_MINUTE := 0.00083
+const COIN_DROP_AMOUNT := 1
+
+
+func coin_chance_for(building_key: String) -> float:
+	return COIN_CHANCE_PER_CYCLE_MINUTE * float(BuildingLayout.entry(building_key).get("minutes", 0))
+
+# So a drop can be shown. Without it the only feedback is the HUD counter
+# ticking up, which nobody is looking at while tapping a building.
+signal coin_found(plot_id: int, amount: int)
+
+
 func collect_rent(plot_id: int, map_key: String = "") -> int:
 	if not is_rent_ready(plot_id, map_key):
 		return 0
 	var key := building_at(plot_id, map_key)
 	var amount := BuildingLayout.rent_of(key)
 	Economy.add_money(amount)
+	if randf() < coin_chance_for(key):
+		Coins.add(COIN_DROP_AMOUNT)
+		coin_found.emit(plot_id, COIN_DROP_AMOUNT)
 	var mk := map_key if map_key != "" else Maps.current
 	var m := _map(mk)
 	m[str(plot_id)] = {"key": key, "since": Time.get_unix_time_from_system()}
@@ -203,9 +259,55 @@ func built_count(map_key: String = "") -> int:
 	return _map(map_key).size()
 
 
+# What a demolition hands back, as a fraction of what the building cost. The
+# same 0.5 Fleet.RESALE_FRACTION uses for selling an aircraft, because it is the
+# same promise: a purchase is reversible at a real but survivable loss.
+#
+# WHY THIS EXISTS AT ALL. There are 42 plots and nine buildings, and the plots
+# fill in the first few hours - the simulator has every archetype at all 42
+# inside 3.5 to 16 hours of play, long before the Grand Hotel, Garden Hotel and
+# Office Building are affordable. Without a way to clear a site, filling the
+# airport with Coffee Houses is a permanent decision that locks the top half of
+# the catalogue out of the game for good.
+#
+# The loss is what stops it being free churn: rebuilding costs you half of what
+# the old building cost, so replacing a Cafe with an Office Building is a
+# decision rather than an obvious yes.
+const DEMOLITION_REFUND := 0.5
+
+
+# Clears a plot and refunds part of the price, in whatever currency it was
+# bought with. Returns what was refunded, or 0 if there was nothing to clear.
+#
+# The inhabitants go with it, so popularity drops - that is the cost of a
+# mistake, and it is what makes filling every plot with the cheapest thing a
+# real error rather than a temporary one.
+func demolish(plot_id: int, map_key: String = "") -> int:
+	var key := building_at(plot_id, map_key)
+	if key == "":
+		return 0
+	var refund := int(floor(cost_of(key) * DEMOLITION_REFUND))
+	if BuildingLayout.currency_of(key) == "coins":
+		Coins.add(refund)
+	else:
+		Economy.add_money(refund)
+	var mk := map_key if map_key != "" else Maps.current
+	var m := _map(mk)
+	m.erase(str(plot_id))
+	built[mk] = m
+	_save()
+	built_changed.emit()
+	return refund
+
+
+func refund_for(plot_id: int, map_key: String = "") -> int:
+	var key := building_at(plot_id, map_key)
+	return 0 if key == "" else int(floor(cost_of(key) * DEMOLITION_REFUND))
+
+
 # Buys and places in one step. Refuses a plot that already has something on it
-# rather than silently replacing it - demolishing is a separate decision and
-# doesn't exist yet.
+# rather than silently replacing it - clearing one is a separate decision, with
+# its own price. See demolish.
 func build(plot_id: int, building_key: String, map_key: String = "") -> bool:
 	if BuildingLayout.entry(building_key).is_empty():
 		return false

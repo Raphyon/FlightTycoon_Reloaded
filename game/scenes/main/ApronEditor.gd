@@ -91,7 +91,9 @@ func reload_for_map() -> void:
 		node.queue_free()
 	_world_aircraft.clear()
 
-	data = ApronLayout.load_area_data()
+	# Effective, so a destination that borrows another's pads still draws them.
+	# Editing one is refused rather than silently forking it - see _can_edit.
+	data = ApronLayout.effective_area_data()
 	area_index = 0
 	_update_hud()
 	_rebuild_all()
@@ -153,6 +155,8 @@ func _unhandled_input(event: InputEvent) -> void:
 # of dead-center, or an off-centre click meant to remove a tile would also
 # get treated as empty ground and add a new one right next to it.
 func _add_point(pos: Vector2) -> void:
+	if not _can_edit():
+		return
 	var area_name := _current_area_name()
 	var list: Array = data.get(area_name, [])
 	for p in list:
@@ -172,6 +176,8 @@ func _add_point(pos: Vector2) -> void:
 
 
 func _remove_point(pos: Vector2) -> void:
+	if not _can_edit():
+		return
 	var area_name := _current_area_name()
 	var list: Array = data.get(area_name, [])
 	var idx := _find_point(list, pos)
@@ -183,6 +189,20 @@ func _remove_point(pos: Vector2) -> void:
 	ApronLayout.save_area_data(data)
 	_update_hud()
 	call_deferred("_rebuild_all")
+
+
+# A map that borrows its pads (the further robot destinations) has none of its
+# own, so `data` here is someone else's. Saving it would write all 110 borrowed
+# points into this map's slot and fork the copy the borrow exists to avoid, and
+# the first edit is exactly when that happens. Refused with a reason rather than
+# quietly ignored - the tool is the user's, and silence would read as a bug.
+func _can_edit() -> bool:
+	var source: String = str(Maps.entry().get("aprons_from", ""))
+	if source == "":
+		return true
+	print("%s borrows its pads from %s - edit them there."
+		% [Maps.display_name(), Maps.display_name(source)])
+	return false
 
 
 func _find_point(list: Array, pos: Vector2) -> int:
@@ -300,9 +320,19 @@ func _sync_world_aircraft() -> void:
 			# The hold the aircraft was given when it was dispatched, so the
 			# animation and the flight clock agree (Fleet.BULK_LAUNCH_STAGGER).
 			var departing := Fleet.get_aircraft(aircraft_id)
-			var hold: float = departing.launch_delay if departing else 0.0
-			if departing:
-				departing.launch_delay = 0.0
+			# TAKING OFF IS AN ANIMATION; BEING TAKEN OFF THE PAD IS NOT.
+			# This fired for anything that stopped being visible, so deleting a
+			# route - or selling an aircraft - played a full takeoff roll for a
+			# machine that went to the hangar, or that no longer exists at all.
+			# Only something actually in the air departs.
+			if departing == null or not departing.is_in_transit():
+				_world_aircraft[aircraft_id].queue_free()
+				_world_aircraft.erase(aircraft_id)
+				continue
+			# The hold the aircraft was given when it was dispatched, so the
+			# animation and the flight clock agree (Fleet.BULK_LAUNCH_STAGGER).
+			var hold: float = departing.launch_delay
+			departing.launch_delay = 0.0
 			_world_aircraft[aircraft_id].play_departure(hold)
 			_world_aircraft.erase(aircraft_id)
 

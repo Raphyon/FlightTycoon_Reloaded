@@ -7,6 +7,12 @@ extends HBoxContainer
 
 
 func _ready() -> void:
+	# The gear lives in TopBarRight but the panel it opens is a sibling of the
+	# whole HUD, so the wiring is done here rather than in another script whose
+	# only job would be one connect().
+	var gear := get_node_or_null("../TopBarRight/OptionsButton")
+	if gear:
+		gear.pressed.connect(_on_options_pressed)
 	Economy.money_changed.connect(_on_money_changed)
 	_on_money_changed(Economy.money)
 	Coins.coins_changed.connect(_on_coins_changed)
@@ -20,6 +26,12 @@ func _ready() -> void:
 	BuildingProgress.built_changed.connect(_on_people_changed)
 	Maps.map_changed.connect(_on_people_changed)
 	_on_people_changed()
+
+
+func _on_options_pressed() -> void:
+	var panel := get_node_or_null("../OptionsPanel")
+	if panel and panel.has_method("open"):
+		panel.open()
 
 
 func _on_money_changed(amount: int) -> void:

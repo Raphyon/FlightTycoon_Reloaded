@@ -3,12 +3,28 @@ extends Node
 signal fuel_changed(new_amount: int)
 signal price_changed(new_price: int)
 
-# Placeholder economy - not real game data. Price re-rolls periodically to
-# simulate a fluctuating fuel market, swinging up to 50% above or below the
-# base price each time.
+# Placeholder economy - not real game data. Price swings up to 50% above or
+# below the base each time the market moves.
 const BASE_PRICE := 10
 const PRICE_SWING := 0.5
-const PRICE_UPDATE_INTERVAL := 10.0  # seconds
+
+# The market moves ONCE AN HOUR, on the hour, and the price is a FUNCTION OF
+# WHICH HOUR IT IS rather than something that ticks while the game is open.
+# Two consequences, both the point:
+#
+#   * A price you don't like is one you wait out or eat. At the old ten-second
+#     re-roll there was no decision in it - the correct play was always to
+#     stand in the fuel shop for a few seconds until a cheap roll came up, so
+#     the market was noise wearing the costume of a market.
+#   * Quitting cannot reshuffle it. Accumulating a timer in _process meant the
+#     price re-rolled on every launch, which is the same exploit with an extra
+#     step. Derived from wall-clock time, the hour you are in gives the price
+#     it gives no matter how many times you relaunch.
+const PRICE_PERIOD := 3600.0
+# Fixed, so the sequence is reproducible: the same hour always yields the same
+# price. There is nothing here worth randomising per install, and a stable
+# sequence makes a reported price something we can actually reproduce.
+const PRICE_SEED := 24593
 const PRICE_HISTORY_LENGTH := 20
 
 # Enough for two full round trips in the starting 328 Jet, which burns its
@@ -16,39 +32,77 @@ const PRICE_HISTORY_LENGTH := 20
 # It used to be 20, from back when every aircraft burned a flat 5 - that is
 # now less than one round trip, so a fresh game stranded its own starter
 # aircraft at home with no way to earn the money to fuel it.
-var amount: int = 60:
+const STARTING_AMOUNT := 60
+
+var amount: int = STARTING_AMOUNT:
 	set(value):
 		amount = value
 		fuel_changed.emit(amount)
 
 var current_price: int = BASE_PRICE:
 	set(value):
+		if value == current_price:
+			return
 		current_price = value
-		price_history.append(value)
-		if price_history.size() > PRICE_HISTORY_LENGTH:
-			price_history.pop_front()
 		price_changed.emit(current_price)
 
-var price_history: Array[int] = []
+# The last PRICE_HISTORY_LENGTH hours, oldest first, ending with the one we are
+# in. DERIVED, not accumulated: the graph used to start empty on every launch
+# and grow a point at a time while you watched it, which is a picture of how
+# long the app has been open rather than of the market.
+var price_history: Array[int]:
+	get:
+		var slot := _slot_now()
+		var out: Array[int] = []
+		for i in range(PRICE_HISTORY_LENGTH - 1, -1, -1):
+			out.append(price_for_slot(slot - i))
+		return out
 
-var _price_timer := 0.0
+# Which hour we last told anybody about, so _process only does work when the
+# market actually moves.
+var _slot := -1
+var _check_timer := 0.0
 
 
 func _ready() -> void:
-	_reroll_price()
+	_apply_slot()
 
 
+# Checked once a second rather than every frame - the thing being watched
+# changes once an hour.
 func _process(delta: float) -> void:
-	_price_timer += delta
-	if _price_timer >= PRICE_UPDATE_INTERVAL:
-		_price_timer = 0.0
-		_reroll_price()
+	_check_timer += delta
+	if _check_timer < 1.0:
+		return
+	_check_timer = 0.0
+	if _slot_now() != _slot:
+		_apply_slot()
 
 
-func _reroll_price() -> void:
-	var low := BASE_PRICE * (1.0 - PRICE_SWING)
-	var high := BASE_PRICE * (1.0 + PRICE_SWING)
-	current_price = roundi(randf_range(low, high))
+func _apply_slot() -> void:
+	_slot = _slot_now()
+	current_price = price_for_slot(_slot)
+
+
+func _slot_now() -> int:
+	return int(floor(Time.get_unix_time_from_system() / PRICE_PERIOD))
+
+
+# The price during a given hour. Seeded through a string so neighbouring hours
+# land nowhere near each other - feeding sequential ints straight to an RNG
+# gives a market that drifts smoothly, which is not what a market does.
+func price_for_slot(slot: int) -> int:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = hash("%d:%d" % [PRICE_SEED, slot])
+	return roundi(rng.randf_range(BASE_PRICE * (1.0 - PRICE_SWING),
+		BASE_PRICE * (1.0 + PRICE_SWING)))
+
+
+# How long the current price has left. The shop shows this, because "wait it
+# out" is only a real choice if you can see what you would be waiting for.
+func seconds_until_next_price() -> float:
+	var elapsed := Time.get_unix_time_from_system() - float(_slot_now()) * PRICE_PERIOD
+	return maxf(0.0, PRICE_PERIOD - elapsed)
 
 
 func consume(units: int) -> bool:

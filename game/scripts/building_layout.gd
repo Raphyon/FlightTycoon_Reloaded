@@ -78,6 +78,10 @@ const BUILDINGS := [
 ]
 
 
+static func name_of(key: String) -> String:
+	return str(entry(key).get("name", key))
+
+
 static func price_of(key: String) -> int:
 	return int(entry(key).get("price", 0))
 

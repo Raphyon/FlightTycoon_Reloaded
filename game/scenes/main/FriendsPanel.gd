@@ -54,13 +54,16 @@ const TABS := [
 var _active_tab: int = Tab.FRIENDS
 var _count_label: Label
 var _empty_label: Label
+# Set while the panel is open to PICK a friend rather than to look at one - see
+# open_for_selection. Same arrangement as HangarPanel's _on_pick.
+var _on_pick := Callable()
 
 
 func _ready() -> void:
-	_close_button.pressed.connect(hide)
+	_close_button.pressed.connect(_on_closed)
 	# The reference uses a bottom-right arrow, not a full-width bar.
 	_close_button.visible = false
-	BackButton.add_to($Frame, hide)
+	BackButton.add_to($Frame, _on_closed)
 	get_tree().root.size_changed.connect(_fit_content)
 	Friends.friends_changed.connect(func() -> void:
 		if visible:
@@ -257,4 +260,57 @@ func _build_card(map_key: String) -> Control:
 
 
 func _on_card_pressed(map_key: String) -> void:
+	# Picking hands the answer back and closes; browsing opens the info popup.
+	# A card cannot do both, and picking wins while a picker is waiting on us.
+	if _on_pick.is_valid():
+		var cb := _on_pick
+		_on_pick = Callable()
+		hide()
+		cb.call(map_key)
+		return
 	get_node("../FriendInfoPanel").show_friend(map_key)
+
+
+# Open the list to CHOOSE a friend rather than to browse them - the route
+# screen's destination picker. Forces the friends tab, since requests and
+# crowds hold nothing you can fly to.
+#
+# This replaced cycling the destination by clicking the route screen's middle
+# column: with one destination that looked like a dead label, and with five it
+# is a guessing game where the only way to see your options is to click through
+# all of them. The friends list already draws them as cards.
+func open_for_selection(on_pick: Callable) -> void:
+	_on_pick = on_pick
+	_active_tab = Tab.FRIENDS
+	_sync_tab_buttons()
+	move_to_front()
+	show()
+	_refresh()
+
+
+# Closing without picking has to tell the caller, or the route screen stays
+# hidden behind a panel the player thinks they dismissed.
+func _on_closed() -> void:
+	var cb := _on_pick
+	_on_pick = Callable()
+	hide()
+	if cb.is_valid():
+		cb.call("")
+
+
+func _sync_tab_buttons() -> void:
+	var strip := _frame.get_node_or_null("TabStrip")
+	if strip == null:
+		return
+	for cell in strip.get_children():
+		for node in cell.get_children():
+			if node is TextureButton:
+				node.button_pressed = _tab_of_button(node) == _active_tab
+
+
+func _tab_of_button(button: TextureButton) -> int:
+	for i in range(TABS.size()):
+		var normal: String = "res://assets/buttons/%s" % TABS[i]["normal"]
+		if button.texture_normal and button.texture_normal.resource_path == normal:
+			return TABS[i]["tab"]
+	return -1

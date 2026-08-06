@@ -139,5 +139,7 @@ func _open_prop_shop() -> void:
 	var panel := get_node("../PropShopPanel")
 	if panel.open_for_first_free_plot():
 		hide()
+	elif not BuildingProgress.buildings_unlocked():
+		print("The Prop Shop opens with Zone2 - buy it in the Expansion Shop.")
 	else:
 		print("No empty construction sites - place some with G, or build on one directly.")

@@ -5,8 +5,10 @@ const ITEMS_PER_PAGE := 4
 
 @onready var _card_row: HBoxContainer = $Frame/SafeArea/Margin/VBox/CardRow
 @onready var _dots: HBoxContainer = $Frame/SafeArea/Margin/VBox/PageControls/Dots
-@onready var _prev_button: Button = $Frame/SafeArea/Margin/VBox/PageControls/PrevButton
-@onready var _next_button: Button = $Frame/SafeArea/Margin/VBox/PageControls/NextButton
+const ARROW_DIM := Color(1, 1, 1, 0.35)
+
+@onready var _prev_button: TextureButton = $Frame/SafeArea/Margin/VBox/PageControls/PrevButton
+@onready var _next_button: TextureButton = $Frame/SafeArea/Margin/VBox/PageControls/NextButton
 @onready var _close_button: Button = $Frame/SafeArea/Margin/VBox/CloseButton
 
 var _items: Array = []
@@ -82,6 +84,12 @@ func _show_page(page: int) -> void:
 
 	_prev_button.disabled = page == 0
 	_next_button.disabled = page >= _page_count() - 1
+	# The arrow art has no disabled variant, and a TextureButton draws the
+	# normal texture at full strength when disabled - so a dead arrow looked
+	# exactly like a live one. The "<" and ">" Buttons these replaced greyed
+	# themselves out; this puts that feedback back.
+	_prev_button.modulate = ARROW_DIM if _prev_button.disabled else Color.WHITE
+	_next_button.modulate = ARROW_DIM if _next_button.disabled else Color.WHITE
 	for i in range(_dots.get_child_count()):
 		_dots.get_child(i).text = "●" if i == page else "○"
 

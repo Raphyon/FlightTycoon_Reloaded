@@ -60,8 +60,9 @@ const AVATAR_Y := 0.11
 const AVATAR_W := 0.115
 const AVATAR_H := 0.47
 # The gap BETWEEN the two tiles, which is all the room there is - so what goes
-# here has to be a word or a clock, never a sentence. What the aircraft needs
-# doing is on the button instead, where there is room for it.
+# here has to be a word or a clock, never a sentence. It is information only:
+# what the aircraft needs DOING is offered by its bubble on the pad and by the
+# routes table, not here.
 const STATUS_X := 0.665
 const STATUS_Y := 0.27
 const ACTION_Y := 0.64
@@ -158,9 +159,9 @@ func _build() -> void:
 	_status.size = _px(AVATAR_TO_X - STATUS_X, 0.20)
 	_status.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 
-	# The wide art, because "Fuel & Depart (4)" does not fit the narrow one -
-	# and the label shrinks to the button rather than the button stretching to
-	# the label.
+	# The wide art, because "Build ($1200)" does not fit the narrow one - and
+	# the label shrinks to the button rather than the button stretching to the
+	# label.
 	var ab := _button((AVATAR_FROM_X + AVATAR_TO_X + AVATAR_W) * 0.5, ACTION_Y, WIDE_BUTTON_TEXTURE)
 	_action_button = ab[0]
 	_action_label = ab[1]
@@ -335,7 +336,7 @@ func _refresh(_unused = null) -> void:
 	_set_slots_visible(true)
 	# The robot airport is somewhere you visit. Its pads aren't yours to skin
 	# any more than they're yours to assign to.
-	var at_robot := Maps.current == Maps.ROBOT_MAP
+	var at_robot := Maps.is_robot_map()
 	_skin_frame.visible = not at_robot
 	_skin_preview.visible = not at_robot
 	_skin_button.visible = not at_robot
@@ -347,45 +348,46 @@ func _refresh(_unused = null) -> void:
 	_refresh_plane_slot(a)
 	_refresh_route_preview(a)
 
+	# ONE job: the route. Fuelling, departing, claiming and refuelling were all
+	# offered here too, and every one of them already had two other homes - the
+	# pad's own bubble (ApronSlot._set_callout_icon) and the routes table, which
+	# additionally does the whole fleet at once. A third copy on the panel you
+	# reach by clicking the aircraft was the least convenient of the three and
+	# the only one that pushed the route screen out - it owned the single button
+	# this panel has room for, so an occupied pad had no way back to its route.
+	#
+	# What this panel is for is the things nothing else offers: change the
+	# destination, change the aircraft, delete the route. All three live in
+	# RoutePickerPanel, so the button opens it and the status line stays as
+	# information - a word or a clock, never an action.
+	if Maps.is_robot_map():
+		# Someone else's airport. The aircraft here is mid-trip on a route set
+		# at home, and its bubble is how you claim and refuel it.
+		_hide_action()
+	else:
+		_set_action("Manage Route" if a else "Create Route", true)
+
 	if not a:
 		_status.text = "\u2192"
-		_set_action("Create Route", true)
 		return
 
 	var dest := Fleet.destination_of(a)
-	var fuel := Fleet.fuel_cost(a.model_key, dest)
-	# With the city's popularity bonus, so this reads what actually lands in
-	# your balance - see Fleet._grant_reward.
-	var payout := roundi(Fleet.payout_for(a.model_key, dest)
-		* BuildingProgress.popularity_multiplier())
 	match a.state:
 		FleetAircraft.State.PARKED:
-			# Out of range is a dead end, not a wait, so say so instead of
-			# offering a button that silently refuses.
-			if not Fleet.in_range(a.model_key, dest):
-				_status.text = "%d ~" % Fleet.distance_to(dest)
-				_set_action("Out of range", false)
-			else:
-				_status.text = "\u2192"
-				_set_action("Fuel & Depart (%d)" % fuel, FuelStore.amount >= fuel)
-		FleetAircraft.State.FLYING_OUT:
+			# Out of range is a dead end rather than a wait, and the fix for it
+			# is in the route screen the button now opens.
+			_status.text = ("%d ~" % Fleet.distance_to(dest)
+				if not Fleet.in_range(a.model_key, dest) else "\u2192")
+		FleetAircraft.State.FLYING_OUT, FleetAircraft.State.FLYING_BACK:
 			_status.text = _countdown(a.flight_time_left)
-			_hide_action()
 		FleetAircraft.State.AWAITING_DEST_CLAIM:
 			_status.text = "Arrived"
-			_set_action("Claim $%d" % payout, true)
 		FleetAircraft.State.AWAITING_DEST_REFUEL:
 			_status.text = "Claimed"
-			_set_action("Refuel & Return", true)
-		FleetAircraft.State.FLYING_BACK:
-			_status.text = _countdown(a.flight_time_left)
-			_hide_action()
 		FleetAircraft.State.AWAITING_HOME_CLAIM:
 			_status.text = "Landed"
-			_set_action("Claim $%d" % payout, true)
 		FleetAircraft.State.AWAITING_HOME_REFUEL:
 			_status.text = "Refuel"
-			_set_action("Refuel & Park (%d)" % fuel, FuelStore.amount >= fuel)
 
 
 # Legs run to hours at the far destinations, so a bare seconds count would read
@@ -432,7 +434,7 @@ func _refresh_plane_slot(a: FleetAircraft) -> void:
 			_plane_icon.texture = load(path)
 
 	# The robot airport is somewhere you visit, not somewhere you base aircraft.
-	if Maps.current == Maps.ROBOT_MAP:
+	if Maps.is_robot_map():
 		_plane_label.text = "Visiting"
 		_plane_button.disabled = true
 		_plane_button.modulate = DISABLED_MODULATE
@@ -456,26 +458,10 @@ func _on_plane_button_pressed() -> void:
 		get_node("../LiveryPickerPanel").show_for_aircraft(a.id)
 
 
+# Build the pad if it isn't built; otherwise the route screen, which is the
+# only thing this panel offers that is not already offered somewhere better.
 func _on_action_pressed() -> void:
 	if not (_apron and (_apron.built or ApronProgress.is_built(_apron_id))):
 		ApronProgress.build(_apron_id, _apron.area_name)
 		return
-	var a := Fleet.get_aircraft_at_apron(_apron_id)
-	if not a:
-		# An empty built pad's one action is to give it something to do, which
-		# is the route screen - it picks the aircraft and the destination
-		# together, so there is nothing to choose here first. This replaces the
-		# full-width "Set route" button that used to sit under the slots.
-		get_node("../RoutePickerPanel").show_for_apron(_apron_id)
-		return
-	match a.state:
-		FleetAircraft.State.PARKED:
-			Fleet.fuel_and_depart(a.id)
-		FleetAircraft.State.AWAITING_DEST_CLAIM:
-			Fleet.claim_destination_reward(a.id)
-		FleetAircraft.State.AWAITING_DEST_REFUEL:
-			Fleet.refuel_at_destination(a.id)
-		FleetAircraft.State.AWAITING_HOME_CLAIM:
-			Fleet.claim_home_reward(a.id)
-		FleetAircraft.State.AWAITING_HOME_REFUEL:
-			Fleet.refuel_at_home(a.id)
+	get_node("../RoutePickerPanel").show_for_apron(_apron_id)

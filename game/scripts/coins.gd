@@ -10,7 +10,9 @@ signal coins_changed(new_amount: int)
 # 100 is a testing float, not a designed grant: enough to buy a Paper Plane at
 # 5 and still have room for aprons, liveries and a coin aircraft or two without
 # an earn path existing. Drop it to something small once coins can be earned.
-var amount: int = 100:
+const DEFAULT_AMOUNT := 100
+
+var amount: int = DEFAULT_AMOUNT:
 	set(value):
 		amount = value
 		coins_changed.emit(amount)

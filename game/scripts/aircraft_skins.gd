@@ -73,6 +73,10 @@ const LIVERIES := {
 	"b787": [
 		{"key": "klm", "name": "KLM",
 			"body": "res://assets/aircraft/b787/body_klm_2x.png"},
+		{"key": "sharky", "name": "Sharky",
+			"body": "res://assets/aircraft/b787/body_sharky_2x.png"},
+		{"key": "flash", "name": "Flash",
+			"body": "res://assets/aircraft/b787/body_flash_2x.png"},
 	],
 	"b747": [
 		{"key": "yellow", "name": "Yellow",

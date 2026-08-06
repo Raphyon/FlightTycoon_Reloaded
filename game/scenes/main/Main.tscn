@@ -65,6 +65,11 @@
 [ext_resource type="Script" path="res://scenes/main/BuildingEditor.gd" id="66"]
 [ext_resource type="Script" path="res://scenes/main/Buildings.gd" id="67"]
 [ext_resource type="Script" path="res://scenes/main/PropShopPanel.gd" id="68"]
+[ext_resource type="Script" path="res://scenes/main/OptionsPanel.gd" id="70"]
+[ext_resource type="Texture2D" path="res://assets/ui/gear_icon.svg" id="71"]
+[ext_resource type="Script" path="res://scenes/main/BuildingInfoPanel.gd" id="72"]
+[ext_resource type="Texture2D" path="res://assets/buttons/button_arrow_left@2x.png" id="73"]
+[ext_resource type="Texture2D" path="res://assets/buttons/button_arrow_right@2x.png" id="74"]
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_bg"]
 
@@ -152,6 +157,17 @@ texture = ExtResource("36")
 expand_mode = 1
 stretch_mode = 0
 
+
+[node name="OptionsButton" type="TextureButton" parent="UI/TopBarRight"]
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -74.0
+offset_top = 4.0
+offset_right = -18.0
+offset_bottom = 60.0
+texture_normal = ExtResource("71")
+ignore_texture_size = true
+stretch_mode = 5
 [node name="TopBarLeft" type="TextureRect" parent="UI"]
 z_index = 100
 mouse_filter = 2
@@ -677,17 +693,23 @@ layout_mode = 2
 theme_override_constants/separation = 16
 alignment = 1
 
-[node name="PrevButton" type="Button" parent="UI/ShopPanel/Frame/SafeArea/Margin/VBox/PageControls" unique_id=179174484]
+[node name="PrevButton" type="TextureButton" parent="UI/ShopPanel/Frame/SafeArea/Margin/VBox/PageControls" unique_id=179174484]
 layout_mode = 2
-text = "<"
+custom_minimum_size = Vector2(40, 48)
+ignore_texture_size = true
+stretch_mode = 5
+texture_normal = ExtResource("73")
 
 [node name="Dots" type="HBoxContainer" parent="UI/ShopPanel/Frame/SafeArea/Margin/VBox/PageControls" unique_id=1175513873]
 layout_mode = 2
 theme_override_constants/separation = 6
 
-[node name="NextButton" type="Button" parent="UI/ShopPanel/Frame/SafeArea/Margin/VBox/PageControls" unique_id=668112403]
+[node name="NextButton" type="TextureButton" parent="UI/ShopPanel/Frame/SafeArea/Margin/VBox/PageControls" unique_id=668112403]
 layout_mode = 2
-text = ">"
+custom_minimum_size = Vector2(40, 48)
+ignore_texture_size = true
+stretch_mode = 5
+texture_normal = ExtResource("74")
 
 [node name="CloseButton" type="Button" parent="UI/ShopPanel/Frame/SafeArea/Margin/VBox" unique_id=1628004145]
 layout_mode = 2
@@ -754,17 +776,23 @@ layout_mode = 2
 theme_override_constants/separation = 16
 alignment = 1
 
-[node name="PrevButton" type="Button" parent="UI/ExpansionShopPanel/Frame/SafeArea/Margin/VBox/PageControls"]
+[node name="PrevButton" type="TextureButton" parent="UI/ExpansionShopPanel/Frame/SafeArea/Margin/VBox/PageControls"]
 layout_mode = 2
-text = "<"
+custom_minimum_size = Vector2(40, 48)
+ignore_texture_size = true
+stretch_mode = 5
+texture_normal = ExtResource("73")
 
 [node name="Dots" type="HBoxContainer" parent="UI/ExpansionShopPanel/Frame/SafeArea/Margin/VBox/PageControls"]
 layout_mode = 2
 theme_override_constants/separation = 6
 
-[node name="NextButton" type="Button" parent="UI/ExpansionShopPanel/Frame/SafeArea/Margin/VBox/PageControls"]
+[node name="NextButton" type="TextureButton" parent="UI/ExpansionShopPanel/Frame/SafeArea/Margin/VBox/PageControls"]
 layout_mode = 2
-text = ">"
+custom_minimum_size = Vector2(40, 48)
+ignore_texture_size = true
+stretch_mode = 5
+texture_normal = ExtResource("74")
 
 [node name="CloseButton" type="Button" parent="UI/ExpansionShopPanel/Frame/SafeArea/Margin/VBox"]
 layout_mode = 2
@@ -831,17 +859,23 @@ layout_mode = 2
 theme_override_constants/separation = 16
 alignment = 1
 
-[node name="PrevButton" type="Button" parent="UI/PropShopPanel/Frame/SafeArea/Margin/VBox/PageControls"]
+[node name="PrevButton" type="TextureButton" parent="UI/PropShopPanel/Frame/SafeArea/Margin/VBox/PageControls"]
 layout_mode = 2
-text = "<"
+custom_minimum_size = Vector2(40, 48)
+ignore_texture_size = true
+stretch_mode = 5
+texture_normal = ExtResource("73")
 
 [node name="Dots" type="HBoxContainer" parent="UI/PropShopPanel/Frame/SafeArea/Margin/VBox/PageControls"]
 layout_mode = 2
 theme_override_constants/separation = 6
 
-[node name="NextButton" type="Button" parent="UI/PropShopPanel/Frame/SafeArea/Margin/VBox/PageControls"]
+[node name="NextButton" type="TextureButton" parent="UI/PropShopPanel/Frame/SafeArea/Margin/VBox/PageControls"]
 layout_mode = 2
-text = ">"
+custom_minimum_size = Vector2(40, 48)
+ignore_texture_size = true
+stretch_mode = 5
+texture_normal = ExtResource("74")
 
 [node name="CloseButton" type="Button" parent="UI/PropShopPanel/Frame/SafeArea/Margin/VBox"]
 layout_mode = 2
@@ -901,6 +935,29 @@ size_flags_horizontal = 4
 theme_override_constants/h_separation = 30
 theme_override_constants/v_separation = 20
 columns = 4
+
+[node name="PageControls" type="HBoxContainer" parent="UI/HangarPanel/Frame/SafeArea/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 16
+alignment = 1
+
+[node name="PrevButton" type="TextureButton" parent="UI/HangarPanel/Frame/SafeArea/Margin/VBox/PageControls"]
+layout_mode = 2
+custom_minimum_size = Vector2(40, 48)
+ignore_texture_size = true
+stretch_mode = 5
+texture_normal = ExtResource("73")
+
+[node name="Dots" type="HBoxContainer" parent="UI/HangarPanel/Frame/SafeArea/Margin/VBox/PageControls"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="NextButton" type="TextureButton" parent="UI/HangarPanel/Frame/SafeArea/Margin/VBox/PageControls"]
+layout_mode = 2
+custom_minimum_size = Vector2(40, 48)
+ignore_texture_size = true
+stretch_mode = 5
+texture_normal = ExtResource("74")
 
 [node name="CloseButton" type="Button" parent="UI/HangarPanel/Frame/SafeArea/Margin/VBox" unique_id=1994010458]
 layout_mode = 2
@@ -1038,17 +1095,18 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("60")
 
-[node name="LiveryPickerPanel" type="PanelContainer" parent="UI"]
-theme_override_styles/panel = SubResource("StyleBoxEmpty_bg")
-anchors_preset = 8
+[node name="LiveryPickerPanel" type="Control" parent="UI"]
+visible = false
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -260.0
-offset_top = -150.0
-offset_right = 260.0
-offset_bottom = 150.0
+offset_left = -339.0
+offset_top = -162.0
+offset_right = 340.0
+offset_bottom = 163.0
+grow_horizontal = 2
+grow_vertical = 2
 script = ExtResource("65")
 
 [node name="RoutePickerPanel" type="Control" parent="UI"]
@@ -1165,6 +1223,34 @@ theme_override_constants/separation = 8
 [node name="CloseButton" type="Button" parent="UI/AssignPickerPanel/Margin/VBox"]
 layout_mode = 2
 text = "Close"
+
+[node name="OptionsPanel" type="Control" parent="UI"]
+visible = false
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -339.0
+offset_top = -162.0
+offset_right = 340.0
+offset_bottom = 163.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("70")
+
+[node name="BuildingInfoPanel" type="Control" parent="UI"]
+visible = false
+anchor_left = 0.5
+anchor_right = 0.5
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = -300.0
+offset_top = -160.0
+offset_right = 299.0
+offset_bottom = -15.0
+grow_horizontal = 2
+grow_vertical = 0
+script = ExtResource("72")
 
 [node name="ZoneUnlockPanel" type="PanelContainer" parent="UI" unique_id=785618106]
 theme_override_styles/panel = SubResource("StyleBoxEmpty_bg")
