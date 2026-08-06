@@ -41,7 +41,7 @@ const EDITORS := [
 	},
 	{
 		"node": "RotorEditor", "label": "Rotor placement", "key": "R",
-		"help": "M switch model  ·  1-9 pick rotor  ·  click to place  ·  B behind/front of hull",
+		"help": "M model  ·  1-9 pick rotor  ·  click place  ·  - + disc size  ·  B behind/front",
 	},
 ]
 

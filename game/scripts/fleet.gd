@@ -276,13 +276,29 @@ const WORLD_SPRITES := {
 		"body": "res://assets/aircraft/crj700/body_2x.png",
 		"shadow": "res://assets/aircraft/crj700/shadow_2x.png",
 	},
+	# TWIN TURBOPROPS, and they had no rotor entry at all - which also kept them
+	# out of RotorEditor, since it discovers its model list from whoever
+	# declares rotors. So the two aircraft that most obviously need props were
+	# the two you could not place props on.
+	#
+	# The offsets are STARTING POINTS derived from your own Dash 8 rig in
+	# data/aircraft_rig.json, scaled by airframe width (114 and 113 against its
+	# 107) - the three share a layout, so its hubs land close on these. Place
+	# them properly with RotorEditor: R, M to reach the model, 1/2 for the hub,
+	# click to set, - and + for the disc.
 	"atr72": {
 		"body": "res://assets/aircraft/atr72/body_2x.png",
 		"shadow": "res://assets/aircraft/atr72/shadow_2x.png",
+		"rotor_spin_frames": A400M_PROP,
+		"rotor_offsets": [Vector2(-36.5, 1.2), Vector2(-1.6, 19.1)],
+		"rotor_scale": 0.78,
 	},
 	"an140": {
 		"body": "res://assets/aircraft/an140/body_2x.png",
 		"shadow": "res://assets/aircraft/an140/shadow_2x.png",
+		"rotor_spin_frames": A400M_PROP,
+		"rotor_offsets": [Vector2(-36.2, 1.2), Vector2(-1.6, 18.9)],
+		"rotor_scale": 0.78,
 	},
 	"dhc8": {
 		"body": "res://assets/aircraft/dhc8/body_2x.png",
@@ -304,7 +320,7 @@ const WORLD_SPRITES := {
 		"body": "res://assets/aircraft/dhc6/body_2x.png",
 		"shadow": "res://assets/aircraft/dhc6/shadow_2x.png",
 		"rotor_spin_frames": A400M_PROP,
-		"rotor_offsets": [Vector2(-30, 4), Vector2(-4, 20)],
+		"rotor_offsets": [Vector2(-30.1, 1.0), Vector2(-1.3, 15.7)],
 		"rotor_scale": 0.70,
 	},
 	"f15": {

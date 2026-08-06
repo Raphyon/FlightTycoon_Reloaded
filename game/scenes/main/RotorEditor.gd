@@ -15,7 +15,7 @@ extends Node2D
 #   B          toggle whether the selected rotor draws behind the fuselage
 #              (an inboard prop on the far wing is partly hidden by the hull,
 #              so its disc must not paint over it)
-#   [ / ]      shrink/grow the selected rotor's disc. The propliners borrow the
+#   - / +      shrink/grow the selected rotor's disc (also , and .). The propliners borrow the
 #              A400M's prop art at four different airframe sizes, so a disc
 #              placed perfectly can still be the wrong size - without this the
 #              guessing would just move from position to scale.
@@ -64,6 +64,21 @@ func _ready() -> void:
 	_hud = EditorHud.create(self)
 
 
+# -1, 0 or +1 step from what was actually typed. Brackets still work for anyone
+# whose layout has them somewhere reachable.
+func _scale_step(event: InputEventKey) -> float:
+	match char(event.unicode):
+		"-", "_", ",":
+			return -SCALE_STEP
+		"+", "=", ".":
+			return SCALE_STEP
+	if event.keycode == KEY_BRACKETLEFT:
+		return -SCALE_STEP
+	if event.keycode == KEY_BRACKETRIGHT:
+		return SCALE_STEP
+	return 0.0
+
+
 func _model_key() -> String:
 	return _model_keys[model_index] if model_index < _model_keys.size() else ""
 
@@ -88,9 +103,14 @@ func _input(event: InputEvent) -> void:
 				_apply_behind()
 				_save()
 				_update_hud()
-		elif editing and (event.keycode == KEY_BRACKETLEFT or event.keycode == KEY_BRACKETRIGHT):
+		elif editing and _scale_step(event) != 0.0:
+			# Matched on the CHARACTER rather than the keycode: keycode is what
+			# the key means under the current keyboard layout, and on a Nordic
+			# one the key that types "-" is not KEY_MINUS and "[" is Alt+8. The
+			# bracket bindings this replaced worked on a US layout and nowhere
+			# else.
 			if selected < _scales.size():
-				var step := SCALE_STEP if event.keycode == KEY_BRACKETRIGHT else -SCALE_STEP
+				var step := _scale_step(event)
 				_scales[selected] = clampf(_scales[selected] + step, SCALE_MIN, SCALE_MAX)
 				_apply_scales()
 				_save()
