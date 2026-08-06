@@ -66,7 +66,7 @@ GAME = os.path.join(ROOT, "game")
 
 # What a rational player buys first when they can afford several things. This
 # is a POLICY, not a fact about the game - change it and the report changes.
-BUY_PRIORITY = ["pad", "aircraft", "zone", "building"]
+BUY_PRIORITY = ["coin_aircraft", "pad", "aircraft", "zone", "building"]
 
 
 # --------------------------------------------------------------------------
@@ -129,6 +129,8 @@ class Game:
         self.xp_coeff = const(prog, "XP_COEFFICIENT")
         self.xp_exp = const(prog, "XP_EXPONENT")
 
+        m = re.search(r'const STARTER_MODEL := "(\w+)"', gd("fleet.gd"))
+        self.starter_model = m.group(1) if m else "dc3"
         self.start_money = const(gd("economy.gd"), "STARTING_MONEY", int)
         self.start_coins = const(gd("coins.gd"), "DEFAULT_AMOUNT", int)
         self.start_fuel = const(gd("fuel_store.gd"), "STARTING_AMOUNT", int)
@@ -157,6 +159,9 @@ class Game:
         # the only thing that scales against a fleet that pays for itself every
         # few minutes. See ApronProgress.cost_for_area.
         self.pad_growth = const(ap, "PAD_COST_GROWTH")
+        # "Zone1 and i < 5" in ApronLayout.build_area_aprons.
+        m = re.search(r'area_name == "Zone1" and i < (\d+)', gd("apron_layout.gd"))
+        self.free_pads = int(m.group(1)) if m else 0
         self.zone_req = {m.group(1): (int(m.group(2)), int(m.group(3))) for m in re.finditer(
             r'"(\w+)": \{"level": (\d+), "cost": (\d+)\}', gd("zone_progress.gd"))}
 
@@ -223,8 +228,18 @@ class Sim:
         self.xp = 0.0
         self.level = 1
         self.fleet = []            # [{"a": entry, "state": str, "left": min}]
-        self.pads = 0
-        self.pads_in = {}          # area -> how many built there
+        # Zone1's first five pads come FREE - see ApronLayout.build_area_aprons.
+        # The model was buying all five, at 500 rising by 1.35 each, so it
+        # opened $1,175 down against a $3,000 second aircraft and made the
+        # first ten minutes look far poorer than the game actually is.
+        # A fresh game is HANDED a DC-3 on apron 1 - see Fleet.grant_starter.
+        # Modelled here or the tool measures an opening the game no longer has.
+        starter = [a for a in g.aircraft if a["key"] == g.starter_model]
+        if starter:
+            self.fleet.append({"a": starter[0], "state": "idle",
+                               "left": 0.0, "clouds": 1})
+        self.pads = self.g.free_pads
+        self.pads_in = {"Zone1": self.g.free_pads}
         self.zones = set()
         self.built = []            # building entries
         self.rent_ready = []       # minutes remaining per built building
@@ -235,6 +250,7 @@ class Sim:
         self.coins_found = 0
         self.affinity = {}         # model key -> legs flown, for the speed bonus
         self.coin_per_min = g.coin_per_min
+        self.no_coins = False
         self.coin_amount = g.coin_amount
 
     # -- helpers ---------------------------------------------------------
@@ -294,10 +310,8 @@ class Sim:
         return max(fits) if fits else min(options)
 
     # -- a session -------------------------------------------------------
-    def session(self, until_next):
-        # Collect everything waiting. Each aircraft needs several taps to go
-        # round; a session is assumed long enough to service the fleet, which
-        # is generous and worth remembering when reading the output.
+    def _service(self):
+        """Collect everything that is waiting: arrivals, then rent."""
         for f in self.fleet:
             a = f["a"]
             if f["state"] == "arrived":
@@ -322,31 +336,71 @@ class Sim:
                     self.coins += self.coin_amount
                     self.coins_found += self.coin_amount
 
-        self.buy()
+    def _dispatch(self, horizon):
+        """Send everything idle, buying the fuel it needs.
 
-        # Dispatch everything idle, buying the fuel it needs.
+        `horizon` is how long until the player can next act - the rest of this
+        sitting plus the gap after it - which is what decides how far a route
+        is worth sending.
+        """
         for f in self.fleet:
             a = f["a"]
-            if f["state"] in ("idle", "return_ready"):
-                need = a["fuel"]
-                if self.fuel < need:
-                    # Smallest bundle that covers the shortfall - you cannot
-                    # buy 12 units of fuel, only 50, 500, 5000 or 50000.
-                    short = need - self.fuel
-                    want = next((q for q in self.g.fuel_bundles if q >= short),
-                                self.g.fuel_bundles[-1])
-                    cost = want * self.g.fuel_price
-                    if self.money >= cost:
-                        self.money -= cost
-                        self.fuel += want
-                if self.fuel >= need:
-                    self.fuel -= need
-                    # The return leg flies the route it went out on - it is the
-                    # same route, and the aircraft is at the far end of it.
-                    if f["state"] == "idle":
-                        f["clouds"] = self.route_for(a, until_next)
-                    f["left"] = self.leg_minutes_for(a, f["clouds"])
-                    f["state"] = "out" if f["state"] == "idle" else "back"
+            if f["state"] not in ("idle", "return_ready"):
+                continue
+            need = a["fuel"]
+            if self.fuel < need:
+                # Smallest bundle that covers the shortfall - you cannot buy 12
+                # units of fuel, only 50, 500, 5000 or 50000.
+                short = need - self.fuel
+                want = next((q for q in self.g.fuel_bundles if q >= short),
+                            self.g.fuel_bundles[-1])
+                cost = want * self.g.fuel_price
+                if self.money >= cost:
+                    self.money -= cost
+                    self.fuel += want
+            if self.fuel >= need:
+                self.fuel -= need
+                # The return leg flies the route it went out on - it is the
+                # same route, and the aircraft is at the far end of it.
+                if f["state"] == "idle":
+                    f["clouds"] = self.route_for(a, horizon)
+                f["left"] = self.leg_minutes_for(a, f["clouds"])
+                f["state"] = "out" if f["state"] == "idle" else "back"
+
+    def session(self, until_next):
+        """One sitting at the controls, played out minute by minute.
+
+        THIS USED TO BE A SINGLE PASS. Collect, buy, dispatch, and then the
+        caller jumped the clock by the whole session - so every aircraft made
+        at most ONE state transition per sitting, and the round trip
+        idle -> out -> arrived -> return_ready -> back -> home takes four of
+        them. At four sessions a day that was one round trip per aircraft per
+        DAY, while a cloud-1 leg is two minutes long.
+
+        The early game is all short-haul, so this understated it enormously -
+        which is why the model limped to level 11 in a week when a real player
+        reaches level 19 in an afternoon. A sitting now runs a real clock:
+        service what has landed, spend, dispatch, skip to the next landing, and
+        go round again until the minutes are used up.
+        """
+        remaining = self.session_len
+        after = max(0.0, until_next - self.session_len)
+        # Bounded purely as a guard against a zero-length leg spinning forever;
+        # a five-minute sitting with one-minute legs uses about six.
+        for _ in range(500):
+            self._service()
+            self.buy()
+            self._dispatch(remaining + after)
+            if remaining <= 0:
+                return
+            flying = [f["left"] for f in self.fleet if f["state"] in ("out", "back")]
+            # Nothing in the air and nothing dispatchable - the rest of the
+            # sitting cannot change anything, so skip to the end of it.
+            step = remaining if not flying else min(min(flying), remaining)
+            if step <= 0:
+                step = remaining
+            self.advance(step)
+            remaining -= step
 
     # -- spending --------------------------------------------------------
     def fuel_reserve(self):
@@ -377,6 +431,19 @@ class Sim:
                         self.money -= cost
                         self.pads += 1
                         self.pads_in[zone] = self.pads_in.get(zone, 0) + 1
+                        changed = True
+                elif what == "coin_aircraft" and not self.no_coins:
+                    # ShopCatalog.unlocked() lets a coin aircraft ignore the
+                    # level gate entirely - "the pay-to-win lane, available
+                    # from the first minute". With 100 free coins that is an
+                    # Ark on day one, earning 150x the starter on the same
+                    # two-minute hop. Leaving it out modelled a player who
+                    # ignores the strongest move in the game.
+                    best = self._best_coin_aircraft()
+                    if best and self.free_pads() > 0:
+                        self.coins -= best["price"]
+                        self.fleet.append({"a": best, "state": "idle",
+                                           "left": 0.0, "clouds": 1})
                         changed = True
                 elif what == "aircraft":
                     best = self._best_affordable_aircraft()
@@ -484,6 +551,19 @@ class Sim:
                 best, best_rate = a, rate
         return best
 
+    def _best_coin_aircraft(self):
+        """Best coin aircraft the float can afford, ranked on the NEAREST
+        destination - a new account has only the distance-1 robot unlocked, so
+        ranking on max range would pick something it cannot fly yet."""
+        best, best_rate = None, 0.0
+        for a in self.g.aircraft:
+            if a.get("currency") != "coins" or a["price"] > self.coins:
+                continue
+            rate = self.g.payout(a, 1) / self.g.leg_minutes(a["force"], 1)
+            if rate > best_rate:
+                best, best_rate = a, rate
+        return best
+
     def _best_affordable_building(self):
         best, best_rate = None, 0.0
         for b in self.g.buildings:
@@ -551,8 +631,8 @@ class Sim:
                 # sessions, or the whole night after the last one. It is what
                 # decides how far this session's flights are sent.
                 last = s == self.sessions - 1
+                # session() advances its own clock now, so no advance here.
                 self.session(self.session_len + (self.night if last else self.gap))
-                self.advance(self.session_len)
                 t += self.session_len
                 if day == 1 and s == 0:
                     marks["first session"] = self.snapshot(t)
@@ -700,6 +780,8 @@ def main():
     ap.add_argument("--cohort", type=int, default=0, metavar="N",
                     help="run N players per archetype and report min/mean/max")
     ap.add_argument("--seed", type=int, default=0)
+    ap.add_argument("--no-coins", action="store_true",
+                    help="never spend the coin float - models an earned-only run")
     ap.add_argument("--coins", type=int, default=0, metavar="N",
                     help="N players per archetype; report coin-lottery yield")
     ap.add_argument("--completion", type=int, default=0, metavar="N",
@@ -730,6 +812,7 @@ def main():
         return
 
     sim = Sim(g, args.sessions, args.minutes)
+    sim.no_coins = args.no_coins
     marks = sim.run(args.days)
 
     print("  %-14s %5s %10s %6s %5s %5s %6s %8s" %

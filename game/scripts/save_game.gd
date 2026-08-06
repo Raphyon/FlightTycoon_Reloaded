@@ -80,6 +80,11 @@ func save() -> void:
 func _load() -> void:
 	_loaded = true
 	if not FileAccess.file_exists(SAVE_PATH):
+		# No save at all, so this is a brand-new game: hand over the starter
+		# DC-3. Done here rather than in Fleet._ready because this autoload
+		# comes up last and is the only one that knows a fresh game from a
+		# loaded one - see the order in project.godot.
+		Fleet.grant_starter()
 		return
 	var f := FileAccess.open(SAVE_PATH, FileAccess.READ)
 	if not f:
@@ -148,6 +153,10 @@ func reset_to_defaults() -> void:
 	Progression.level = 1
 	Fleet.aircraft.clear()
 	Fleet.reset_ids()
+	# A reset is a fresh game, and a fresh game is handed a DC-3 on apron 1 -
+	# see Fleet._ready. Clearing to nothing would drop the player into exactly
+	# the opening that was just fixed.
+	Fleet.grant_starter()
 	ApronProgress.built_ids.clear()
 	ZoneProgress.unlocked_zones.clear()
 	AircraftAffinity.reset()

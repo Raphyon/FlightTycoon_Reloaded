@@ -545,13 +545,41 @@ func _emit_changed() -> void:
 
 
 func _ready() -> void:
-	# A fresh game owns NOTHING. It used to be handed a free DC-3 parked on
-	# apron 1; buying the first aircraft yourself is the opening now, which is
-	# what Economy.STARTING_MONEY is sized for.
+	# A fresh game is HANDED a DC-3, parked on the first apron.
 	#
-	# STARTER_MODEL still exists and is still the DC-3 - it is the fallback for
-	# a save entry missing its model, not a thing that gets granted.
+	# It briefly wasn't - buying your own first aircraft was the opening, and
+	# STARTING_MONEY was sized for that. Two things were wrong with it.
+	#
+	# The opening was five minutes of tapping ONE aircraft back and forth: the
+	# DC-3 costs 3,000 of a 5,000 start, and the 2,000 left cannot buy a second
+	# one. Measured in tools/econ_sim.py, granting the aircraft and keeping the
+	# money reaches a second aircraft at minute 1 instead of minute 6, and five
+	# aircraft at minute 12 instead of 24. Granting it and NOT keeping the money
+	# changes nothing at all, which is what identifies the real wall: whether
+	# 3,000 is affordable on the first minute, not whether you own a plane.
+	#
+	# And it made a dead end reachable. With no aircraft and 5,000 in hand, a
+	# 3,000 building leaves 2,000 against a 3,000 aircraft - nothing that flies,
+	# and one building to tap. BuildingProgress gates the Prop Shop behind Zone2
+	# partly for this reason; owning an aircraft from the first frame removes
+	# the hole itself rather than fencing it off.
+	# Granted by SaveGame, not here: it is the last autoload to come up, so it
+	# is the only one that can tell a brand-new game from a loaded one, and
+	# Fleet cannot ask it anything at its own _ready. See SaveGame._load.
 	pass
+
+
+# The free DC-3, on the first apron. Called on a fresh game and on a reset -
+# the two are the same thing and must hand out the same thing.
+func grant_starter() -> void:
+	var a := FleetAircraft.new(_next_id, STARTER_MODEL)
+	_next_id += 1
+	# Apron 1 is Zone1's first pad, which is one of the five that come free -
+	# see ApronLayout.build_area_aprons. A granted aircraft with nowhere to
+	# stand would be an idle one in the hangar, which is not the same gift.
+	a.assigned_apron_id = 1
+	aircraft.append(a)
+	_emit_changed()
 
 
 # Aircraft ids restart from 1 on a reset, so a fresh game reads like a fresh
