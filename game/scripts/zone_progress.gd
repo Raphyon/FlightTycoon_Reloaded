@@ -7,42 +7,38 @@ const SAVE_PATH := "res://data/zone_progress.json"
 # Level + one-time money cost to unlock each zone (separate from the per-apron
 # build costs in ApronProgress). Zone1 is free - it's where you start.
 #
-# LEVELS are the user's, unchanged. COSTS are set against what you can actually
-# afford when the level gate opens, which is NOT the same as what the zone is
-# worth: an earlier pass priced these off income rate and got Zone2 badly
-# wrong - level 10 arrives around 12 minutes in with about 9,900 to your name,
-# against a 25,000 price. The gate opened and then you waited.
+# THE LEVELS ARE WHAT PACES THE GAME. Not the costs - that was measured, and it
+# is worth writing down because a lot of effort went the wrong way first.
 #
-# Measured with the full economy (buying pads and aircraft too, which is where
-# the money really goes), these give no wait at all on the first three and a
-# real but bounded save on the last three.
-# RESCALED with the aircraft ladder. The levels above Zone2/DarkZone used to run
-# 40 -> 175, which under the XP curve was tens of hours for a zone nobody would
-# reach; the fleet now finishes at level 36 (see ShopCatalog). Zones deliberately
-# run PAST the fleet, to 50, so there is still something to earn once you own
-# every aircraft.
+# Quadrupling every price here moves a casual player from 9.5 hours to 10.0.
+# Raising these LEVELS by 1.4x moves them to 26, and a regular player to 44 -
+# which is the 40-hour target. Money is never the constraint once a zone's gate
+# is level-based: you are always rich enough and never high enough. Pad prices,
+# zone prices and the coin float were all tuned before this was understood, and
+# all three were absorbed without trace (see tools/econ_sim.py --completion).
 #
-# Zone2 at 10 and DarkZone at 20 are the user's, unchanged - level 10 is still
-# the fifteen-minute mark, and 10 -> 20 is still the "another half hour" the
-# pacing target asks for.
+# So these are the user's original numbers scaled by 1.4, keeping the shape of a
+# ladder they set by feel. The alternative was scaling Progression's XP curve
+# instead, which reaches the same pacing - but that curve is fitted to two real
+# saves from the original game and matches both to 0.00%, and these levels are
+# ours. Given a choice between overriding a measurement and rescaling a
+# judgement, rescale the judgement.
 #
-# COSTS doubled across the board. Not a rebalance: the fare went from 8 to 15
-# and every aircraft price went from halved to live, so holding these would have
-# quietly made every zone half price against the fleet it competes with for
-# money.
+# COSTS are unchanged and were set against what you can actually afford when the
+# gate opens, which is not the same as what a zone is worth.
 const ZONE_REQUIREMENTS := {
-	"Zone2": {"level": 10, "cost": 16000},
-	"DarkZone": {"level": 20, "cost": 24000},
-	"Forest": {"level": 26, "cost": 60000},
-	"Desert": {"level": 30, "cost": 150000},
-	"Beach": {"level": 34, "cost": 260000},
-	"Snow": {"level": 38, "cost": 420000},
+	"Zone2": {"level": 14, "cost": 16000},
+	"DarkZone": {"level": 28, "cost": 24000},
+	"Forest": {"level": 36, "cost": 60000},
+	"Desert": {"level": 42, "cost": 150000},
+	"Beach": {"level": 48, "cost": 260000},
+	"Snow": {"level": 53, "cost": 420000},
 	# Dreamland and the carrier - PLACEHOLDER level/cost, not from the user,
 	# continuing the homeland curve past Snow.
-	"Dreamland1": {"level": 41, "cost": 600000},
-	"Dreamland2": {"level": 44, "cost": 900000},
-	"Dreamland3": {"level": 47, "cost": 1300000},
-	"Carrier": {"level": 50, "cost": 1900000},
+	"Dreamland1": {"level": 57, "cost": 600000},
+	"Dreamland2": {"level": 62, "cost": 900000},
+	"Dreamland3": {"level": 66, "cost": 1300000},
+	"Carrier": {"level": 70, "cost": 1900000},
 }
 
 var unlocked_zones: Dictionary = {}  # area_name -> true, persisted

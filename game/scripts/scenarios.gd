@@ -9,7 +9,9 @@ extends Node
 # that a bubble is unreachable, or that forty aircraft on one screen is
 # unreadable. These are for LOOKING at the game, not for measuring it; the
 # numbers each one sets are taken from tools/econ_sim.py so they are at least a
-# plausible shape rather than round figures picked by hand.
+# plausible shape rather than round figures picked by hand. The levels track the
+# 1.4x stretch of the zone gates - a scenario has to clear the gates of the zones
+# it claims to have bought.
 #
 # DEBUG ONLY. Reachable from the F1 menu, never from normal play. Each applies
 # on top of a full reset, so a scenario is always the same scenario and never
@@ -20,28 +22,28 @@ extends Node
 const SCENARIOS := {
 	"early": {
 		"label": "Early  (~15 min in)",
-		"level": 9, "money": 6000, "coins": 100, "fuel": 120,
+		"level": 13, "money": 6000, "coins": 15, "fuel": 120,
 		"zones": [], "pads": 8,
 		"fleet": {"dc3": 3, "dhc6": 2, "atr72": 2},
 		"buildings": 0,
 	},
 	"mid": {
 		"label": "Mid  (~1.5 hrs in)",
-		"level": 20, "money": 180000, "coins": 60, "fuel": 900,
+		"level": 28, "money": 180000, "coins": 60, "fuel": 900,
 		"zones": ["Zone2", "DarkZone"], "pads": 14,
 		"fleet": {"crj700": 6, "an140": 5, "328jet": 5, "dc6": 4, "tu104": 3},
 		"buildings": 14,
 	},
 	"late": {
 		"label": "Late  (~3 hrs in)",
-		"level": 30, "money": 2500000, "coins": 40, "fuel": 4000,
+		"level": 42, "money": 2500000, "coins": 40, "fuel": 4000,
 		"zones": ["Zone2", "DarkZone", "Forest", "Desert"], "pads": 18,
 		"fleet": {"a319": 8, "b727": 8, "b707": 6, "a300": 6, "dc10": 5, "b787": 4},
 		"buildings": 30,
 	},
 	"endgame": {
 		"label": "Endgame  (everything)",
-		"level": 40, "money": 50000000, "coins": 250, "fuel": 50000,
+		"level": 56, "money": 50000000, "coins": 250, "fuel": 50000,
 		"zones": ["Zone2", "DarkZone", "Forest", "Desert", "Beach", "Snow"],
 		"pads": 999,
 		"fleet": {"747": 10, "b747": 10, "a380-300": 10, "an-225": 8,

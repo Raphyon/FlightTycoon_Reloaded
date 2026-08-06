@@ -48,14 +48,17 @@ TARGET_WIDTH = 200
 # plot's 200px footprint would make the building every flight departs from
 # smaller than the cafe next door.
 #
-# 589 comes from the palms: the terminal art has four of them, the background
-# art has fifteen, and matching their crown widths puts the terminal at 0.765 of
-# its source. That is a measurement rather than a judgement, but the two palm
-# references in this project disagree - the standalone palm cut from the sprite
-# sheet is a smaller variety and would argue for 371 - so this is a STARTING
-# POINT. Fine-tune it in game with LandmarkEditor's [ and ] and the scale is
-# saved with the placement; change this only if the base art needs re-deriving.
-WIDTHS = {"terminal": 589}
+# 295 is the size it was actually placed at in game, not a solve. Two earlier
+# attempts to derive it disagreed badly: matching the terminal art's own palm
+# trees against the BACKGROUND's palms gave 589, and matching them against the
+# palm cut from the sprite sheet gave 371. The background palms turned out to be
+# a larger variety than the ones drawn beside the terminal, so both references
+# were wrong and the answer came from looking at it.
+#
+# It sat at 589 with a 0.5 scale saved on the placement, which drew the whole
+# building at half resolution. Deriving at the size it is actually used at puts
+# the scale back to 1.0 and the pixels back.
+WIDTHS = {"terminal": 295}
 
 
 def main() -> None:

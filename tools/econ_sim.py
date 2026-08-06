@@ -601,15 +601,16 @@ class Sim:
         return self.days_played * self.sessions * self.session_len
 
     # Everything the game has to give. Aircraft are not in here because the
-    # model buys the best it can afford rather than collecting the set - level
-    # 36 is the last unlock in ShopCatalog, so reaching it means the whole
-    # ladder is open.
+    # model buys the best it can afford rather than collecting the set - the top
+    # of ShopCatalog is read from the catalogue rather than hardcoded, so
+    # rescaling the ladder cannot leave this measuring the wrong thing.
     def _check_milestones(self):
         done = {
             "all zones": len(self.zones) >= len(self.g.zone_req),
             "all pads": self.pads >= sum(self.g.pads.values()),
             "all plots": len(self.built) >= self.g.plots,
-            "fleet ladder": self.level >= 36,
+            "fleet ladder": self.level >= max(
+                a["level"] for a in self.g.aircraft if a.get("currency") != "coins"),
         }
         for name, hit in done.items():
             if hit and name not in self.milestones:
