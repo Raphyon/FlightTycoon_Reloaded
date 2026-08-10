@@ -41,12 +41,13 @@ func rebuild() -> void:
 	for child in get_children():
 		if not (child is Sprite2D):
 			child.queue_free()
-	# No sites at all until the Prop Shop opens. Drawing them earlier would put
-	# 42 construction sites on the map advertising a shop you cannot use, and
-	# the camera is clamped away from them anyway.
-	if not BuildingProgress.buildings_unlocked():
-		return
+	# ONLY THE PLOTS WHOSE ZONE YOU OWN. All 42 used to be drawn at once, which
+	# put construction sites across ground the camera will not even travel to -
+	# and made the whole city appear the moment one zone was bought. A plot in a
+	# locked zone is not scenery, it is a thing you have not unlocked yet.
 	for plot in BuildingLayout.load_data():
+		if not BuildingProgress.plot_is_available(int(plot.get("id", 0))):
+			continue
 		var slot := Node2D.new()
 		slot.set_script(SLOT_SCRIPT)
 		add_child(slot)

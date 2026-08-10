@@ -28,9 +28,6 @@ const GHOST_ALPHA := 0.5
 const SCALE_STEP := 0.05
 const SCALE_MIN := 0.1
 const SCALE_MAX := 3.0
-# How far the pointer may travel between press and release and still count as a
-# click rather than a pan.
-const CLICK_SLOP := 6.0
 
 # A SETTER, not a plain flag: the F1 menu turns editors on by assigning to this
 # directly (DebugMenu._on_editor_toggled), so anything that has to happen when
@@ -42,7 +39,7 @@ var editing := false:
 		if editing == value:
 			return
 		editing = value
-		_pressed = false
+		_click.reset()
 		if editing:
 			scale_factor = _placed_scale(_kind())
 		_sync_ghost()
@@ -56,8 +53,7 @@ var scale_factor := 1.0
 
 var _ghost: Sprite2D
 var _hud: EditorHud
-var _press_at := Vector2.ZERO
-var _pressed := false
+var _click := ClickDrag.new()
 
 
 func _ready() -> void:
@@ -107,27 +103,11 @@ func _input(event: InputEvent) -> void:
 		return
 	if event is InputEventMouseMotion and is_instance_valid(_ghost):
 		_ghost.position = get_global_mouse_position()
-	elif event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
-		# PLACED ON RELEASE, AND NOTHING IS SWALLOWED.
-		#
-		# The camera pans by left-drag and listens in _unhandled_input, so
-		# marking the press handled - which is what this did - stopped the
-		# camera ever seeing it and killed panning outright while the tool was
-		# on. Consuming the RELEASE instead is just as bad: the camera sets
-		# _dragging=false on release, so eating it leaves the view panning
-		# forever.
-		#
-		# So the press is let through untouched and a placement happens on
-		# release only if the pointer barely moved. Drag to pan, click to
-		# place, and the aprons are already unpickable (see _set_world_pickable)
-		# so there is nothing else under the cursor to fire.
-		if event.pressed:
-			_pressed = true
-			_press_at = event.position
-		elif _pressed:
-			_pressed = false
-			if event.position.distance_to(_press_at) <= CLICK_SLOP:
-				_place(get_global_mouse_position())
+	# Placed on RELEASE and nothing swallowed, so a left-drag still pans - see
+	# ClickDrag. The aprons are unpickable while this is on
+	# (_set_world_pickable), so there is nothing else under the cursor to fire.
+	elif _click.completed(event):
+		_place(get_global_mouse_position())
 
 
 func _place(pos: Vector2) -> void:

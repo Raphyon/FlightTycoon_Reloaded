@@ -164,6 +164,9 @@ class Game:
         self.free_pads = int(m.group(1)) if m else 0
         self.zone_req = {m.group(1): (int(m.group(2)), int(m.group(3))) for m in re.finditer(
             r'"(\w+)": \{"level": (\d+), "cost": (\d+)\}', gd("zone_progress.gd"))}
+        # The zones that belong to the airport you actually start in.
+        home = re.search(r'const HOMELAND_AREAS := \[(.*?)\]', gd("maps.gd"), re.S).group(1)
+        self.home_zones = [z for z in re.findall(r'"(\w+)"', home) if z in self.zone_req]
 
         data = os.path.join(GAME, "data")
         self.pads = {a: len(p) for a, p in
@@ -606,7 +609,10 @@ class Sim:
     # rescaling the ladder cannot leave this measuring the wrong thing.
     def _check_milestones(self):
         done = {
-            "all zones": len(self.zones) >= len(self.g.zone_req),
+            # Homeland's six, not all ten - Dreamland and the Carrier are
+            # placeholder maps with nothing on them, so counting them measured
+            # unbuilt content. See bot.gd, which makes the same correction.
+            "home zones": all(z in self.zones for z in self.g.home_zones),
             "all pads": self.pads >= sum(self.g.pads.values()),
             "all plots": len(self.built) >= self.g.plots,
             "fleet ladder": self.level >= max(
@@ -731,7 +737,7 @@ def report_cohort(g, days, per_arch, seed):
 # The target this is measured against is 40 hours for an average player; days
 # elapsed is not the unit, because a lapsed player and a heavy one can hit the
 # same milestone on the same calendar day having played twenty times as much.
-MILESTONES = ["all pads", "all zones", "all plots", "fleet ladder"]
+MILESTONES = ["all pads", "home zones", "all plots", "fleet ladder"]
 
 
 def report_completion(g, days, per_arch, seed):

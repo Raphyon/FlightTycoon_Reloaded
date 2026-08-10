@@ -36,6 +36,10 @@ const EDITORS := [
 		"help": "1-4 plane paths  ·  5 roads (N new, C category, [ ] switch, X delete)  ·  H clouds",
 	},
 	{
+		"node": "ZoneEditor", "label": "Zone regions", "key": "Z",
+		"help": "1-7 pick zone  ·  click corner  ·  right click undo  ·  C clear  ·  H fills",
+	},
+	{
 		"node": "LandmarkEditor", "label": "Landmark placement", "key": "L",
 		"help": "click place/move  ·  M next  ·  - + resize  ·  X delete",
 	},

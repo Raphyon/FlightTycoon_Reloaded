@@ -48,6 +48,7 @@ const ROAD_COLORS := {
 }
 const INACTIVE_ALPHA := 0.35
 
+var _click := ClickDrag.new()
 var editing := false
 var target := Target.BODY
 var data: Dictionary = {}
@@ -99,13 +100,13 @@ func _input(event: InputEvent) -> void:
 	if not editing:
 		return
 
-	if event is InputEventMouseButton and event.pressed:
-		if event.button_index == MOUSE_BUTTON_LEFT:
-			get_viewport().set_input_as_handled()
-			_append_point(get_global_mouse_position())
-		elif event.button_index == MOUSE_BUTTON_RIGHT:
-			get_viewport().set_input_as_handled()
-			_undo_point()
+	if _click.completed(event):
+		# Release-click so a left-drag still pans - see ClickDrag.
+		_append_point(get_global_mouse_position())
+	elif event is InputEventMouseButton and event.pressed \
+			and event.button_index == MOUSE_BUTTON_RIGHT:
+		get_viewport().set_input_as_handled()
+		_undo_point()
 
 
 func _handle_edit_key(keycode: int) -> void:

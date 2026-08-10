@@ -28,6 +28,7 @@ extends Node2D
 
 const GHOST_ALPHA := 0.45
 
+var _click := ClickDrag.new()
 var editing := false
 var preview_index := 0
 var show_ghost := true
@@ -91,14 +92,15 @@ func _input(event: InputEvent) -> void:
 		return
 	if event is InputEventMouseMotion:
 		_update_ghost()
-	elif event is InputEventMouseButton and event.pressed:
-		if event.button_index == MOUSE_BUTTON_LEFT:
-			get_viewport().set_input_as_handled()
-			_place(get_global_mouse_position())
-		elif event.button_index == MOUSE_BUTTON_RIGHT:
-			get_viewport().set_input_as_handled()
-			selected = _pick(get_global_mouse_position())
-			_update_hud()
+	elif _click.completed(event):
+		# Release-click so a left-drag still pans - see ClickDrag.
+		_place(get_global_mouse_position())
+	elif event is InputEventMouseButton and event.pressed \
+			and event.button_index == MOUSE_BUTTON_RIGHT:
+		# Right-click is safe to swallow: nothing else wants it.
+		get_viewport().set_input_as_handled()
+		selected = _pick(get_global_mouse_position())
+		_update_hud()
 
 
 func _place(pos: Vector2) -> void:

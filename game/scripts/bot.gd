@@ -1,0 +1,447 @@
+extends Node
+
+# A bot that plays THE ACTUAL GAME, headless, at whatever speed the clock allows.
+#
+#     godot --headless --path game -- --bot
+#     godot --headless --path game -- --bot --days 60 --sessions 4 --minutes 5
+#
+# WHY THIS EXISTS, when tools/econ_sim.py already answers the same questions.
+#
+# That tool REIMPLEMENTS the rules in Python - the fare formula, the flight
+# curve, the buy order, what a pad costs - and a reimplementation drifts. It has
+# been wrong three separate times in ways that invalidated everything it had
+# said up to that point: it flew each aircraft one round trip per DAY, it never
+# bought coin aircraft at all, and it charged for Zone1's five free pads. Each
+# was found by accident.
+#
+# This drives Fleet, Economy, Progression, ApronProgress, ZoneProgress and
+# BuildingProgress directly. If a price changes, it sees the change. There is no
+# second copy of the rules to keep in step, so there is nothing to drift.
+#
+# The Python tool stays useful for SWEEPS - it runs a hundred players across a
+# dozen constants in the time this takes to do one - so the division of labour
+# is: sweep there, confirm here. Where they disagree, this one is right.
+#
+# WHAT IT DOES NOT MODEL: taps. It assumes every action a player could take in a
+# session, they take. That makes it an upper bound on progress, same as the
+# Python tool, and it is worth remembering when reading the output.
+
+const DEFAULT_DAYS := 30
+const DEFAULT_SESSIONS := 4
+const DEFAULT_MINUTES := 5.0
+
+# Named players, so two runs are comparable and a result can be quoted without
+# also quoting a pair of numbers. These are the user's own description of the
+# range - "5-10, maybe even 20 minutes, at least 3-6 times a day" - with regular
+# sitting at the middle of it rather than at the bottom, which is where the
+# earlier archetypes in tools/econ_sim.py had put it.
+#
+#     godot --headless --path game -- --bot --who regular
+const WHO := {
+	"casual":  {"sessions": 3, "minutes": 5.0,  "days": 220},
+	"regular": {"sessions": 4, "minutes": 10.0, "days": 140},
+	"heavy":   {"sessions": 6, "minutes": 20.0, "days": 70},
+}
+# Real seconds of wall time this is allowed to run before giving up, so a
+# pathological config cannot wedge a headless CI run forever.
+const WALL_LIMIT := 600.0
+
+var _days := DEFAULT_DAYS
+var _sessions := DEFAULT_SESSIONS
+var _minutes := DEFAULT_MINUTES
+var _played := 0.0          # minutes of simulated PLAY, not elapsed time
+var _day := 0               # calendar days elapsed
+var _who := "custom"
+var _milestones := {}
+var _started := 0.0
+
+
+func _ready() -> void:
+	var args := OS.get_cmdline_user_args()
+	if not args.has("--bot"):
+		return
+	# --who first, so an explicit --sessions/--minutes after it still wins.
+	for i in range(args.size() - 1):
+		if args[i] == "--who" and WHO.has(args[i + 1]):
+			var w: Dictionary = WHO[args[i + 1]]
+			_who = args[i + 1]
+			_sessions = int(w["sessions"])
+			_minutes = float(w["minutes"])
+			_days = int(w["days"])
+	for i in range(args.size() - 1):
+		match args[i]:
+			"--days": _days = int(args[i + 1])
+			"--sessions": _sessions = int(args[i + 1])
+			"--minutes": _minutes = float(args[i + 1])
+	call_deferred("_run")
+
+
+func _run() -> void:
+	_started = Time.get_ticks_msec() / 1000.0
+	# DROP THE WHOLE SCENE FIRST. The bot drives autoloads; the world is just an
+	# audience. Left in the tree, every fleet_changed rebuilds every apron slot
+	# and world sprite - at 110 pads that is 220 nodes a time, thousands of
+	# times a run, and it exhausts Godot's 32MB deferred-call queue outright
+	# (the same overflow Fleet.BULK_LAUNCH_STAGGER was added for).
+	# free(), not queue_free(): queued frees are deferred to the end of the
+	# frame, so the panels were still in the tree and still connected when the
+	# reset below fired its signals - straight into half-torn-down UI.
+	var scene := get_tree().current_scene
+	if scene:
+		get_tree().root.remove_child(scene)
+		scene.free()
+	# A bot run is a fresh game every time, or it measures whatever save
+	# happened to be lying about.
+	SaveGame.reset_to_defaults()
+
+	print("  BOT [%s] - %d sessions/day x %.0f min = %.0f min/day, over %d days"
+		% [_who, _sessions, _minutes, _sessions * _minutes, _days])
+	print("  fare %d - the game's own ShopCatalog, Fleet and Progression, not a copy\n"
+		% Fleet.TICKET_PRICE)
+	print("  %6s %6s %12s %6s %5s %5s %6s" %
+		["day", "level", "cash", "fleet", "pads", "zones", "bldgs"])
+
+	var gap := (16.0 * 60.0 - _sessions * _minutes) / maxf(1.0, _sessions - 1.0)
+	for day in range(1, _days + 1):
+		_day = day
+		for s in range(_sessions):
+			_session(_minutes)
+			var last := s == _sessions - 1
+			_skip((8.0 * 60.0 if last else gap) * 60.0)
+		_check_milestones()
+		if day == 1 or day == 7 or day % 10 == 0 or day == _days:
+			_report(day)
+		if Time.get_ticks_msec() / 1000.0 - _started > WALL_LIMIT:
+			print("\n  STOPPED at day %d - wall clock limit" % day)
+			break
+	_summary()
+
+
+# One sitting: service everything that landed, spend, dispatch, and keep going
+# until the session's minutes are used. Short legs complete WITHIN a session, so
+# this has to loop - the Python tool got this wrong for a long time and it made
+# the early game look ten times slower than it is.
+func _session(minutes: float) -> void:
+	var left := minutes * 60.0
+	for _pass in range(400):
+		_collect()
+		_buy()
+		_dispatch()
+		if left <= 0.0:
+			break
+		var next := _next_landing()
+		var step: float = left if next <= 0.0 else minf(next, left)
+		_skip(step)
+		left -= step
+	_played += minutes
+
+
+func _skip(seconds: float) -> void:
+	GameClock.skip(seconds)
+	Fleet.advance_by(seconds)
+
+
+func _next_landing() -> float:
+	var soonest := -1.0
+	for a in Fleet.aircraft:
+		if a.state == FleetAircraft.State.FLYING_OUT or a.state == FleetAircraft.State.FLYING_BACK:
+			if soonest < 0.0 or a.flight_time_left < soonest:
+				soonest = a.flight_time_left
+	return soonest
+
+
+func _collect() -> void:
+	for a in Fleet.aircraft.duplicate():
+		match a.state:
+			FleetAircraft.State.AWAITING_DEST_CLAIM:
+				Fleet.claim_destination_reward(a.id)
+			FleetAircraft.State.AWAITING_HOME_CLAIM:
+				Fleet.claim_home_reward(a.id)
+	for a in Fleet.aircraft.duplicate():
+		match a.state:
+			FleetAircraft.State.AWAITING_DEST_REFUEL:
+				Fleet.refuel_at_destination(a.id)
+			FleetAircraft.State.AWAITING_HOME_REFUEL:
+				# BUYING FIRST MATTERS. A round trip spends fuel twice - once to
+				# depart and once to refuel on arrival home - and only the
+				# departure was topping up. An aircraft that landed with the tank
+				# short stuck in AWAITING_HOME_REFUEL forever, because nothing
+				# ever bought the fuel it was waiting for.
+				var need := Fleet.fuel_cost(a.model_key, Fleet.destination_of(a))
+				if FuelStore.amount < need:
+					_buy_fuel(need)
+				Fleet.refuel_at_home(a.id)
+	BuildingProgress.collect_all()
+
+
+# EVERY AIRCRAFT NEEDS A PAD BEFORE IT CAN DO ANYTHING. Fleet.buy only adds it
+# to the roster with assigned_apron_id = -1 - assigning is a separate act the
+# player performs on the apron. The bot was buying nineteen aircraft and flying
+# exactly one: the granted starter, which is the only one that comes with a pad.
+# Everything else sat idle in the hangar for thirty simulated days.
+func _assign_idle() -> void:
+	var taken := {}
+	for a in Fleet.aircraft:
+		if a.assigned_apron_id > 0:
+			taken[a.assigned_apron_id] = true
+	var free: Array = []
+	var starts: Dictionary = ApronLayout.compute_id_starts()
+	var data := ApronLayout.effective_area_data(Maps.DEFAULT_MAP)
+	for area_name in Maps.areas_for(Maps.DEFAULT_MAP):
+		if not ZoneProgress.is_unlocked(area_name) or not starts.has(area_name):
+			continue
+		var pts: Array = data.get(area_name, [])
+		for i in range(pts.size()):
+			var id: int = starts[area_name] + i
+			if ApronProgress.is_built(id) and not taken.has(id):
+				free.append(id)
+	free.sort()
+	var n := 0
+	for a in Fleet.aircraft:
+		if a.assigned_apron_id > 0 or n >= free.size():
+			continue
+		Fleet.assign_to_apron(a.id, free[n])
+		n += 1
+
+
+func _dispatch() -> void:
+	_assign_idle()
+	for a in Fleet.aircraft:
+		if a.state != FleetAircraft.State.PARKED:
+			continue
+		if a.destination == "":
+			a.destination = Fleet.best_destination_for(a.model_key)
+		var need := Fleet.fuel_cost(a.model_key, Fleet.destination_of(a))
+		if FuelStore.amount < need:
+			_buy_fuel(need)
+		Fleet.fuel_and_depart(a.id)
+
+
+# The shop sells fixed bundles, so this cannot buy the exact shortfall - the
+# smallest tier that covers it, or nothing.
+func _buy_fuel(need: int) -> void:
+	for qty in [50, 500, 5000, 50000]:
+		if qty < need - FuelStore.amount:
+			continue
+		if Economy.money >= qty * FuelStore.current_price:
+			FuelStore.buy(qty)
+		return
+
+
+# Deliberately the same priority the Python tool uses, so the two are comparable:
+# pads first (they gate the fleet), then aircraft, then zones, then buildings.
+# A fuel reserve is held back - an aircraft that cannot fly is worth nothing.
+func _buy() -> void:
+	for _pass in range(60):
+		var did := false
+		if _free_pads() <= 0 and _build_pad():
+			did = true
+		elif _free_pads() > 0 and _buy_aircraft():
+			did = true
+		elif _buy_zone():
+			did = true
+		elif _buy_building():
+			did = true
+		if not did:
+			return
+
+
+func _reserve() -> int:
+	var need := 0
+	for a in Fleet.aircraft:
+		need += Fleet.fuel_cost(a.model_key, Fleet.destination_of(a))
+	return maxi(0, need - FuelStore.amount) * FuelStore.current_price
+
+
+func _spendable() -> int:
+	return Economy.money - _reserve()
+
+
+func _free_pads() -> int:
+	var built := 0
+	for area_name in Maps.areas_for(Maps.DEFAULT_MAP):
+		if ZoneProgress.is_unlocked(area_name):
+			built += _built_in(area_name)
+	return built - Fleet.aircraft.size()
+
+
+func _built_in(area_name: String) -> int:
+	var starts: Dictionary = ApronLayout.compute_id_starts()
+	if not starts.has(area_name):
+		return 0
+	var pts: Array = ApronLayout.effective_area_data(Maps.DEFAULT_MAP).get(area_name, [])
+	var n := 0
+	for i in range(pts.size()):
+		if ApronProgress.is_built(starts[area_name] + i):
+			n += 1
+	return n
+
+
+# The cheapest unbuilt pad anywhere unlocked - pads price per area and rise with
+# each one built there, so filling one area before starting the next is the
+# worst possible order.
+func _build_pad() -> bool:
+	var best_area := ""
+	var best_id := -1
+	var best_cost := 1 << 30
+	var starts: Dictionary = ApronLayout.compute_id_starts()
+	var data := ApronLayout.effective_area_data(Maps.DEFAULT_MAP)
+	for area_name in Maps.areas_for(Maps.DEFAULT_MAP):
+		if not ZoneProgress.is_unlocked(area_name) or not starts.has(area_name):
+			continue
+		var cost := ApronProgress.cost_for_area(area_name)
+		if cost >= best_cost:
+			continue
+		var pts: Array = data.get(area_name, [])
+		for i in range(pts.size()):
+			var id: int = starts[area_name] + i
+			if not ApronProgress.is_built(id):
+				best_area = area_name
+				best_id = id
+				best_cost = cost
+				break
+	if best_id < 0 or _spendable() < best_cost:
+		return false
+	return ApronProgress.build(best_id, best_area)
+
+
+func _buy_aircraft() -> bool:
+	var best := ""
+	var best_rate := 0.0
+	var coin_best := ""
+	for e in ShopCatalog.ENTRIES:
+		var key := str(e["key"])
+		if not ShopCatalog.unlocked(key):
+			continue
+		var dest := Fleet.best_destination_for(key)
+		var mins := Fleet.flight_seconds_to(dest, key) / 60.0
+		var rate := Fleet.payout_for(key, dest) / maxf(mins, 0.01)
+		if str(e.get("currency", ShopCatalog.CASH)) == ShopCatalog.COINS:
+			if Coins.amount >= int(e["price"]) and coin_best == "":
+				coin_best = key
+			continue
+		if int(e["price"]) > _spendable():
+			continue
+		if rate > best_rate:
+			best_rate = rate
+			best = key
+	# Coins first while any are affordable - they ignore the level gate, so they
+	# are the strongest thing a new account can do.
+	if coin_best != "":
+		var ce := ShopCatalog.entry_for(coin_best)
+		return Fleet.buy(coin_best, int(ce["price"]), ShopCatalog.COINS)
+	if best == "":
+		return false
+	return Fleet.buy(best, int(ShopCatalog.entry_for(best)["price"]), ShopCatalog.CASH)
+
+
+# EVERY zone, not just homeland's. Four of the ten in ZONE_REQUIREMENTS are on
+# other maps - the three Dreamland zones and the Carrier - and walking only
+# homeland's area list meant the bot could never buy them, so "all zones" was
+# unreachable by construction and reported "not reached" after 55 hours of play
+# as though that were a finding about the game.
+func _buy_zone() -> bool:
+	if _free_pads() > 0:
+		return false
+	for area_name in ZoneProgress.ZONE_REQUIREMENTS:
+		if ZoneProgress.is_unlocked(area_name):
+			continue
+		var req: Dictionary = ZoneProgress.requirement_for(area_name)
+		if req.is_empty() or Progression.level < int(req["level"]):
+			continue
+		if _spendable() < int(req["cost"]):
+			continue
+		return ZoneProgress.unlock(area_name)
+	return false
+
+
+func _buy_building() -> bool:
+	if not BuildingProgress.buildings_unlocked():
+		return false
+	var best := ""
+	var best_rate := 0.0
+	for b in BuildingLayout.BUILDINGS:
+		var key := str(b["key"])
+		if BuildingLayout.currency_of(key) == "coins":
+			continue
+		if not BuildingProgress.is_unlocked(key) or BuildingLayout.price_of(key) > _spendable():
+			continue
+		var rate := float(BuildingLayout.rent_of(key)) / maxf(1.0, float(b["minutes"]))
+		if rate > best_rate:
+			best_rate = rate
+			best = key
+	if best == "":
+		return false
+	for plot in BuildingLayout.load_data():
+		var id := int(plot.get("id", 0))
+		if not BuildingProgress.is_built(id):
+			return BuildingProgress.build(id, best)
+	return false
+
+
+func _check_milestones() -> void:
+	var top := 1
+	for e in ShopCatalog.ENTRIES:
+		if str(e.get("currency", ShopCatalog.CASH)) != ShopCatalog.COINS:
+			top = maxi(top, int(e["level"]))
+	# HOMELAND'S ZONES, not all ten. Dreamland and the Carrier have maps and
+	# price tags but almost nothing built on them - their levels and costs are
+	# marked PLACEHOLDER in ZoneProgress - so counting them measured how long it
+	# takes to finish content that does not exist yet, and reported "not
+	# reached" after fifty hours as though that said something about pacing.
+	var home_total := 0
+	var home_done := 0
+	for area_name in Maps.areas_for(Maps.DEFAULT_MAP):
+		if not ZoneProgress.ZONE_REQUIREMENTS.has(area_name):
+			continue
+		home_total += 1
+		if ZoneProgress.is_unlocked(area_name):
+			home_done += 1
+	var done := {
+		"fleet ladder": Progression.level >= top,
+		"home zones": home_total > 0 and home_done >= home_total,
+		"all plots": BuildingProgress.built_count() >= BuildingLayout.load_data().size(),
+	}
+	for name in done:
+		if done[name] and not _milestones.has(name):
+			_milestones[name] = [_played, _day]
+
+
+func _report(day: int) -> void:
+	print("  %6d %6d %12s %6d %5d %5d %6d" % [
+		day, Progression.level, _thousands(Economy.money),
+		Fleet.aircraft.size(), _total_pads(), ZoneProgress.unlocked_zones.size(),
+		BuildingProgress.built_count()])
+
+
+# GDScript has no thousands separator, and a nine-figure balance is unreadable
+# without one.
+func _thousands(n: int) -> String:
+	var digits := str(absi(n))
+	var out := ""
+	var c := 0
+	for i in range(digits.length() - 1, -1, -1):
+		out = digits[i] + out
+		c += 1
+		if c % 3 == 0 and i > 0:
+			out = "," + out
+	return ("-" if n < 0 else "") + out
+
+
+func _total_pads() -> int:
+	var n := 0
+	for area_name in Maps.areas_for(Maps.DEFAULT_MAP):
+		n += _built_in(area_name)
+	return n
+
+
+func _summary() -> void:
+	print("\n  after %.0f minutes (%.1f hours) of PLAY:" % [_played, _played / 60.0])
+	for name in ["fleet ladder", "all pads", "home zones", "all plots"]:
+		if _milestones.has(name):
+			print("    %-14s %6.1f h of play   (day %d)"
+				% [name, _milestones[name][0] / 60.0, _milestones[name][1]])
+		else:
+			print("    %-14s not reached" % name)
+	print("  wall time %.1f s" % (Time.get_ticks_msec() / 1000.0 - _started))
+	get_tree().quit()

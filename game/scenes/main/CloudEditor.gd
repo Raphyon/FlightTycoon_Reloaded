@@ -14,6 +14,7 @@ extends Node2D
 
 const CLOUD_SLOT_SCENE := preload("res://scenes/main/CloudSlot.tscn")
 
+var _click := ClickDrag.new()
 var editing := false
 var area_index := 0  # reset per map by reload_for_map()
 var data: Dictionary = {}  # area_name -> [x,y]
@@ -101,8 +102,9 @@ func _input(event: InputEvent) -> void:
 
 	if not editing:
 		return
-	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-		get_viewport().set_input_as_handled()
+	# Release-click, nothing swallowed - see ClickDrag for why the press must
+	# reach the camera.
+	if _click.completed(event):
 		_place(get_global_mouse_position())
 
 

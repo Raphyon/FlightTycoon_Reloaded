@@ -85,7 +85,7 @@ func _apply_slot() -> void:
 
 
 func _slot_now() -> int:
-	return int(floor(Time.get_unix_time_from_system() / PRICE_PERIOD))
+	return int(floor(GameClock.now() / PRICE_PERIOD))
 
 
 # The price during a given hour. Seeded through a string so neighbouring hours
@@ -101,7 +101,7 @@ func price_for_slot(slot: int) -> int:
 # How long the current price has left. The shop shows this, because "wait it
 # out" is only a real choice if you can see what you would be waiting for.
 func seconds_until_next_price() -> float:
-	var elapsed := Time.get_unix_time_from_system() - float(_slot_now()) * PRICE_PERIOD
+	var elapsed := GameClock.now() - float(_slot_now()) * PRICE_PERIOD
 	return maxf(0.0, PRICE_PERIOD - elapsed)
 
 

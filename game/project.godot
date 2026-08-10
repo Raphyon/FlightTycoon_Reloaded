@@ -20,6 +20,7 @@ config/features=PackedStringArray("4.7", "Forward Plus")
 
 [autoload]
 
+GameClock="*res://scripts/game_clock.gd"
 IsoGrid="*res://scripts/iso_grid.gd"
 Maps="*res://scripts/maps.gd"
 Friends="*res://scripts/friends.gd"
@@ -38,6 +39,7 @@ DebugState="*res://scripts/debug_state.gd"
 AircraftSkins="*res://scripts/aircraft_skins.gd"
 SaveGame="*res://scripts/save_game.gd"
 Scenarios="*res://scripts/scenarios.gd"
+Bot="*res://scripts/bot.gd"
 
 [display]
 

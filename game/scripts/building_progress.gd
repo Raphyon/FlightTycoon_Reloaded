@@ -40,7 +40,7 @@ func _ready() -> void:
 # Stamp them as starting their first cycle now: a save from before the feature
 # should begin earning, not hand over a free payout per building.
 func _migrate_bare_strings() -> void:
-	var now := Time.get_unix_time_from_system()
+	var now := GameClock.now()
 	var touched := false
 	for map_key in built:
 		var m: Variant = built[map_key]
@@ -54,19 +54,42 @@ func _migrate_bare_strings() -> void:
 		_save()
 
 
-# Buildings arrive with Zone2, not at level 1.
+# The Prop Shop is open from the start, and WHICH plots you may use is decided
+# per zone instead - see plot_is_available and ZoneRegions.
 #
-# Starting with no aircraft means the Prop Shop could take the money you needed
-# to buy your first one: 5,000 start, a 3,000 Coffee House, and you are left at
-# 2,000 against a 3,000 DC-3 with nothing to fly and one building to tap for
-# twenty-five minutes. The original never has this hole because it hands you a
-# DC-3; we ask you to buy one.
+# It used to be shut until Zone2. That gate existed for one reason: a fresh game
+# owned no aircraft, so a 3,000 Coffee House out of a 5,000 start left you at
+# 2,000 against a 3,000 DC-3, with nothing that flies and one building to tap.
+# Granting the starter DC-3 (Fleet.grant_starter) removed the hole itself - you
+# can always fly, whatever you spend - so the fence around it is redundant.
 #
-# Gating on the ZONE rather than a level, because Zone2 costs money as well as
-# a level - being level 10 and broke is exactly the state that made the trap
-# possible, and it should not open the shop.
+# Keeping it would also have made the plot bands incoherent: Zone1 has a band of
+# six, and Zone1 is where the game starts, so those six were gated behind buying
+# a DIFFERENT zone. The bands are the pacing now.
 func buildings_unlocked() -> bool:
-	return ZoneProgress.is_unlocked("Zone2")
+	return true
+
+
+# Which zone a plot sits in, from the regions drawn with ZoneEditor, and
+# whether that zone is bought yet.
+#
+# An UNDRAWN plot - one no region contains - stays available. A half-drawn map
+# has to keep playing, and a plot that silently vanished because nobody had got
+# round to drawing its zone would read as a bug rather than as work outstanding.
+# The zone editor shows the unassigned count for exactly this reason.
+func plot_area(plot_id: int, map_key: String = "") -> String:
+	for plot in BuildingLayout.load_data(map_key):
+		if int(plot.get("id", 0)) == plot_id:
+			return ZoneRegions.area_at(
+				Vector2(float(plot.get("x", 0.0)), float(plot.get("y", 0.0))), map_key)
+	return ""
+
+
+func plot_is_available(plot_id: int, map_key: String = "") -> bool:
+	if not buildings_unlocked():
+		return false
+	var area := plot_area(plot_id, map_key)
+	return area == "" or ZoneProgress.is_unlocked(area)
 
 
 func cost_of(building_key: String) -> int:
@@ -166,7 +189,7 @@ func seconds_until_ready(plot_id: int, map_key: String = "") -> float:
 	if key == "":
 		return 0.0
 	var cycle := BuildingLayout.cycle_seconds(key)
-	var elapsed := Time.get_unix_time_from_system() - _since(plot_id, map_key)
+	var elapsed := GameClock.now() - _since(plot_id, map_key)
 	return maxf(0.0, cycle - elapsed)
 
 
@@ -226,7 +249,7 @@ func collect_rent(plot_id: int, map_key: String = "") -> int:
 		coin_found.emit(plot_id, COIN_DROP_AMOUNT)
 	var mk := map_key if map_key != "" else Maps.current
 	var m := _map(mk)
-	m[str(plot_id)] = {"key": key, "since": Time.get_unix_time_from_system()}
+	m[str(plot_id)] = {"key": key, "since": GameClock.now()}
 	built[mk] = m
 	_save()
 	rent_changed.emit()
@@ -313,6 +336,8 @@ func build(plot_id: int, building_key: String, map_key: String = "") -> bool:
 		return false
 	if is_built(plot_id, map_key):
 		return false
+	if not plot_is_available(plot_id, map_key):
+		return false
 	if not is_unlocked(building_key):
 		return false
 	var paid := (Coins.spend(cost_of(building_key))
@@ -324,7 +349,7 @@ func build(plot_id: int, building_key: String, map_key: String = "") -> bool:
 	var m := _map(key)
 	# The cycle starts the moment it's built, so a new building is not
 	# immediately collectable - you pay, then you wait, like every other timer.
-	m[str(plot_id)] = {"key": building_key, "since": Time.get_unix_time_from_system()}
+	m[str(plot_id)] = {"key": building_key, "since": GameClock.now()}
 	built[key] = m
 	_save()
 	built_changed.emit()

@@ -62,7 +62,7 @@ func save() -> void:
 	_dirty = false
 	_timer = 0.0
 	var data := {
-		"saved_at": Time.get_unix_time_from_system(),
+		"saved_at": GameClock.now(),
 		"money": Economy.money,
 		"coins": Coins.amount,
 		"fuel": FuelStore.amount,
@@ -106,7 +106,7 @@ func _load() -> void:
 	var elapsed := 0.0
 	var saved_at := float(data.get("saved_at", 0.0))
 	if saved_at > 0.0:
-		elapsed = maxf(0.0, Time.get_unix_time_from_system() - saved_at)
+		elapsed = maxf(0.0, GameClock.now() - saved_at)
 	var fleet_data: Variant = data.get("fleet", null)
 	if fleet_data is Dictionary and not (fleet_data as Dictionary).get("aircraft", []).is_empty():
 		Fleet.load_save(fleet_data, elapsed)

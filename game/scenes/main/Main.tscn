@@ -70,6 +70,7 @@
 [ext_resource type="Script" path="res://scenes/main/BuildingInfoPanel.gd" id="72"]
 [ext_resource type="Script" path="res://scenes/main/Landmarks.gd" id="75"]
 [ext_resource type="Script" path="res://scenes/main/LandmarkEditor.gd" id="76"]
+[ext_resource type="Script" path="res://scenes/main/ZoneEditor.gd" id="77"]
 [ext_resource type="Texture2D" path="res://assets/buttons/button_arrow_left@2x.png" id="73"]
 [ext_resource type="Texture2D" path="res://assets/buttons/button_arrow_right@2x.png" id="74"]
 
@@ -116,6 +117,10 @@ script = ExtResource("7")
 [node name="Landmarks" type="Node2D" parent="."]
 y_sort_enabled = true
 script = ExtResource("75")
+
+[node name="ZoneEditor" type="Node2D" parent="."]
+z_index = 400
+script = ExtResource("77")
 
 [node name="LandmarkEditor" type="Node2D" parent="."]
 script = ExtResource("76")

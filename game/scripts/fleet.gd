@@ -630,6 +630,17 @@ func _process(delta: float) -> void:
 		_emit_changed()
 
 
+# Tick the fleet forward by an arbitrary amount. _advance_flights is what the
+# save loader already uses to catch up on time the game was closed, so this is
+# not a new code path - it is the same one, exposed so the headless bot and the
+# fast-forward can drive it in steps rather than a frame at a time.
+func advance_by(seconds: float) -> void:
+	if seconds <= 0.0:
+		return
+	if _advance_flights(seconds):
+		_emit_changed()
+
+
 # Ticks every in-flight aircraft forward and lands the ones that arrive.
 # Returns whether anything changed. Shared with the save loader, which calls it
 # once with however long the game was closed - so the two can never disagree

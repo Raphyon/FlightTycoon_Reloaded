@@ -145,7 +145,7 @@ func _raise_buildings(count: int) -> void:
 			best = str(b["key"])
 	if best == "":
 		return
-	var now := Time.get_unix_time_from_system()
+	var now := GameClock.now()
 	var m: Dictionary = {}
 	var n := 0
 	for plot in BuildingLayout.load_data():

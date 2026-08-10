@@ -9,10 +9,24 @@ const ZOOM_SMOOTHING := 10.0
 # pad's whole tile plus a little air, not enough to show the next zone.
 const EDGE_MARGIN := 130.0
 
+# The smallest a limit box may be, as a multiple of the visible area.
+#
+# On a fresh save the only unlocked thing is Zone1, whose twenty pads bound a
+# box of 1221x740. That is SMALLER THAN THE SCREEN, so _clamp_to_limits parks
+# the camera dead centre with nowhere to go and the view reads as frozen - the
+# same "stuck" the placement tools hit, but in normal play. The box now always
+# leaves at least this much slack around the view, so panning is never a no-op
+# even when you own almost nothing.
+#
+# It does not defeat the gating: 1.15 of a screen is a nudge, not enough to see
+# into the next zone, and everything beyond it is still cloud.
+const MIN_VIEW_FACTOR := 1.15
+
 var _dragging := false
 var _drag_start_mouse := Vector2.ZERO
 var _drag_start_camera := Vector2.ZERO
 var _target_zoom := 1.0
+var _editor_was_active := false
 
 
 func _ready() -> void:
@@ -33,7 +47,29 @@ func _on_map_changed(_map_key: String) -> void:
 # once there are any to see. Falls back to the scene's authored limits if an
 # airport has nothing unlocked yet, so the camera can never end up with an
 # inside-out box it cannot clamp into.
+# Any placement tool being open means the whole airport, not just the part you
+# have paid for. AUTHORING IS NOT PLAYING: the zone editor exists to draw
+# regions over the building district, which sits outside Zone1 entirely - so on
+# a fresh save the camera would not let you reach the thing the tool is for. The
+# landmark editor has the same problem with the terminal.
+func _editor_active() -> bool:
+	var world := get_parent()
+	if world == null:
+		return false
+	for child in world.get_children():
+		if child.name.ends_with("Editor") and "editing" in child and child.editing:
+			return true
+	return false
+
+
 func _fit_limits_to_unlocked() -> void:
+	if _editor_active():
+		var size := Maps.size_for()
+		limit_left = 0
+		limit_top = 0
+		limit_right = size.x
+		limit_bottom = size.y
+		return
 	var pts: Array[Vector2] = []
 	var layout := ApronLayout.effective_area_data()
 	for area_name in layout:
@@ -41,11 +77,13 @@ func _fit_limits_to_unlocked() -> void:
 			continue
 		for p in layout[area_name]:
 			pts.append(Vector2(float(p[0]), float(p[1])))
-	# Building plots only count once the Prop Shop is open - see
-	# BuildingProgress.buildings_unlocked.
+	# Plots count one zone at a time, not all at once. Every plot joining the
+	# box the moment Zone2 was bought is why an airport's whole city could be
+	# built inside two hours - see ZoneRegions for the regions this reads.
 	if BuildingProgress.buildings_unlocked():
 		for plot in BuildingLayout.load_data():
-			pts.append(Vector2(float(plot.get("x", 0.0)), float(plot.get("y", 0.0))))
+			if BuildingProgress.plot_is_available(int(plot.get("id", 0))):
+				pts.append(Vector2(float(plot.get("x", 0.0)), float(plot.get("y", 0.0))))
 	if pts.is_empty():
 		return
 	var lo := pts[0]
@@ -53,14 +91,50 @@ func _fit_limits_to_unlocked() -> void:
 	for v in pts:
 		lo = lo.min(v)
 		hi = hi.max(v)
-	limit_left = int(lo.x - EDGE_MARGIN)
-	limit_top = int(lo.y - EDGE_MARGIN)
-	limit_right = int(hi.x + EDGE_MARGIN)
-	limit_bottom = int(hi.y + EDGE_MARGIN)
+	_apply_limits(lo - Vector2(EDGE_MARGIN, EDGE_MARGIN),
+		hi + Vector2(EDGE_MARGIN, EDGE_MARGIN))
+
+
+# Grows the box about its own centre until it is at least MIN_VIEW_FACTOR of the
+# visible area, then clips it to the map so it cannot reach past the edge of the
+# world. Written once here because every caller wants the same guarantee.
+func _apply_limits(lo: Vector2, hi: Vector2) -> void:
+	var view: Vector2 = get_viewport_rect().size * zoom * MIN_VIEW_FACTOR
+	var centre := (lo + hi) * 0.5
+	var half := Vector2(maxf((hi.x - lo.x) * 0.5, view.x * 0.5),
+		maxf((hi.y - lo.y) * 0.5, view.y * 0.5))
+	lo = centre - half
+	hi = centre + half
+	var world := Vector2(Maps.size_for())
+	# Shift rather than shrink if it overhangs, or a small box at the map edge
+	# would lose the slack it was just given.
+	if lo.x < 0.0:
+		hi.x -= lo.x
+		lo.x = 0.0
+	if lo.y < 0.0:
+		hi.y -= lo.y
+		lo.y = 0.0
+	if hi.x > world.x:
+		lo.x -= hi.x - world.x
+		hi.x = world.x
+	if hi.y > world.y:
+		lo.y -= hi.y - world.y
+		hi.y = world.y
+	limit_left = int(maxf(0.0, lo.x))
+	limit_top = int(maxf(0.0, lo.y))
+	limit_right = int(minf(world.x, hi.x))
+	limit_bottom = int(minf(world.y, hi.y))
 	position = _clamp_to_limits(position)
 
 
 func _process(delta: float) -> void:
+	# Editors are toggled from the F1 menu and from their own hotkeys, neither
+	# of which tells the camera anything - so the state is polled. One bool a
+	# frame against a handful of siblings.
+	var active := _editor_active()
+	if active != _editor_was_active:
+		_editor_was_active = active
+		_fit_limits_to_unlocked()
 	if not is_equal_approx(zoom.x, _target_zoom):
 		var z := lerpf(zoom.x, _target_zoom, clampf(delta * ZOOM_SMOOTHING, 0.0, 1.0))
 		zoom = Vector2(z, z)
