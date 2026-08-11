@@ -17,4 +17,12 @@ venv/
 # The player's own save (money, fleet, routes in progress). Written by
 # SaveGame at runtime - it's per-player state, not project data, so it must
 # not travel with the repo the way the layout files under game/data/ do.
+#
+# THE REPO CARRIES A DAY 0 SAVE, and these are how it stays one. All four are
+# written by SaveGame as you play; absent, the game starts fresh, which is
+# exactly what a clone should do. They were merely untracked before, so a
+# `git add -A` would have published a live playthrough over the baseline.
 game/data/player.json
+game/data/apron_progress.json
+game/data/building_progress.json
+game/data/zone_progress.json
