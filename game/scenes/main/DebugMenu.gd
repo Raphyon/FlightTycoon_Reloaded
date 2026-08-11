@@ -10,11 +10,17 @@ extends Control
 # the tables below.
 
 const TOGGLE_KEY := KEY_F1
-const PANEL_SIZE := Vector2(430, 610)
+# Width is fixed; HEIGHT IS WHATEVER THE WINDOW HAS. This used to be a fixed
+# 430x700 pinned at (240, 120), which on a 720-tall window ran to 820 and put
+# the bottom third - the placement tools, then the scenarios, then the speed
+# controls - off the screen entirely. It grew every time a tool was added, so a
+# fixed size was always going to lose this argument eventually.
+const PANEL_WIDTH := 430.0
+const MARGIN := 16.0
 
 # The overlay flags on DebugState, as checkbox rows.
 const FLAGS := [
-	{"flag": &"show_grid", "label": "Isometric grid", "key": "G"},
+	{"flag": &"show_grid", "label": "Isometric grid", "key": ""},
 	{"flag": &"show_apron_ids", "label": "Apron ID numbers", "key": ""},
 	{"flag": &"show_apron_tints", "label": "Apron free/occupied tints", "key": ""},
 	{"flag": &"show_apron_costs", "label": "Apron build costs", "key": ""},
@@ -24,31 +30,32 @@ const FLAGS := [
 # menu flips that bool directly so the button and the key stay in sync.
 const EDITORS := [
 	{
-		"node": "ApronEditor", "label": "Apron placement", "key": "P",
+		"node": "ApronEditor", "label": "Apron placement", "key": "",
 		"help": "1-7 pick area  ·  click add  ·  click a tile to remove",
 	},
 	{
-		"node": "CloudEditor", "label": "Cloud placement", "key": "O",
+		"node": "CloudEditor", "label": "Cloud placement", "key": "",
 		"help": "1-7 pick zone  ·  click place/move  ·  click its cloud to remove",
 	},
 	{
-		"node": "PathEditor", "label": "Path tracing", "key": "T",
+		"node": "PathEditor", "label": "Path tracing", "key": "",
 		"help": "1-4 plane paths  ·  5 roads (N new, C category, [ ] switch, X delete)  ·  H clouds",
 	},
 	{
-		"node": "ZoneEditor", "label": "Zone regions", "key": "Z",
+		"node": "ZoneEditor", "label": "Zone regions", "key": "",
 		"help": "1-7 pick zone  ·  click corner  ·  right click undo  ·  C clear  ·  H fills",
 	},
 	{
-		"node": "LandmarkEditor", "label": "Landmark placement", "key": "L",
+		"node": "LandmarkEditor", "label": "Landmark placement", "key": "",
 		"help": "click place/move  ·  M next  ·  - + resize  ·  X delete",
 	},
 	{
-		"node": "RotorEditor", "label": "Rotor placement", "key": "R",
+		"node": "RotorEditor", "label": "Rotor placement", "key": "",
 		"help": "M model  ·  1-9 pick rotor  ·  click place  ·  - + disc size  ·  B behind/front",
 	},
 ]
 
+var _speed_buttons: Array = []
 var _scenario_buttons: Array = []
 var _armed_scenario := ""
 var _rows: Array = []
@@ -69,13 +76,22 @@ func _input(event: InputEvent) -> void:
 
 
 func _build() -> void:
-	set_anchors_preset(Control.PRESET_TOP_LEFT)
-	position = Vector2(240, 120)
-	custom_minimum_size = PANEL_SIZE
-	size = PANEL_SIZE
+	# Spans the viewport but ignores the mouse, so only the panel inside it takes
+	# clicks - the world behind stays draggable while the menu is open.
+	# ...AND_OFFSETS_, not just anchors. The node in Main.tscn carries no size, so
+	# setting anchors alone left it 0x0 and the panel anchored to nothing.
+	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 	var panel := PanelContainer.new()
-	panel.set_anchors_preset(Control.PRESET_FULL_RECT)
+	panel.anchor_left = 0.0
+	panel.anchor_top = 0.0
+	panel.anchor_right = 0.0
+	panel.anchor_bottom = 1.0
+	panel.offset_left = MARGIN
+	panel.offset_top = MARGIN
+	panel.offset_right = MARGIN + PANEL_WIDTH
+	panel.offset_bottom = -MARGIN
 	var style := StyleBoxFlat.new()
 	style.bg_color = Color(0.05, 0.06, 0.08, 0.94)
 	style.border_color = Color(0.45, 0.5, 0.58)
@@ -85,9 +101,17 @@ func _build() -> void:
 	panel.add_theme_stylebox_override("panel", style)
 	add_child(panel)
 
+	# Scrolls, so the list can outgrow the window without anything vanishing.
+	# Vertical only - a horizontal bar would just hide the labels instead.
+	var scroll := ScrollContainer.new()
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	panel.add_child(scroll)
+
 	var col := VBoxContainer.new()
 	col.add_theme_constant_override("separation", 6)
-	panel.add_child(col)
+	col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scroll.add_child(col)
 
 	col.add_child(_heading("DEBUG MENU", 18))
 	col.add_child(_note("F1 closes  ·  nothing here is saved between runs"))
@@ -100,6 +124,21 @@ func _build() -> void:
 		row.toggled.connect(func(on: bool) -> void: DebugState.set_flag(entry["flag"], on))
 		col.add_child(row)
 		_rows.append({"kind": "flag", "flag": entry["flag"], "control": row})
+
+	col.add_child(HSeparator.new())
+	col.add_child(_heading("Time", 14))
+	col.add_child(_note("Speeds up flights, rent and the fuel market together."))
+	var speeds := HBoxContainer.new()
+	speeds.add_theme_constant_override("separation", 6)
+	col.add_child(speeds)
+	for n in GameClock.SPEEDS:
+		var b := Button.new()
+		b.text = "x%d" % roundi(n)
+		b.toggle_mode = true
+		b.pressed.connect(_on_speed_pressed.bind(float(n)))
+		speeds.add_child(b)
+		_speed_buttons.append({"button": b, "value": float(n)})
+	_refresh_speeds()
 
 	col.add_child(HSeparator.new())
 	col.add_child(_heading("Jump to a scenario", 14))
@@ -146,6 +185,19 @@ func _refresh_scenario_labels() -> void:
 			if _armed_scenario == key else Scenarios.label_for(key))
 
 
+# Speeding up the world is not destructive, so no arming step - but the badge
+# GameClock draws makes sure it is never on without you knowing.
+func _on_speed_pressed(value: float) -> void:
+	GameClock.set_scale(value)
+	_refresh_speeds()
+
+
+func _refresh_speeds() -> void:
+	for row in _speed_buttons:
+		(row["button"] as Button).button_pressed = is_equal_approx(
+			GameClock.scale(), float(row["value"]))
+
+
 func _heading(text: String, size: int) -> Label:
 	var l := Label.new()
 	l.text = text
@@ -160,7 +212,7 @@ func _note(text: String) -> Label:
 	l.add_theme_font_size_override("font_size", 11)
 	l.add_theme_color_override("font_color", Color(0.62, 0.68, 0.76))
 	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	l.custom_minimum_size = Vector2(PANEL_SIZE.x - 40, 0)
+	l.custom_minimum_size = Vector2(PANEL_WIDTH - 40, 0)
 	return l
 
 

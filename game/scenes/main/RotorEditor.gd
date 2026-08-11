@@ -6,8 +6,8 @@ extends Node2D
 # the camera is currently centered, so you can see exactly what you're
 # aligning while you place it.
 #
-#   R          toggle rotor placement mode on/off (drops the preview at the
-#              current camera center)
+#   Switched on from the F1 menu - no toggle key. Turning it on drops the
+#   preview at the current camera centre.
 #   M          cycle which aircraft model you're rigging
 #   1-9        select which rotor hub you're placing (models with a single
 #              prop, like the P-51, only use 1)
@@ -85,14 +85,12 @@ func _model_key() -> String:
 
 func _input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed:
-		if event.keycode == KEY_R:
-			editing = !editing
-			if editing:
-				_drop_preview()
-			else:
-				_clear_preview()
-			_update_hud()
-		elif editing and event.keycode == KEY_M:
+		# NO TOGGLE KEY. Every tool was holding a letter hostage across the
+		# whole game - P, O, T, R, G, L, Z - and two of them collided (G was
+		# both this and the grid overlay). They are switched on from the F1
+		# menu now, which is the only debug key left. The keys BELOW still
+		# work, but only while this tool is on, so they cost nothing.
+		if editing and event.keycode == KEY_M:
 			model_index = wrapi(model_index + 1, 0, _model_keys.size())
 			selected = 0
 			_drop_preview()

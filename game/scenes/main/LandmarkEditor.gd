@@ -5,7 +5,7 @@ extends Node2D
 # Same reason as every other editor in here: nothing measured exists for these
 # positions, and working them out from the art has gone badly before.
 #
-#   L          toggle landmark placement on/off
+#   Switched on from the F1 menu - no toggle key, see _input.
 #   left click place the selected landmark, or MOVE the one already placed
 #   M          cycle which landmark you are placing
 #   - / +      shrink/grow the placed landmark, saved with it. Also bound to
@@ -74,9 +74,7 @@ func _kind() -> String:
 func _input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed:
 		match event.keycode:
-			KEY_L:
-				editing = not editing
-				return
+			# No toggle key - the F1 menu switches this on. See ApronEditor.
 			KEY_M:
 				if editing:
 					kind_index = wrapi(kind_index + 1, 0, LandmarkLayout.keys().size())
@@ -229,7 +227,7 @@ func _update_hud() -> void:
 			Vector2(float(entry.get("x", 0.0)), float(entry.get("y", 0.0))),
 			float(entry.get("scale", 1.0))]
 	var lines: Array = [
-		"LANDMARK EDITOR - %s  (L to exit)" % Maps.display_name(),
+		"LANDMARK EDITOR - %s  (F1 to switch off)" % Maps.display_name(),
 		"",
 	]
 	var keys := LandmarkLayout.keys()

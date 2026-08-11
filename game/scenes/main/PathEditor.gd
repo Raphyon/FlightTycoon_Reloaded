@@ -5,7 +5,7 @@ extends Node2D
 # appends a point and draws a line back to the previous one instead of
 # placing an independent point.
 #
-#   T          toggle path placement mode on/off
+#   Switched on from the F1 menu - no toggle key, see _input.
 #   1          departure body path (its take-off flight track)
 #   2          departure shadow path (its own ground track)
 #   3          arrival body path (the landing approach)
@@ -90,11 +90,12 @@ func reload_for_map() -> void:
 
 func _input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed:
-		if event.keycode == KEY_T:
-			editing = !editing
-			queue_redraw()
-			_update_hud()
-		elif editing:
+		# NO TOGGLE KEY. Every tool was holding a letter hostage across the
+		# whole game - P, O, T, R, G, L, Z - and two of them collided (G was
+		# both this and the grid overlay). They are switched on from the F1
+		# menu now, which is the only debug key left. The keys BELOW still
+		# work, but only while this tool is on, so they cost nothing.
+		if editing:
 			_handle_edit_key(event.keycode)
 
 	if not editing:
@@ -216,7 +217,7 @@ func _update_hud() -> void:
 		_hud.set_lines(false, [])
 		return
 
-	var lines: Array[String] = ["PATH EDITOR  (T to exit)", ""]
+	var lines: Array[String] = ["PATH EDITOR  (F1 to switch off)", ""]
 	if target == Target.ROAD:
 		if _active_road == "":
 			lines.append("Editing: ROADS - none yet, press N")

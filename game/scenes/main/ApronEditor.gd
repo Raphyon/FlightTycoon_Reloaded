@@ -3,7 +3,7 @@ extends Node2D
 # In-game apron placement tool for all 7 apron areas, including the starting
 # one - one system for everything instead of Zone1 being a special case.
 #
-#   P          toggle placement mode on/off
+#   Switched on from the F1 menu - no toggle key, see _unhandled_input.
 #   1-7        pick which area you're editing (order = Maps.areas_for(),
 #              i.e. the areas of the airport you're currently standing in)
 #   left click place an apron exactly where you click (click empty ground to
@@ -60,7 +60,7 @@ func _update_hud() -> void:
 		return
 	var areas := _areas()
 	var lines: Array = [
-		"APRON EDITOR - %s  (P to exit)" % Maps.display_name(),
+		"APRON EDITOR - %s  (F1 to switch off)" % Maps.display_name(),
 		"",
 	]
 	var total := 0
@@ -126,11 +126,12 @@ func _current_area_name() -> String:
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed:
-		if event.keycode == KEY_P:
-			editing = !editing
-			_update_hud()
-			queue_redraw()
-		elif editing and event.keycode >= KEY_1 and event.keycode <= KEY_7:
+		# NO TOGGLE KEY. Every tool was holding a letter hostage across the
+		# whole game - P, O, T, R, G, L, Z - and two of them collided (G was
+		# both this and the grid overlay). They are switched on from the F1
+		# menu now, which is the only debug key left. The keys BELOW still
+		# work, but only while this tool is on, so they cost nothing.
+		if editing and event.keycode >= KEY_1 and event.keycode <= KEY_7:
 			var idx: int = event.keycode - KEY_1
 			if idx < _areas().size():
 				area_index = idx

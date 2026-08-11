@@ -146,6 +146,9 @@ func reset_to_defaults() -> void:
 		if FileAccess.file_exists(path):
 			DirAccess.remove_absolute(ProjectSettings.globalize_path(path))
 
+	# Back to real time too - a reset that kept a 300x scale running would look
+	# like the fresh game was broken.
+	GameClock.reset()
 	Economy.money = Economy.STARTING_MONEY
 	Coins.amount = Coins.DEFAULT_AMOUNT
 	FuelStore.amount = FuelStore.STARTING_AMOUNT

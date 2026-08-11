@@ -2,7 +2,7 @@ extends Node2D
 
 # Draw the zones. One polygon per area, clicked corner by corner.
 #
-#   Z          toggle zone drawing on/off
+#   Switched on from the F1 menu - no toggle key, see _input.
 #   1-7        pick which area you are drawing
 #   left click add a corner to the current area
 #   right clic remove the LAST corner
@@ -78,9 +78,7 @@ func _area() -> String:
 func _input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed:
 		match event.keycode:
-			KEY_Z:
-				editing = not editing
-				return
+			# No toggle key - the F1 menu switches this on. See ApronEditor.
 			KEY_C:
 				if editing:
 					_regions.erase(_area())
@@ -195,7 +193,7 @@ func _update_hud() -> void:
 		counts[str(o)] = int(counts.get(str(o), 0)) + 1
 
 	var lines: Array = [
-		"ZONE EDITOR - %s  (Z to exit)" % Maps.display_name(),
+		"ZONE EDITOR - %s  (F1 to switch off)" % Maps.display_name(),
 		"",
 	]
 	for i in range(areas.size()):

@@ -4,7 +4,7 @@ extends Node2D
 # workflow as ApronEditor (no measured positions exist for these crops, so
 # they're eyeballed and placed by hand).
 #
-#   O          toggle cloud placement mode on/off
+#   Switched on from the F1 menu - no toggle key, see _input.
 #   1-n        pick which area you're placing for - the current airport's
 #              areas (7 on homeland, 3 on Dreamland, 1 on the carrier). Not
 #              every area has cloud art; the on-screen readout says which.
@@ -40,7 +40,7 @@ func _update_hud() -> void:
 	var areas := Maps.areas_for()
 	var lockable := CloudLayout.lockable_areas()
 	var lines: Array = [
-		"CLOUD EDITOR - %s  (O to exit)" % Maps.display_name(),
+		"CLOUD EDITOR - %s  (F1 to switch off)" % Maps.display_name(),
 		"",
 	]
 	for i in range(areas.size()):
@@ -90,11 +90,12 @@ func _current_area_name() -> String:
 # the event here first and marking it handled preempts that.
 func _input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed:
-		if event.keycode == KEY_O:
-			editing = !editing
-			_update_hud()
-			_apply_pickable()
-		elif editing and event.keycode >= KEY_1 and event.keycode <= KEY_7:
+		# NO TOGGLE KEY. Every tool was holding a letter hostage across the
+		# whole game - P, O, T, R, G, L, Z - and two of them collided (G was
+		# both this and the grid overlay). They are switched on from the F1
+		# menu now, which is the only debug key left. The keys BELOW still
+		# work, but only while this tool is on, so they cost nothing.
+		if editing and event.keycode >= KEY_1 and event.keycode <= KEY_7:
 			var idx: int = event.keycode - KEY_1
 			if idx < Maps.areas_for().size():
 				area_index = idx

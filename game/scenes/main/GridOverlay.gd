@@ -14,9 +14,8 @@ func _ready() -> void:
 	DebugState.flags_changed.connect(queue_redraw)
 
 
-func _unhandled_input(event: InputEvent) -> void:
-	if event is InputEventKey and event.pressed and event.keycode == KEY_G:
-		DebugState.toggle_flag(&"show_grid")
+# No G key any more - the F1 menu has a checkbox for it, and G was also the
+# building editor's toggle, so pressing it did two unrelated things at once.
 
 
 func _draw() -> void:

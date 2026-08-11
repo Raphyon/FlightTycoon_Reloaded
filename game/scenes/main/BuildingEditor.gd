@@ -8,7 +8,7 @@ extends Node2D
 # Same reason as every other editor here: nothing measured exists for these
 # positions, and working them out from the art has gone badly.
 #
-#   G          toggle plot placement mode on/off
+#   Switched on from the F1 menu - no toggle key, see _input.
 #   left click place a new plot where you click
 #   right clic select the plot under the cursor (or deselect)
 #   X          delete the selected plot
@@ -62,14 +62,11 @@ func _preview_key() -> String:
 # through physics picking before this node saw the event.
 func _input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed:
-		if event.keycode == KEY_G:
-			editing = !editing
-			if not editing:
-				selected = -1
-			_update_ghost()
-			_update_hud()
-			_set_slots_pickable(not editing)
-			return
+		# NO TOGGLE KEY. Every tool was holding a letter hostage across the
+		# whole game - P, O, T, R, G, L, Z - and two of them collided (G was
+		# both this and the grid overlay). They are switched on from the F1
+		# menu now, which is the only debug key left. The keys BELOW still
+		# work, but only while this tool is on, so they cost nothing.
 		if not editing:
 			return
 		var list: Array = BuildingLayout.BUILDINGS
@@ -203,7 +200,7 @@ func _update_hud() -> void:
 		_hud.set_lines(false, [])
 		return
 	var lines: Array[String] = [
-		"BUILDING PLOT EDITOR - %s  (G to exit)" % Maps.display_name(),
+		"BUILDING PLOT EDITOR - %s  (F1 to switch off)" % Maps.display_name(),
 		"",
 		"Placing empty construction SITES. What gets built on them is",
 		"the player's choice in the Prop Shop, not yours.",
