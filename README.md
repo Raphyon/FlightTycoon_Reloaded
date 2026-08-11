@@ -40,6 +40,21 @@ tools/
                 states, thruster states and shadows, located as connected
                 components. Replaces blackhawk_derive.py, which only existed
                 to reconstruct the Black Hawk before its real sheet turned up
+  airport_props.py    cuts loose props, vehicles and glows out of the
+                airport sheet into source-assets/airport/found/
+  buildings_derive.py, newfleet_derive.py, arrows_derive.py
+                same job for the building, later-fleet and arrow sheets
+  affinity_bar.py, cloud_icon.py, stat_icons.py, svg_icon.py,
+  arrived_label.py    author UI chrome the dump has no asset for - the
+                affinity bar, distance clouds, stat glyphs, the composed
+                "Arrived" callout
+  econ_sim.py   Python economy sweep - runs a hundred players across a dozen
+                constants in the time the in-game bot does one. SWEEP HERE,
+                CONFIRM WITH THE BOT; where they disagree the bot is right,
+                because this one is a reimplementation and has drifted before
+  zone_bands.py seeds the 7 zone bands of 6 plots, sorted by screen depth
+  export_assets.py    PNG-only export to ~/Documents/ft-proto-assets/,
+                sorted into mine/ vs placeholder/ with a MANIFEST.csv
 game/           Godot project root (engine, scenes, scripts)
 manifest.json   generated - do not hand-edit
 ```
@@ -59,6 +74,120 @@ or auto-imports the raw dump. Only finished, renamed sprites get copied into
 solo, local-only, sprite-based isometric project: native isometric TileMap
 support, fast editor startup, and no build weight the project doesn't need.
 Open `game/project.godot` in the Godot editor to run it.
+
+## What's implemented
+
+20 autoloaded systems, 19 UI panels, 7 in-game placement editors.
+
+### Airports and travel
+
+Three airports — `homeland` (yours), `robot` (the AI airport you fly to), and
+`dreamland`. The robot airport is reachable at **five distances**, each a
+separate destination gated behind one of your own zone unlocks, so range
+becomes worth something as the map opens up.
+
+| | zones | aprons | building plots |
+|---|---|---|---|
+| homeland | 7 | 110 | 42 |
+| robot | 7 | 110 | — |
+| dreamland | 3 | 42 | — |
+
+Zones unlock by **level and cash together**, from Zone2 at level 14 / $16,000
+to Carrier at level 70 / $1.9M. Levels are what actually pace the game — see
+Pacing below.
+
+Which zone a thing belongs to is answered two different ways, because aprons
+and plots arrived by different routes: an apron carries the area it was placed
+into, while a plot is just an id and a position and is resolved against
+hand-drawn polygons in `game/data/zone_regions.json`. Without those, every plot
+became available the moment Zone2 was bought.
+
+### The flight loop
+
+Buy an aircraft, assign it to a pad, route it to a destination, fly it.
+
+A lap is **four taps — two at each end**: claim the reward, then refuel and
+depart. Fuel is charged once, at departure; the destination refuels the return
+leg free. Legs run 1, 5, 20, 93 and 420 minutes by distance before aircraft
+class and livery speed bonuses.
+
+A flight pays `passengers x ticket price x distance`. Apron skins add a flat
+bonus to cash and XP; your city's population multiplies cash only, deliberately
+not XP, so decorating cannot pull the level curve forward.
+
+Fuel is a shared stock bought from a market that **reprices hourly** off the
+wall clock, so you either wait for a better slot or buy at a loss. The minimum
+purchase is 50 units, which is a real early-game trap.
+
+### Progression and economy
+
+You start with **$5,000, 15 coins, and a granted DC-3**. 36 aircraft on the
+shop ladder across levels 1-50, seven of them coin-only — coin aircraft ignore
+the level gate entirely, which is why the starting coin float is small.
+
+Aircraft affinity accrues with use and caps at level 10, worth 1% speed each.
+Liveries are a coin purchase that makes one specific aircraft faster.
+
+### Buildings
+
+42 plots, built from a shop, each earning rent on a cycle you tap to collect,
+with a small chance of turning up a coin. Demolition refunds half. Population
+housed feeds the popularity multiplier above.
+
+### Development tooling
+
+Nothing in this project guesses at placements. Seven editors put it in the
+game instead, all reached from the F1 debug menu:
+
+`ApronEditor` · `BuildingEditor` · `CloudEditor` · `LandmarkEditor` ·
+`PathEditor` · `RotorEditor` · `ZoneEditor`
+
+All five that place world objects use `_input` rather than `_unhandled_input`,
+because an apron's Area2D claims world clicks through physics picking first.
+They act on mouse *release* without drag, so a left-drag still pans the camera.
+
+**Fast-forward** (`GameClock`) advances the simulation by hand while the engine
+stays at 1x. Scaling `Engine.time_scale` instead hands every frame a five
+second delta at x300 and greys the screen out. It **holds while a panel is
+open** — fast-forward multiplies the world, not the hand holding the phone —
+except Routes, which is the panel you turn the fleet around in.
+
+**Scenarios** jump the save to early/mid/late/endgame so content past the
+early hours can be tested at all.
+
+**The bot** (`scripts/bot.gd`) plays the real autoloads headless:
+
+```bash
+godot --headless --path game -- --bot --who regular
+```
+
+It drives Fleet, Economy, Progression and the rest directly rather than
+reimplementing them, because `tools/econ_sim.py` reimplemented the rules and
+was wrong three separate times in ways that invalidated everything it had said.
+A tap costs 1.2s of session time (`--latency`), and `--speed` charges taps at
+`latency x speed` since fast-forward does not speed the player up either.
+
+### Pacing
+
+Measured with the bot, latency modelled, for a regular player (4 sessions a
+day, 10 minutes each):
+
+| milestone | play time |
+|---|---|
+| Zone2 | 1.0 h |
+| all six homeland zones | 40.3 h |
+| all 42 building plots | ~2 h |
+
+**Pacing is XP-gated, not money-gated.** Quadrupling zone prices moved a casual
+player 9.5h to 10.0h; stretching the level requirements moved a regular player
+to 40h. Prices are close to irrelevant; levels are the whole lever.
+
+### Saves
+
+`SaveGame` writes `player.json` plus three progress files under `game/data/`.
+All four are gitignored, and `aircraft_affinity.json` is tracked at its day 0
+`{}` and marked `skip-worktree`, so **the repo carries a day 0 save** and a
+live playthrough cannot be committed over it.
 
 ## Asset format
 
@@ -125,6 +254,32 @@ the canvas edge. Do not assume a uniform trim margin in any importer.
 
 ## Known issues
 
+### Design
+
+- **Distance is never worth flying.** A leg pays x5 from the nearest
+  destination to the furthest while taking x420 as long, so the 1-minute hop is
+  roughly 48x better per minute and long-haul is never the correct play. Fixing
+  the payout exponent buys no extra hours of game, but it makes range mean
+  something. Not done.
+- **The opening move is undiscoverable, and it is worth 8x.** Zone1 ships with
+  five free pads; spending the whole $5,000 filling them immediately is the
+  difference between reaching Zone2 in 1 hour and in 8-9. Nothing in the game
+  says so. Granting two or three aircraft at start would make the five-pad
+  opening happen whether or not the player works it out.
+- **Buildings cannot be upgraded**, so all 42 plots are exhausted about two
+  hours in for every kind of player and the city stops being a system.
+- **Dreamland and the Carrier are gated but not built.** Levels 57-70 unlock
+  content that does not exist yet - dreamland has aprons and nothing else. The
+  honest route to a 40-hour game past the homeland zones runs through building
+  these, not through stretching the curve further.
+- **The bot never reaches "all pads"** in 90 simulated days, so the top of the
+  apron ladder is currently unmeasured rather than balanced.
+
+### Technical
+
+- **The fast-forward offset is not persisted.** `GameClock.offset` resets on
+  restart, so time skipped in one session is not carried into the next and rent
+  cycles disagree with what the save expects.
 - **Model keys disagree between categories.** The shop icon is `p51`, the world
   sprites are `p-51mustang`. Needs an alias map before the manifest can join
   them automatically.
@@ -139,3 +294,14 @@ python tools/ingest.py --raw source-assets/raw           # dry run
 python tools/ingest.py --raw source-assets/raw --apply   # write layout
 python tools/propgen.py                                  # regenerate blur strips
 ```
+
+Run the game headless to check it boots, and the bot to measure pacing:
+
+```bash
+godot --headless --path game --quit-after 30
+godot --headless --path game -- --bot --who regular --days 90
+```
+
+`class_name` globals only register after an editor rescan — `godot --headless
+--editor --path game --quit` — otherwise a new one is "not declared in the
+current scope" at runtime.
