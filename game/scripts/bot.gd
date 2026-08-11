@@ -22,9 +22,21 @@ extends Node
 # dozen constants in the time this takes to do one - so the division of labour
 # is: sweep there, confirm here. Where they disagree, this one is right.
 #
-# WHAT IT DOES NOT MODEL: taps. It assumes every action a player could take in a
-# session, they take. That makes it an upper bound on progress, same as the
-# Python tool, and it is worth remembering when reading the output.
+# WHAT IT USED TO NOT MODEL: taps. It assumed every action a player COULD take
+# in a session, they took, instantly and for free - which made it an upper bound
+# on progress rather than a picture of one. It was doing 114 actions a MINUTE,
+# roughly two a second, sustained for hours. That is not a player, and it is why
+# it reported Zone2 in 0.8 h against a real playthrough that took 8-9.
+#
+# So a tap now costs time: LATENCY seconds each, charged against the session and
+# advancing the clock, because a player who is claiming and dispatching is not
+# also getting those seconds back. --latency 0 restores the old upper bound.
+#
+# AND IT COSTS MORE WHEN THE GAME RUNS FAST. Fast-forward does not speed the
+# PLAYER up - at x300 one second of deciding where to send an aircraft is five
+# game minutes gone. --speed models playing under fast-forward and charges taps
+# accordingly, which is the only honest way to ask whether fast-forward actually
+# buys anything.
 
 const DEFAULT_DAYS := 30
 const DEFAULT_SESSIONS := 4
@@ -46,6 +58,11 @@ const WHO := {
 # pathological config cannot wedge a headless CI run forever.
 const WALL_LIMIT := 600.0
 
+# Seconds a single tap costs. Not reaction time - the whole action: find the
+# aircraft, read what it wants, hit the button, watch the panel settle. A second
+# and a bit is brisk for a real hand on a real screen.
+const DEFAULT_LATENCY := 1.2
+
 var _days := DEFAULT_DAYS
 var _sessions := DEFAULT_SESSIONS
 var _minutes := DEFAULT_MINUTES
@@ -53,6 +70,15 @@ var _played := 0.0          # minutes of simulated PLAY, not elapsed time
 var _day := 0               # calendar days elapsed
 var _who := "custom"
 var _milestones := {}
+var _zone_times := {}       # area -> [minutes of play, calendar day] when bought
+# Every claim, refuel and dispatch it performs. THE BOT NEVER MISSES ONE, so
+# this is the tap bill a real player would have to pay to match it.
+var _taps := 0
+var _latency := DEFAULT_LATENCY
+var _trace := false
+# Fast-forward multiplier the imaginary player is running at. Taps cost
+# _latency * _speed of GAME time, because their hands do not speed up.
+var _speed := 1.0
 var _started := 0.0
 
 
@@ -71,6 +97,9 @@ func _ready() -> void:
 	for i in range(args.size() - 1):
 		match args[i]:
 			"--days": _days = int(args[i + 1])
+			"--trace": _trace = true
+			"--latency": _latency = maxf(0.0, float(args[i + 1]))
+			"--speed": _speed = maxf(1.0, float(args[i + 1]))
 			"--sessions": _sessions = int(args[i + 1])
 			"--minutes": _minutes = float(args[i + 1])
 	call_deferred("_run")
@@ -121,19 +150,34 @@ func _run() -> void:
 # until the session's minutes are used. Short legs complete WITHIN a session, so
 # this has to loop - the Python tool got this wrong for a long time and it made
 # the early game look ten times slower than it is.
+# A session is a budget of the player's OWN time, and everything spends from it:
+# taps at _latency each, waiting for the next landing at face value. It ends when
+# the budget is gone, wherever that leaves the fleet - mid-cycle, half-dispatched,
+# aircraft sitting claimed and unfuelled. Which is how sessions actually end.
 func _session(minutes: float) -> void:
 	var left := minutes * 60.0
 	for _pass in range(400):
+		var before := _taps
 		_collect()
 		_buy()
 		_dispatch()
+		# Charge for what those three just did. At speed > 1 the same hand
+		# movement eats _speed times as much game time.
+		var spent := float(_taps - before) * _latency
+		if spent > 0.0:
+			_skip(spent * _speed)
+			left -= spent
 		if left <= 0.0:
 			break
 		var next := _next_landing()
 		var step: float = left if next <= 0.0 else minf(next, left)
-		_skip(step)
+		_skip(step * _speed)
 		left -= step
 	_played += minutes
+	if _trace and _played <= 120.0:
+		print("    t+%5.0f min  lvl %2d  $%-9s  %2d aircraft  %2d pads  %d taps"
+			% [_played, Progression.level, _thousands(Economy.money),
+				Fleet.aircraft.size(), _total_pads(), _taps])
 
 
 func _skip(seconds: float) -> void:
@@ -154,12 +198,15 @@ func _collect() -> void:
 	for a in Fleet.aircraft.duplicate():
 		match a.state:
 			FleetAircraft.State.AWAITING_DEST_CLAIM:
+				_taps += 1
 				Fleet.claim_destination_reward(a.id)
 			FleetAircraft.State.AWAITING_HOME_CLAIM:
+				_taps += 1
 				Fleet.claim_home_reward(a.id)
 	for a in Fleet.aircraft.duplicate():
 		match a.state:
 			FleetAircraft.State.AWAITING_DEST_REFUEL:
+				_taps += 1
 				Fleet.refuel_at_destination(a.id)
 			FleetAircraft.State.AWAITING_HOME_REFUEL:
 				# BUYING FIRST MATTERS. A round trip spends fuel twice - once to
@@ -170,7 +217,8 @@ func _collect() -> void:
 				var need := Fleet.fuel_cost(a.model_key, Fleet.destination_of(a))
 				if FuelStore.amount < need:
 					_buy_fuel(need)
-				Fleet.refuel_at_home(a.id)
+				_taps += 1
+				Fleet.refuel_and_depart(a.id)
 	BuildingProgress.collect_all()
 
 
@@ -214,6 +262,7 @@ func _dispatch() -> void:
 		var need := Fleet.fuel_cost(a.model_key, Fleet.destination_of(a))
 		if FuelStore.amount < need:
 			_buy_fuel(need)
+		_taps += 1
 		Fleet.fuel_and_depart(a.id)
 
 
@@ -351,7 +400,10 @@ func _buy_zone() -> bool:
 			continue
 		if _spendable() < int(req["cost"]):
 			continue
-		return ZoneProgress.unlock(area_name)
+		if ZoneProgress.unlock(area_name):
+			if not _zone_times.has(area_name):
+				_zone_times[area_name] = [_played, _day]
+			return true
 	return false
 
 
@@ -443,5 +495,15 @@ func _summary() -> void:
 				% [name, _milestones[name][0] / 60.0, _milestones[name][1]])
 		else:
 			print("    %-14s not reached" % name)
-	print("  wall time %.1f s" % (Time.get_ticks_msec() / 1000.0 - _started))
+	print("\n  zones, in the order they were bought:")
+	for area_name in Maps.areas_for(Maps.DEFAULT_MAP):
+		if _zone_times.has(area_name):
+			print("    %-10s %6.1f h of play   (day %d)" % [area_name,
+				_zone_times[area_name][0] / 60.0, _zone_times[area_name][1]])
+		elif ZoneProgress.ZONE_REQUIREMENTS.has(area_name):
+			print("    %-10s never" % area_name)
+	print("\n  taps: %s over %.1f h of play = %.0f a minute (%.1fs each, x%d speed)"
+		% [_thousands(_taps), _played / 60.0, _taps / maxf(1.0, _played),
+			_latency, roundi(_speed)])
+	print("\n  wall time %.1f s" % (Time.get_ticks_msec() / 1000.0 - _started))
 	get_tree().quit()

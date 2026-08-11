@@ -813,6 +813,40 @@ func fuel_and_depart(aircraft_id: int) -> bool:
 	var a := get_aircraft(aircraft_id)
 	if not a or a.state != FleetAircraft.State.PARKED:
 		return false
+	return _launch(a)
+
+
+# THE TURNAROUND, IN ONE TAP. A landed aircraft used to need three: claim the
+# reward, buy fuel, then depart - and the middle one was a button that asked for
+# money and gave you back a parked aircraft, which is not a decision anybody was
+# making. Two taps a lap is the whole loop: claim what it earned, send it out
+# again.
+#
+# It also fixed a double charge. The destination refuels you for free, so the
+# paid top-up on landing at home and the paid tank on departure were two
+# payments covering one outbound leg. FUEL IS CHARGED ONCE NOW, AT DEPARTURE -
+# which is what _launch does, for both callers.
+func refuel_and_depart(aircraft_id: int) -> bool:
+	var a := get_aircraft(aircraft_id)
+	if not a or a.state != FleetAircraft.State.AWAITING_HOME_REFUEL:
+		return false
+	return _launch(a)
+
+
+# Park a landed aircraft without sending it anywhere - and WITHOUT charging it,
+# because it is not going anywhere yet. Used when the route is being edited: the
+# turnaround tap would launch it at the destination it is being moved off.
+func park_at_home(aircraft_id: int) -> bool:
+	var a := get_aircraft(aircraft_id)
+	if not a or a.state != FleetAircraft.State.AWAITING_HOME_REFUEL:
+		return false
+	a.state = FleetAircraft.State.PARKED
+	_emit_changed()
+	return true
+
+
+# Everything a departure needs, shared by both ways of starting one.
+func _launch(a: FleetAircraft) -> bool:
 	# Claim the landing pad before spending anything: with the robot airport
 	# full there is nowhere to land, and taking the fuel first would charge for
 	# a trip that can't happen.
@@ -886,17 +920,6 @@ func _grant_reward(a: FleetAircraft, apron_id: int) -> void:
 	Progression.add_xp(roundi(xp_for_claim(a.model_key, dest) * bonus))
 
 
-func refuel_at_home(aircraft_id: int) -> bool:
-	var a := get_aircraft(aircraft_id)
-	if not a or a.state != FleetAircraft.State.AWAITING_HOME_REFUEL:
-		return false
-	if not FuelStore.consume(fuel_cost(a.model_key, destination_of(a))):
-		return false
-	a.state = FleetAircraft.State.PARKED
-	_emit_changed()
-	return true
-
-
 # Where this aircraft is routed. Falls back to the robot so an aircraft from a
 # save written before destinations existed still has somewhere to go.
 func destination_of(a: FleetAircraft) -> String:
@@ -923,7 +946,12 @@ func block_reason(a: FleetAircraft) -> String:
 				return "no pad at %s" % Maps.display_name(destination_of(a))
 			if FuelStore.amount < fuel_cost(a.model_key, destination_of(a)):
 				return "needs %d fuel" % fuel_cost(a.model_key, destination_of(a))
+		# Departs in one tap now, so it is blocked by everything a departure is.
 		FleetAircraft.State.AWAITING_HOME_REFUEL:
+			if not in_range(a.model_key, destination_of(a)):
+				return "out of range"
+			if robot_apron_for(a) == -1:
+				return "no pad at %s" % Maps.display_name(destination_of(a))
 			if FuelStore.amount < fuel_cost(a.model_key, destination_of(a)):
 				return "needs %d fuel" % fuel_cost(a.model_key, destination_of(a))
 	return ""
@@ -950,13 +978,13 @@ func advance(aircraft_id: int) -> bool:
 		FleetAircraft.State.AWAITING_HOME_CLAIM:
 			claim_home_reward(a.id)
 		FleetAircraft.State.AWAITING_HOME_REFUEL:
-			refuel_at_home(a.id)
+			refuel_and_depart(a.id)
 	return a.state != before
 
 
-# A full round trip is five separate actions per aircraft - depart, collect,
-# send home, collect, refuel - so a fleet of five costs twenty-five presses to
-# go round once. This runs every aircraft as far forward as it will go in one
+# A full round trip is four separate actions per aircraft - collect, send home,
+# collect, refuel-and-depart - so a fleet of five costs twenty presses to go
+# round once. This runs every aircraft as far forward as it will go in one
 # press: collect what has landed, send it home, refuel it and put it back in
 # the air.
 #

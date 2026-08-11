@@ -171,6 +171,13 @@ func _set_callout_arrived(action: Callable) -> void:
 func _input(event: InputEvent) -> void:
 	if not _pending_action.is_valid() or not _callout.visible:
 		return
+	# NOT WHILE A PANEL IS UNDER THE POINTER. _input runs BEFORE the GUI gets a
+	# look, so a click on the aircraft shop reached the bubble underneath it too
+	# - and if that bubble said "Arrived", a mis-click inside a menu travelled
+	# you to the robot airport. Physics picking is filtered for us; this handler
+	# is not, so it has to ask.
+	if get_viewport().gui_get_hovered_control() != null:
+		return
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		var local_pos: Vector2 = to_local(get_global_mouse_position())
 		var bubble_rect := Rect2(_callout.position, CALLOUT_BUBBLE_SIZE)
@@ -260,7 +267,7 @@ func _draw() -> void:
 				_set_callout_icon(CALLOUT_DOLLAR_TEXTURE, Fleet.claim_home_reward.bind(a.id))
 				_callout.visible = true
 			FleetAircraft.State.AWAITING_HOME_REFUEL:
-				_set_callout_icon(CALLOUT_DRUM_TEXTURE, Fleet.refuel_at_home.bind(a.id))
+				_set_callout_icon(CALLOUT_DRUM_TEXTURE, Fleet.refuel_and_depart.bind(a.id))
 				_callout.visible = true
 			_:
 				# In the air - nothing to click at either airport.

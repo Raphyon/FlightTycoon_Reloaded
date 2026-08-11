@@ -510,7 +510,7 @@ func _settle(a: FleetAircraft) -> void:
 	if a.state == FleetAircraft.State.AWAITING_HOME_CLAIM:
 		Fleet.claim_home_reward(a.id)
 	if a.state == FleetAircraft.State.AWAITING_HOME_REFUEL:
-		Fleet.refuel_at_home(a.id)
+		Fleet.park_at_home(a.id)
 
 
 # What the player has to do about it - "not parked" is a state name, not an

@@ -175,6 +175,9 @@ func _on_input_event(_viewport: Node, event: InputEvent, _shape_idx: int) -> voi
 	if not (event is InputEventMouseButton and event.pressed
 			and event.button_index == MOUSE_BUTTON_LEFT):
 		return
+	# Same guard ApronSlot needs: a panel over the world must swallow the click.
+	if get_viewport().gui_get_hovered_control() != null:
+		return
 	var frame := Engine.get_process_frames()
 	if frame == _last_click_frame:
 		return

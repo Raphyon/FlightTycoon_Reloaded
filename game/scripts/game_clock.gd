@@ -5,11 +5,21 @@ extends Node
 # here rather than from Time directly.
 #
 # WHY. Two systems in this project run on two different clocks. Flights tick off
-# _process(delta), so Engine.time_scale speeds them up for free. Rent and the
-# fuel market read the system clock, which no time scale can touch - so setting
-# time_scale alone produced a world where aircraft flew at 60x and buildings
-# still paid once every fifteen real minutes. Routing the wall-clock readers
-# through here is what lets both halves be accelerated together.
+# _process(delta); rent and the fuel market read the system clock. Routing the
+# wall-clock readers through here is what lets both halves be accelerated
+# together.
+#
+# IT DOES NOT USE Engine.time_scale, and that is the whole design. Scaling the
+# engine seemed obvious and broke the game: at x300 every frame carries a FIVE
+# SECOND delta, so tweens finish instantly, timers fire in droves, cars travel
+# the map in a frame, and the fleet lands dozens of aircraft at once - each
+# rebuilding every apron slot and world sprite until the deferred-call queue
+# runs out of memory and the screen goes grey. Exactly the overflow the headless
+# bot hit, which is why the bot drops the scene entirely.
+#
+# So the SIMULATION is advanced by hand and the engine keeps running at 1x.
+# Animations, input and the UI stay normal speed; only game time moves faster.
+# That is what you want anyway - a takeoff roll at 300x tells you nothing.
 #
 # That buys two things the project could not do before:
 #
@@ -35,15 +45,49 @@ extends Node
 # completed un-complete itself.
 var offset := 0.0
 
-# Real seconds since boot, unaffected by Engine.time_scale - which is the whole
-# point. _process's delta is ALREADY scaled, so deriving the offset from it
-# would count the acceleration twice.
+# Kept only so a caller can ask how long the process has been up; the offset is
+# derived from _process's own delta now, not from wall time.
 var _last_real := 0.0
 var _badge: Label
 
 # What the F1 menu offers. 1 is normal; 60 turns an hour of the loop into a
 # minute, which is the point of the thing.
 const SPEEDS := [1.0, 5.0, 20.0, 60.0, 300.0]
+
+# The most game time one frame may carry, however high the speed. A frame hitch
+# at x300 would otherwise hand the fleet a minute at once and land everything
+# simultaneously; this bounds the churn instead. It only binds during a stall -
+# x300 at 60fps is 5s a frame, well under.
+const MAX_STEP := 30.0
+
+# Our own multiplier. NOT Engine.time_scale - see the note at the top.
+var speed := 1.0
+
+# THE PLAYER DOES NOT SPEED UP. Fast-forward multiplies the world, not the hand
+# holding the phone, so at x300 one second spent reading a route panel is five
+# game minutes gone - fuel burned, rent cycles missed, a market slot passed. The
+# faster you run it the more every moment of hesitation costs, which makes the
+# feature actively hostile to doing anything while it is on.
+#
+# So it HOLDS while a panel is open. Menus are where the DECIDING happens - what
+# to buy, where to send it, which livery - and deciding is the part that should
+# not cost five game minutes a second.
+#
+# EXCEPT THE ONES YOU WORK IN. Routes is not a menu you read, it is the menu you
+# turn the fleet around in: claim, refuel, dispatch, Run all, repeat. Holding
+# there would break the exact loop fast-forward exists to speed up - you would
+# open it, nothing would land, and you would have to close it again to let the
+# aircraft come home. So time keeps running while it is open.
+#
+# The distinction is browsing versus working, not panel versus world.
+#
+# Detected by name rather than by a registry: every panel in Main.tscn is a
+# direct child of UI called something-Panel, and asking the tree costs nothing
+# next to keeping a list in step with it.
+const HOLD_WHILE_PANEL_OPEN := true
+const RUN_WHILE_OPEN: Array[String] = ["RoutesPanel"]
+
+var _held := false
 
 
 func _ready() -> void:
@@ -70,18 +114,37 @@ func _build_badge() -> void:
 	layer.add_child(_badge)
 
 
-func _process(_delta: float) -> void:
-	var real := Time.get_ticks_msec() / 1000.0
-	var elapsed := real - _last_real
-	_last_real = real
-	if not is_equal_approx(Engine.time_scale, 1.0):
-		offset += elapsed * (Engine.time_scale - 1.0)
+# Is the player mid-decision? Any visible UI/*Panel counts.
+func _player_busy() -> bool:
+	if not HOLD_WHILE_PANEL_OPEN:
+		return false
+	var scene := get_tree().current_scene
+	if scene == null:
+		return false
+	var ui := scene.get_node_or_null("UI")
+	if ui == null:
+		return false
+	for child in ui.get_children():
+		if child is Control and child.visible and str(child.name).ends_with("Panel") \
+				and not RUN_WHILE_OPEN.has(str(child.name)):
+			return true
+	return false
+
+
+func _process(delta: float) -> void:
+	_last_real = Time.get_ticks_msec() / 1000.0
+	_held = speed > 1.0 and _player_busy()
+	if speed > 1.0 and not _held:
+		# The EXTRA time this frame is worth. Fleet already advances by delta in
+		# its own _process, so only the surplus is added here.
+		var extra: float = minf(delta * (speed - 1.0), MAX_STEP)
+		offset += extra
+		Fleet.advance_by(extra)
 	if is_instance_valid(_badge):
-		var fast := not is_equal_approx(Engine.time_scale, 1.0)
-		_badge.visible = fast
-		if fast:
-			_badge.text = "FAST FORWARD  x%d   (+%s)" % [
-				roundi(Engine.time_scale), _elapsed_text()]
+		_badge.visible = speed > 1.0
+		if _badge.visible:
+			_badge.text = ("FAST FORWARD  x%d  HELD - menu open   (+%s)" if _held
+				else "FAST FORWARD  x%d   (+%s)") % [roundi(speed), _elapsed_text()]
 
 
 # What every wall-clock reader should ask instead of Time.
@@ -111,13 +174,13 @@ func _elapsed_text() -> String:
 
 
 func set_scale(n: float) -> void:
-	Engine.time_scale = clampf(n, 1.0, 3600.0)
+	speed = clampf(n, 1.0, 3600.0)
 
 
 func scale() -> float:
-	return Engine.time_scale
+	return speed
 
 
 func reset() -> void:
 	offset = 0.0
-	Engine.time_scale = 1.0
+	speed = 1.0
