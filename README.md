@@ -116,8 +116,23 @@ bonus to cash and XP; your city's population multiplies cash only, deliberately
 not XP, so decorating cannot pull the level curve forward.
 
 Fuel is a shared stock bought from a market that **reprices hourly** off the
-wall clock, so you either wait for a better slot or buy at a loss. The minimum
-purchase is 50 units, which is a real early-game trap.
+wall clock, so you either wait for a better slot or buy at a loss.
+
+Batches carry a price multiplier, so how much you buy is its own decision:
+
+| batch | multiplier |
+|---|---|
+| 50 | +20% |
+| 500 | +10% |
+| 5,000 | par |
+| 50,000 | -10% |
+
+Buying 50,000 units 50 at a time costs 25% more than buying them in one lot.
+This is also what gives the hourly market teeth - at a flat per-unit price
+stockpiling was free, so a bad slot could always be waited out at no cost.
+
+The minimum purchase is 50 units and it is now the dearest fuel in the game,
+which is a real early-game trap - see Known issues.
 
 ### Progression and economy
 
@@ -256,16 +271,46 @@ the canvas edge. Do not assume a uniform trim margin in any importer.
 
 ### Design
 
-- **Distance is never worth flying.** A leg pays x5 from the nearest
-  destination to the furthest while taking x420 as long, so the 1-minute hop is
-  roughly 48x better per minute and long-haul is never the correct play. Fixing
-  the payout exponent buys no extra hours of game, but it makes range mean
-  something. Not done.
+- **Range is inert - it buys nothing measurable.** A leg pays x5 from the
+  nearest destination to the furthest while taking x420 as long, so the 1-cloud
+  hop is 84x better per MINUTE - but a lap is four taps whatever its length, so
+  the furthest is 5x better per TAP. A session is a budget of the player's time
+  and the hours between sessions are free, so the two effects very nearly
+  cancel:
+
+  | routing | all six zones | gross income |
+  |---|---|---|
+  | always 1-cloud | 40.0 h | $178.0M |
+  | always furthest | 40.7 h | $173.8M |
+
+  2.4% apart (`--bot --routing near|far`). That is worse than short-haul simply
+  winning would be: range is the dearest stat on the shop card and it changes
+  nothing either way. Fixing the payout exponent buys no extra hours of game,
+  but it would make range mean something. Not done.
 - **The opening move is undiscoverable, and it is worth 8x.** Zone1 ships with
   five free pads; spending the whole $5,000 filling them immediately is the
   difference between reaching Zone2 in 1 hour and in 8-9. Nothing in the game
   says so. Granting two or three aircraft at start would make the five-pad
   opening happen whether or not the player works it out.
+- **Fuel is inert past the early game.** Measured over 60 h of play: $2.3M
+  spent on fuel against $173.7M earned - **1.3% of income**, and not one
+  aircraft ever grounded by an empty tank. Fuel is already ~0.1 units per seat
+  the whole way up the ladder, but pay is `seats x ticket x clouds` and the
+  ticket and cloud rating between them inflate revenue per seat about x37, so
+  the cost falls from ~10% of a leg on a DC-3 to 0.3% on an Ark.
+
+  There is no fix in the units. Scaling them to match revenue would put a
+  single fleet cycle past the 50,000 batch, which is the exact problem that
+  tier was raised from 5,000 to fix. A late-game sink wants to be a PERCENTAGE
+  - a handling fee, apron upkeep - which tracks revenue on its own and cannot
+  produce a number too big for a button. Fuel stays early-game friction.
+- **The 50-unit batch squeezes the early game twice.** It is the only batch a
+  new player can afford, it is the dearest fuel in the game at +20%, and 50
+  units is still more than a small fleet needs - so the first fuel purchase is
+  a large, overpriced, mostly-idle outlay. The premium is deliberate (small
+  batches should be the habit you grow out of) but it stacks with a minimum
+  that was already a trap. Lowering the minimum, rather than the premium, is
+  probably the fix.
 - **Buildings cannot be upgraded**, so all 42 plots are exhausted about two
   hours in for every kind of player and the city stops being a system.
 - **Dreamland and the Carrier are gated but not built.** Levels 57-70 unlock

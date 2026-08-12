@@ -32,6 +32,28 @@ const PRICE_HISTORY_LENGTH := 20
 # It used to be 20, from back when every aircraft burned a flat 5 - that is
 # now less than one round trip, so a fresh game stranded its own starter
 # aircraft at home with no way to earn the money to fuel it.
+# WHAT A BATCH COSTS PER UNIT, relative to the market price. Buying small is a
+# premium and buying big is a discount, so the size of the purchase is a
+# decision rather than a question of how many times you are willing to press the
+# button.
+#
+# It also gives the hourly market something to bite on. A flat per-unit price
+# made stockpiling free - there was never a reason to hold more than the next
+# leg needed, so a bad price slot could always be waited out at no cost. Now a
+# cheap slot is worth backing up the truck for, and topping up 50 at a time is
+# the expensive habit it looks like.
+#
+# The early game feels this as a squeeze: 50 units is all a new player can
+# afford and it is the dearest fuel in the game. That is deliberate - it is the
+# first thing the economy asks you to grow out of - but see the note on the
+# minimum purchase in the readme, because it stacks with an existing trap.
+const BATCH_MULTIPLIER := {
+	50: 1.20,
+	500: 1.10,
+	5000: 1.00,
+	50000: 0.90,
+}
+
 const STARTING_AMOUNT := 60
 
 var amount: int = STARTING_AMOUNT:
@@ -112,8 +134,21 @@ func consume(units: int) -> bool:
 	return true
 
 
+# What this batch actually costs, multiplier included. ONE PLACE, because the
+# shop displays a price and the purchase charges one, and those two drifting
+# apart is the kind of bug nobody reports - they just quietly feel cheated.
+func cost_of(units: int) -> int:
+	return roundi(units * current_price * multiplier_for(units))
+
+
+# Batches that are not one of the four offered sizes pay the flat rate. Nothing
+# in the shop can ask for one; this only keeps the function total.
+func multiplier_for(units: int) -> float:
+	return float(BATCH_MULTIPLIER.get(units, 1.0))
+
+
 func buy(units: int) -> bool:
-	if not Economy.spend_money(units * current_price):
+	if not Economy.spend_money(cost_of(units)):
 		return false
 	amount += units
 	return true

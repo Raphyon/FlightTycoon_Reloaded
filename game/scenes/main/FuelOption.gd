@@ -5,6 +5,9 @@ signal buy_pressed
 const DISABLED_MODULATE := Color(0.6, 0.6, 0.6, 1.0)
 const PRESSED_TEXTURE := preload("res://assets/buttons/button_grey3@2x.png")
 const PRESSED_FLASH_TIME := 0.2
+const NOTE_FONT_SIZE := 22
+const NOTE_PREMIUM := Color(1.0, 0.55, 0.45)
+const NOTE_DISCOUNT := Color(0.55, 1.0, 0.6)
 
 @onready var _tag_wrap: Control = $TagWrap
 @onready var _price_icon: TextureRect = $TagWrap/PriceIcon
@@ -14,6 +17,7 @@ const PRESSED_FLASH_TIME := 0.2
 @onready var _buy_button: TextureButton = $BuyWrap/BuyButton
 
 var _normal_texture: Texture2D
+var _note_label: Label
 
 
 func setup(qty: int, price_icon_texture: Texture2D, locked: bool) -> void:
@@ -44,6 +48,31 @@ func _flash_button() -> void:
 
 func set_price_text(text: String) -> void:
 	_price_label.text = text
+
+
+# The batch's premium or discount against the market price - "+20%", "-10%",
+# blank at par. Built in code rather than added to FuelOption.tscn because the
+# four cells are baked instances of that scene (see FuelPanel), so a node added
+# there has to be added four times and kept in step; here it arrives with the
+# text or not at all.
+func set_note_text(text: String) -> void:
+	if text == "" and _note_label == null:
+		return
+	if _note_label == null:
+		_note_label = Label.new()
+		_note_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		_note_label.add_theme_font_size_override("font_size", NOTE_FONT_SIZE)
+		_note_label.add_theme_color_override("font_outline_color", Color(0.08, 0.06, 0.03))
+		_note_label.add_theme_constant_override("outline_size", 4)
+		_note_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		add_child(_note_label)
+		# Directly under the quantity, so it reads as part of "+50 fuel" rather
+		# than as a note on the buy button.
+		move_child(_note_label, _qty_label.get_index() + 1)
+	_note_label.text = text
+	_note_label.visible = text != ""
+	_note_label.add_theme_color_override("font_color",
+		NOTE_DISCOUNT if text.begins_with("-") else NOTE_PREMIUM)
 
 
 func set_affordable(can_afford: bool) -> void:

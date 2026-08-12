@@ -79,6 +79,23 @@ var _trace := false
 # Fast-forward multiplier the imaginary player is running at. Taps cost
 # _latency * _speed of GAME time, because their hands do not speed up.
 var _speed := 1.0
+# Is fuel ever actually a constraint? Spend against earnings, and how often an
+# aircraft sat on the ground because the tank was empty.
+var _fuel_spend := 0
+var _earned := 0
+var _fuel_blocks := 0
+var _peak_stock := 0
+var _fuel_before := 0
+var _last_money := -1
+# Which destination the imaginary player routes to. "match" is the game's own
+# default (the exact cloud match for the aircraft); "near" always takes the
+# 1-cloud hop; "far" always takes the furthest it can reach.
+#
+# The two are not obviously ordered. Short legs pay 84x more per MINUTE, long
+# legs 5x more per TAP, and a session is a budget of the player's time while the
+# hours between sessions are free - so which one binds depends on the size of
+# the fleet, and may well flip as it grows.
+var _routing := "match"
 var _started := 0.0
 
 
@@ -97,6 +114,7 @@ func _ready() -> void:
 	for i in range(args.size() - 1):
 		match args[i]:
 			"--days": _days = int(args[i + 1])
+			"--routing": _routing = args[i + 1]
 			"--trace": _trace = true
 			"--latency": _latency = maxf(0.0, float(args[i + 1]))
 			"--speed": _speed = maxf(1.0, float(args[i + 1]))
@@ -161,6 +179,16 @@ func _session(minutes: float) -> void:
 		_collect()
 		_buy()
 		_dispatch()
+		# Is fuel ever actually a constraint? Gross income is every upward
+		# movement of the balance; a block is an aircraft sitting on the ground
+		# this pass because the tank was empty.
+		if _last_money >= 0 and Economy.money > _last_money:
+			_earned += Economy.money - _last_money
+		_last_money = Economy.money
+		for a in Fleet.aircraft:
+			if Fleet.block_reason(a).begins_with("needs"):
+				_fuel_blocks += 1
+		_peak_stock = maxi(_peak_stock, FuelStore.amount)
 		# Charge for what those three just did. At speed > 1 the same hand
 		# movement eats _speed times as much game time.
 		var spent := float(_taps - before) * _latency
@@ -258,7 +286,7 @@ func _dispatch() -> void:
 		if a.state != FleetAircraft.State.PARKED:
 			continue
 		if a.destination == "":
-			a.destination = Fleet.best_destination_for(a.model_key)
+			a.destination = _route_for(a.model_key)
 		var need := Fleet.fuel_cost(a.model_key, Fleet.destination_of(a))
 		if FuelStore.amount < need:
 			_buy_fuel(need)
@@ -268,11 +296,47 @@ func _dispatch() -> void:
 
 # The shop sells fixed bundles, so this cannot buy the exact shortfall - the
 # smallest tier that covers it, or nothing.
+# Batches carry a price multiplier now (FuelStore.BATCH_MULTIPLIER), so the
+# smallest batch that covers the need is no longer the cheapest way to buy -
+# 50 units at a time costs 25% more than the same fuel in 50,000 lots.
+#
+# So it buys the BIGGEST batch it can comfortably afford, capping the spend at
+# a third of the balance so it does not sink the whole treasury into fuel and
+# stall the pads and aircraft it is saving for. Falls back to the smallest one
+# that covers the need, which is what a player with no money has to do.
+const FUEL_SPEND_SHARE := 0.34
+
+# The destination this policy wants, clamped to what the aircraft can actually
+# reach and what is actually unlocked.
+func _route_for(model_key: String) -> String:
+	if _routing == "match":
+		return Fleet.best_destination_for(model_key)
+	var reachable: Array = []
+	for map_key in Maps.visitable_maps():
+		if Maps.is_robot_map(map_key) and Fleet.in_range(model_key, map_key):
+			reachable.append(map_key)
+	if reachable.is_empty():
+		return Fleet.best_destination_for(model_key)
+	reachable.sort_custom(func(x, y): return Fleet.distance_to(x) < Fleet.distance_to(y))
+	return str(reachable[0] if _routing == "near" else reachable[-1])
+
+
 func _buy_fuel(need: int) -> void:
-	for qty in [50, 500, 5000, 50000]:
-		if qty < need - FuelStore.amount:
+	var short: int = need - FuelStore.amount
+	var budget: float = Economy.money * FUEL_SPEND_SHARE
+	_fuel_before = Economy.money
+	var tiers := [50, 500, 5000, 50000]
+	for i in range(tiers.size() - 1, -1, -1):
+		var qty: int = tiers[i]
+		if qty >= short and FuelStore.cost_of(qty) <= budget:
+			_fuel_spend += FuelStore.cost_of(qty)
+			FuelStore.buy(qty)
+			return
+	for qty in tiers:
+		if qty < short:
 			continue
-		if Economy.money >= qty * FuelStore.current_price:
+		if Economy.money >= FuelStore.cost_of(qty):
+			_fuel_spend += FuelStore.cost_of(qty)
 			FuelStore.buy(qty)
 		return
 
@@ -502,6 +566,12 @@ func _summary() -> void:
 				_zone_times[area_name][0] / 60.0, _zone_times[area_name][1]])
 		elif ZoneProgress.ZONE_REQUIREMENTS.has(area_name):
 			print("    %-10s never" % area_name)
+	print("  routing policy: %s" % _routing)
+	print("\n  fuel: spent $%s against $%s earned = %.1f%% of income"
+		% [_thousands(_fuel_spend), _thousands(_earned),
+			100.0 * _fuel_spend / maxf(1.0, _earned)])
+	print("  fuel: %s aircraft-passes blocked on an empty tank, peak stock %s units"
+		% [_thousands(_fuel_blocks), _thousands(_peak_stock)])
 	print("\n  taps: %s over %.1f h of play = %.0f a minute (%.1fs each, x%d speed)"
 		% [_thousands(_taps), _played / 60.0, _taps / maxf(1.0, _played),
 			_latency, roundi(_speed)])

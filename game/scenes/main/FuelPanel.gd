@@ -4,6 +4,10 @@ extends PanelContainer
 # FuelStore), laid out 2x2: 50/500 on top, 5000/50000 on the bottom, all four
 # bought with cash.
 #
+# The tiers are not just quantities - each carries a price multiplier
+# (FuelStore.BATCH_MULTIPLIER), from +20% on 50 units to -10% on 50,000, shown
+# on the cell so the reason one batch looks dear is legible.
+#
 # The fourth cell used to be 5000 fuel for 5 coins. It was replaced rather than
 # added to because the top tier had stopped being a top tier: a full apron of
 # 110 Arks burns 100 a leg each, so a single round trip of the fleet costs
@@ -20,6 +24,14 @@ extends PanelContainer
 const MONEY_ICON := preload("res://assets/hud/icon_medium_money1@2x.png")
 
 const QUANTITIES := [50, 500, 5000, 50000]
+
+
+# "+20%" / "-10%" against the market price, or nothing at all at par.
+func _batch_note(qty: int) -> String:
+	var pct := roundi((FuelStore.multiplier_for(qty) - 1.0) * 100.0)
+	if pct == 0:
+		return ""
+	return "%+d%%" % pct
 
 @onready var _grid: GridContainer = $Frame/SafeArea/Margin/VBox/Row/Grid
 @onready var _close_button: Button = $Frame/SafeArea/Margin/VBox/CloseButton
@@ -80,6 +92,10 @@ func _fit_content() -> void:
 
 func _refresh(_unused = null) -> void:
 	for qty in QUANTITIES:
-		var cost: int = qty * FuelStore.current_price
+		var cost: int = FuelStore.cost_of(qty)
 		_options[qty].set_price_text("%d" % cost)
+		# The premium or discount, spelled out. The multiplier is invisible in a
+		# total - "600" and "500" for the same 50 units look like the market
+		# moved, not like small batches cost more.
+		_options[qty].set_note_text(_batch_note(qty))
 		_options[qty].set_affordable(Economy.money >= cost)
