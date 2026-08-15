@@ -141,6 +141,21 @@ func _build() -> void:
 	_refresh_speeds()
 
 	col.add_child(HSeparator.new())
+	col.add_child(_heading("Daily tasks", 14))
+	col.add_child(_note("No toolbar button yet - this is how you reach the panel."))
+	var quests_button := Button.new()
+	quests_button.text = "Open daily tasks"
+	quests_button.pressed.connect(func() -> void:
+		var quests_panel := get_node_or_null("../QuestsPanel")
+		if quests_panel and quests_panel.has_method("open"):
+			quests_panel.open())
+	col.add_child(quests_button)
+	var roll := Button.new()
+	roll.text = "Reroll today's three"
+	roll.pressed.connect(func() -> void: Quests.reset())
+	col.add_child(roll)
+
+	col.add_child(HSeparator.new())
 	col.add_child(_heading("Jump to a scenario", 14))
 	col.add_child(_note("Wipes the save and rebuilds it. There is no undo - see Scenarios.gd."))
 	for key in Scenarios.names():

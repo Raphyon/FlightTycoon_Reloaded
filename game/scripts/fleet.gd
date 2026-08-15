@@ -1,6 +1,11 @@
 extends Node
 
 signal fleet_changed
+# EVENTS, not state. fleet_changed says "something moved"; these say what
+# happened, which is what quest goals count. Nothing else could tell the
+# difference between a flight landing and a flight departing.
+signal flight_claimed(model_key: String, map_key: String, cash: int)
+signal flight_departed(model_key: String, map_key: String)
 
 # Model keys disagree between the shop icons and the ingested world sprites
 # (shop calls it "p51", the world sprite folder is "p-51mustang" - a known
@@ -866,6 +871,7 @@ func _launch(a: FleetAircraft) -> bool:
 	if not FuelStore.consume(fuel_cost(a.model_key, destination_of(a))):
 		return false
 	a.robot_apron_id = pad
+	flight_departed.emit(a.model_key, destination_of(a))
 	a.state = FleetAircraft.State.FLYING_OUT
 	a.flight_time_left = flight_seconds_for(a, destination_of(a))
 	a.flight_time_total = a.flight_time_left
@@ -922,8 +928,10 @@ func claim_home_reward(aircraft_id: int) -> void:
 func _grant_reward(a: FleetAircraft, apron_id: int) -> void:
 	var dest := destination_of(a)
 	var bonus := 1.0 + ApronSkins.bonus_percent_for(apron_id) / 100.0
-	Economy.add_money(reward_cash_for(a, apron_id))
+	var cash := reward_cash_for(a, apron_id)
+	Economy.add_money(cash)
 	Progression.add_xp(roundi(xp_for_claim(a.model_key, dest) * bonus))
+	flight_claimed.emit(a.model_key, dest, cash)
 
 
 # What claiming this aircraft pays. Split out of _grant_reward so the figure can

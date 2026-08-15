@@ -69,6 +69,7 @@ func save() -> void:
 		"xp": Progression.xp,
 		"level": Progression.level,
 		"fleet": Fleet.to_save(),
+		"quests": Quests.to_save(),
 	}
 	var f := FileAccess.open(SAVE_PATH, FileAccess.WRITE)
 	if not f:
@@ -102,6 +103,10 @@ func _load() -> void:
 	# level-up signal the player already saw.
 	Progression.xp = int(data.get("xp", 0))
 	Progression.level = maxi(1, int(data.get("level", 1)))
+
+	var quest_data: Variant = data.get("quests", null)
+	if quest_data is Dictionary:
+		Quests.load_save(quest_data)
 
 	var elapsed := 0.0
 	var saved_at := float(data.get("saved_at", 0.0))

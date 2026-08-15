@@ -2,6 +2,9 @@ extends Node
 
 signal built_changed
 signal rent_changed
+# The EVENT. rent_changed fires for any reason a timer moved; this one means a
+# player tapped a building and took the money.
+signal rent_collected(plot_id: int, amount: int)
 
 # What the player has built, where, and when its rent was last taken. Keyed by
 # the plot ids BuildingLayout authors, per airport:
@@ -253,6 +256,7 @@ func collect_rent(plot_id: int, map_key: String = "") -> int:
 	built[mk] = m
 	_save()
 	rent_changed.emit()
+	rent_collected.emit(plot_id, amount)
 	return amount
 
 

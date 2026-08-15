@@ -2,6 +2,10 @@ extends Node
 
 signal fuel_changed(new_amount: int)
 signal price_changed(new_price: int)
+# Carries the UNIT PRICE PAID as well as the size, so a quest can ask you to buy
+# cheaply or to buy in bulk - the two things the market and the batch
+# multipliers are for, and neither is visible from the fuel total alone.
+signal fuel_bought(units: int, unit_price: float)
 
 # Placeholder economy - not real game data. Price swings up to 50% above or
 # below the base each time the market moves.
@@ -148,9 +152,11 @@ func multiplier_for(units: int) -> float:
 
 
 func buy(units: int) -> bool:
-	if not Economy.spend_money(cost_of(units)):
+	var cost := cost_of(units)
+	if not Economy.spend_money(cost):
 		return false
 	amount += units
+	fuel_bought.emit(units, float(cost) / maxf(1.0, float(units)))
 	return true
 
 
