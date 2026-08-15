@@ -29,6 +29,24 @@ const CALLOUT_DRUM_TEXTURE := preload("res://assets/bubbles/fuel_bubble@2x.png")
 # apron whose aircraft is waiting at the robot airport; clicking it travels
 # there.
 const CALLOUT_ARRIVED_TEXTURE := preload("res://assets/bubbles/arrived_bubble@2x.png")
+# The swoop family - one 96x58 oval per kind of work, icon baked in, the rest of
+# the oval left empty for the line of text and the bar (see ProgressBubble).
+const SWOOP_EARNING_TEXTURE := preload("res://assets/bubbles/earning_bubble@2x.png")
+const SWOOP_FUELING_TEXTURE := preload("res://assets/bubbles/fueling_bubble@2x.png")
+# The flight tag - same oval, plane icon, and it is the COLOUR that says whose
+# aircraft you are looking at.
+#
+#   BLUE  your own aircraft, at your own airport
+#   GREEN anything friend-shaped: your aircraft while you are visiting a
+#         friend, and - once friends can send aircraft to you - theirs parked
+#         on your pads. Nothing does that yet; there is no notion of another
+#         player's aircraft in Fleet, so only the visiting half is live.
+# What the swoop says while it works. Verbs, not figures - see ProgressBubble.
+const SWOOP_CLAIM_TEXT := "Claiming"
+const SWOOP_FUEL_TEXT := "Refueling"
+
+const TAG_MINE_TEXTURE := preload("res://assets/bubbles/arrived_away_bubble@2x.png")
+const TAG_FRIEND_TEXTURE := preload("res://assets/bubbles/arrived_home_bubble@2x.png")
 # Native art size - drawn 1:1, so it stays crisp.
 const CALLOUT_BUBBLE_SIZE := Vector2(42, 49)
 const CALLOUT_ARRIVED_SIZE := Vector2(109, 58)
@@ -56,6 +74,18 @@ var _callout: Control
 var _callout_bubble: TextureRect
 var _callout_icon: TextureRect
 var _pending_action: Callable = Callable()
+# What the tap should SHOW while it works. Armed alongside _pending_action so
+# the two cannot disagree about which action is pending.
+var _swoop_texture: Texture2D = null
+var _swoop_text := ""
+var _swoop_is_fuel := false
+var _swoop: ProgressBubble
+# The flight tag: a countdown while the aircraft is in the air, "Arrived" once
+# it is down. Separate from _swoop because the two can want the space at
+# different times and neither should clear the other.
+var _tag: ProgressBubble
+var _tag_action: Callable = Callable()
+var _tag_aircraft: FleetAircraft = null
 
 
 func setup(p_apron: Apron) -> void:
@@ -67,6 +97,12 @@ func setup(p_apron: Apron) -> void:
 	# Buying a zone in the expansion shop has to bring its aprons' build
 	# prompts in straight away, without waiting on some other repaint.
 	ZoneProgress.unlocked_changed.connect(queue_redraw)
+	# The in-transit countdown shows only while THIS pad's menu is open, and
+	# opening a menu changes no game state - so without this nothing would tell
+	# the slot to look again and the bubble never appeared.
+	var panel := get_node_or_null("../../UI/ApronInfoPanel")
+	if panel and panel.has_signal("shown_apron_changed"):
+		panel.shown_apron_changed.connect(func(_id: int) -> void: queue_redraw())
 	queue_redraw()
 
 
@@ -140,7 +176,40 @@ func _ready() -> void:
 	_callout_icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_callout.add_child(_callout_icon)
 
+	# Its own node rather than a mode of the callout: the swoop has to keep
+	# drawing after the callout it replaced has gone (the claim clears the
+	# state the callout was reporting), and two nodes cannot fight over that.
+	_swoop = ProgressBubble.new()
+	_swoop.z_index = CALLOUT_Z_INDEX
+	_swoop.z_as_relative = false
+	_swoop.visible = false
+	add_child(_swoop)
+	ProgressBubble.place_by_tail(_swoop, Vector2(0, CALLOUT_TAIL_Y))
+	_swoop.completed.connect(func() -> void:
+		_swoop.visible = false
+		queue_redraw()
+	)
+
+	_tag = ProgressBubble.new()
+	_tag.z_index = CALLOUT_Z_INDEX
+	_tag.z_as_relative = false
+	_tag.visible = false
+	add_child(_tag)
+	ProgressBubble.place_by_tail(_tag, Vector2(0, CALLOUT_TAIL_Y))
+
 	_set_callout_icon(CALLOUT_CONE_TEXTURE)
+
+
+# Arms the callout AND what its tap will show while it works. Cash actions get
+# the earning bubble and the figure they will pay; fuel actions get the fuelling
+# bubble and what the tank costs. Anything armed without a swoop (the cone, the
+# free-pad plane) still fires instantly - there is nothing to watch.
+func _arm(icon: Texture2D, action: Callable, swoop: Texture2D = null,
+		text := "", is_fuel := false) -> void:
+	_swoop_texture = swoop
+	_swoop_text = text
+	_swoop_is_fuel = is_fuel
+	_set_callout_icon(icon, action)
 
 
 func _set_callout_icon(texture: Texture2D, action: Callable = Callable()) -> void:
@@ -155,6 +224,8 @@ func _set_callout_icon(texture: Texture2D, action: Callable = Callable()) -> voi
 # The "Arrived" callout: one composed sprite, so there's no separate icon, and
 # it's placed by its tail rather than its centre.
 func _set_callout_arrived(action: Callable) -> void:
+	# No swoop: this is "take me there", not a job being done.
+	_swoop_texture = null
 	_callout_bubble.texture = CALLOUT_ARRIVED_TEXTURE
 	_callout_bubble.size = CALLOUT_ARRIVED_SIZE
 	_callout.size = CALLOUT_ARRIVED_SIZE
@@ -169,7 +240,8 @@ func _set_callout_arrived(action: Callable) -> void:
 # CloudEditor vs ApronSlot earlier - both would fire, and the diamond's own
 # click would pop the info panel over top of the bubble action).
 func _input(event: InputEvent) -> void:
-	if not _pending_action.is_valid() or not _callout.visible:
+	var tag_live: bool = is_instance_valid(_tag) and _tag.visible and _tag_action.is_valid()
+	if not tag_live and (not _pending_action.is_valid() or not _callout.visible):
 		return
 	# NOT WHILE A PANEL IS UNDER THE POINTER. _input runs BEFORE the GUI gets a
 	# look, so a click on the aircraft shop reached the bubble underneath it too
@@ -180,10 +252,15 @@ func _input(event: InputEvent) -> void:
 		return
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		var local_pos: Vector2 = to_local(get_global_mouse_position())
-		var bubble_rect := Rect2(_callout.position, CALLOUT_BUBBLE_SIZE)
+		var bubble_rect := Rect2(_callout.position, _callout.size)
+		if _tag.visible and _tag_action.is_valid() \
+				and Rect2(_tag.position, _tag.size).has_point(local_pos):
+			get_viewport().set_input_as_handled()
+			_tag_action.call()
+			return
 		if bubble_rect.has_point(local_pos):
 			get_viewport().set_input_as_handled()
-			_pending_action.call()
+			_start_action()
 
 
 func _diamond_points() -> PackedVector2Array:
@@ -232,12 +309,21 @@ func _draw() -> void:
 
 	# A pad at the robot airport, holding an aircraft you've flown out. Checked
 	# first: robot pads have their own ids, so nothing else can be here.
+	# A swoop in flight owns the space above this pad until it finishes.
+	if is_instance_valid(_swoop) and _swoop.is_running():
+		_callout.visible = false
+		_hide_tag()
+		return
+	# Re-established below by whichever branch wants it.
+	_hide_tag()
 	var visitor := Fleet.get_aircraft_at_robot_apron(apron.id)
 	if visitor:
 		if visitor.state == FleetAircraft.State.AWAITING_DEST_CLAIM:
-			_set_callout_icon(CALLOUT_DOLLAR_TEXTURE, Fleet.claim_destination_reward.bind(visitor.id))
+			_arm(CALLOUT_DOLLAR_TEXTURE, Fleet.claim_destination_reward.bind(visitor.id),
+				SWOOP_EARNING_TEXTURE, SWOOP_CLAIM_TEXT)
 		else:
-			_set_callout_icon(CALLOUT_DRUM_TEXTURE, Fleet.refuel_at_destination.bind(visitor.id))
+			_arm(CALLOUT_DRUM_TEXTURE, Fleet.refuel_at_destination.bind(visitor.id),
+				SWOOP_FUELING_TEXTURE, SWOOP_FUEL_TEXT, true)
 		_callout.visible = true
 	elif not apron.occupied:
 		# The free-pad plane bubble means "assign one here", which you can't do
@@ -253,21 +339,35 @@ func _draw() -> void:
 		var state: int = a.state if a else -1
 		match state:
 			FleetAircraft.State.PARKED:
-				_set_callout_icon(CALLOUT_DRUM_TEXTURE, Fleet.fuel_and_depart.bind(a.id))
+				_arm(CALLOUT_DRUM_TEXTURE, Fleet.fuel_and_depart.bind(a.id),
+					SWOOP_FUELING_TEXTURE, SWOOP_FUEL_TEXT, true)
 				_callout.visible = true
+			FleetAircraft.State.FLYING_OUT, FleetAircraft.State.FLYING_BACK:
+				# IN THE AIR. The countdown is a detail, not a prompt - there is
+				# nothing to tap - so it only shows while this pad's own menu is
+				# open, which is what the reference game does. Arrived is the
+				# opposite: it IS a prompt, so it shows unasked (below).
+				_callout.visible = false
+				if _panel_open_here():
+					_show_tag(a, Fleet.time_left_text(a.flight_time_left),
+						Fleet.flight_progress(a), Callable())
+				else:
+					_hide_tag()
 			FleetAircraft.State.AWAITING_DEST_CLAIM, FleetAircraft.State.AWAITING_DEST_REFUEL:
 				# The aircraft isn't here - it's sitting at the destination it
 				# flew to. This is its home pad, so it shows the way there
 				# instead of the reward/fuel bubble it would show if the plane
 				# were present. Which destination depends on the route, now
 				# that there are five of them.
-				_set_callout_arrived(Maps.travel_to.bind(Fleet.destination_of(a)))
-				_callout.visible = true
+				_callout.visible = false
+				_show_tag(a, "Arrived", 1.0, Maps.travel_to.bind(Fleet.destination_of(a)))
 			FleetAircraft.State.AWAITING_HOME_CLAIM:
-				_set_callout_icon(CALLOUT_DOLLAR_TEXTURE, Fleet.claim_home_reward.bind(a.id))
+				_arm(CALLOUT_DOLLAR_TEXTURE, Fleet.claim_home_reward.bind(a.id),
+					SWOOP_EARNING_TEXTURE, SWOOP_CLAIM_TEXT)
 				_callout.visible = true
 			FleetAircraft.State.AWAITING_HOME_REFUEL:
-				_set_callout_icon(CALLOUT_DRUM_TEXTURE, Fleet.refuel_and_depart.bind(a.id))
+				_arm(CALLOUT_DRUM_TEXTURE, Fleet.refuel_and_depart.bind(a.id),
+					SWOOP_FUELING_TEXTURE, SWOOP_FUEL_TEXT, true)
 				_callout.visible = true
 			_:
 				# In the air - nothing to click at either airport.
@@ -287,6 +387,76 @@ func _draw() -> void:
 			ThemeDB.fallback_font, Vector2(-8, 5), str(apron.id),
 			HORIZONTAL_ALIGNMENT_CENTER, -1, 16, Color.WHITE
 		)
+
+
+# BLUE for your own aircraft at your own airport, GREEN the moment a friend is
+# involved. Today that means "am I visiting", since nobody else's aircraft can
+# be here yet; when they can, this is the one place that decides.
+func _tag_texture() -> Texture2D:
+	return TAG_FRIEND_TEXTURE if Maps.is_robot_map() else TAG_MINE_TEXTURE
+
+
+# Show the flight tag. `action` empty means it is a readout, not a button.
+func _show_tag(a: FleetAircraft, text: String, fill: float, action: Callable) -> void:
+	_tag_aircraft = a
+	_tag_action = action
+	_tag.show_status(_tag_texture(), text, fill)
+	# Only a live countdown needs the frame loop; an arrived tag never changes.
+	set_process(_tag_aircraft != null and Fleet.is_flying(_tag_aircraft))
+
+
+func _hide_tag() -> void:
+	if not is_instance_valid(_tag):
+		return
+	_tag.visible = false
+	_tag_action = Callable()
+	_tag_aircraft = null
+	set_process(false)
+
+
+# The countdown, ticked in place rather than by redrawing the whole slot - a
+# redraw re-evaluates every apron state and rebuilds the callout, once a frame,
+# on every pad with an aircraft in the air.
+func _process(_delta: float) -> void:
+	if _tag_aircraft == null or not _tag.visible:
+		set_process(false)
+		return
+	if not Fleet.is_flying(_tag_aircraft) or not _panel_open_here():
+		# Landed, or the menu was closed under it - let the normal path decide.
+		queue_redraw()
+		return
+	_tag.show_status(_tag_texture(),
+		Fleet.time_left_text(_tag_aircraft.flight_time_left),
+		Fleet.flight_progress(_tag_aircraft))
+
+
+# Is this pad's own menu the one on screen?
+func _panel_open_here() -> bool:
+	var panel := get_node_or_null("../../UI/ApronInfoPanel")
+	if panel == null or not panel.has_method("showing_apron_id"):
+		return false
+	return panel.showing_apron_id() == apron.id
+
+
+# Fire the armed action - through the swoop where there is one to watch.
+#
+# The action runs when the BAR FILLS, not when the tap lands, so the two seconds
+# ARE the transaction rather than a flourish over an outcome already decided.
+# The callout hides at once, so one pad cannot be tapped twice into two swoops
+# for one reward.
+#
+# Nothing blocks. Every other pad stays live and can start its own swoop on top
+# of this one - see the note in ProgressBubble about why that matters.
+func _start_action() -> void:
+	var action := _pending_action
+	if not action.is_valid():
+		return
+	if _swoop_texture == null:
+		action.call()
+		return
+	_pending_action = Callable()
+	_callout.visible = false
+	_swoop.run(_swoop_texture, _swoop_text, action, _swoop_is_fuel)
 
 
 # A press is not a click yet - it might be the start of a camera drag.

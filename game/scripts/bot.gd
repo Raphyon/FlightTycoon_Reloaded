@@ -308,6 +308,14 @@ const FUEL_SPEND_SHARE := 0.34
 
 # The destination this policy wants, clamped to what the aircraft can actually
 # reach and what is actually unlocked.
+func _coin_models() -> int:
+	var n := 0
+	for e in ShopCatalog.ENTRIES:
+		if str(e.get("currency", "")) == ShopCatalog.COINS:
+			n += 1
+	return n
+
+
 func _route_for(model_key: String) -> String:
 	if _routing == "match":
 		return Fleet.best_destination_for(model_key)
@@ -567,6 +575,8 @@ func _summary() -> void:
 		elif ZoneProgress.ZONE_REQUIREMENTS.has(area_name):
 			print("    %-10s never" % area_name)
 	print("  routing policy: %s" % _routing)
+	print("  coins: %d earned over the run (started with %d), against %d coin aircraft in the shop"
+		% [Coins.amount - Coins.DEFAULT_AMOUNT, Coins.DEFAULT_AMOUNT, _coin_models()])
 	print("\n  fuel: spent $%s against $%s earned = %.1f%% of income"
 		% [_thousands(_fuel_spend), _thousands(_earned),
 			100.0 * _fuel_spend / maxf(1.0, _earned)])

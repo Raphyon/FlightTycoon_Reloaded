@@ -40,10 +40,20 @@ func _ready() -> void:
 	# Pre-fills homeland's Zone1 and the robot airport's mirror of it, whichever
 	# airport we happen to boot into.
 	ApronLayout.ensure_seeded()
-	# Coalesced: several fleet changes in one frame cause ONE rebuild, not one
-	# each. _rebuild_all frees and recreates every apron slot and world sprite,
-	# so at 110 aprons that is 220 nodes a time.
-	Fleet.fleet_changed.connect(_request_rebuild)
+	# A FLEET CHANGE IS NOT A LAYOUT CHANGE. This used to call _request_rebuild,
+	# which frees and recreates every apron slot - and a fleet change fires
+	# whenever ANY aircraft anywhere lands, claims or departs, which at a full
+	# airport is constantly.
+	#
+	# That quietly destroyed anything a slot was in the middle of. The two
+	# second claim swoop (ProgressBubble) would vanish part-filled the moment an
+	# unrelated aircraft touched down somewhere else on the map, which read as
+	# the progress bars simply not working.
+	#
+	# What actually changes is occupancy and state, and a slot can redraw for
+	# that. The full rebuild is still there for when the apron SET changes -
+	# buying a pad, travelling - which is what it was for.
+	Fleet.fleet_changed.connect(_refresh_slots)
 	_hud = EditorHud.create(self)
 	reload_for_map()
 
@@ -223,6 +233,19 @@ func _point_in_apron_footprint(pos: Vector2, center: Vector2) -> bool:
 
 
 var _rebuild_queued := false
+
+
+# Update what the existing slots show, without replacing them.
+func _refresh_slots() -> void:
+	for area_name in _slots:
+		for apron_id in _slots[area_name]:
+			var slot = _slots[area_name][apron_id]
+			if not is_instance_valid(slot):
+				continue
+			slot.apron.occupied = (Fleet.get_aircraft_at_apron(apron_id) != null
+				or Fleet.get_aircraft_at_robot_apron(apron_id) != null)
+			slot.queue_redraw()
+	_sync_world_aircraft()
 
 
 func _request_rebuild() -> void:

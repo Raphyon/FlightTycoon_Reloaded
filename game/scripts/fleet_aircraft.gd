@@ -35,6 +35,11 @@ var livery: String = ""
 var owned_liveries: Dictionary = {}
 var state: int = State.PARKED
 var flight_time_left: float = 0.0
+# What flight_time_left STARTED at, so a countdown can show how far along the
+# leg is. Derived it at first and it drifted: the bulk-dispatch stagger is added
+# to flight_time_left after the fact (Fleet.BULK_LAUNCH_STAGGER), so recomputing
+# the leg length understates the total and the bar starts part-full.
+var flight_time_total: float = 0.0
 
 
 func _init(p_id: int, p_model_key: String) -> void:

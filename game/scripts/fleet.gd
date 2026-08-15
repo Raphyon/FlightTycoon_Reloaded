@@ -666,7 +666,7 @@ func to_save() -> Dictionary:
 		out.append({
 			"id": a.id, "model": a.model_key, "apron": a.assigned_apron_id,
 			"robot_apron": a.robot_apron_id, "state": a.state,
-			"left": a.flight_time_left,
+			"left": a.flight_time_left, "total": a.flight_time_total,
 			"livery": a.livery, "owned_liveries": a.owned_liveries.keys(),
 			"destination": a.destination,
 		})
@@ -686,6 +686,11 @@ func load_save(data: Dictionary, elapsed: float) -> void:
 		a.robot_apron_id = int(d.get("robot_apron", -1))
 		a.state = int(d.get("state", FleetAircraft.State.PARKED))
 		a.flight_time_left = float(d.get("left", 0.0))
+		# Saves written before the countdown existed have no total; the leg it is
+		# on is the best available answer and only affects a progress bar.
+		a.flight_time_total = float(d.get("total", 0.0))
+		if a.flight_time_total <= 0.0:
+			a.flight_time_total = maxf(a.flight_time_left, 1.0)
 		a.livery = str(d.get("livery", ""))
 		a.destination = str(d.get("destination", ""))
 		for key in d.get("owned_liveries", []):
@@ -863,6 +868,7 @@ func _launch(a: FleetAircraft) -> bool:
 	a.robot_apron_id = pad
 	a.state = FleetAircraft.State.FLYING_OUT
 	a.flight_time_left = flight_seconds_for(a, destination_of(a))
+	a.flight_time_total = a.flight_time_left
 	_emit_changed()
 	return true
 
@@ -886,6 +892,7 @@ func refuel_at_destination(aircraft_id: int) -> void:
 		a.robot_apron_id = -1
 		a.state = FleetAircraft.State.FLYING_BACK
 		a.flight_time_left = flight_seconds_for(a, destination_of(a))
+		a.flight_time_total = a.flight_time_left
 		_emit_changed()
 
 
@@ -915,9 +922,46 @@ func claim_home_reward(aircraft_id: int) -> void:
 func _grant_reward(a: FleetAircraft, apron_id: int) -> void:
 	var dest := destination_of(a)
 	var bonus := 1.0 + ApronSkins.bonus_percent_for(apron_id) / 100.0
-	Economy.add_money(roundi(payout_for(a.model_key, dest) * bonus
-		* BuildingProgress.popularity_multiplier()))
+	Economy.add_money(reward_cash_for(a, apron_id))
 	Progression.add_xp(roundi(xp_for_claim(a.model_key, dest) * bonus))
+
+
+# What claiming this aircraft pays. Split out of _grant_reward so the figure can
+# be asked for without granting it - the routes panel and any future preview
+# want the same number, and a second copy of this expression is exactly the
+# drift this project keeps getting bitten by.
+func reward_cash_for(a: FleetAircraft, apron_id: int) -> int:
+	if a == null:
+		return 0
+	var bonus := 1.0 + ApronSkins.bonus_percent_for(apron_id) / 100.0
+	return roundi(payout_for(a.model_key, destination_of(a)) * bonus
+		* BuildingProgress.popularity_multiplier())
+
+
+func is_flying(a: FleetAircraft) -> bool:
+	return a != null and (a.state == FleetAircraft.State.FLYING_OUT
+		or a.state == FleetAircraft.State.FLYING_BACK)
+
+
+# How far along its leg this aircraft is, 0..1. Clamped, because a save from
+# before totals existed - or an affinity level gained mid-flight - can put the
+# remaining time outside the total it was launched with.
+func flight_progress(a: FleetAircraft) -> float:
+	if a == null or a.flight_time_total <= 0.0:
+		return 0.0
+	return clampf(1.0 - a.flight_time_left / a.flight_time_total, 0.0, 1.0)
+
+
+# "47m 42s", "2h 05m", "38s" - the countdown on the callout. Matches the shape
+# the reference game uses rather than a bare seconds count, because a five cloud
+# leg is seven hours and "25200s" tells nobody anything.
+func time_left_text(seconds: float) -> String:
+	var t := int(ceilf(maxf(0.0, seconds)))
+	if t >= 3600:
+		return "%dh %02dm" % [t / 3600, (t % 3600) / 60]
+	if t >= 60:
+		return "%dm %02ds" % [t / 60, t % 60]
+	return "%ds" % t
 
 
 # Where this aircraft is routed. Falls back to the robot so an aircraft from a
@@ -1037,6 +1081,7 @@ func advance_all() -> Dictionary:
 			if a.state == FleetAircraft.State.FLYING_OUT:
 				a.launch_delay = departed * step
 				a.flight_time_left += a.launch_delay
+				a.flight_time_total = a.flight_time_left
 				departed += 1
 		# Stuck is measured AFTER the pass, not before: an aircraft that
 		# collected its reward and then couldn't afford the fuel to leave has

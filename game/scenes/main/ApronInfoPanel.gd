@@ -114,6 +114,11 @@ func _ready() -> void:
 	_build()
 
 	Fleet.fleet_changed.connect(_refresh)
+	# Closing counts too - the countdown has to come off the pad when its menu
+	# goes away, and hide() is called from several places.
+	visibility_changed.connect(func() -> void:
+		if not visible:
+			shown_apron_changed.emit(-1))
 	ApronProgress.built_changed.connect(_refresh)
 	ApronSkins.skin_changed.connect(_refresh)
 
@@ -268,12 +273,27 @@ func _label(size_px: int, align: int) -> Label:
 	return l
 
 
+# Fires whenever the panel opens on a pad or closes. The in-transit countdown
+# only shows on the pad whose menu is up, and without this nothing tells the
+# slots to look again - opening the menu changed no game state, so no signal
+# they were listening to fired and the bubble never appeared.
+signal shown_apron_changed(apron_id: int)
+
+
+# Which pad this panel is currently open on, or -1. The in-transit countdown
+# only shows for the pad whose menu is open (see ApronSlot), so the slots need
+# to be able to ask.
+func showing_apron_id() -> int:
+	return _apron_id if visible else -1
+
+
 func show_apron(apron: Apron) -> void:
 	_apron_id = apron.id
 	_apron = apron
 	move_to_front()
 	visible = true
 	_refresh()
+	shown_apron_changed.emit(_apron_id)
 
 
 func _process(_delta: float) -> void:

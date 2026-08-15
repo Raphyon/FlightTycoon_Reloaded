@@ -27,6 +27,9 @@ signal body_clicked(plot_id: int)
 # "site" field - see BuildingLayout.SITE_TEXTURES.
 const CALLOUT_CONE := preload("res://assets/bubbles/cone_bubble@2x.png")
 const CALLOUT_CASH := preload("res://assets/bubbles/cash_bubble@2x.png")
+# The swoop the aprons use, for the same reason: collecting rent should look
+# like collecting rent rather than like a number changing.
+const SWOOP_EARNING := preload("res://assets/bubbles/earning_bubble@2x.png")
 # How far above the plot's ground point the callout floats - FIXED, and the
 # same whatever is standing there.
 #
@@ -50,6 +53,7 @@ var _shape: CollisionShape2D
 var _body_shape: CollisionShape2D
 # See _on_input_event - two shapes means two callbacks for one tap.
 var _last_click_frame := -1
+var _swoop: ProgressBubble
 
 
 func setup(id: int, pos: Vector2, site: String = "buildings") -> void:
@@ -80,6 +84,17 @@ func setup(id: int, pos: Vector2, site: String = "buildings") -> void:
 	_area.add_child(_body_shape)
 	add_child(_area)
 	_area.input_event.connect(_on_input_event)
+
+	_swoop = ProgressBubble.new()
+	_swoop.z_index = CALLOUT_Z_INDEX
+	_swoop.z_as_relative = false
+	_swoop.visible = false
+	add_child(_swoop)
+	ProgressBubble.place_by_tail(_swoop, Vector2(0, -CALLOUT_LIFT))
+	_swoop.completed.connect(func() -> void:
+		_swoop.visible = false
+		refresh()
+	)
 
 	refresh()
 
@@ -171,6 +186,21 @@ func set_pickable(on: bool) -> void:
 # no bubble, fell through, and opened the demolition menu behind it. The frame
 # guard is what makes the second call a no-op - without it the routing is
 # correct and the STATE has already moved underneath it.
+# Rent gets the two second swoop the aprons use. An EMPTY site's cone does not:
+# it opens the Prop Shop, and there is nothing being done to watch.
+func _claim() -> void:
+	if not BuildingProgress.is_built(plot_id) or not BuildingProgress.is_rent_ready(plot_id):
+		clicked.emit(plot_id)
+		return
+	# Hide the button for the duration, so one site cannot be tapped into two
+	# swoops for one rent cycle.
+	_bubble.visible = false
+	_shape.disabled = true
+	_swoop.visible = true
+	_swoop.run(SWOOP_EARNING, "Claiming",
+		func() -> void: BuildingProgress.collect_rent(plot_id))
+
+
 func _on_input_event(_viewport: Node, event: InputEvent, _shape_idx: int) -> void:
 	if not (event is InputEventMouseButton and event.pressed
 			and event.button_index == MOUSE_BUTTON_LEFT):
@@ -186,7 +216,7 @@ func _on_input_event(_viewport: Node, event: InputEvent, _shape_idx: int) -> voi
 		var half := Vector2(_bubble.texture.get_width(), _bubble.texture.get_height()) * 0.5
 		var local := to_local(get_global_mouse_position())
 		if Rect2(_bubble.position - half, half * 2.0).has_point(local):
-			clicked.emit(plot_id)
+			_claim()
 			return
 	if not _body_shape.disabled:
 		body_clicked.emit(plot_id)
