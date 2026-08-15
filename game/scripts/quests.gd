@@ -91,7 +91,10 @@ const DAILY_POOL := [
 	},
 	{
 		"key": "airborne", "weight": 1.0, "type": "concurrent", "title": "Have %d aircraft in the air at once",
-		"reward": KIND_CASH, "scale": "fleet_frac", "per": 60, "min": 2, "max": 40,
+		# 35%, not 60. Aircraft are dispatched one at a time and a short leg
+		# lands before the next few are away, so 60% of the fleet was never
+		# aloft at one moment and the row could not be finished by anyone.
+		"reward": KIND_CASH, "scale": "fleet_frac", "per": 35, "min": 2, "max": 25,
 	},
 	{
 		"key": "clear_rent", "weight": 0.8, "type": "clear_rent", "title": "Leave no rent uncollected",
@@ -119,7 +122,10 @@ const DAILY_POOL := [
 	# it does not work, you delete a row.
 	{
 		"key": "fly_far", "weight": 1.3, "type": "destinations", "title": "Fly to %d different destinations",
-		"reward": KIND_CASH, "scale": "fixed", "per": 3, "min": 2, "max": 3,
+		# TWO, and never more than the player can actually reach - see
+		# _eligible. Three asked a player who flies one destination all day to
+		# change their whole routine for one task; two asks for one extra trip.
+		"reward": KIND_CASH, "scale": "destinations", "per": 2, "min": 2, "max": 2,
 	},
 	{
 		"key": "cheap_fuel", "weight": 0.8, "type": "cheap_fuel", "title": "Buy fuel at $%d a unit or less",
@@ -137,6 +143,9 @@ const DAILY_POOL := [
 const BULK_FUEL_UNITS := 500
 
 const CHEAP_FUEL_PRICE := 8
+
+# Above this, "gain a level today" stops being a day's work - see _eligible.
+const LEVEL_TASK_MAX := 40
 
 var day := -1                # which day the current three were drawn for
 var active: Array = []       # keys drawn for today
@@ -203,8 +212,17 @@ func _roll_if_new_day() -> void:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = hash("quests:%d" % d)
 	var pool: Array = []
+	var fallback: Array = []
 	for entry in DAILY_POOL:
-		pool.append(str(entry["key"]))
+		var key := str(entry["key"])
+		if _eligible(key):
+			pool.append(key)
+		else:
+			fallback.append(key)
+	# If the airport is too young to offer three possible tasks, top up from the
+	# rest rather than dealing a short day.
+	while pool.size() < DAILY_COUNT and not fallback.is_empty():
+		pool.append(fallback.pop_front())
 	# Fisher-Yates on a seeded rng, then take the first DAILY_COUNT.
 	for i in range(pool.size() - 1, 0, -1):
 		var j := rng.randi_range(0, i)
@@ -252,6 +270,7 @@ func _target_for(key: String) -> int:
 	match str(e.get("scale", "fixed")):
 		"fleet": n = Fleet.aircraft.size() * int(e.get("per", 1))
 		"fleet_frac": n = int(round(Fleet.aircraft.size() * int(e.get("per", 1)) / 100.0))
+		"destinations": n = mini(int(e.get("per", 1)), _reachable_destinations())
 		"buildings": n = _built_count() * int(e.get("per", 1))
 		# Money targets ride what the fleet actually earns a lap, so "earn
 		# $40,000" means the same amount of PLAY at every level rather than
@@ -268,6 +287,49 @@ func _fleet_lap_value() -> int:
 	for a in Fleet.aircraft:
 		total += Fleet.reward_cash_for(a, a.assigned_apron_id) * 2
 	return maxi(total, 1000)
+
+
+# How many robot destinations this fleet can actually reach today. A task that
+# wants two is impossible with one unlocked, and drawing it anyway is what made
+# the pool feel broken.
+func _reachable_destinations() -> int:
+	var n := 0
+	for map_key in Maps.visitable_maps():
+		if not Maps.is_robot_map(map_key):
+			continue
+		for a in Fleet.aircraft:
+			if Fleet.in_range(a.model_key, map_key):
+				n += 1
+				break
+	return n
+
+
+# CAN THIS PLAYER FINISH IT TODAY AT ALL? Checked when the day is drawn, so an
+# impossible row is never dealt rather than sitting there all day as a dead
+# third of the set - which is what killed the set bonus: the coin needs all
+# three, so one unfinishable task costs the whole day's coin.
+#
+# Deliberately about POSSIBILITY, not difficulty. "Fly 40 routes" is hard and
+# stays in the pool; "put up a building" on a full city cannot be done at all
+# and does not.
+func _eligible(key: String) -> bool:
+	match _type_of(key):
+		"destinations":
+			return _reachable_destinations() >= 2
+		"concurrent":
+			return Fleet.aircraft.size() >= 3
+		"build":
+			# Somewhere left to build, or the task is a dead row on a full city.
+			return _built_count() < BuildingLayout.load_data().size()
+		"rent", "clear_rent":
+			return _built_count() > 0
+		"level":
+			# Levels slow to a crawl late on, and a day is not long enough to
+			# gain one at the top of the curve.
+			return Progression.level < LEVEL_TASK_MAX
+		"model":
+			return not Fleet.aircraft.is_empty()
+	return true
 
 
 func _built_count() -> int:

@@ -99,34 +99,59 @@ playthrough instead of clumping.
 Cash and XP at every tier. **Coins only at the top of a ladder and on zone
 unlocks** - about six payouts of 5, ~30 coins total.
 
-## The coin budget - MEASURED, and the estimate was wrong
+## The coin budget - MEASURED
 
-Projected ~195 coins from daily sets at "65% completion". The bot, over 90 days
-of regular play, completed **10 sets - 50 coins**. Four times less.
+Projected ~195 coins from daily sets at "65% completion". The first measured run
+completed **10 sets, 50 coins** - four times less, because the pool was dealing
+rows the player could not finish and the coin needs ALL THREE. One dead task
+costs the whole day.
+
+Fixed by never dealing an impossible row (see Completability). Same bot, same
+90 days: **30 sets, 150 coins**, and pacing did not move at all.
 
 | source | projected | measured (`--bot --quests on`) |
 |---|---|---|
 | start | 15 | 15 |
 | building drops | ~35 | 21 |
-| daily sets | ~195 | **50** (10 sets) |
+| daily sets | ~195 | **150** (30 sets) |
 | career tops | ~30 | not built |
-| **total** | ~275 | **86 against a 238 catalogue** |
+| **total** | ~275 | **157 against a 238 catalogue** |
 
-The bot is a FLOOR rather than an expectation: it plays its own loop and claims
-whatever happens to have completed, where a player nudges their day towards the
-three tasks in front of them. But the gap is too big to be only that, and it
-points at the pool - several tasks are near-impossible for a given playstyle:
+The bot is still a FLOOR rather than an expectation: it plays its own loop and
+claims whatever happens to have completed, where a player nudges their day
+towards the three tasks in front of them. 157 against a 238 catalogue means most
+of the coin content is reachable in a long playthrough and the rest is a choice,
+which is roughly where it should sit.
 
-- **fly_far** wants three distinct destinations; a player routing by best cloud
-  match flies one destination all day.
-- **airborne** wants 60% of the fleet in the air at once, which sequential
-  dispatch never reaches.
-- **build_one** and **gain_level** stop being possible once the city is full
-  and the levels slow down.
+## Completability
 
-So one of three things: raise SET_COIN_REWARD, make the pool more completable,
-or accept the catalogue is a long game. Not yet decided - and worth having a
-human play a week before choosing, since the bot cannot want anything.
+THE COIN NEEDS ALL THREE TASKS, so one row the player cannot finish costs the
+whole day. That makes "is this possible today" a property the draw has to check,
+not something to leave to chance.
+
+`_eligible()` is checked when the day is drawn, and it is about POSSIBILITY, not
+difficulty - "Fly 40 routes" is hard and stays in the pool; "put up a building"
+on a full city cannot be done at all and is not dealt.
+
+| row | not dealt when |
+|---|---|
+| fly_far | fewer than 2 destinations are reachable |
+| airborne | fleet under 3 |
+| build_one | every plot is built |
+| collect_rent, clear_rent | nothing is built |
+| gain_level | level 40+, where a level is no longer a day's work |
+| fly_model | no aircraft |
+
+If a young airport cannot offer three possible tasks, the day is topped up from
+the rest rather than dealt short.
+
+Two targets came down as well, because no playstyle reached them:
+
+- **airborne** 60% of the fleet aloft at once -> **35%**. Aircraft dispatch one
+  at a time and a short leg lands before the next few are away.
+- **fly_far** three distinct destinations -> **two**, capped at what the fleet
+  can actually reach. Three asked a player who flies one destination all day to
+  rebuild their routine for one task; two asks for one extra trip.
 
 ## What the faucet did to pacing
 
