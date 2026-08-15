@@ -1,24 +1,37 @@
 extends Control
 
-# DAILY TASKS. Three rows and the gold bar beneath them.
+# DAILY TASKS. Five rows and the gold bar beneath them.
 #
 # THE COIN IS ALWAYS VISIBLE AND ALWAYS ONE STEP AWAY. That is the whole layout
-# argument: the set bonus sits apart from the tasks, lit, with three pips that
-# fill as you go, so the thing you are working towards is on screen the entire
-# time rather than being announced when you finish. A per-task coin would be a
+# argument: the set bonus sits apart from the tasks, lit, with pips that fill as
+# you go, so the thing you are working towards is on screen the entire time
+# rather than being announced when you finish. A per-task coin would be a
 # trickle you collect without noticing; this is a thing you go and finish.
+#
+# THE PIPS COUNT TO THREE, NOT FIVE. Five tasks are dealt and any three earn the
+# coin, so the bar tracks the three - "how close am I" has one answer and it is
+# not the number of rows on screen.
 #
 # Built in code rather than in the scene, like VisitorPanel - the rows are
 # data-shaped (whatever Quests drew today) so there is nothing to lay out by
-# hand, and a NinePatchRect lets the board art stretch to however tall three
-# rows happen to be.
+# hand, and a NinePatchRect lets the board art stretch to however tall the rows
+# happen to be.
 
 const BOARD := preload("res://assets/board/board_changelist@ipad.png")
 const ICON_CASH := preload("res://assets/hud/icon_medium_money1@2x.png")
 const ICON_FUEL := preload("res://assets/hud/icon_medium_oil@2x.png")
 const ICON_COIN := preload("res://assets/hud/icon_medium_coin@2x.png")
 
-const PANEL_SIZE := Vector2(760, 520)
+# THE GAME'S OWN BUTTONS, not Godot's. Every other panel in here is built from
+# this art - orange for the thing you want to press, grey for the one you
+# cannot - and a default-themed Button in the middle of it looks like a
+# debug overlay. See CloseButton/BackButton for the same argument.
+const BUTTON_GO := preload("res://assets/buttons/button_orange2@2x.png")
+const BUTTON_WIDE := preload("res://assets/buttons/button_orange4@2x.png")
+const BUTTON_OFF := preload("res://assets/buttons/button_grey3@2x.png")
+
+# Five rows now, not three - see Quests.DAILY_COUNT.
+const PANEL_SIZE := Vector2(820, 700)
 const MARGIN := 34.0
 const ROW_HEIGHT := 86.0
 const ROW_GAP := 12.0
@@ -38,7 +51,7 @@ var _rows: VBoxContainer
 var _bonus: Control
 var _timer_label: Label
 var _bonus_label: Label
-var _bonus_button: Button
+var _bonus_button: TextureButton
 var _pips: Array[Panel] = []
 var _built := false
 
@@ -61,7 +74,9 @@ func open() -> void:
 
 func _process(_delta: float) -> void:
 	if visible and is_instance_valid(_timer_label):
-		_timer_label.text = "Resets in %s" % Fleet.time_left_text(Quests.seconds_until_reset())
+		_timer_label.text = "Resets in %s   -   %d swap%s left" % [
+		Fleet.time_left_text(Quests.seconds_until_reset()), Quests.refreshes_left,
+		"" if Quests.refreshes_left == 1 else "s"]
 
 
 func _build() -> void:
@@ -81,6 +96,7 @@ func _build() -> void:
 	add_child(bg)
 
 	var title := _label("DAILY TASKS", 30, COLOR_TITLE)
+	# Says the rule up front: the coin wants three of the five, not all of them.
 	title.position = Vector2(MARGIN, 22)
 	add_child(title)
 
@@ -100,17 +116,15 @@ func _build() -> void:
 	_rows = VBoxContainer.new()
 	_rows.add_theme_constant_override("separation", int(ROW_GAP))
 	_rows.position = Vector2(MARGIN, 86)
-	_rows.size = Vector2(PANEL_SIZE.x - MARGIN * 2.0, ROW_HEIGHT * 3.0 + ROW_GAP * 2.0)
+	_rows.size = Vector2(PANEL_SIZE.x - MARGIN * 2.0,
+		ROW_HEIGHT * Quests.DAILY_COUNT + ROW_GAP * (Quests.DAILY_COUNT - 1))
 	add_child(_rows)
 
 	_build_bonus()
 
-	var close := Button.new()
-	close.text = "Close"
-	close.size = Vector2(110, 40)
-	close.position = Vector2(PANEL_SIZE.x - MARGIN - 110, PANEL_SIZE.y - 52)
-	close.pressed.connect(func() -> void: visible = false)
-	add_child(close)
+	# The round X the other dialogs use, not a "Close" label - see CloseButton
+	# for why a panel over the world gets this rather than the Back arrow.
+	CloseButton.add_to(self, PANEL_SIZE, func() -> void: visible = false)
 
 
 func _build_bonus() -> void:
@@ -135,7 +149,7 @@ func _build_bonus() -> void:
 	coin.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_bonus.add_child(coin)
 
-	var head := _label("Complete all 3 today", 24, COLOR_GOLD)
+	var head := _label("Complete any %d today" % Quests.SET_REQUIRED, 24, COLOR_GOLD)
 	head.position = Vector2(84, 18)
 	_bonus.add_child(head)
 
@@ -143,7 +157,7 @@ func _build_bonus() -> void:
 	_bonus_label.position = Vector2(84, 52)
 	_bonus.add_child(_bonus_label)
 
-	for i in range(Quests.DAILY_COUNT):
+	for i in range(Quests.SET_REQUIRED):
 		var pip := Panel.new()
 		pip.size = Vector2(18, 18)
 		pip.position = Vector2(320 + i * 26, 54)
@@ -151,10 +165,9 @@ func _build_bonus() -> void:
 		_bonus.add_child(pip)
 		_pips.append(pip)
 
-	_bonus_button = Button.new()
-	_bonus_button.size = Vector2(168, 54)
-	_bonus_button.position = Vector2(_bonus.size.x - 168 - 18, 21)
-	_bonus_button.pressed.connect(func() -> void: Quests.claim_set())
+	# Rebuilt by _refresh_bonus, because its art changes with its state.
+	_bonus_button = _texture_button(BUTTON_WIDE, Vector2(176, 56), "", false)
+	_bonus_button.position = Vector2(_bonus.size.x - 176 - 18, 20)
 	_bonus.add_child(_bonus_button)
 
 
@@ -224,45 +237,89 @@ func _make_row(key: String) -> Control:
 	row.add_child(reward)
 
 	# One button, three states - claimable, taken, still going.
-	var button := Button.new()
-	button.size = Vector2(122, 44)
-	button.position = Vector2(row.custom_minimum_size.x, 0)   # fixed below
-	button.set_anchors_preset(Control.PRESET_TOP_RIGHT)
-	button.position = Vector2(PANEL_SIZE.x - MARGIN * 2.0 - 122 - 18, 21)
+	var button_pos := Vector2(PANEL_SIZE.x - MARGIN * 2.0 - 122 - 18, 21)
+	var button: TextureButton
 	if taken:
-		button.text = "Claimed"
-		button.disabled = true
+		button = _texture_button(BUTTON_OFF, Vector2(122, 46), "Claimed", false)
 	elif done:
-		button.text = "Claim"
-		button.pressed.connect(func() -> void: Quests.claim(key))
+		button = _texture_button(BUTTON_GO, Vector2(122, 46), "Claim", true,
+			func() -> void: Quests.claim(key))
 	else:
-		button.text = "%d to go" % (tot - cur)
-		button.disabled = true
+		button = _texture_button(BUTTON_OFF, Vector2(122, 46),
+			"%d to go" % (tot - cur), false)
+	button.position = button_pos
 	row.add_child(button)
+
+	# REROLL. Only on a row that is not finished - rerolling a completed task
+	# would be a way to bank its reward and take another run at the same slot.
+	if Quests.can_refresh(key):
+		var swap := _texture_button(BUTTON_OFF, Vector2(92, 40), "Swap", true,
+			func() -> void: Quests.refresh(key))
+		swap.modulate = Color(1, 1, 1)
+		swap.tooltip_text = "Swap this task (%d left today)" % Quests.refreshes_left
+		swap.position = Vector2(PANEL_SIZE.x - MARGIN * 2.0 - 122 - 108, 24)
+		row.add_child(swap)
 	return row
 
 
 func _refresh_bonus() -> void:
 	var done := Quests.completed_count()
-	_bonus_label.text = "%d of %d done" % [done, Quests.DAILY_COUNT]
+	_bonus_label.text = "%d of %d done" % [mini(done, Quests.SET_REQUIRED), Quests.SET_REQUIRED]
 	for i in range(_pips.size()):
 		var lit := i < done
 		_pips[i].add_theme_stylebox_override("panel",
 			_box(COLOR_FILL_DONE if lit else Color(0, 0, 0, 0.42), 9))
+	# Rebuilt rather than relabelled: the art itself changes between the orange
+	# "press me" and the grey "you cannot".
+	var caption := "+%d coins" % Quests.SET_COIN_REWARD
+	var enabled := Quests.set_reward_available()
 	if Quests.set_claimed:
-		_bonus_button.text = "Claimed"
-		_bonus_button.disabled = true
-	elif Quests.all_complete() and Progression.level < Quests.COIN_MIN_LEVEL:
+		caption = "Claimed"
+		enabled = false
+	elif Quests.set_ready() and Progression.level < Quests.COIN_MIN_LEVEL:
 		# Honest about the gate rather than a dead button: coin aircraft skip
 		# the level ladder, so the coin does not start until level 10.
-		_bonus_button.text = "Lv %d" % Quests.COIN_MIN_LEVEL
-		_bonus_button.disabled = true
-	else:
-		_bonus_button.text = "+%d coins" % Quests.SET_COIN_REWARD
-		_bonus_button.disabled = not Quests.set_reward_available()
+		caption = "Lv %d" % Quests.COIN_MIN_LEVEL
+		enabled = false
+	var slot := _bonus_button.position
+	_bonus.remove_child(_bonus_button)
+	_bonus_button.queue_free()
+	_bonus_button = _texture_button(BUTTON_WIDE, Vector2(176, 56), caption, enabled,
+		func() -> void: Quests.claim_set())
+	_bonus_button.position = slot
+	_bonus.add_child(_bonus_button)
 
 
 # --- helpers ----------------------------------------------------------------
+
+# A button in the game's own art, with its caption centred on it.
+#
+# ignore_texture_size BEFORE the size, or the art's own dimensions become the
+# minimum and everything set afterwards is silently clamped up to them - the
+# trap CloseButton documents.
+func _texture_button(texture: Texture2D, button_size: Vector2, caption: String,
+		enabled: bool, on_pressed := Callable()) -> TextureButton:
+	var button := TextureButton.new()
+	button.ignore_texture_size = true
+	button.stretch_mode = TextureButton.STRETCH_KEEP_ASPECT_CENTERED
+	button.texture_normal = texture if enabled else BUTTON_OFF
+	button.size = button_size
+	button.custom_minimum_size = button_size
+	button.disabled = not enabled
+	if not enabled:
+		button.modulate = Color(0.82, 0.82, 0.82)
+	if enabled and on_pressed.is_valid():
+		button.pressed.connect(on_pressed)
+
+	var caption_label := _label(caption, 19, Color(1, 1, 1) if enabled else COLOR_DIM)
+	caption_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	caption_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	caption_label.size = button_size
+	caption_label.add_theme_color_override("font_outline_color", Color(0.25, 0.12, 0.03))
+	caption_label.add_theme_constant_override("outline_size", 4)
+	button.add_child(caption_label)
+	return button
+
 
 func _label(text: String, size_px: int, color: Color) -> Label:
 	var l := Label.new()

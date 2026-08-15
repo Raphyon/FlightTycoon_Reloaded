@@ -116,8 +116,10 @@ func _draw() -> void:
 	draw_rect(plate, edge, false, 2.0)
 
 	# One pip per task, along the bottom.
-	var done := Quests.completed_count()
-	var count: int = maxi(1, Quests.active.size())
+	# Towards the THREE the coin needs, not the five dealt - the tab answers
+	# "how close am I to the coin", which is the only question it has room for.
+	var done: int = mini(Quests.completed_count(), Quests.SET_REQUIRED)
+	var count: int = Quests.SET_REQUIRED
 	var pip := 9.0
 	var gap := 6.0
 	var total := count * pip + (count - 1) * gap

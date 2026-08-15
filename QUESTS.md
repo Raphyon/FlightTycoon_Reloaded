@@ -22,9 +22,15 @@ daily login reward does not.
 
 ## Shape
 
-**Daily** - three tasks, drawn from a pool, reset on the `GameClock` day
-boundary. Each pays **cash or fuel**. Completing **all three** pays **5 coins**.
-The set is the coin faucet; the individual tasks are not.
+**Daily** - FIVE tasks dealt, reset on the `GameClock` day boundary. Each pays
+cash or fuel. Completing **any three** pays **3 coins**, and one **swap** a day
+trades a row you do not fancy for another.
+
+Five-deal-three is what makes the set robust: the coin needs three, so when it
+needed all three of three, a single row the player could not or would not do
+cost the whole day. Now a bad row is something you skip rather than something
+that ends your day, and which three you chase is a decision where there was
+none.
 
 **Career** - one-off, ordered, visible ahead as a roadmap. Mostly cash and XP.
 Coins only at the top of a ladder or on a zone unlock.
@@ -99,29 +105,23 @@ playthrough instead of clumping.
 Cash and XP at every tier. **Coins only at the top of a ladder and on zone
 unlocks** - about six payouts of 5, ~30 coins total.
 
-## The coin budget - MEASURED
+## The coin budget
 
-Projected ~195 coins from daily sets at "65% completion". The first measured run
-completed **10 sets, 50 coins** - four times less, because the pool was dealing
-rows the player could not finish and the coin needs ALL THREE. One dead task
-costs the whole day.
+Five tasks are dealt and any three earn the coin, plus one swap a day for a row
+you do not fancy. Measured over 90 days of regular play: **82 sets, 246 coins**,
+finishing with 181 earned on top of the 15 you start with.
 
-Fixed by never dealing an impossible row (see Completability). Same bot, same
-90 days: **30 sets, 150 coins**, and pacing did not move at all.
+The catalogue is 238. That is the fit worth having - most of the coin content
+reachable in a long playthrough, the rest a choice.
 
-| source | projected | measured (`--bot --quests on`) |
-|---|---|---|
-| start | 15 | 15 |
-| building drops | ~35 | 21 |
-| daily sets | ~195 | **150** (30 sets) |
-| career tops | ~30 | not built |
-| **total** | ~275 | **157 against a 238 catalogue** |
+**The set pays 3, not 5.** At 5 it paid 420 coins, which is nearly twice the
+catalogue, and coins are not only content: coin aircraft ignore the level gate,
+so a big coin faucet is a progression faucet. Cash and fuel rewards are not -
+turning the coin off entirely leaves the rest of the quest rewards worth about
+half an hour across a whole playthrough.
 
-The bot is still a FLOOR rather than an expectation: it plays its own loop and
-claims whatever happens to have completed, where a player nudges their day
-towards the three tasks in front of them. 157 against a 238 catalogue means most
-of the coin content is reachable in a long playthrough and the rest is a choice,
-which is roughly where it should sit.
+If coin aircraft ever respect the level ladder, this constraint disappears and
+the faucet can be as generous as the catalogue wants.
 
 ## Completability
 

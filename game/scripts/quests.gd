@@ -26,9 +26,25 @@ extends Node
 signal quests_changed
 signal set_completed(coins: int)
 
-const SET_COIN_REWARD := 5
+const SET_COIN_REWARD := 3
 const COIN_MIN_LEVEL := 10
-const DAILY_COUNT := 3
+
+# FIVE DEALT, THREE NEEDED. The coin used to want all three of three, so a
+# single row the player could not or would not do cost the whole day - which is
+# what a measured run showed: 10 sets in 90 days.
+#
+# Dealing five and asking for three fixes that by SHAPE rather than by me
+# predicting which rows are impossible. A bad row is now something you skip
+# rather than something that ends your day, and the player picks which three
+# they want, which is a decision where there was none.
+const DAILY_COUNT := 5
+const SET_REQUIRED := 3
+
+# One reroll a day, on any task not already finished. The point is agency over a
+# row you do not fancy - not an infinite hunt for the three cheapest, which is
+# what an unlimited button would become.
+const REFRESHES_PER_DAY := 1
+
 const DAY_SECONDS := 86400.0
 
 # --- reward scaling ---------------------------------------------------------
@@ -42,6 +58,11 @@ const DAY_SECONDS := 86400.0
 # burns about 10,000 units late on, so the reward has to grow, but fuel is worth
 # most exactly where the game is meanest (the minimum purchase is 50 units at a
 # +20% premium, the early trap in the readme) and should not lose that.
+# Sized for a day of FIVE dealt tasks, not three. Dealing five without touching
+# this handed out up to 5 rewards a day where 3 was the budget, and a measured
+# run moved the whole game 4.7 hours forward - 38.7 h to 34.0 h to all six
+# zones. 0.7x puts a typical three-task day slightly under the old three-task
+# day, and an all-five day only modestly over it.
 const CASH_BASE := 4000.0
 const CASH_EXPONENT := 1.1
 const FUEL_BASE := 120.0
@@ -153,6 +174,7 @@ var targets: Dictionary = {} # key -> the number to reach, frozen for the day
 var progress: Dictionary = {}
 var claimed: Dictionary = {} # key -> the task's own reward has been taken
 var set_claimed := false
+var refreshes_left := REFRESHES_PER_DAY
 # Per-task working state that is not a simple count: the set of destinations
 # flown for "fly_far", and which model "fly_model" picked today. Saved with the
 # rest, or a reload would hand back a task you had half finished.
@@ -232,6 +254,7 @@ func _roll_if_new_day() -> void:
 	progress = {}
 	claimed = {}
 	set_claimed = false
+	refreshes_left = REFRESHES_PER_DAY
 	params = {}
 	seen = {}
 	_rent_taps = 0
@@ -474,6 +497,12 @@ func is_complete(key: String) -> bool:
 	return int(progress.get(key, 0)) >= int(targets.get(key, 1))
 
 
+# Enough of the day's five finished to earn the coin.
+func set_ready() -> bool:
+	return completed_count() >= SET_REQUIRED
+
+
+# Kept for callers that mean literally all of them.
 func all_complete() -> bool:
 	if active.is_empty():
 		return false
@@ -543,7 +572,7 @@ func claim(key: String) -> bool:
 
 
 func set_reward_available() -> bool:
-	return all_complete() and not set_claimed and Progression.level >= COIN_MIN_LEVEL
+	return set_ready() and not set_claimed and Progression.level >= COIN_MIN_LEVEL
 
 
 # The coin. Gated on level because coin aircraft skip the level gate entirely -
@@ -559,6 +588,47 @@ func claim_set() -> bool:
 	return true
 
 
+func can_refresh(key: String) -> bool:
+	return refreshes_left > 0 and active.has(key) and not is_complete(key) \
+		and not bool(claimed.get(key, false))
+
+
+# Swap one task for another the player does not already have. Finished tasks are
+# not rerollable - that would be a way to bank a reward and take another run at
+# the same slot.
+func refresh(key: String) -> bool:
+	if not can_refresh(key):
+		return false
+	var choices: Array = []
+	for e in DAILY_POOL:
+		var k := str(e["key"])
+		if not active.has(k) and _eligible(k):
+			choices.append(k)
+	if choices.is_empty():
+		return false
+	var rng := RandomNumberGenerator.new()
+	# Seeded on the day AND on how many refreshes are left, so the result is
+	# fixed for that press rather than rerollable by reloading.
+	rng.seed = hash("refresh:%d:%s:%d" % [day, key, refreshes_left])
+	var replacement := str(choices[rng.randi_range(0, choices.size() - 1)])
+
+	var i := active.find(key)
+	active[i] = replacement
+	targets.erase(key)
+	progress.erase(key)
+	claimed.erase(key)
+	seen.erase(key)
+	params.erase(key)
+	if _type_of(replacement) == "model":
+		params[replacement] = _pick_model(rng)
+	targets[replacement] = _target_for(replacement)
+	progress[replacement] = 0
+	claimed[replacement] = false
+	refreshes_left -= 1
+	quests_changed.emit()
+	return true
+
+
 # --- save -------------------------------------------------------------------
 
 func to_save() -> Dictionary:
@@ -566,6 +636,7 @@ func to_save() -> Dictionary:
 		"day": day, "active": active, "targets": targets,
 		"progress": progress, "claimed": claimed, "set_claimed": set_claimed,
 		"params": params, "seen": seen, "rent_taps": _rent_taps,
+		"refreshes_left": refreshes_left,
 	}
 
 
@@ -579,6 +650,7 @@ func load_save(data: Dictionary) -> void:
 	params = data.get("params", {})
 	seen = data.get("seen", {})
 	_rent_taps = int(data.get("rent_taps", 0))
+	refreshes_left = int(data.get("refreshes_left", REFRESHES_PER_DAY))
 	# A save from another day rolls immediately rather than showing yesterday's.
 	_roll_if_new_day()
 	quests_changed.emit()
