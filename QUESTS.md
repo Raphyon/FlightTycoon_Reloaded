@@ -99,18 +99,50 @@ playthrough instead of clumping.
 Cash and XP at every tier. **Coins only at the top of a ladder and on zone
 unlocks** - about six payouts of 5, ~30 coins total.
 
-## The coin budget
+## The coin budget - MEASURED, and the estimate was wrong
 
-| source | over a ~40 h playthrough |
-|---|---|
-| start | 15 |
-| building drops | ~35 |
-| daily sets, 5 each at ~65% completion | ~195 |
-| career tops and zone unlocks | ~30 |
-| **total** | **~275 against a 238 catalogue** |
+Projected ~195 coins from daily sets at "65% completion". The bot, over 90 days
+of regular play, completed **10 sets - 50 coins**. Four times less.
 
-Reachable, but only by showing up. The daily set is the primary faucet, which is
-what a daily is for; career quests fund the cash economy instead.
+| source | projected | measured (`--bot --quests on`) |
+|---|---|---|
+| start | 15 | 15 |
+| building drops | ~35 | 21 |
+| daily sets | ~195 | **50** (10 sets) |
+| career tops | ~30 | not built |
+| **total** | ~275 | **86 against a 238 catalogue** |
+
+The bot is a FLOOR rather than an expectation: it plays its own loop and claims
+whatever happens to have completed, where a player nudges their day towards the
+three tasks in front of them. But the gap is too big to be only that, and it
+points at the pool - several tasks are near-impossible for a given playstyle:
+
+- **fly_far** wants three distinct destinations; a player routing by best cloud
+  match flies one destination all day.
+- **airborne** wants 60% of the fleet in the air at once, which sequential
+  dispatch never reaches.
+- **build_one** and **gain_level** stop being possible once the city is full
+  and the levels slow down.
+
+So one of three things: raise SET_COIN_REWARD, make the pool more completable,
+or accept the catalogue is a long game. Not yet decided - and worth having a
+human play a week before choosing, since the bot cannot want anything.
+
+## What the faucet did to pacing
+
+Measured either side, regular player, 90 days:
+
+| | quests off | quests on |
+|---|---|---|
+| all six homeland zones | 40.7 h | **38.7 h** |
+| fleet ladder | 33.3 h | 32.0 h |
+| Zone2 | 1.0 h | 0.3 h |
+| fuel as share of income | 2.6% | 1.9% |
+
+**It pulls the game forward about 2 hours, 5%.** Small, and it lands inside the
+40-hour target - but it is a real movement and it is fastest at the very start
+(Zone2 in 0.3 h against 1.0), which is where the cash rewards are largest
+relative to what the player has. Worth watching if the pool grows.
 
 ## The constraint everything is designed around
 

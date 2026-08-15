@@ -86,6 +86,9 @@ func _load() -> void:
 		# comes up last and is the only one that knows a fresh game from a
 		# loaded one - see the order in project.godot.
 		Fleet.grant_starter()
+		# A fresh game draws a fresh set of daily tasks, sized to the fleet it
+		# now has rather than to whatever the last save owned.
+		Quests.reset()
 		return
 	var f := FileAccess.open(SAVE_PATH, FileAccess.READ)
 	if not f:
@@ -165,6 +168,9 @@ func reset_to_defaults() -> void:
 	# see Fleet._ready. Clearing to nothing would drop the player into exactly
 	# the opening that was just fixed.
 	Fleet.grant_starter()
+	# A fresh game draws a fresh set of daily tasks, sized to the fleet it now
+	# has rather than to whatever the last save owned.
+	Quests.reset()
 	ApronProgress.built_ids.clear()
 	ZoneProgress.unlocked_zones.clear()
 	AircraftAffinity.reset()

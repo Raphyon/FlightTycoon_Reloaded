@@ -96,6 +96,12 @@ var _last_money := -1
 # hours between sessions are free - so which one binds depends on the size of
 # the fleet, and may well flip as it grows.
 var _routing := "match"
+# Whether the imaginary player bothers with the daily tasks. OFF is the baseline
+# the quest faucet has to be measured against - and a bot that does not claim
+# would report "quests changed nothing", which is a statement about the bot.
+var _do_quests := true
+var _quest_coins := 0
+var _sets_done := 0
 var _started := 0.0
 
 
@@ -115,6 +121,7 @@ func _ready() -> void:
 		match args[i]:
 			"--days": _days = int(args[i + 1])
 			"--routing": _routing = args[i + 1]
+			"--quests": _do_quests = args[i + 1] != "off"
 			"--trace": _trace = true
 			"--latency": _latency = maxf(0.0, float(args[i + 1]))
 			"--speed": _speed = maxf(1.0, float(args[i + 1]))
@@ -189,7 +196,10 @@ func _session(minutes: float) -> void:
 			if Fleet.block_reason(a).begins_with("needs"):
 				_fuel_blocks += 1
 		_peak_stock = maxi(_peak_stock, FuelStore.amount)
-		# Charge for what those three just did. At speed > 1 the same hand
+		# The day's tasks, collected like anything else - and charged for.
+		if _do_quests:
+			_claim_quests()
+		# Charge for what all of that just did. At speed > 1 the same hand
 		# movement eats _speed times as much game time.
 		var spent := float(_taps - before) * _latency
 		if spent > 0.0:
@@ -211,6 +221,9 @@ func _session(minutes: float) -> void:
 func _skip(seconds: float) -> void:
 	GameClock.skip(seconds)
 	Fleet.advance_by(seconds)
+	# Both of these normally ride _process, which never runs here - see
+	# Quests.tick.
+	Quests.tick()
 
 
 func _next_landing() -> float:
@@ -314,6 +327,27 @@ func _coin_models() -> int:
 		if str(e.get("currency", "")) == ShopCatalog.COINS:
 			n += 1
 	return n
+
+
+# Collect anything the day's tasks have finished. Charged at the same tap rate
+# as everything else: one to open the panel, one per claim, one for the set.
+func _claim_quests() -> void:
+	var any := false
+	for key in Quests.active.duplicate():
+		if Quests.is_complete(str(key)) and not bool(Quests.claimed.get(key, false)):
+			if not any:
+				_taps += 1        # opening the panel
+				any = true
+			_taps += 1
+			Quests.claim(str(key))
+	if Quests.set_reward_available():
+		if not any:
+			_taps += 1
+		_taps += 1
+		var before: int = Coins.amount
+		if Quests.claim_set():
+			_sets_done += 1
+			_quest_coins += Coins.amount - before
 
 
 func _route_for(model_key: String) -> String:
@@ -574,7 +608,8 @@ func _summary() -> void:
 				_zone_times[area_name][0] / 60.0, _zone_times[area_name][1]])
 		elif ZoneProgress.ZONE_REQUIREMENTS.has(area_name):
 			print("    %-10s never" % area_name)
-	print("  routing policy: %s" % _routing)
+	print("  routing policy: %s   daily tasks: %s" % [_routing, "on" if _do_quests else "off"])
+	print("  quests: %d sets completed, %d coins earned" % [_sets_done, _quest_coins])
 	print("  coins: %d earned over the run (started with %d), against %d coin aircraft in the shop"
 		% [Coins.amount - Coins.DEFAULT_AMOUNT, Coins.DEFAULT_AMOUNT, _coin_models()])
 	print("\n  fuel: spent $%s against $%s earned = %.1f%% of income"

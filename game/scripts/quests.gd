@@ -165,6 +165,18 @@ func _ready() -> void:
 
 
 func _process(_delta: float) -> void:
+	tick()
+
+
+# Everything that has to happen as time passes, callable BY HAND.
+#
+# _process is no use to anything that advances the clock without yielding a
+# frame - the headless bot runs ninety simulated days inside one call, so
+# _process never fires, the day never rolls, and the tasks sit on whatever was
+# drawn at boot forever. That reported "0 sets completed" and would have been
+# read as "the quest faucet changes nothing", which is a statement about the
+# bot. Same reason Fleet exposes advance_by.
+func tick() -> void:
 	_roll_if_new_day()
 	_poll_state()
 
