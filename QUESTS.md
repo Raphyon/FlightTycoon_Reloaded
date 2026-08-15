@@ -1,8 +1,12 @@
 # Quests
 
-The daily half is BUILT - `scripts/quests.gd`, twelve tasks, and
-`QuestsPanel`, reachable from the F1 menu until it has a toolbar button. The
+The daily half is BUILT - `scripts/quests.gd`, twelve tasks, `QuestsPanel`, and
+a left-edge tab where the reference game puts its DAILY REWARD gift box. The
 career ladders below are still a sketch.
+
+The tab is DRAWN IN CODE and is a placeholder: there is no gift-box art in the
+dump, nor anything for PURCHASE BONUS or EVENT. Swapping in real art is
+replacing one TextureRect and deleting `_draw`.
 
 Numbers here are targets to be measured against `--bot`, not settled balance.
 

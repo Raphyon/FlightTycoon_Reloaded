@@ -74,6 +74,7 @@
 [ext_resource type="Texture2D" path="res://assets/buttons/button_arrow_left@2x.png" id="73"]
 [ext_resource type="Texture2D" path="res://assets/buttons/button_arrow_right@2x.png" id="74"]
 [ext_resource type="Script" path="res://scenes/main/QuestsPanel.gd" id="78"]
+[ext_resource type="Script" path="res://scenes/main/QuestsButton.gd" id="79"]
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_bg"]
 
@@ -461,6 +462,12 @@ theme_override_colors/font_color = Color(0.18, 0.13, 0.09, 1)
 text = "Routes"
 horizontal_alignment = 1
 vertical_alignment = 1
+
+[node name="QuestsButton" type="Control" parent="UI"]
+anchor_top = 0.5
+anchor_bottom = 0.5
+grow_vertical = 2
+script = ExtResource("79")
 
 [node name="QuestsPanel" type="Control" parent="UI"]
 anchor_left = 0.5
