@@ -128,27 +128,27 @@ func _build() -> void:
 	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(bg)
 
-	var title := _label("DAILY TASKS", 30, COLOR_TITLE)
+	var title := _label("DAILY TASKS", 22, COLOR_TITLE)
 	# Says the rule up front: the coin wants three of the five, not all of them.
-	title.position = Vector2(MARGIN, 22)
+	title.position = Vector2(MARGIN, 12)
 	add_child(title)
 
-	_timer_label = _label("", 18, COLOR_DIM)
+	_timer_label = _label("", 14, COLOR_DIM)
 	_timer_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	_timer_label.size = Vector2(300, 24)
-	_timer_label.position = Vector2(PANEL_SIZE.x - MARGIN - 300, 32)
+	_timer_label.size = Vector2(330, 20)
+	_timer_label.position = Vector2(PANEL_SIZE.x - MARGIN - 336, 18)
 	add_child(_timer_label)
 
 	var rule := Panel.new()
 	rule.add_theme_stylebox_override("panel", _box(Color(1, 1, 1, 0.16), 0))
-	rule.position = Vector2(MARGIN, 68)
+	rule.position = Vector2(MARGIN, 42)
 	rule.size = Vector2(PANEL_SIZE.x - MARGIN * 2.0, 2)
 	rule.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(rule)
 
 	_rows = VBoxContainer.new()
 	_rows.add_theme_constant_override("separation", int(ROW_GAP))
-	_rows.position = Vector2(MARGIN, 86)
+	_rows.position = Vector2(MARGIN, 52)
 	_rows.size = Vector2(PANEL_SIZE.x - MARGIN * 2.0,
 		ROW_HEIGHT * Quests.DAILY_COUNT + ROW_GAP * (Quests.DAILY_COUNT - 1))
 	add_child(_rows)
@@ -162,7 +162,7 @@ func _build() -> void:
 
 func _build_bonus() -> void:
 	_bonus = Control.new()
-	_bonus.position = Vector2(MARGIN, PANEL_SIZE.y - BONUS_HEIGHT - 74)
+	_bonus.position = Vector2(MARGIN, PANEL_SIZE.y - BONUS_HEIGHT - 26)
 	_bonus.size = Vector2(PANEL_SIZE.x - MARGIN * 2.0, BONUS_HEIGHT)
 	add_child(_bonus)
 
@@ -175,32 +175,32 @@ func _build_bonus() -> void:
 
 	var coin := TextureRect.new()
 	coin.texture = ICON_COIN
-	coin.size = Vector2(44, 50)
+	coin.size = Vector2(30, 34)
 	coin.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	coin.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	coin.position = Vector2(22, 23)
+	coin.position = Vector2(14, 15)
 	coin.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_bonus.add_child(coin)
 
-	var head := _label("Complete any %d today" % Quests.SET_REQUIRED, 24, COLOR_GOLD)
-	head.position = Vector2(84, 18)
+	var head := _label("Complete any %d today" % Quests.SET_REQUIRED, 17, COLOR_GOLD)
+	head.position = Vector2(54, 11)
 	_bonus.add_child(head)
 
-	_bonus_label = _label("", 18, COLOR_BODY)
-	_bonus_label.position = Vector2(84, 52)
+	_bonus_label = _label("", 13, COLOR_BODY)
+	_bonus_label.position = Vector2(54, 34)
 	_bonus.add_child(_bonus_label)
 
 	for i in range(Quests.SET_REQUIRED):
 		var pip := Panel.new()
-		pip.size = Vector2(18, 18)
-		pip.position = Vector2(320 + i * 26, 54)
+		pip.size = Vector2(13, 13)
+		pip.position = Vector2(250 + i * 19, 36)
 		pip.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		_bonus.add_child(pip)
 		_pips.append(pip)
 
 	# Rebuilt by _refresh_bonus, because its art changes with its state.
-	_bonus_button = _texture_button(BUTTON_WIDE, Vector2(176, 56), "", false)
-	_bonus_button.position = Vector2(_bonus.size.x - 176 - 18, 20)
+	_bonus_button = _texture_button(BUTTON_WIDE, Vector2(150, 42), "", false)
+	_bonus_button.position = Vector2(_bonus.size.x - 150 - 12, 11)
 	_bonus.add_child(_bonus_button)
 
 
@@ -226,13 +226,13 @@ func _make_row(key: String) -> Control:
 	row.add_theme_stylebox_override("panel", _box(Color(0, 0, 0, 0.22), 12,
 		Color(0.49, 0.81, 0.48, 0.55) if done else Color(0, 0, 0, 0)))
 
-	var title := _label(Quests.title_for(key), 22, COLOR_DONE if done else COLOR_TITLE)
-	title.position = Vector2(24, 11)
+	var title := _label(Quests.title_for(key), 16, COLOR_DONE if done else COLOR_TITLE)
+	title.position = Vector2(16, 6)
 	row.add_child(title)
 
 	var track := Panel.new()
 	track.add_theme_stylebox_override("panel", _box(Color(0, 0, 0, 0.42), 8))
-	track.position = Vector2(24, 44)
+	track.position = Vector2(16, 29)
 	track.size = BAR_SIZE
 	track.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	row.add_child(track)
@@ -243,42 +243,42 @@ func _make_row(key: String) -> Control:
 		var fill := Panel.new()
 		fill.add_theme_stylebox_override("panel",
 			_box(COLOR_FILL_DONE if done else COLOR_FILL, 6))
-		fill.position = Vector2(26, 46)
+		fill.position = Vector2(18, 31)
 		fill.size = Vector2((BAR_SIZE.x - 4.0) * clampf(float(cur) / tot, 0.0, 1.0),
 			BAR_SIZE.y - 4.0)
 		fill.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		row.add_child(fill)
 
-	var count := _label("%d/%d" % [cur, tot], 19, COLOR_BODY)
-	count.position = Vector2(24 + BAR_SIZE.x + 16, 42)
+	var count := _label("%d/%d" % [cur, tot], 13, COLOR_BODY)
+	count.position = Vector2(16 + BAR_SIZE.x + 10, 27)
 	row.add_child(count)
 
 	var is_fuel: bool = Quests.reward_kind(key) == Quests.KIND_FUEL
 	var icon := TextureRect.new()
 	icon.texture = ICON_FUEL if is_fuel else ICON_CASH
-	icon.size = Vector2(30, 30)
+	icon.size = Vector2(22, 22)
 	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	icon.position = Vector2(452, 22)
+	icon.position = Vector2(352, 14)
 	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	row.add_child(icon)
 
 	var amount: int = Quests.reward_amount(key)
 	var reward := _label(("%s fuel" % FloatingText.grouped(amount)) if is_fuel
-		else ("$%s" % FloatingText.grouped(amount)), 21, COLOR_REWARD)
-	reward.position = Vector2(490, 26)
+		else ("$%s" % FloatingText.grouped(amount)), 15, COLOR_REWARD)
+	reward.position = Vector2(380, 16)
 	row.add_child(reward)
 
 	# One button, three states - claimable, taken, still going.
-	var button_pos := Vector2(PANEL_SIZE.x - MARGIN * 2.0 - 122 - 18, 16)
+	var button_pos := Vector2(PANEL_SIZE.x - MARGIN * 2.0 - 104 - 10, 8)
 	var button: TextureButton
 	if taken:
-		button = _texture_button(BUTTON_OFF, Vector2(122, 46), "Claimed", false)
+		button = _texture_button(BUTTON_OFF, Vector2(104, 34), "Claimed", false)
 	elif done:
-		button = _texture_button(BUTTON_GO, Vector2(122, 46), "Claim", true,
+		button = _texture_button(BUTTON_GO, Vector2(104, 34), "Claim", true,
 			func() -> void: Quests.claim(key))
 	else:
-		button = _texture_button(BUTTON_OFF, Vector2(122, 46),
+		button = _texture_button(BUTTON_OFF, Vector2(104, 34),
 			"%d to go" % (tot - cur), false)
 	button.position = button_pos
 	row.add_child(button)
@@ -286,11 +286,11 @@ func _make_row(key: String) -> Control:
 	# REROLL. Only on a row that is not finished - rerolling a completed task
 	# would be a way to bank its reward and take another run at the same slot.
 	if Quests.can_refresh(key):
-		var swap := _texture_button(BUTTON_OFF, Vector2(92, 40), "Swap", true,
+		var swap := _texture_button(BUTTON_OFF, Vector2(72, 30), "Swap", true,
 			func() -> void: Quests.refresh(key))
 		swap.modulate = Color(1, 1, 1)
 		swap.tooltip_text = "Swap this task (%d left today)" % Quests.refreshes_left
-		swap.position = Vector2(PANEL_SIZE.x - MARGIN * 2.0 - 122 - 108, 19)
+		swap.position = Vector2(PANEL_SIZE.x - MARGIN * 2.0 - 104 - 90, 10)
 		row.add_child(swap)
 	return row
 
@@ -317,7 +317,7 @@ func _refresh_bonus() -> void:
 	var slot := _bonus_button.position
 	_bonus.remove_child(_bonus_button)
 	_bonus_button.queue_free()
-	_bonus_button = _texture_button(BUTTON_WIDE, Vector2(176, 56), caption, enabled,
+	_bonus_button = _texture_button(BUTTON_WIDE, Vector2(150, 42), caption, enabled,
 		func() -> void: Quests.claim_set())
 	_bonus_button.position = slot
 	_bonus.add_child(_bonus_button)
@@ -344,7 +344,7 @@ func _texture_button(texture: Texture2D, button_size: Vector2, caption: String,
 	if enabled and on_pressed.is_valid():
 		button.pressed.connect(on_pressed)
 
-	var caption_label := _label(caption, 19, Color(1, 1, 1) if enabled else COLOR_DIM)
+	var caption_label := _label(caption, 14, Color(1, 1, 1) if enabled else COLOR_DIM)
 	caption_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	caption_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	caption_label.size = button_size
