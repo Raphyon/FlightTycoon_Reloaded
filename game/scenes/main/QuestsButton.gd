@@ -1,19 +1,5 @@
 extends Control
 
-# The left-edge tab that opens the daily tasks, where the reference game puts
-# its DAILY REWARD gift box.
-#
-# DRAWN IN CODE, ON PURPOSE. There is no gift-box art in the dump - nothing for
-# DAILY REWARD, PURCHASE BONUS or EVENT - so this is a placeholder built from
-# the coin icon we do have. Swapping in real art is replacing the TextureRect
-# below and deleting _draw; the behaviour does not change.
-#
-# IT REPORTS PROGRESS AT A GLANCE. Three pips, one per task, filled as they
-# complete - so the tab answers "is there anything to do today" without being
-# opened, which is the entire job of a thing sitting on the edge of the screen.
-# When the set is claimable it pulses, because at that point there IS something
-# to collect and a static icon would not say so.
-
 # The gift box on the left edge, where the reference game puts its DAILY REWARD.
 #
 # TWO PIECES OF ART, and which one is showing is the whole message: the plain box
