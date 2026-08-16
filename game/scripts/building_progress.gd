@@ -5,6 +5,34 @@ signal rent_changed
 # The EVENT. rent_changed fires for any reason a timer moved; this one means a
 # player tapped a building and took the money.
 signal rent_collected(plot_id: int, amount: int)
+# An upgrade started or finished. Separate from built_changed because the plot's
+# building did not change - only what it is worth.
+signal upgrade_changed(plot_id: int)
+
+
+# --- UPGRADES ---------------------------------------------------------------
+#
+# The city was FINISHED ABOUT TWO HOURS IN - all 42 plots built and nothing left
+# to do with them, which was the earliest wall in the game by a wide margin.
+# Levels turn a two-hour system into one that runs the whole game, and cost no
+# art: an upgraded building is the same sprite.
+#
+# RENT ONLY, NOT POPULATION, and that is load-bearing. Popularity multiplies
+# FLIGHT cash and is uncapped - a full city is already +420% on every flight the
+# fleet makes. Scaling population with levels too would take a maxed city past
+# +1,600%, a 17x multiplier on air income, and void every pacing number measured
+# so far. The city's economy grows; the fleet's is left alone.
+const MAX_LEVEL := 10
+const RENT_PER_LEVEL := 1.45
+# Cost rides the building's OWN price, so an Eiffel Tower level costs more than
+# a cafe level. Otherwise the cheap buildings are the efficient upgrade and the
+# expensive ones are a trap you paid extra to enter.
+const UPGRADE_COST_EXPONENT := 2.2
+const UPGRADE_COST_SHARE := 0.6
+# Two minutes for the first, about two hours for the last. The time is the
+# point: a building you come back to is worth more than one you buy.
+const UPGRADE_BASE_SECONDS := 120.0
+const UPGRADE_TIME_EXPONENT := 1.8
 
 # What the player has built, where, and when its rent was last taken. Keyed by
 # the plot ids BuildingLayout authors, per airport:
@@ -179,6 +207,134 @@ func building_at(plot_id: int, map_key: String = "") -> String:
 	return str((e as Dictionary).get("key", ""))
 
 
+func level_at(plot_id: int, map_key: String = "") -> int:
+	# SETTLE FIRST. An upgrade finishes lazily - there is no timer node, just a
+	# timestamp - so whoever asks a question about this plot is what banks it.
+	# Without this here, a plot whose upgrade completed while the game was shut
+	# reported its OLD level to anything that did not happen to call
+	# is_upgrading first, which is most callers.
+	_settle(plot_id, map_key)
+	var e: Variant = _map(map_key).get(str(plot_id), null)
+	if e is Dictionary:
+		return maxi(1, int((e as Dictionary).get("level", 1)))
+	return 1
+
+
+# What this plot pays a cycle, its level included. EVERYTHING that asks what a
+# building is worth goes through here - BuildingLayout.rent_of is the level 1
+# figure and using it directly is how a level would silently stop counting.
+func rent_at(plot_id: int, map_key: String = "") -> int:
+	var key := building_at(plot_id, map_key)
+	if key == "":
+		return 0
+	return int(round(BuildingLayout.rent_of(key)
+		* pow(RENT_PER_LEVEL, level_at(plot_id, map_key) - 1)))
+
+
+func rent_at_level(building_key: String, level: int) -> int:
+	return int(round(BuildingLayout.rent_of(building_key) * pow(RENT_PER_LEVEL, level - 1)))
+
+
+func upgrade_cost(plot_id: int, map_key: String = "") -> int:
+	var key := building_at(plot_id, map_key)
+	if key == "":
+		return 0
+	var next := level_at(plot_id, map_key) + 1
+	return int(round(cost_of(key) * UPGRADE_COST_SHARE
+		* pow(float(next), UPGRADE_COST_EXPONENT)))
+
+
+func upgrade_seconds(plot_id: int, map_key: String = "") -> float:
+	var next := level_at(plot_id, map_key) + 1
+	return UPGRADE_BASE_SECONDS * pow(float(next), UPGRADE_TIME_EXPONENT)
+
+
+func upgrade_finishes_at(plot_id: int, map_key: String = "") -> float:
+	var e: Variant = _map(map_key).get(str(plot_id), null)
+	if e is Dictionary:
+		return float((e as Dictionary).get("upgrading_until", 0.0))
+	return 0.0
+
+
+func is_upgrading(plot_id: int, map_key: String = "") -> bool:
+	_settle(plot_id, map_key)
+	return upgrade_finishes_at(plot_id, map_key) > 0.0
+
+
+# Bank an upgrade whose time is up. Cheap and idempotent, so every reader can
+# call it without caring whether somebody already did.
+func _settle(plot_id: int, map_key: String = "") -> void:
+	var until := upgrade_finishes_at(plot_id, map_key)
+	if until > 0.0 and GameClock.now() >= until:
+		_finish_upgrade(plot_id, map_key)
+
+
+func upgrade_seconds_left(plot_id: int, map_key: String = "") -> float:
+	if not is_upgrading(plot_id, map_key):
+		return 0.0
+	return maxf(0.0, upgrade_finishes_at(plot_id, map_key) - GameClock.now())
+
+
+func upgrade_progress(plot_id: int, map_key: String = "") -> float:
+	if not is_upgrading(plot_id, map_key):
+		return 0.0
+	var total := upgrade_seconds(plot_id, map_key)
+	if total <= 0.0:
+		return 1.0
+	return clampf(1.0 - upgrade_seconds_left(plot_id, map_key) / total, 0.0, 1.0)
+
+
+func can_upgrade(plot_id: int, map_key: String = "") -> bool:
+	return building_at(plot_id, map_key) != "" \
+		and level_at(plot_id, map_key) < MAX_LEVEL \
+		and not is_upgrading(plot_id, map_key)
+
+
+# Start one. THE BUILDING GOES OFF SERVICE for the duration - taking it out is
+# the cost of improving it, which is what makes putting the whole city under
+# scaffolding at once a thing you feel rather than a free click.
+func start_upgrade(plot_id: int, map_key: String = "") -> bool:
+	if not can_upgrade(plot_id, map_key):
+		return false
+	var cost := upgrade_cost(plot_id, map_key)
+	if not Economy.spend_money(cost):
+		return false
+	var mk := map_key if map_key != "" else Maps.current
+	var m := _map(mk)
+	var e: Dictionary = m.get(str(plot_id), {})
+	e["upgrading_until"] = GameClock.now() + upgrade_seconds(plot_id, map_key)
+	# What has been sunk into this plot, so demolition can refund it - a maxed
+	# plot that refunded only its original price would be a trap.
+	e["spent"] = int(e.get("spent", 0)) + cost
+	m[str(plot_id)] = e
+	built[mk] = m
+	_save()
+	upgrade_changed.emit(plot_id)
+	built_changed.emit()
+	return true
+
+
+func _finish_upgrade(plot_id: int, map_key: String = "") -> void:
+	var mk := map_key if map_key != "" else Maps.current
+	var m := _map(mk)
+	var e: Variant = m.get(str(plot_id), null)
+	if not (e is Dictionary):
+		return
+	var d := e as Dictionary
+	if float(d.get("upgrading_until", 0.0)) <= 0.0:
+		return
+	d["level"] = mini(int(d.get("level", 1)) + 1, MAX_LEVEL)
+	d.erase("upgrading_until")
+	# The rent cycle restarts from the moment it comes back into service, so an
+	# upgrade cannot also hand over a cycle's rent for the time it was shut.
+	d["since"] = GameClock.now()
+	m[str(plot_id)] = d
+	built[mk] = m
+	_save()
+	upgrade_changed.emit(plot_id)
+	rent_changed.emit()
+
+
 func _since(plot_id: int, map_key: String = "") -> float:
 	var e: Variant = _map(map_key).get(str(plot_id), null)
 	if e is Dictionary:
@@ -197,7 +353,10 @@ func seconds_until_ready(plot_id: int, map_key: String = "") -> float:
 
 
 func is_rent_ready(plot_id: int, map_key: String = "") -> bool:
-	return building_at(plot_id, map_key) != "" and seconds_until_ready(plot_id, map_key) <= 0.0
+	# A building under scaffolding earns nothing - see start_upgrade.
+	return building_at(plot_id, map_key) != "" \
+		and not is_upgrading(plot_id, map_key) \
+		and seconds_until_ready(plot_id, map_key) <= 0.0
 
 
 # Rent does NOT stack. One cycle completes and then the building waits to be
@@ -245,14 +404,17 @@ func collect_rent(plot_id: int, map_key: String = "") -> int:
 	if not is_rent_ready(plot_id, map_key):
 		return 0
 	var key := building_at(plot_id, map_key)
-	var amount := BuildingLayout.rent_of(key)
+	var amount := rent_at(plot_id, map_key)
 	Economy.add_money(amount)
 	if randf() < coin_chance_for(key):
 		Coins.add(COIN_DROP_AMOUNT)
 		coin_found.emit(plot_id, COIN_DROP_AMOUNT)
 	var mk := map_key if map_key != "" else Maps.current
 	var m := _map(mk)
-	m[str(plot_id)] = {"key": key, "since": GameClock.now()}
+	var existing: Dictionary = m.get(str(plot_id), {})
+	existing["key"] = key
+	existing["since"] = GameClock.now()
+	m[str(plot_id)] = existing
 	built[mk] = m
 	_save()
 	rent_changed.emit()
@@ -313,7 +475,7 @@ func demolish(plot_id: int, map_key: String = "") -> int:
 	var key := building_at(plot_id, map_key)
 	if key == "":
 		return 0
-	var refund := int(floor(cost_of(key) * DEMOLITION_REFUND))
+	var refund := refund_for(plot_id, map_key)
 	if BuildingLayout.currency_of(key) == "coins":
 		Coins.add(refund)
 	else:
@@ -327,9 +489,30 @@ func demolish(plot_id: int, map_key: String = "") -> int:
 	return refund
 
 
+# What clearing this plot gives back. INCLUDES WHAT WAS SUNK INTO UPGRADES, or a
+# maxed plot would refund its original price and nothing else - a trap you paid
+# a quarter of a million dollars to walk into.
+#
+# The panel quotes this and demolish() pays it, so it is one calculation. The
+# first version had demolish counting upgrades and this one not, which is
+# exactly the drift that keeps biting: two figures that agree on a fresh plot
+# and diverge on a real one.
 func refund_for(plot_id: int, map_key: String = "") -> int:
 	var key := building_at(plot_id, map_key)
-	return 0 if key == "" else int(floor(cost_of(key) * DEMOLITION_REFUND))
+	if key == "":
+		return 0
+	return int(floor(_sunk_into(plot_id, map_key) * DEMOLITION_REFUND))
+
+
+func _sunk_into(plot_id: int, map_key: String = "") -> int:
+	var key := building_at(plot_id, map_key)
+	if key == "":
+		return 0
+	var total := cost_of(key)
+	var e: Variant = _map(map_key).get(str(plot_id), null)
+	if e is Dictionary:
+		total += int((e as Dictionary).get("spent", 0))
+	return total
 
 
 # Buys and places in one step. Refuses a plot that already has something on it

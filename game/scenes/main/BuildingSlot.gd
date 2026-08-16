@@ -30,6 +30,10 @@ const CALLOUT_CASH := preload("res://assets/bubbles/cash_bubble@2x.png")
 # The swoop the aprons use, for the same reason: collecting rent should look
 # like collecting rent rather than like a number changing.
 const SWOOP_EARNING := preload("res://assets/bubbles/earning_bubble@2x.png")
+# A plot under scaffolding gets the same countdown an aircraft in the air does -
+# same bubble, same bar. It is the same question: how long until this is worth
+# something again.
+const TAG_UPGRADING := preload("res://assets/bubbles/fueling_bubble@2x.png")
 # How far above the plot's ground point the callout floats - FIXED, and the
 # same whatever is standing there.
 #
@@ -54,6 +58,7 @@ var _body_shape: CollisionShape2D
 # See _on_input_event - two shapes means two callbacks for one tap.
 var _last_click_frame := -1
 var _swoop: ProgressBubble
+var _tag: ProgressBubble
 
 
 func setup(id: int, pos: Vector2, site: String = "buildings") -> void:
@@ -96,6 +101,16 @@ func setup(id: int, pos: Vector2, site: String = "buildings") -> void:
 		refresh()
 	)
 
+	_tag = ProgressBubble.new()
+	_tag.z_index = CALLOUT_Z_INDEX
+	_tag.z_as_relative = false
+	_tag.visible = false
+	add_child(_tag)
+	ProgressBubble.place_by_tail(_tag, Vector2(0, -CALLOUT_LIFT))
+	BuildingProgress.upgrade_changed.connect(func(id: int) -> void:
+		if id == plot_id:
+			refresh())
+
 	refresh()
 
 
@@ -117,6 +132,18 @@ func refresh() -> void:
 		var w: float = _sprite.texture.get_width()
 		var h: float = _sprite.texture.get_height()
 		_sprite.offset = Vector2(-w * 0.5, -h)
+
+	# UNDER SCAFFOLDING: no rent callout at all, a countdown instead. The
+	# building is off service until it finishes, so a cash bubble would be
+	# offering something that is not there.
+	var upgrading := not empty and BuildingProgress.is_upgrading(plot_id)
+	if upgrading:
+		_bubble.visible = false
+		_rebuild_hit_area(false)
+		_rebuild_body_area(true)
+		_show_upgrade_tag()
+		return
+	_hide_upgrade_tag()
 
 	# Cone on an empty site, cash on one with rent waiting, nothing while a
 	# building is still earning - the same three-state callout the aprons use.
@@ -142,6 +169,34 @@ func refresh() -> void:
 #
 # With no callout up there is nothing to press, so the area goes away entirely
 # rather than sitting there silently swallowing clicks.
+func _show_upgrade_tag() -> void:
+	if not is_instance_valid(_tag):
+		return
+	_tag.show_status(TAG_UPGRADING,
+		Fleet.time_left_text(BuildingProgress.upgrade_seconds_left(plot_id)),
+		BuildingProgress.upgrade_progress(plot_id), true)
+	set_process(true)
+
+
+func _hide_upgrade_tag() -> void:
+	if not is_instance_valid(_tag):
+		return
+	_tag.visible = false
+	set_process(false)
+
+
+# Ticks the countdown in place rather than refreshing the whole slot, which
+# would reload the sprite and rebuild both hit areas once a frame.
+func _process(_delta: float) -> void:
+	if plot_id < 0 or not BuildingProgress.is_upgrading(plot_id):
+		set_process(false)
+		refresh()
+		return
+	_tag.show_status(TAG_UPGRADING,
+		Fleet.time_left_text(BuildingProgress.upgrade_seconds_left(plot_id)),
+		BuildingProgress.upgrade_progress(plot_id), true)
+
+
 func _rebuild_hit_area(has_callout: bool) -> void:
 	if not has_callout or _bubble.texture == null:
 		_shape.disabled = true

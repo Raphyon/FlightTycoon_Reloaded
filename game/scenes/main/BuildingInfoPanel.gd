@@ -15,6 +15,9 @@ const BOARD := preload("res://assets/board/board_buildinginfo@2x.png")
 const FRAME_FILLED := preload("res://assets/board/board_apron_info_icon2@2x.png")
 const DEMOLISH_NORMAL := preload("res://assets/buttons/button_red1@2x.png")
 const DEMOLISH_ARMED := preload("res://assets/buttons/button_red2@2x.png")
+# Orange for the thing you want to press, the same as everywhere else here.
+const UPGRADE_NORMAL := preload("res://assets/buttons/button_orange2@2x.png")
+const UPGRADE_OFF := preload("res://assets/buttons/button_grey3@2x.png")
 
 const BOARD_NATIVE := Vector2(731, 177)
 const BOARD_SCALE := 0.82
@@ -48,6 +51,8 @@ var _name: Label
 var _stats: Array[Label] = []
 var _button: TextureButton
 var _button_label: Label
+var _upgrade: TextureButton
+var _upgrade_label: Label
 var _note: Label
 # Not undoable and it costs you half - so the first press arms and the second
 # does it, same as the options menu's reset and for the same reason.
@@ -143,6 +148,31 @@ func _build() -> void:
 	_button_label.anchor_bottom = 1.0
 	_button.add_child(_button_label)
 
+	# Upgrade sits beside Demolish, same shape, opposite intent - one makes the
+	# plot worth more, the other gives up on it.
+	_upgrade = TextureButton.new()
+	_upgrade.ignore_texture_size = true
+	_upgrade.stretch_mode = TextureButton.STRETCH_SCALE
+	_upgrade.texture_normal = UPGRADE_NORMAL
+	_upgrade.size = Vector2(w, h)
+	_upgrade.position = Vector2(BOARD_SIZE.x * (1.0 - ACTION_X) - w * 0.5,
+		BOARD_SIZE.y * ACTION_Y)
+	_upgrade.pressed.connect(_on_upgrade_pressed)
+	add_child(_upgrade)
+
+	_upgrade_label = Label.new()
+	_upgrade_label.add_theme_font_size_override("font_size", _fs(FONT_BUTTON))
+	_upgrade_label.add_theme_color_override("font_color", Color(1, 0.97, 0.90))
+	_upgrade_label.add_theme_color_override("font_outline_color", Color(0.30, 0.15, 0.02, 1))
+	_upgrade_label.add_theme_constant_override("outline_size", 4)
+	_upgrade_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_upgrade_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	_upgrade_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_upgrade_label.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_upgrade_label.anchor_right = 1.0
+	_upgrade_label.anchor_bottom = 1.0
+	_upgrade.add_child(_upgrade_label)
+
 	_note = _label(_fs(FONT_NOTE), HORIZONTAL_ALIGNMENT_CENTER)
 	_note.position = _px(ACTION_X - 0.20, ACTION_Y + 0.26)
 	_note.size = _px(0.40, 0.14)
@@ -193,12 +223,25 @@ func _refresh(_a = null, _b = null) -> void:
 	_art.texture = load(path) if ResourceLoader.exists(path) else null
 	_name.text = BuildingLayout.name_of(key)
 
+	var level := BuildingProgress.level_at(_plot_id)
+	_name.text = "%s   Lv %d" % [BuildingLayout.name_of(key), level]
+	# The PLOT's rent, not the building type's - a level that did not show here
+	# would be a level that silently did not count.
 	_stats[0].text = "Rent  $%s  every %d min" % [
-		_thousands(BuildingLayout.rent_of(key)), int(BuildingLayout.cycle_seconds(key) / 60.0)]
+		_thousands(BuildingProgress.rent_at(_plot_id)),
+		int(BuildingLayout.cycle_seconds(key) / 60.0)]
 	_stats[1].text = "Inhabitants  %s" % _thousands(BuildingLayout.people_of(key))
+	var upgrading := BuildingProgress.is_upgrading(_plot_id)
 	var ready := BuildingProgress.is_rent_ready(_plot_id)
-	_stats[2].text = ("Rent ready to collect" if ready
-		else "Next rent in %s" % _countdown(BuildingProgress.seconds_until_ready(_plot_id)))
+	if upgrading:
+		# Says WHY it is not earning, rather than showing a rent timer that is
+		# not running.
+		_stats[2].text = "Upgrading - no rent for %s" % _countdown(
+			BuildingProgress.upgrade_seconds_left(_plot_id))
+	else:
+		_stats[2].text = ("Rent ready to collect" if ready
+			else "Next rent in %s" % _countdown(BuildingProgress.seconds_until_ready(_plot_id)))
+	_refresh_upgrade(key, level, upgrading)
 
 	_button.texture_normal = DEMOLISH_ARMED if _armed else DEMOLISH_NORMAL
 	_button_label.text = "Confirm" if _armed else "Demolish"
@@ -209,6 +252,46 @@ func _refresh(_a = null, _b = null) -> void:
 		% [_refund_text(key), _thousands(BuildingLayout.people_of(key))]
 		if _armed
 		else "Clear this site  (+%s)" % _refund_text(key))
+
+
+# Three states: buildable, already running, or maxed out.
+func _refresh_upgrade(key: String, level: int, upgrading: bool) -> void:
+	if level >= BuildingProgress.MAX_LEVEL:
+		_upgrade.texture_normal = UPGRADE_OFF
+		_upgrade.disabled = true
+		_upgrade_label.text = "Max level"
+		return
+	if upgrading:
+		_upgrade.texture_normal = UPGRADE_OFF
+		_upgrade.disabled = true
+		_upgrade_label.text = _countdown(BuildingProgress.upgrade_seconds_left(_plot_id))
+		return
+	var cost := BuildingProgress.upgrade_cost(_plot_id)
+	var affordable := Economy.money >= cost
+	_upgrade.texture_normal = UPGRADE_NORMAL if affordable else UPGRADE_OFF
+	_upgrade.disabled = not affordable
+	# What it costs AND what it buys - "Lv 4" on its own says nothing about
+	# whether it is worth the money.
+	_upgrade_label.text = "Lv %d\n$%s" % [level + 1, _thousands(cost)]
+	_note_upgrade(key, level, cost)
+
+
+func _note_upgrade(_key: String, level: int, _cost: int) -> void:
+	if _armed or level >= BuildingProgress.MAX_LEVEL:
+		return
+	var now: int = BuildingProgress.rent_at(_plot_id)
+	var after: int = BuildingProgress.rent_at_level(
+		BuildingProgress.building_at(_plot_id), level + 1)
+	_note.text = "Upgrade: rent $%s -> $%s, off service %s" % [
+		_thousands(now), _thousands(after),
+		_countdown(BuildingProgress.upgrade_seconds(_plot_id))]
+
+
+func _on_upgrade_pressed() -> void:
+	if _plot_id < 0:
+		return
+	if BuildingProgress.start_upgrade(_plot_id):
+		_refresh()
 
 
 func _on_pressed() -> void:
