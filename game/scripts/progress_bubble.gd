@@ -203,7 +203,7 @@ func _call_and_report(action: Callable) -> void:
 # coin - are staggered in TIME rather than stacked in space. Stacked, the second
 # number sat under the first and read as a fraction of it; one after the other
 # reads as what it is, a reward with two parts.
-const FLOAT_STAGGER := 0.3
+const FLOAT_STAGGER := 0.5
 
 func _float(text: String, color: Color, at: Vector2, index: float) -> void:
 	FloatingText.spawn(get_parent(), at, text, color, index * FLOAT_STAGGER)
