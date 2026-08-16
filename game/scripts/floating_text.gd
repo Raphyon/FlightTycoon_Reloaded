@@ -26,20 +26,28 @@ const OUTLINE_SIZE := 4
 const COLOR_GAIN := Color(0.55, 1.0, 0.6)
 const COLOR_SPEND := Color(1.0, 0.78, 0.35)
 const COLOR_COIN := Color(1.0, 0.88, 0.35)
+const COLOR_XP := Color(0.55, 0.80, 1.0)
 const COLOR_OUTLINE := Color(0.07, 0.06, 0.04)
 
 var _age := 0.0
 var _from := Vector2.ZERO
+# Seconds to wait before this one starts. Two figures off the same bubble read
+# as a SEQUENCE rather than a pile: the cash lands, then the XP follows it up.
+# Stacking them vertically instead made one number look like a fraction of the
+# other.
+var _delay := 0.0
 
 
 # `at` is where the text starts, in the parent's space - the caller passes the
 # point just above the bubble it came from.
-static func spawn(parent: Node, at: Vector2, text: String, color: Color) -> FloatingText:
+static func spawn(parent: Node, at: Vector2, text: String, color: Color,
+		delay := 0.0) -> FloatingText:
 	if parent == null or not is_instance_valid(parent):
 		return null
 	var f := FloatingText.new()
 	f.text = text
 	f._from = at
+	f._delay = delay
 	f.add_theme_font_size_override("font_size", FONT_SIZE)
 	f.add_theme_color_override("font_color", color)
 	f.add_theme_color_override("font_outline_color", COLOR_OUTLINE)
@@ -50,6 +58,8 @@ static func spawn(parent: Node, at: Vector2, text: String, color: Color) -> Floa
 	f.z_index = 200
 	f.z_as_relative = false
 	f.position = at
+	# Invisible until its turn, rather than sitting there waiting.
+	f.modulate.a = 0.0 if delay > 0.0 else 1.0
 	parent.add_child(f)
 	return f
 
@@ -65,6 +75,11 @@ func _ready() -> void:
 # Real frame time, not GameClock - this is an animation the player watches, and
 # fast-forward must not collapse it into a frame. Same rule as ProgressBubble.
 func _process(delta: float) -> void:
+	if _delay > 0.0:
+		_delay -= delta
+		if _delay > 0.0:
+			return
+		modulate.a = 1.0
 	_age += delta
 	var t: float = clampf(_age / LIFE, 0.0, 1.0)
 	position.y = _from.y - size.y - RISE * t

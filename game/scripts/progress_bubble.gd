@@ -170,17 +170,27 @@ func _call_and_report(action: Callable) -> void:
 	var money_before: int = Economy.money
 	var fuel_before: int = FuelStore.amount
 	var coins_before: int = Coins.amount
+	# Progression.xp is cumulative and never resets - level is derived from
+	# thresholds - so a plain delta is safe across a level-up.
+	var xp_before: int = Progression.xp
 
 	action.call()
 
 	var money: int = Economy.money - money_before
 	var fuel: int = fuel_before - FuelStore.amount
 	var coins: int = Coins.amount - coins_before
+	var xp: int = Progression.xp - xp_before
 	# Where the numbers come off: the middle of the bubble, at its top.
 	var at := position + Vector2(BUBBLE_SIZE.x * 0.5, 0.0)
 	var stack := 0.0
 	if money > 0:
 		_float("+$%s" % FloatingText.grouped(money), FloatingText.COLOR_GAIN, at, stack)
+		stack += 1.0
+	if xp > 0:
+		# Straight after the cash, because they are two halves of one reward -
+		# the money you can see in the HUD, the XP is the thing quietly moving
+		# the level bar and nothing ever showed it.
+		_float("+%s XP" % FloatingText.grouped(xp), FloatingText.COLOR_XP, at, stack)
 		stack += 1.0
 	if fuel > 0:
 		_float("-%s fuel" % FloatingText.grouped(fuel), FloatingText.COLOR_SPEND, at, stack)
@@ -189,10 +199,14 @@ func _call_and_report(action: Callable) -> void:
 		_float("+%d coin" % coins, FloatingText.COLOR_COIN, at, stack)
 
 
-# Two figures off one bubble (a claim that also dropped a coin) must not print
-# on top of each other, so each is nudged up by one line.
+# Two figures off one bubble - cash then XP, or a rent claim that also dropped a
+# coin - are staggered in TIME rather than stacked in space. Stacked, the second
+# number sat under the first and read as a fraction of it; one after the other
+# reads as what it is, a reward with two parts.
+const FLOAT_STAGGER := 0.3
+
 func _float(text: String, color: Color, at: Vector2, index: float) -> void:
-	FloatingText.spawn(get_parent(), at - Vector2(0.0, index * 22.0), text, color)
+	FloatingText.spawn(get_parent(), at, text, color, index * FLOAT_STAGGER)
 
 
 func _draw() -> void:
