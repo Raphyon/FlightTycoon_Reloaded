@@ -14,27 +14,36 @@ extends Control
 # When the set is claimable it pulses, because at that point there IS something
 # to collect and a static icon would not say so.
 
-const ICON_COIN := preload("res://assets/hud/icon_medium_coin@2x.png")
+# The gift box on the left edge, where the reference game puts its DAILY REWARD.
+#
+# TWO PIECES OF ART, and which one is showing is the whole message: the plain box
+# when there is nothing waiting, the badged one the moment there is. That is why
+# there is no longer a drawn plate, a border or a row of pips under it - the art
+# says it, and a tab on the edge of the screen has room for exactly one
+# statement.
+#
+# Both are cropped to a SHARED box (tools note: min/max of the two bounding
+# boxes), because the badge on `new` overhangs to the left and cropping each to
+# its own content would slide the gift box sideways the moment it appeared.
+const GIFT_DEFAULT := preload("res://assets/buttons/daily_gift_default@2x.png")
+const GIFT_NEW := preload("res://assets/buttons/daily_gift_new@2x.png")
 
-const TAB_SIZE := Vector2(84, 92)
+# CAPPED AGAINST THE TOOLBAR. The Shop, Aircraft and Flights buttons are
+# 109x102 each, and those are the biggest buttons in the game - this is a peer
+# of theirs, not a bigger thing sitting off to one side, so it stays under them.
+#
+# The art itself stays at 127x132 and is drawn down to this, which is sharper
+# than authoring it at the drawn size.
+const TAB_SIZE := Vector2(88, 91)
 const EDGE_MARGIN := 12.0
 # How far down the left edge, as a fraction of screen height. A QUARTER, not
 # half: that is where the reference game puts its NEWS icon, with the daily
 # reward gift box directly beneath it. Proportional rather than a pixel offset
 # so it holds its place on a screen of any height.
 const EDGE_HEIGHT_FRACTION := 0.25
-const PULSE_PERIOD := 1.4
 
-const COLOR_PLATE := Color(0.20, 0.13, 0.09, 0.86)
-const COLOR_EDGE := Color(1.0, 0.82, 0.42, 0.55)
-const COLOR_EDGE_READY := Color(1.0, 0.88, 0.44)
-const COLOR_PIP_ON := Color(0.49, 0.84, 0.48)
-const COLOR_PIP_OFF := Color(0, 0, 0, 0.45)
-const COLOR_LABEL := Color(1.0, 0.91, 0.76)
-
-var _button: Button
 var _icon: TextureRect
-var _age := 0.0
+var _button: TextureButton
 
 
 func _ready() -> void:
@@ -56,75 +65,35 @@ func _ready() -> void:
 	offset_bottom = TAB_SIZE.y * 0.5
 
 	_icon = TextureRect.new()
-	_icon.texture = ICON_COIN
 	_icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	_icon.size = Vector2(40, 40)
-	_icon.position = Vector2((TAB_SIZE.x - 40.0) * 0.5, 10)
+	# Minimum first, THEN the size - a TextureRect's own art is its minimum size
+	# until expand_mode says otherwise, and a size assigned before that line is
+	# silently clamped back up to the full 127x132.
+	_icon.custom_minimum_size = Vector2.ZERO
+	_icon.size = TAB_SIZE
 	_icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_icon)
 
-	var label := Label.new()
-	label.text = "DAILY"
-	label.add_theme_font_size_override("font_size", 14)
-	label.add_theme_color_override("font_color", COLOR_LABEL)
-	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	label.size = Vector2(TAB_SIZE.x, 18)
-	label.position = Vector2(0, 52)
-	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(label)
-
-	# The whole tab is the button; the plate and pips are drawn under it.
-	_button = Button.new()
-	_button.flat = true
+	_button = TextureButton.new()
+	_button.ignore_texture_size = true
+	_button.stretch_mode = TextureButton.STRETCH_SCALE
 	_button.size = TAB_SIZE
 	_button.pressed.connect(_open)
 	add_child(_button)
 
-	Quests.quests_changed.connect(queue_redraw)
-	set_process(true)
+	Quests.quests_changed.connect(_refresh)
+	Progression.level_changed.connect(func(_l: int) -> void: _refresh())
+	_refresh()
+
+
+func _refresh(_a = null) -> void:
+	if not is_instance_valid(_icon):
+		return
+	_icon.texture = GIFT_NEW if Quests.has_anything_to_claim() else GIFT_DEFAULT
 
 
 func _open() -> void:
 	var panel := get_node_or_null("../QuestsPanel")
 	if panel and panel.has_method("open"):
 		panel.open()
-
-
-func _process(delta: float) -> void:
-	# Only animates while there is something to collect, so an idle tab costs a
-	# redraw a frame and nothing more.
-	if Quests.set_reward_available():
-		_age += delta
-		queue_redraw()
-	elif _age != 0.0:
-		_age = 0.0
-		queue_redraw()
-
-
-func _draw() -> void:
-	var ready := Quests.set_reward_available()
-	var plate := Rect2(Vector2.ZERO, TAB_SIZE)
-	draw_rect(plate, COLOR_PLATE, true)
-
-	var edge := COLOR_EDGE
-	if ready:
-		# Pulse between the two, so it reads as "come and get it" without
-		# animating anything expensive.
-		var t: float = 0.5 + 0.5 * sin(_age / PULSE_PERIOD * TAU)
-		edge = COLOR_EDGE.lerp(COLOR_EDGE_READY, t)
-	draw_rect(plate, edge, false, 2.0)
-
-	# One pip per task, along the bottom.
-	# Towards the THREE the coin needs, not the five dealt - the tab answers
-	# "how close am I to the coin", which is the only question it has room for.
-	var done: int = mini(Quests.completed_count(), Quests.SET_REQUIRED)
-	var count: int = Quests.SET_REQUIRED
-	var pip := 9.0
-	var gap := 6.0
-	var total := count * pip + (count - 1) * gap
-	var x := (TAB_SIZE.x - total) * 0.5
-	for i in range(count):
-		draw_circle(Vector2(x + pip * 0.5, TAB_SIZE.y - 16.0), pip * 0.5,
-			COLOR_PIP_ON if i < done else COLOR_PIP_OFF)
-		x += pip + gap

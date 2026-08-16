@@ -583,6 +583,20 @@ func claim(key: String) -> bool:
 	return true
 
 
+# ANYTHING waiting to be collected - a finished task whose own reward has not
+# been taken, or the coin. This is what the left-edge tab asks to decide whether
+# it shows the badged gift box, and it is deliberately broader than the coin
+# alone: a player who finished two tasks has money sitting there and should be
+# told so.
+func has_anything_to_claim() -> bool:
+	if set_reward_available():
+		return true
+	for key in active:
+		if is_complete(str(key)) and not bool(claimed.get(key, false)):
+			return true
+	return false
+
+
 func set_reward_available() -> bool:
 	return set_ready() and not set_claimed and Progression.level >= COIN_MIN_LEVEL
 
