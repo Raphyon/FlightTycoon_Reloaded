@@ -184,9 +184,14 @@ func _build_bonus() -> void:
 
 	var coin := TextureRect.new()
 	coin.texture = ICON_COIN
-	coin.size = Vector2(COIN_ICON, COIN_ICON)
 	coin.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	coin.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	# Minimum first, THEN the size. A TextureRect's own art is its minimum
+	# size until expand_mode says otherwise, so assigning a smaller size
+	# before this line is silently clamped straight back up - which is why
+	# shrinking these icons appeared to do nothing at all.
+	coin.custom_minimum_size = Vector2.ZERO
+	coin.size = Vector2(COIN_ICON, COIN_ICON)
 	coin.position = Vector2(10, 13)
 	coin.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_bonus.add_child(coin)
@@ -265,9 +270,14 @@ func _make_row(key: String) -> Control:
 	var is_fuel: bool = Quests.reward_kind(key) == Quests.KIND_FUEL
 	var icon := TextureRect.new()
 	icon.texture = ICON_FUEL if is_fuel else ICON_CASH
-	icon.size = Vector2(REWARD_ICON, REWARD_ICON)
 	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	# Minimum first, THEN the size. A TextureRect's own art is its minimum
+	# size until expand_mode says otherwise, so assigning a smaller size
+	# before this line is silently clamped straight back up - which is why
+	# shrinking these icons appeared to do nothing at all.
+	icon.custom_minimum_size = Vector2.ZERO
+	icon.size = Vector2(REWARD_ICON, REWARD_ICON)
 	icon.position = Vector2(250, 10)
 	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	row.add_child(icon)

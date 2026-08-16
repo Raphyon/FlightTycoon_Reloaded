@@ -77,9 +77,14 @@ func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	size = BUBBLE_SIZE
 	_bubble = TextureRect.new()
-	_bubble.size = BUBBLE_SIZE
 	_bubble.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	_bubble.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	# Minimum first, THEN the size. A TextureRect's own art is its minimum
+	# size until expand_mode says otherwise, so assigning a smaller size
+	# before this line is silently clamped straight back up - which is why
+	# shrinking these icons appeared to do nothing at all.
+	_bubble.custom_minimum_size = Vector2.ZERO
+	_bubble.size = BUBBLE_SIZE
 	_bubble.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	# BEHIND THE PARENT, or it covers the bar. A node's own _draw runs before
 	# its children are drawn, so this TextureRect - 96x58 of opaque oval -
