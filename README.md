@@ -191,7 +191,7 @@ day, 10 minutes each):
 |---|---|
 | Zone2 | 1.0 h |
 | all six homeland zones | 40.3 h |
-| all 42 building plots | ~2 h |
+| all 42 building plots | ~31 h (gated behind the zones) |
 
 **Pacing is XP-gated, not money-gated.** Quadrupling zone prices moved a casual
 player 9.5h to 10.0h; stretching the level requirements moved a regular player
@@ -311,8 +311,10 @@ the canvas edge. Do not assume a uniform trim margin in any importer.
   batches should be the habit you grow out of) but it stacks with a minimum
   that was already a trap. Lowering the minimum, rather than the premium, is
   probably the fix.
-- **Buildings cannot be upgraded**, so all 42 plots are exhausted about two
-  hours in for every kind of player and the city stops being a system.
+- ~~Buildings cannot be upgraded~~ **DONE** - plots carry a level to 10, rent
+  x1.45 each. The "two hours" figure this used to quote was stale anyway: it
+  predated plots being gated behind zone regions, and the last plot actually
+  lands at ~31 h. See UPGRADES.md.
 - **Dreamland and the Carrier are gated but not built.** Levels 57-70 unlock
   content that does not exist yet - dreamland has aprons and nothing else. The
   honest route to a 40-hour game past the homeland zones runs through building

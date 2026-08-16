@@ -534,7 +534,30 @@ func _buy_building() -> bool:
 		var id := int(plot.get("id", 0))
 		if not BuildingProgress.is_built(id):
 			return BuildingProgress.build(id, best)
-	return false
+	# THE CITY IS FULL - which used to be the end of it, and is the wall
+	# upgrades exist to remove. Take the cheapest level available: it is the
+	# best rent per dollar, since cost climbs faster than rent does.
+	return _upgrade_building()
+
+
+# One tap to start, and the building goes off service until it finishes.
+func _upgrade_building() -> bool:
+	var best_plot := -1
+	var best_cost := 0
+	for plot in BuildingLayout.load_data():
+		var id := int(plot.get("id", 0))
+		if not BuildingProgress.can_upgrade(id):
+			continue
+		var cost := BuildingProgress.upgrade_cost(id)
+		if cost > _spendable():
+			continue
+		if best_plot == -1 or cost < best_cost:
+			best_plot = id
+			best_cost = cost
+	if best_plot == -1:
+		return false
+	_taps += 1
+	return BuildingProgress.start_upgrade(best_plot)
 
 
 func _check_milestones() -> void:
@@ -608,6 +631,16 @@ func _summary() -> void:
 				_zone_times[area_name][0] / 60.0, _zone_times[area_name][1]])
 		elif ZoneProgress.ZONE_REQUIREMENTS.has(area_name):
 			print("    %-10s never" % area_name)
+	var levels := 0
+	var maxed := 0
+	for plot in BuildingLayout.load_data():
+		var id := int(plot.get("id", 0))
+		if BuildingProgress.is_built(id):
+			levels += BuildingProgress.level_at(id)
+			if BuildingProgress.level_at(id) >= BuildingProgress.MAX_LEVEL:
+				maxed += 1
+	print("  city: %d building levels across the plots, %d of them maxed"
+		% [levels, maxed])
 	print("  routing policy: %s   daily tasks: %s" % [_routing, "on" if _do_quests else "off"])
 	print("  quests: %d sets completed, %d coins earned" % [_sets_done, _quest_coins])
 	print("  coins: %d earned over the run (started with %d), against %d coin aircraft in the shop"

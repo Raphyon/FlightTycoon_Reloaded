@@ -5,14 +5,25 @@ balance; the bot has yet to say what they do to a whole playthrough.
 
 ## Why this one
 
-The city is **finished about two hours in**, for every kind of player - all 42
-plots built, nothing left to do with them. After that it is scenery that pays
-rent. That is the earliest wall in the game by a wide margin: zones run to ~36 h,
-the fleet ladder to level 50, pads are not exhausted in 90 days.
+CORRECTION FIRST, because this document and the readme were both built on a
+stale number. "The city is finished about two hours in" was measured BEFORE
+plots were gated behind zone regions. They are now: a plot cannot be built until
+its zone is bought, so the city fills as the zones open and the last plot lands
+at **~31 h**, not 2.
 
-Upgrades turn a two-hour system into one that runs the whole game. Nothing else
-on the list converts as many hours for as little work, and none of it is
-art-blocked - an upgraded building can be the same sprite.
+So upgrades are not rescuing a two-hour system. What they do is give the city an
+arc that continues AFTER the last plot is built - which was still a wall, just a
+later one than advertised.
+
+Measured, 90 days of regular play: **412 building levels across the plots, 34 of
+42 maxed**. The city is still being improved at the end of the run, where before
+it was finished the moment the last zone opened.
+
+And it costs hours rather than saving them: all six zones went 30.7 h -> 32.0 h,
+because upgrade money is money not spent on pads and aircraft. That is the right
+direction - more to do, and the fleet does not get there faster.
+
+None of it is art-blocked: an upgraded building is the same sprite.
 
 ## What exists now
 
