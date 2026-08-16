@@ -43,8 +43,13 @@ const SCENARIOS := {
 	},
 	"endgame": {
 		"label": "Endgame  (everything)",
-		"level": 56, "money": 50000000, "coins": 250, "fuel": 50000,
-		"zones": ["Zone2", "DarkZone", "Forest", "Desert", "Beach", "Snow"],
+		# LEVEL 72, NOT 56. "Everything" has to clear every gate, and the
+		# highest is the Carrier at 70 - at 56 this scenario could not even open
+		# Dreamland1 at 57, so the two extra airports stayed shut in the one
+		# scenario whose whole job is having them.
+		"level": 72, "money": 50000000, "coins": 250, "fuel": 50000,
+		"zones": ["Zone2", "DarkZone", "Forest", "Desert", "Beach", "Snow",
+			"Dreamland1", "Dreamland2", "Dreamland3", "Carrier"],
 		"pads": 999,
 		"fleet": {"747": 10, "b747": 10, "a380-300": 10, "an-225": 8,
 			"a400m": 8, "concorde": 4, "ark": 4, "x37b": 4},
@@ -100,16 +105,23 @@ func apply(key: String) -> bool:
 
 # `per_area` pads in every area that is unlocked, capped by what is actually
 # placed there - so a scenario cannot invent aprons the level does not have.
+# EVERY AIRPORT YOU OWN, not just homeland. A scenario that unlocked Dreamland
+# and the carrier but only built pads at home left you standing on two empty
+# decks - which is exactly what "Endgame (everything)" is for.
 func _build_pads(per_area: int) -> void:
+	# Ids are globally unique across every airport, so one call covers the lot.
 	var starts: Dictionary = ApronLayout.compute_id_starts()
-	var data: Dictionary = ApronLayout.effective_area_data(Maps.DEFAULT_MAP)
-	for area_name in Maps.areas_for(Maps.DEFAULT_MAP):
-		if not ZoneProgress.is_unlocked(area_name) or not starts.has(area_name):
+	for map_key in Maps.MAPS:
+		if not Maps.is_owned(map_key) or Maps.MAPS[map_key].has("visiting"):
 			continue
-		var placed: int = (data.get(area_name, []) as Array).size()
-		var start: int = starts[area_name]
-		for i in range(mini(per_area, placed)):
-			ApronProgress.built_ids[str(start + i)] = true
+		var data: Dictionary = ApronLayout.effective_area_data(map_key)
+		for area_name in Maps.areas_for(map_key):
+			if not ZoneProgress.is_unlocked(area_name) or not starts.has(area_name):
+				continue
+			var placed: int = (data.get(area_name, []) as Array).size()
+			var start: int = starts[area_name]
+			for i in range(mini(per_area, placed)):
+				ApronProgress.built_ids[str(start + i)] = true
 
 
 # Parked on real pads, in id order, so the airport looks lived in rather than
