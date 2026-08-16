@@ -33,6 +33,8 @@ const STAT_X := 0.315
 const STAT_Y := 0.20
 const STAT_STEP := 0.19
 const ACTION_X := 0.775
+# Between Demolish and Upgrade, which sit side by side centred on ACTION_X.
+const BUTTON_GAP := 12.0
 const ACTION_Y := 0.30
 
 const FONT_TITLE := 15
@@ -131,7 +133,12 @@ func _build() -> void:
 	_button.stretch_mode = TextureButton.STRETCH_SCALE
 	_button.texture_normal = DEMOLISH_NORMAL
 	_button.size = Vector2(w, h)
-	_button.position = Vector2(BOARD_SIZE.x * ACTION_X - w * 0.5, BOARD_SIZE.y * ACTION_Y)
+	# PAIRED, not mirrored. Upgrade was placed at the mirror of ACTION_X, which
+	# on a 599-wide board put it at x 97-173 - straight on top of the building's
+	# own artwork (the slot runs 39-159). The two actions belong together in the
+	# action column anyway: they are the two things you can do to this plot.
+	_button.position = Vector2(BOARD_SIZE.x * ACTION_X - w - BUTTON_GAP * 0.5,
+		BOARD_SIZE.y * ACTION_Y)
 	_button.pressed.connect(_on_pressed)
 	add_child(_button)
 
@@ -155,7 +162,7 @@ func _build() -> void:
 	_upgrade.stretch_mode = TextureButton.STRETCH_SCALE
 	_upgrade.texture_normal = UPGRADE_NORMAL
 	_upgrade.size = Vector2(w, h)
-	_upgrade.position = Vector2(BOARD_SIZE.x * (1.0 - ACTION_X) - w * 0.5,
+	_upgrade.position = Vector2(BOARD_SIZE.x * ACTION_X + BUTTON_GAP * 0.5,
 		BOARD_SIZE.y * ACTION_Y)
 	_upgrade.pressed.connect(_on_upgrade_pressed)
 	add_child(_upgrade)
@@ -272,7 +279,7 @@ func _refresh_upgrade(key: String, level: int, upgrading: bool) -> void:
 	_upgrade.disabled = not affordable
 	# What it costs AND what it buys - "Lv 4" on its own says nothing about
 	# whether it is worth the money.
-	_upgrade_label.text = "Lv %d\n$%s" % [level + 1, _thousands(cost)]
+	_upgrade_label.text = "Lv %d  $%s" % [level + 1, _thousands(cost)]
 	_note_upgrade(key, level, cost)
 
 

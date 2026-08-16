@@ -33,7 +33,10 @@ const SWOOP_EARNING := preload("res://assets/bubbles/earning_bubble@2x.png")
 # A plot under scaffolding gets the same countdown an aircraft in the air does -
 # same bubble, same bar. It is the same question: how long until this is worth
 # something again.
-const TAG_UPGRADING := preload("res://assets/bubbles/fueling_bubble@2x.png")
+#
+# The cone, not the fuel drum: it is the same language the empty-plot callout
+# already speaks, where a cone means work is happening here.
+const TAG_UPGRADING := preload("res://assets/bubbles/construction_bubble@2x.png")
 # How far above the plot's ground point the callout floats - FIXED, and the
 # same whatever is standing there.
 #
