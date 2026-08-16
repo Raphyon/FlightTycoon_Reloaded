@@ -162,7 +162,7 @@ const ENTRIES := [
 		"force": "S", "seats": 110, "fuel": 10, "xp": 133, "range": 3, "has_world_sprite": true},
 	# Two seats, so it earns on fare - the same trick the original uses on
 	# its F-15.
-	{"key": "p51", "name": "P-51 Mustang", "icon": "p51_white.png", "price": 40000, "level": 24,
+	{"key": "p51", "name": "P-51 Mustang", "icon": "p51_white.png", "price": 27, "currency": COINS, "level": 24,
 		"force": "B", "seats": 2, "fuel": 12, "xp": 18, "ticket": 1100, "range": 3, "has_world_sprite": true},
 	{"key": "dc6", "name": "Douglas DC-6", "icon": "dc6_default.png", "price": 55000, "level": 25,
 		"force": "C", "seats": 175, "fuel": 25, "xp": 168, "range": 3, "has_world_sprite": true},
@@ -222,7 +222,7 @@ const ENTRIES := [
 	# An unmanned spaceplane: it carries almost nothing, so like the P-51 and
 	# the F-15 it earns on fare rather than capacity. Four "seats" at 2000 is
 	# the payload, not passengers.
-	{"key": "x37b", "name": "X-37B", "icon": "x37b_default.png", "price": 650000, "level": 43,
+	{"key": "x37b", "name": "X-37B", "icon": "x37b_default.png", "price": 48, "currency": COINS, "level": 43,
 		"force": "S", "seats": 4, "fuel": 90, "xp": 42, "ticket": 2000, "range": 5, "has_world_sprite": true},
 	{"key": "b747", "name": "Boeing 747-8", "icon": "b747_default.png", "price": 800000, "level": 45,
 		"force": "E", "seats": 600, "fuel": 72, "xp": 520, "range": 5, "has_world_sprite": true},
@@ -242,7 +242,7 @@ const ENTRIES := [
 	# is a per-aircraft stat and not a constant.
 	{"key": "a400m", "name": "A400M", "icon": "a400m_white.png", "price": 3500000, "level": 50,
 		"force": "D", "seats": 500, "fuel": 100, "xp": 474, "ticket": 100, "range": 5, "has_world_sprite": true},
-	{"key": "ark", "name": "Ark", "icon": "ark_default.png", "price": 70, "currency": COINS, "level": 50,
+	{"key": "ark", "name": "Ark", "icon": "ark_default.png", "price": 7000000, "level": 50,
 		"force": "A", "seats": 1000, "fuel": 90, "xp": 671, "ticket": 60, "range": 5, "has_world_sprite": true},
 ]
 
@@ -271,12 +271,23 @@ static func level_for(key: String) -> int:
 	return int(entry_for(key).get("level", 1))
 
 
+# COIN AIRCRAFT OBEY THE LEVEL GATE, same as everything else.
+#
+# They used to ignore it - the pay-to-win lane, buyable from the first minute by
+# anyone with coins. That one exception distorted the whole economy: with coins
+# skipping the ladder, every coin the game handed out bought PROGRESS rather than
+# content, and the daily quest faucet had to be held down to 2 a set because 3
+# cost four hours of playthrough. It is also what forced the starting float from
+# 100 coins to 15, when the old float bought an Ark earning 150x the starter on
+# the same two-minute hop.
+#
+# With the gate applied a coin buys a DIFFERENT aircraft at the point you could
+# have afforded one anyway, not an earlier one.
+#
+# It does NOT make coins free of pacing, which is worth writing down because I
+# assumed it did and the bot said otherwise: gated, 2 coins a set against 5 is
+# still 32.7 h against 28.0 h to all six zones. A coin aircraft is an aircraft
+# you did not spend cash on, and cash is the real constraint through the middle
+# of the game.
 static func unlocked(key: String) -> bool:
-	# Coin-priced aircraft ignore the level gate entirely. They're the
-	# pay-to-win lane: available from the first minute to anyone willing to
-	# spend, rather than something you earn your way to. Their `level` stays in
-	# the data as a note of where they'd otherwise sit on the earned ladder,
-	# and it's still what orders them in the shop.
-	if currency_of(entry_for(key)) == COINS:
-		return true
 	return Progression.level >= level_for(key)

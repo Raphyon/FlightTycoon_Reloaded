@@ -129,11 +129,12 @@ func cost_of(building_key: String) -> int:
 
 # Unlocked by level, except the coin building - same rule the aircraft shop
 # uses, where paying real money skips the earned ladder.
+# Coin buildings obey the level gate too, for the same reason coin aircraft now
+# do (see ShopCatalog.unlocked). A no-op today - the only coin building is the
+# Eiffel Tower at level 1 - but the exception is gone rather than lying in wait.
 func is_unlocked(building_key: String) -> bool:
 	if not buildings_unlocked():
 		return false
-	if BuildingLayout.currency_of(building_key) == "coins":
-		return true
 	return Progression.level >= BuildingLayout.level_of(building_key)
 
 

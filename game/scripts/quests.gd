@@ -14,15 +14,23 @@ extends Node
 # individual tasks pay cash and fuel instead - see SET_COIN_REWARD for how many
 # the set pays and why that number was swept rather than picked.
 #
-# THE CONSTRAINT EVERYTHING HERE IS SHAPED AROUND: coin aircraft ignore the
-# level gate. That is why the starting float went from 100 to 15 - the old float
-# bought an Ark earning 150x the starter on the same two-minute hop. So no coins
-# below COIN_MIN_LEVEL, and any change to this faucet gets measured with
+# COIN AIRCRAFT OBEY THE LEVEL GATE NOW (ShopCatalog.unlocked), so a coin buys a
+# DIFFERENT aircraft at a point you could have afforded one anyway rather than an
+# earlier one.
+#
+# THAT DID NOT MAKE THE FAUCET FREE, which is what I assumed and the bot
+# corrected. Gated, going from 2 coins a set to 5 still moves a playthrough from
+# 32.7 h to 28.0 h - because a coin aircraft is still an aircraft you did not
+# have to pay cash for, and cash is the constraint through the whole middle of
+# the game. The gate changed the SHAPE of the advantage, not its existence.
+#
+# So this number still gets measured rather than reasoned about:
 #
 #     godot --headless --path game -- --bot --who regular
 #
-# If it pulls the fleet ladder forward, that milestone lands earlier and the run
-# will say so.
+# COIN_MIN_LEVEL is kept regardless. It is not load-bearing for pacing, but a
+# level 3 player has nothing to spend coins on and a reward you cannot use is
+# not a reward.
 
 signal quests_changed
 signal set_completed(coins: int)
