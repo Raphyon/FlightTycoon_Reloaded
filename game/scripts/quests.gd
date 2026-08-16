@@ -1,7 +1,7 @@
 extends Node
 
-# DAILY TASKS. Three a day, drawn from a pool, and the coin comes from finishing
-# ALL THREE rather than from any one of them.
+# DAILY TASKS. FIVE dealt a day from a pool, and the coin comes from finishing
+# any THREE of them rather than from any one.
 #
 # WHY THIS EXISTS. The coin catalogue is 238 coins for the seven coin aircraft,
 # before liveries and apron skins. A sixty-hour playthrough earns 35, on top of
@@ -10,8 +10,9 @@ extends Node
 # what separates them from a login reward.
 #
 # THE COIN IS THE SET, NOT THE TASK. One coin per task is a trickle you collect
-# without noticing; five for the day's three is a thing you go and finish. The
-# individual tasks pay cash and fuel instead.
+# without noticing; a handful for finishing the day is a thing you go after. The
+# individual tasks pay cash and fuel instead - see SET_COIN_REWARD for how many
+# the set pays and why that number was swept rather than picked.
 #
 # THE CONSTRAINT EVERYTHING HERE IS SHAPED AROUND: coin aircraft ignore the
 # level gate. That is why the starting float went from 100 to 15 - the old float
@@ -70,11 +71,11 @@ const DAY_SECONDS := 86400.0
 # burns about 10,000 units late on, so the reward has to grow, but fuel is worth
 # most exactly where the game is meanest (the minimum purchase is 50 units at a
 # +20% premium, the early trap in the readme) and should not lose that.
-# Sized for a day of FIVE dealt tasks, not three. Dealing five without touching
-# this handed out up to 5 rewards a day where 3 was the budget, and a measured
-# run moved the whole game 4.7 hours forward - 38.7 h to 34.0 h to all six
-# zones. 0.7x puts a typical three-task day slightly under the old three-task
-# day, and an all-five day only modestly over it.
+# LEFT ALONE, deliberately. Dealing five tasks instead of three hands out more
+# rewards a day, so this was cut 30% to compensate - and a measured run said the
+# cut was worth nothing: 34.0 h against 33.3 h to all six zones, inside the
+# noise. Cash is not the lever here, the coin is (see SET_COIN_REWARD), so the
+# reward that makes a task feel worth doing stays at full strength.
 const CASH_BASE := 4000.0
 const CASH_EXPONENT := 1.1
 const FUEL_BASE := 120.0
