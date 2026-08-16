@@ -26,7 +26,19 @@ extends Node
 signal quests_changed
 signal set_completed(coins: int)
 
-const SET_COIN_REWARD := 3
+# TWO, measured. The coin is the only quest reward that moves the game: cash and
+# fuel are worth about half an hour across a whole playthrough, because coin
+# aircraft ignore the level gate and coins therefore buy PROGRESS as well as
+# content. Sweeping it:
+#
+#     1 coin -> 36.7 h to all six zones,  74 coins earned
+#     2 coin -> 36.0 h,                  150 coins
+#     3 coin -> 32.0 h,                  243 coins
+#
+# 1 to 2 costs 42 minutes and doubles the faucet. 2 to 3 costs FOUR HOURS for
+# the last third of a 238-coin catalogue. The cliff is at 3, so this sits under
+# it - two thirds of the coin content reachable, and the hours kept.
+const SET_COIN_REWARD := 2
 const COIN_MIN_LEVEL := 10
 
 # FIVE DEALT, THREE NEEDED. The coin used to want all three of three, so a

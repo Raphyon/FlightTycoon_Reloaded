@@ -23,7 +23,7 @@ daily login reward does not.
 ## Shape
 
 **Daily** - FIVE tasks dealt, reset on the `GameClock` day boundary. Each pays
-cash or fuel. Completing **any three** pays **3 coins**, and one **swap** a day
+cash or fuel. Completing **any three** pays **2 coins**, and one **swap** a day
 trades a row you do not fancy for another.
 
 Five-deal-three is what makes the set robust: the coin needs three, so when it
@@ -108,17 +108,28 @@ unlocks** - about six payouts of 5, ~30 coins total.
 ## The coin budget
 
 Five tasks are dealt and any three earn the coin, plus one swap a day for a row
-you do not fancy. Measured over 90 days of regular play: **82 sets, 246 coins**,
-finishing with 181 earned on top of the 15 you start with.
+you do not fancy. Measured over 90 days of regular play: **150 coins** from the sets.
 
-The catalogue is 238. That is the fit worth having - most of the coin content
-reachable in a long playthrough, the rest a choice.
+The catalogue is 238, so about two thirds of the coin content is reachable in a
+long playthrough and the rest is a real choice - which is the fit worth having
+once you know the alternative costs four hours of game.
 
-**The set pays 3, not 5.** At 5 it paid 420 coins, which is nearly twice the
-catalogue, and coins are not only content: coin aircraft ignore the level gate,
-so a big coin faucet is a progression faucet. Cash and fuel rewards are not -
-turning the coin off entirely leaves the rest of the quest rewards worth about
-half an hour across a whole playthrough.
+**The set pays 2**, swept rather than guessed. The coin is the only quest reward
+that moves the game - coin aircraft ignore the level gate, so coins buy PROGRESS
+as well as content, while cash and fuel together are worth about half an hour
+across a playthrough.
+
+| set coin | all six zones | coins earned |
+|---|---|---|
+| 1 | 36.7 h | 74 |
+| **2** | **36.0 h** | **150** |
+| 3 | 32.0 h | 243 |
+| 5 | 34.0 h* | 420 |
+
+\* before building upgrades existed, so not directly comparable.
+
+1 to 2 costs 42 minutes and doubles the faucet. 2 to 3 costs four hours for the
+last third of the catalogue. The cliff is at 3 and this sits under it.
 
 If coin aircraft ever respect the level ladder, this constraint disappears and
 the faucet can be as generous as the catalogue wants.
