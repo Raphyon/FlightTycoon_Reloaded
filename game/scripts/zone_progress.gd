@@ -69,11 +69,27 @@ func is_robot_area(area_name: String) -> bool:
 	return Maps.is_robot_area(area_name)
 
 
+# TEMPORARY: one purchase opens the whole of Dreamland.
+#
+# Dreamland has three zones and the expansion shop sells all three, but the map
+# is not built out enough for them to be three separate steps yet - so buying
+# Dreamland2 opens the lot. Delete this table and they go back to being bought
+# one at a time; nothing else depends on it.
+const OPENED_BY := {
+	"Dreamland1": "Dreamland2",
+	"Dreamland3": "Dreamland2",
+}
+
+
 func is_unlocked(area_name: String) -> bool:
 	# The robot's pads are landing slots for aircraft you dispatched, not
 	# something you buy - all of them, not just its first zone.
-	return (area_name in ALWAYS_UNLOCKED or is_robot_area(area_name)
-		or unlocked_zones.has(area_name))
+	if area_name in ALWAYS_UNLOCKED or is_robot_area(area_name):
+		return true
+	if unlocked_zones.has(area_name):
+		return true
+	var opener: String = str(OPENED_BY.get(area_name, ""))
+	return opener != "" and unlocked_zones.has(opener)
 
 
 func requirement_for(area_name: String) -> Dictionary:

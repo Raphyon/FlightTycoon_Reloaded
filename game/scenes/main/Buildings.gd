@@ -23,6 +23,12 @@ func _ready() -> void:
 	BuildingProgress.rent_changed.connect(_refresh_all)
 	# Plots appear with Zone2 - see BuildingProgress.buildings_unlocked.
 	ZoneProgress.unlocked_changed.connect(rebuild)
+	# TRAVELLING IS A REBUILD. Without this the slots from the airport you left
+	# stayed on screen - homeland's 42 plots standing at homeland's coordinates
+	# over Dreamland's background, which read as the plots having been copied
+	# there. They were never cleared. BuildingLayout has plots for homeland
+	# only, so rebuilding on arrival correctly leaves the other maps empty.
+	Maps.map_changed.connect(func(_key: String) -> void: rebuild())
 	rebuild()
 
 

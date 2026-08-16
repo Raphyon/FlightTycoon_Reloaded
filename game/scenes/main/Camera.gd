@@ -36,11 +36,14 @@ func _ready() -> void:
 	# box at all, so no special case is needed for them.
 	ZoneProgress.unlocked_changed.connect(_fit_limits_to_unlocked)
 	Maps.map_changed.connect(_on_map_changed)
+	# _min_zoom is measured against the viewport, so a resized window
+	# changes how far out is legal.
+	get_tree().root.size_changed.connect(_refit)
 	call_deferred("_fit_limits_to_unlocked")
 
 
 func _on_map_changed(_map_key: String) -> void:
-	_fit_limits_to_unlocked()
+	_refit()
 
 
 # The bounding box of every apron in an unlocked area, plus the building plots
@@ -60,6 +63,14 @@ func _editor_active() -> bool:
 		if child.name.ends_with("Editor") and "editing" in child and child.editing:
 			return true
 	return false
+
+
+# Re-clamp the zoom as well as the limits. Travelling from homeland to the
+# carrier shrinks the world from 3072 wide to 2304, so a zoom that was legal a
+# moment ago now shows past the edge - and nothing else would notice.
+func _refit() -> void:
+	_apply_zoom(_target_zoom)
+	_fit_limits_to_unlocked()
 
 
 func _fit_limits_to_unlocked() -> void:
@@ -99,7 +110,7 @@ func _fit_limits_to_unlocked() -> void:
 # visible area, then clips it to the map so it cannot reach past the edge of the
 # world. Written once here because every caller wants the same guarantee.
 func _apply_limits(lo: Vector2, hi: Vector2) -> void:
-	var view: Vector2 = get_viewport_rect().size * zoom * MIN_VIEW_FACTOR
+	var view: Vector2 = get_viewport_rect().size / zoom * MIN_VIEW_FACTOR
 	var centre := (lo + hi) * 0.5
 	var half := Vector2(maxf((hi.x - lo.x) * 0.5, view.x * 0.5),
 		maxf((hi.y - lo.y) * 0.5, view.y * 0.5))
@@ -191,18 +202,45 @@ func _unhandled_input(event: InputEvent) -> void:
 # it crosses back in - which reads as the camera being frozen no matter where
 # you grab. Keeping position itself legal makes every pixel of a drag count.
 func _clamp_to_limits(p: Vector2) -> Vector2:
-	var half: Vector2 = get_viewport_rect().size * 0.5 * zoom
+	# viewport / zoom, NOT viewport * zoom. Godot 4 zoom magnifies: the visible
+	# world is the viewport DIVIDED by it. Multiplying made the half-extent
+	# shrink as you zoomed out, so the clamp loosened at exactly the moment the
+	# view was growing past the map edge - which is how the carrier could be
+	# panned onto white.
+	var half: Vector2 = get_viewport_rect().size * 0.5 / zoom
 	var lo := Vector2(limit_left + half.x, limit_top + half.y)
 	var hi := Vector2(limit_right - half.x, limit_bottom - half.y)
 	# A map smaller than the view has no room to pan on that axis - sit in the
 	# middle of it rather than snapping to a corner.
-	return Vector2(
+	var out := Vector2(
 		clampf(p.x, lo.x, hi.x) if lo.x <= hi.x else (limit_left + limit_right) * 0.5,
 		clampf(p.y, lo.y, hi.y) if lo.y <= hi.y else (limit_top + limit_bottom) * 0.5,
 	)
+	# AND THE WORLD, not only the limit box. The box is fitted to unlocked
+	# aprons and can be far smaller than the view - and when it is, the fallback
+	# above centres on the BOX, which may sit near the map edge and leave half a
+	# screen of surround showing. Where the world has room, the view stays in it.
+	var world := Vector2(Maps.size_for())
+	if world.x >= half.x * 2.0:
+		out.x = clampf(out.x, half.x, world.x - half.x)
+	if world.y >= half.y * 2.0:
+		out.y = clampf(out.y, half.y, world.y - half.y)
+	return out
+
+
+# The furthest out this MAP allows: any less and the view is wider or taller
+# than the world, and the surround shows through. The carrier is the tight one
+# at 2304x1792 - a flat MIN_ZOOM of 0.3 shows 3840x2160 there, which is most of
+# a screen of white.
+func _min_zoom() -> float:
+	var world := Vector2(Maps.size_for())
+	if world.x <= 0.0 or world.y <= 0.0:
+		return MIN_ZOOM
+	var view := get_viewport_rect().size
+	return maxf(MIN_ZOOM, maxf(view.x / world.x, view.y / world.y))
 
 
 func _apply_zoom(new_zoom: float) -> void:
-	_target_zoom = clampf(new_zoom, MIN_ZOOM, MAX_ZOOM)
+	_target_zoom = clampf(new_zoom, _min_zoom(), MAX_ZOOM)
 	# Zooming out grows the view, which can push a legal position out of range.
 	position = _clamp_to_limits(position)

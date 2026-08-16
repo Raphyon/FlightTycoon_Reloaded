@@ -91,6 +91,9 @@ const BASE_MAPS := {
 		# inventing prettier names here would leave the cards unable to unlock
 		# anything.
 		"areas": ["Dreamland1", "Dreamland2", "Dreamland3"],
+		# You cannot go somewhere you have not bought. Dreamland2 opens the
+		# whole island for now (ZoneProgress.OPENED_BY), so it is the gate.
+		"owned_gate": "Dreamland2",
 	},
 	# The robot's own airport - where aircraft you dispatch actually land, and
 	# which you have to travel to in order to collect them. Same art and same
@@ -147,6 +150,7 @@ const BASE_MAPS := {
 		# One zone for the whole deck - ZoneCatalog sells a single Carrier
 		# card (20), not one per pad block.
 		"areas": ["Carrier"],
+		"owned_gate": "Carrier",
 	},
 }
 
@@ -231,6 +235,15 @@ func all_areas() -> Array:
 	for key in MAPS:
 		out.append_array(MAPS[key]["areas"])
 	return out
+
+
+# Can you travel to this world yet? Airports you OWN carry an "owned_gate" -
+# the zone that has to be bought before the world map will take you there.
+# Without it Dreamland and the carrier were reachable from the first minute,
+# which showed empty airports you had not paid for.
+func is_owned(map_key: String) -> bool:
+	var gate: String = str(entry(map_key).get("owned_gate", ""))
+	return gate == "" or ZoneProgress.is_unlocked(gate)
 
 
 # Airports belonging to someone else - anything carrying a "visiting" entry.

@@ -42,8 +42,25 @@ func _ready() -> void:
 		if not Maps.has_map(entry["key"]):
 			button.disabled = true
 			button.modulate = UNAVAILABLE_MODULATE
+	# Owning a world is a separate question from it existing, and it changes as
+	# zones are bought - so it is refreshed rather than set once here.
+	ZoneProgress.unlocked_changed.connect(_refresh_owned)
+	_refresh_owned()
 	Maps.map_changed.connect(func(_k: String) -> void: _refresh_badge())
 	_refresh_badge()
+
+
+# Greys out worlds you have not bought into yet. A locked button still LOOKS
+# like a destination, which is the point - it says there is somewhere else to
+# go, not that the map is broken.
+func _refresh_owned() -> void:
+	for entry in MAPS:
+		if not Maps.has_map(entry["key"]):
+			continue
+		var button: TextureButton = get_node(entry["node"])
+		var owned: bool = Maps.is_owned(entry["key"])
+		button.disabled = not owned
+		button.modulate = Color.WHITE if owned else UNAVAILABLE_MODULATE
 
 
 func _refresh_badge() -> void:
