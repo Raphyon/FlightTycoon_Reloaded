@@ -49,7 +49,23 @@ const ROAD_COLORS := {
 const INACTIVE_ALPHA := 0.35
 
 var _click := ClickDrag.new()
-var editing := false
+# A SETTER, not a plain flag. The F1 menu switches editors by assigning to this
+# directly (DebugMenu._on_editor_toggled), so anything that has to happen when
+# the tool goes away has to hang off the assignment.
+#
+# Without it the tool DID switch off - every handler is guarded on `editing` -
+# but nothing redrew, so its on-screen readout stayed up and it looked like the
+# thing would not close. LandmarkEditor and ZoneEditor were fixed when this bit
+# the first time; these five were not.
+var editing := false:
+	set(value):
+		if editing == value:
+			return
+		editing = value
+		if is_inside_tree():
+			_click.reset()
+			_update_hud()
+			queue_redraw()
 var target := Target.BODY
 var data: Dictionary = {}
 var _active_road: String = ""

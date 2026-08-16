@@ -39,7 +39,22 @@ const ROTOR_COLORS := [
 	Color(0.3, 0.95, 0.95, 0.9),  # 6 cyan
 ]
 
-var editing := false
+# A SETTER, not a plain flag. The F1 menu switches editors by assigning to this
+# directly (DebugMenu._on_editor_toggled), so anything that has to happen when
+# the tool goes away has to hang off the assignment.
+#
+# Without it the tool DID switch off - every handler is guarded on `editing` -
+# but nothing redrew, so its on-screen readout stayed up and it looked like the
+# thing would not close. LandmarkEditor and ZoneEditor were fixed when this bit
+# the first time; these five were not.
+var editing := false:
+	set(value):
+		if editing == value:
+			return
+		editing = value
+		if is_inside_tree():
+			_update_hud()
+			queue_redraw()
 var model_index := 0
 var selected := 0
 # Discovered from Fleet.WORLD_SPRITES rather than hardcoded: a fixed list left

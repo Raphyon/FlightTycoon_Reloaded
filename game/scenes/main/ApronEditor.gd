@@ -26,7 +26,22 @@ const ApronSlotScript := preload("res://scenes/main/ApronSlot.gd")
 const WORLD_AIRCRAFT_SCENE := preload("res://scenes/main/WorldAircraft.tscn")
 const MATCH_RADIUS := 8.0  # px - how close a click has to be to hit an existing point
 
-var editing := false
+# A SETTER, not a plain flag. The F1 menu switches editors by assigning to this
+# directly (DebugMenu._on_editor_toggled), so anything that has to happen when
+# the tool goes away has to hang off the assignment.
+#
+# Without it the tool DID switch off - every handler is guarded on `editing` -
+# but nothing redrew, so its on-screen readout stayed up and it looked like the
+# thing would not close. LandmarkEditor and ZoneEditor were fixed when this bit
+# the first time; these five were not.
+var editing := false:
+	set(value):
+		if editing == value:
+			return
+		editing = value
+		if is_inside_tree():
+			_update_hud()
+			queue_redraw()
 var area_index := 0
 var data: Dictionary = {}
 var _slots: Dictionary = {}  # area_name -> {apron_id: Area2D}
