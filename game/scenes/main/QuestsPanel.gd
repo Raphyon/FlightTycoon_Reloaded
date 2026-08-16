@@ -30,20 +30,29 @@ const BUTTON_GO := preload("res://assets/buttons/button_orange2@2x.png")
 const BUTTON_WIDE := preload("res://assets/buttons/button_orange4@2x.png")
 const BUTTON_OFF := preload("res://assets/buttons/button_grey3@2x.png")
 
-# Five rows now, not three - see Quests.DAILY_COUNT.
+# SIZED AGAINST THE SCREEN.
 #
-# This is the panel's NATURAL size. The window is maximised with canvas_items
-# stretch and no fixed viewport, so on a shorter screen the whole thing is
-# scaled down to fit rather than running off the bottom - see _fit, which is the
-# same trick FuelPanel uses on its own content.
-const PANEL_SIZE := Vector2(800, 620)
-const MARGIN := 30.0
-const ROW_HEIGHT := 76.0
-const ROW_GAP := 10.0
-# Fraction of the screen the panel may occupy before it is scaled down.
+# project.godot sets no viewport width or height, so the design resolution is
+# Godot's default 1152x648. This was 800x620 - nearly the full height of the
+# screen for a five-line checklist. Matching RoutePickerPanel's 859x430 did not
+# help either: that is a full-screen list and this is not.
+#
+# 620x320 is a bit over half the screen each way. Everything inside is sized FOR
+# it rather than shrunk to fit, which is why the fonts and icon sizes are
+# declared here too.
+const PANEL_SIZE := Vector2(620, 320)
+const MARGIN := 16.0
+const ROW_HEIGHT := 38.0
+const ROW_GAP := 5.0
+# Fraction of the screen the panel may occupy before it is scaled down - the
+# safety net for a short window, not the way it is sized.
 const SCREEN_SHARE := 0.92
-const BAR_SIZE := Vector2(320, 16)
-const BONUS_HEIGHT := 96.0
+# The reward icons are authored at 53x47 and 39x44; a third of a row's height is
+# plenty and more than that crowds the line.
+const REWARD_ICON := 16.0
+const COIN_ICON := 22.0
+const BAR_SIZE := Vector2(170, 9)
+const BONUS_HEIGHT := 48.0
 
 const COLOR_TITLE := Color(1.0, 0.93, 0.82)
 const COLOR_BODY := Color(0.88, 0.83, 0.74)
@@ -120,35 +129,35 @@ func _build() -> void:
 	# NinePatch, so the 943x452 board can be whatever height the rows need.
 	var bg := NinePatchRect.new()
 	bg.texture = BOARD
-	bg.patch_margin_left = 28
-	bg.patch_margin_right = 28
-	bg.patch_margin_top = 28
-	bg.patch_margin_bottom = 28
+	bg.patch_margin_left = 20
+	bg.patch_margin_right = 20
+	bg.patch_margin_top = 20
+	bg.patch_margin_bottom = 20
 	bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(bg)
 
-	var title := _label("DAILY TASKS", 22, COLOR_TITLE)
+	var title := _label("DAILY TASKS", 17, COLOR_TITLE)
 	# Says the rule up front: the coin wants three of the five, not all of them.
-	title.position = Vector2(MARGIN, 12)
+	title.position = Vector2(MARGIN, 9)
 	add_child(title)
 
-	_timer_label = _label("", 14, COLOR_DIM)
+	_timer_label = _label("", 11, COLOR_DIM)
 	_timer_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	_timer_label.size = Vector2(330, 20)
-	_timer_label.position = Vector2(PANEL_SIZE.x - MARGIN - 336, 18)
+	_timer_label.size = Vector2(250, 16)
+	_timer_label.position = Vector2(PANEL_SIZE.x - MARGIN - 250, 13)
 	add_child(_timer_label)
 
 	var rule := Panel.new()
 	rule.add_theme_stylebox_override("panel", _box(Color(1, 1, 1, 0.16), 0))
-	rule.position = Vector2(MARGIN, 42)
+	rule.position = Vector2(MARGIN, 32)
 	rule.size = Vector2(PANEL_SIZE.x - MARGIN * 2.0, 2)
 	rule.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(rule)
 
 	_rows = VBoxContainer.new()
 	_rows.add_theme_constant_override("separation", int(ROW_GAP))
-	_rows.position = Vector2(MARGIN, 52)
+	_rows.position = Vector2(MARGIN, 40)
 	_rows.size = Vector2(PANEL_SIZE.x - MARGIN * 2.0,
 		ROW_HEIGHT * Quests.DAILY_COUNT + ROW_GAP * (Quests.DAILY_COUNT - 1))
 	add_child(_rows)
@@ -162,7 +171,7 @@ func _build() -> void:
 
 func _build_bonus() -> void:
 	_bonus = Control.new()
-	_bonus.position = Vector2(MARGIN, PANEL_SIZE.y - BONUS_HEIGHT - 26)
+	_bonus.position = Vector2(MARGIN, PANEL_SIZE.y - BONUS_HEIGHT - 18)
 	_bonus.size = Vector2(PANEL_SIZE.x - MARGIN * 2.0, BONUS_HEIGHT)
 	add_child(_bonus)
 
@@ -175,32 +184,32 @@ func _build_bonus() -> void:
 
 	var coin := TextureRect.new()
 	coin.texture = ICON_COIN
-	coin.size = Vector2(30, 34)
+	coin.size = Vector2(COIN_ICON, COIN_ICON)
 	coin.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	coin.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	coin.position = Vector2(14, 15)
+	coin.position = Vector2(10, 13)
 	coin.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_bonus.add_child(coin)
 
-	var head := _label("Complete any %d today" % Quests.SET_REQUIRED, 17, COLOR_GOLD)
-	head.position = Vector2(54, 11)
+	var head := _label("Complete any %d today" % Quests.SET_REQUIRED, 13, COLOR_GOLD)
+	head.position = Vector2(40, 7)
 	_bonus.add_child(head)
 
-	_bonus_label = _label("", 13, COLOR_BODY)
-	_bonus_label.position = Vector2(54, 34)
+	_bonus_label = _label("", 11, COLOR_BODY)
+	_bonus_label.position = Vector2(40, 26)
 	_bonus.add_child(_bonus_label)
 
 	for i in range(Quests.SET_REQUIRED):
 		var pip := Panel.new()
-		pip.size = Vector2(13, 13)
-		pip.position = Vector2(250 + i * 19, 36)
+		pip.size = Vector2(10, 10)
+		pip.position = Vector2(200 + i * 15, 28)
 		pip.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		_bonus.add_child(pip)
 		_pips.append(pip)
 
 	# Rebuilt by _refresh_bonus, because its art changes with its state.
-	_bonus_button = _texture_button(BUTTON_WIDE, Vector2(150, 42), "", false)
-	_bonus_button.position = Vector2(_bonus.size.x - 150 - 12, 11)
+	_bonus_button = _texture_button(BUTTON_WIDE, Vector2(110, 32), "", false)
+	_bonus_button.position = Vector2(_bonus.size.x - 110 - 10, 8)
 	_bonus.add_child(_bonus_button)
 
 
@@ -226,13 +235,13 @@ func _make_row(key: String) -> Control:
 	row.add_theme_stylebox_override("panel", _box(Color(0, 0, 0, 0.22), 12,
 		Color(0.49, 0.81, 0.48, 0.55) if done else Color(0, 0, 0, 0)))
 
-	var title := _label(Quests.title_for(key), 16, COLOR_DONE if done else COLOR_TITLE)
-	title.position = Vector2(16, 6)
+	var title := _label(Quests.title_for(key), 13, COLOR_DONE if done else COLOR_TITLE)
+	title.position = Vector2(12, 4)
 	row.add_child(title)
 
 	var track := Panel.new()
 	track.add_theme_stylebox_override("panel", _box(Color(0, 0, 0, 0.42), 8))
-	track.position = Vector2(16, 29)
+	track.position = Vector2(12, 22)
 	track.size = BAR_SIZE
 	track.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	row.add_child(track)
@@ -243,42 +252,42 @@ func _make_row(key: String) -> Control:
 		var fill := Panel.new()
 		fill.add_theme_stylebox_override("panel",
 			_box(COLOR_FILL_DONE if done else COLOR_FILL, 6))
-		fill.position = Vector2(18, 31)
+		fill.position = Vector2(14, 24)
 		fill.size = Vector2((BAR_SIZE.x - 4.0) * clampf(float(cur) / tot, 0.0, 1.0),
 			BAR_SIZE.y - 4.0)
 		fill.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		row.add_child(fill)
 
-	var count := _label("%d/%d" % [cur, tot], 13, COLOR_BODY)
-	count.position = Vector2(16 + BAR_SIZE.x + 10, 27)
+	var count := _label("%d/%d" % [cur, tot], 11, COLOR_BODY)
+	count.position = Vector2(12 + BAR_SIZE.x + 8, 20)
 	row.add_child(count)
 
 	var is_fuel: bool = Quests.reward_kind(key) == Quests.KIND_FUEL
 	var icon := TextureRect.new()
 	icon.texture = ICON_FUEL if is_fuel else ICON_CASH
-	icon.size = Vector2(22, 22)
+	icon.size = Vector2(REWARD_ICON, REWARD_ICON)
 	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	icon.position = Vector2(352, 14)
+	icon.position = Vector2(250, 10)
 	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	row.add_child(icon)
 
 	var amount: int = Quests.reward_amount(key)
 	var reward := _label(("%s fuel" % FloatingText.grouped(amount)) if is_fuel
-		else ("$%s" % FloatingText.grouped(amount)), 15, COLOR_REWARD)
-	reward.position = Vector2(380, 16)
+		else ("$%s" % FloatingText.grouped(amount)), 12, COLOR_REWARD)
+	reward.position = Vector2(272, 12)
 	row.add_child(reward)
 
 	# One button, three states - claimable, taken, still going.
-	var button_pos := Vector2(PANEL_SIZE.x - MARGIN * 2.0 - 104 - 10, 8)
+	var button_pos := Vector2(PANEL_SIZE.x - MARGIN * 2.0 - 78 - 8, 6)
 	var button: TextureButton
 	if taken:
-		button = _texture_button(BUTTON_OFF, Vector2(104, 34), "Claimed", false)
+		button = _texture_button(BUTTON_OFF, Vector2(78, 26), "Claimed", false)
 	elif done:
-		button = _texture_button(BUTTON_GO, Vector2(104, 34), "Claim", true,
+		button = _texture_button(BUTTON_GO, Vector2(78, 26), "Claim", true,
 			func() -> void: Quests.claim(key))
 	else:
-		button = _texture_button(BUTTON_OFF, Vector2(104, 34),
+		button = _texture_button(BUTTON_OFF, Vector2(78, 26),
 			"%d to go" % (tot - cur), false)
 	button.position = button_pos
 	row.add_child(button)
@@ -286,11 +295,11 @@ func _make_row(key: String) -> Control:
 	# REROLL. Only on a row that is not finished - rerolling a completed task
 	# would be a way to bank its reward and take another run at the same slot.
 	if Quests.can_refresh(key):
-		var swap := _texture_button(BUTTON_OFF, Vector2(72, 30), "Swap", true,
+		var swap := _texture_button(BUTTON_OFF, Vector2(54, 24), "Swap", true,
 			func() -> void: Quests.refresh(key))
 		swap.modulate = Color(1, 1, 1)
 		swap.tooltip_text = "Swap this task (%d left today)" % Quests.refreshes_left
-		swap.position = Vector2(PANEL_SIZE.x - MARGIN * 2.0 - 104 - 90, 10)
+		swap.position = Vector2(PANEL_SIZE.x - MARGIN * 2.0 - 78 - 68, 7)
 		row.add_child(swap)
 	return row
 
@@ -317,7 +326,7 @@ func _refresh_bonus() -> void:
 	var slot := _bonus_button.position
 	_bonus.remove_child(_bonus_button)
 	_bonus_button.queue_free()
-	_bonus_button = _texture_button(BUTTON_WIDE, Vector2(150, 42), caption, enabled,
+	_bonus_button = _texture_button(BUTTON_WIDE, Vector2(110, 32), caption, enabled,
 		func() -> void: Quests.claim_set())
 	_bonus_button.position = slot
 	_bonus.add_child(_bonus_button)
@@ -344,7 +353,7 @@ func _texture_button(texture: Texture2D, button_size: Vector2, caption: String,
 	if enabled and on_pressed.is_valid():
 		button.pressed.connect(on_pressed)
 
-	var caption_label := _label(caption, 14, Color(1, 1, 1) if enabled else COLOR_DIM)
+	var caption_label := _label(caption, 11, Color(1, 1, 1) if enabled else COLOR_DIM)
 	caption_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	caption_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	caption_label.size = button_size
