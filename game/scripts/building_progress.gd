@@ -544,6 +544,9 @@ func build(plot_id: int, building_key: String, map_key: String = "") -> bool:
 
 
 func _save() -> void:
+	# Never over a real playthrough - see SaveGame.save().
+	if OS.get_cmdline_user_args().has("--bot"):
+		return
 	DirAccess.make_dir_recursive_absolute("res://data")
 	var f := FileAccess.open(SAVE_PATH, FileAccess.WRITE)
 	f.store_string(JSON.stringify(built, "\t"))

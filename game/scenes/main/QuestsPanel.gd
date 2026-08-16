@@ -31,10 +31,17 @@ const BUTTON_WIDE := preload("res://assets/buttons/button_orange4@2x.png")
 const BUTTON_OFF := preload("res://assets/buttons/button_grey3@2x.png")
 
 # Five rows now, not three - see Quests.DAILY_COUNT.
-const PANEL_SIZE := Vector2(820, 700)
-const MARGIN := 34.0
-const ROW_HEIGHT := 86.0
-const ROW_GAP := 12.0
+#
+# This is the panel's NATURAL size. The window is maximised with canvas_items
+# stretch and no fixed viewport, so on a shorter screen the whole thing is
+# scaled down to fit rather than running off the bottom - see _fit, which is the
+# same trick FuelPanel uses on its own content.
+const PANEL_SIZE := Vector2(800, 620)
+const MARGIN := 30.0
+const ROW_HEIGHT := 76.0
+const ROW_GAP := 10.0
+# Fraction of the screen the panel may occupy before it is scaled down.
+const SCREEN_SHARE := 0.92
 const BAR_SIZE := Vector2(320, 16)
 const BONUS_HEIGHT := 96.0
 
@@ -58,10 +65,24 @@ var _built := false
 
 func _ready() -> void:
 	visible = false
-	set_anchors_and_offsets_preset(Control.PRESET_CENTER)
+	# All four anchors and offsets explicitly - a preset followed by assigning
+	# size leaves the other two offsets stale, which is how the daily tab ended
+	# up off the top of the screen.
+	anchor_left = 0.5
+	anchor_top = 0.5
+	anchor_right = 0.5
+	anchor_bottom = 0.5
+	offset_left = -PANEL_SIZE.x * 0.5
+	offset_right = PANEL_SIZE.x * 0.5
+	offset_top = -PANEL_SIZE.y * 0.5
+	offset_bottom = PANEL_SIZE.y * 0.5
+	# Scales about the middle, so shrinking it does not walk it off centre.
+	pivot_offset = PANEL_SIZE * 0.5
 	custom_minimum_size = PANEL_SIZE
 	size = PANEL_SIZE
 	_build()
+	get_tree().root.size_changed.connect(_fit)
+	call_deferred("_fit")
 	Quests.quests_changed.connect(_refresh)
 	Progression.level_changed.connect(func(_l: int) -> void: _refresh())
 
@@ -69,7 +90,19 @@ func _ready() -> void:
 func open() -> void:
 	visible = true
 	move_to_front()
+	_fit()
 	_refresh()
+
+
+# Shrink to fit a short window. Never grows past 1:1 - a panel blown up on a
+# tall screen would just look soft.
+func _fit() -> void:
+	var screen := get_viewport_rect().size
+	if screen.x <= 0.0 or screen.y <= 0.0:
+		return
+	var s := minf(1.0, minf(screen.x * SCREEN_SHARE / PANEL_SIZE.x,
+		screen.y * SCREEN_SHARE / PANEL_SIZE.y))
+	scale = Vector2(s, s)
 
 
 func _process(_delta: float) -> void:
@@ -194,12 +227,12 @@ func _make_row(key: String) -> Control:
 		Color(0.49, 0.81, 0.48, 0.55) if done else Color(0, 0, 0, 0)))
 
 	var title := _label(Quests.title_for(key), 22, COLOR_DONE if done else COLOR_TITLE)
-	title.position = Vector2(24, 14)
+	title.position = Vector2(24, 11)
 	row.add_child(title)
 
 	var track := Panel.new()
 	track.add_theme_stylebox_override("panel", _box(Color(0, 0, 0, 0.42), 8))
-	track.position = Vector2(24, 50)
+	track.position = Vector2(24, 44)
 	track.size = BAR_SIZE
 	track.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	row.add_child(track)
@@ -210,14 +243,14 @@ func _make_row(key: String) -> Control:
 		var fill := Panel.new()
 		fill.add_theme_stylebox_override("panel",
 			_box(COLOR_FILL_DONE if done else COLOR_FILL, 6))
-		fill.position = Vector2(26, 52)
+		fill.position = Vector2(26, 46)
 		fill.size = Vector2((BAR_SIZE.x - 4.0) * clampf(float(cur) / tot, 0.0, 1.0),
 			BAR_SIZE.y - 4.0)
 		fill.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		row.add_child(fill)
 
 	var count := _label("%d/%d" % [cur, tot], 19, COLOR_BODY)
-	count.position = Vector2(24 + BAR_SIZE.x + 16, 48)
+	count.position = Vector2(24 + BAR_SIZE.x + 16, 42)
 	row.add_child(count)
 
 	var is_fuel: bool = Quests.reward_kind(key) == Quests.KIND_FUEL
@@ -226,18 +259,18 @@ func _make_row(key: String) -> Control:
 	icon.size = Vector2(30, 30)
 	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	icon.position = Vector2(452, 28)
+	icon.position = Vector2(452, 22)
 	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	row.add_child(icon)
 
 	var amount: int = Quests.reward_amount(key)
 	var reward := _label(("%s fuel" % FloatingText.grouped(amount)) if is_fuel
 		else ("$%s" % FloatingText.grouped(amount)), 21, COLOR_REWARD)
-	reward.position = Vector2(490, 32)
+	reward.position = Vector2(490, 26)
 	row.add_child(reward)
 
 	# One button, three states - claimable, taken, still going.
-	var button_pos := Vector2(PANEL_SIZE.x - MARGIN * 2.0 - 122 - 18, 21)
+	var button_pos := Vector2(PANEL_SIZE.x - MARGIN * 2.0 - 122 - 18, 16)
 	var button: TextureButton
 	if taken:
 		button = _texture_button(BUTTON_OFF, Vector2(122, 46), "Claimed", false)
@@ -257,7 +290,7 @@ func _make_row(key: String) -> Control:
 			func() -> void: Quests.refresh(key))
 		swap.modulate = Color(1, 1, 1)
 		swap.tooltip_text = "Swap this task (%d left today)" % Quests.refreshes_left
-		swap.position = Vector2(PANEL_SIZE.x - MARGIN * 2.0 - 122 - 108, 24)
+		swap.position = Vector2(PANEL_SIZE.x - MARGIN * 2.0 - 122 - 108, 19)
 		row.add_child(swap)
 	return row
 

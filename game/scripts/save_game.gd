@@ -58,7 +58,24 @@ func _mark_dirty() -> void:
 	_dirty = true
 
 
+# THE BOT MUST NEVER WRITE THE PLAYER'S SAVE.
+#
+# It calls reset_to_defaults() at the start of every run and then plays 90
+# simulated days - and every one of those days was being written straight over
+# a real playthrough. A session of bot runs silently replaced a level 24 airport
+# with a level 1 one, and the only reason it was noticed is that the progress
+# files went missing too.
+#
+# Refusing here rather than in the bot: anything that drives the autoloads
+# headless has the same problem, and there is exactly one place a save is
+# written.
+func _is_headless_bot() -> bool:
+	return OS.get_cmdline_user_args().has("--bot")
+
+
 func save() -> void:
+	if _is_headless_bot():
+		return
 	_dirty = false
 	_timer = 0.0
 	var data := {
@@ -122,6 +139,10 @@ func _load() -> void:
 
 # For the debug menu / starting over.
 func wipe() -> void:
+	# Same rule as save(): a bot run resets its own in-memory state, it does not
+	# delete the player's files.
+	if _is_headless_bot():
+		return
 	if FileAccess.file_exists(SAVE_PATH):
 		DirAccess.remove_absolute(ProjectSettings.globalize_path(SAVE_PATH))
 
@@ -150,9 +171,14 @@ const PROGRESS_FILES := [
 func reset_to_defaults() -> void:
 	_dirty = false
 	wipe()
-	for path in PROGRESS_FILES:
-		if FileAccess.file_exists(path):
-			DirAccess.remove_absolute(ProjectSettings.globalize_path(path))
+	# Deleting the progress files is the OTHER way a bot run destroyed a real
+	# playthrough - wipe() and the per-system _save()s are both guarded, but
+	# this loop reached past them straight to the filesystem. A bot resets its
+	# own in-memory state; the files on disk are the player's.
+	if not _is_headless_bot():
+		for path in PROGRESS_FILES:
+			if FileAccess.file_exists(path):
+				DirAccess.remove_absolute(ProjectSettings.globalize_path(path))
 
 	# Back to real time too - a reset that kept a 300x scale running would look
 	# like the fresh game was broken.
