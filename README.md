@@ -57,6 +57,9 @@ tools/
                 sorted into mine/ vs placeholder/ with a MANIFEST.csv
 game/           Godot project root (engine, scenes, scripts)
 manifest.json   generated - do not hand-edit
+QUESTS.md       daily tasks: the pool, the coin budget, what was swept
+UPGRADES.md     building levels: the curves, and the popularity trap
+ROADMAP.md      what is wanted next, and what each item is blocked on
 ```
 
 All folder names are lowercase, no spaces or punctuation other than `_` -
@@ -77,20 +80,31 @@ Open `game/project.godot` in the Godot editor to run it.
 
 ## What's implemented
 
-20 autoloaded systems, 19 UI panels, 7 in-game placement editors.
+21 autoloaded systems, 21 UI panels, 7 in-game placement editors.
 
 ### Airports and travel
 
-Three airports — `homeland` (yours), `robot` (the AI airport you fly to), and
-`dreamland`. The robot airport is reachable at **five distances**, each a
-separate destination gated behind one of your own zone unlocks, so range
-becomes worth something as the map opens up.
+Four airports — `homeland` (yours), `robot` (the AI airport you fly to),
+`dreamland` and `carriership`. The robot airport is reachable at **five
+distances**, each a separate destination gated behind one of your own zone
+unlocks, so range becomes worth something as the map opens up.
 
 | | zones | aprons | building plots |
 |---|---|---|---|
 | homeland | 7 | 110 | 42 |
 | robot | 7 | 110 | — |
 | dreamland | 3 | 42 | — |
+| carriership | 1 | 32 | — |
+
+**You cannot travel to a world you have not bought.** `Maps.is_owned` gates the
+world map on a zone - Dreamland and the carrier used to be reachable from the
+first minute, showing empty airports nobody had paid for. Dreamland2 opens the
+whole island for now (`ZoneProgress.OPENED_BY`), a temporary table to delete
+when its three zones become three real steps.
+
+Building plots exist on homeland alone, and `Buildings` rebuilds on travel -
+without that the slots from the airport you left stayed on screen at the old
+coordinates, which looked like the plots had been copied across.
 
 Zones unlock by **level and cash together**, from Zone2 at level 14 / $16,000
 to Carrier at level 70 / $1.9M. Levels are what actually pace the game — see
@@ -134,11 +148,58 @@ stockpiling was free, so a bad slot could always be waited out at no cost.
 The minimum purchase is 50 units and it is now the dearest fuel in the game,
 which is a real early-game trap - see Known issues.
 
+### What a tap looks like
+
+Claiming is not instant. Tapping a claim or a refuel fills a bar for two
+seconds - "Claiming", "Refueling" - and **the action fires when the bar lands**,
+so the wait is the transaction rather than a flourish over an outcome already
+decided. It does not block: every other pad stays live and can start its own,
+which matters because taps are the binding constraint (~34 a minute measured).
+
+What it paid then floats off the top of the bubble - cash first, XP half a
+second behind it, and a coin if a rent claim turned one up. Measured as
+before/after deltas rather than predicted, so it reports what actually
+happened, including the parts nothing predicted.
+
+An aircraft in the air carries a **countdown tag** on its pad - `47m 42s` - but
+only while that pad's own menu is open, since there is nothing to tap. Once it
+lands the tag says "Arrived", shows unasked and travels you there. Blue for your
+own aircraft, green when a friend is involved.
+
+### Daily tasks
+
+**Five dealt a day** from a pool of twelve, and finishing **any three** pays 2
+coins. Each task pays cash or fuel on its own; the coin is the set. One swap a
+day trades a row you do not fancy.
+
+Adding a task is adding a row: every entry declares a TYPE and the type decides
+which signal drives it. Targets scale with what you own and are frozen when the
+day is drawn, and each row carries a difficulty weight so "Fly 40 routes" is not
+worth the same as "Buy fuel 500 units at a time".
+
+The draw never deals a row you cannot finish - no "put up a building" on a full
+city - because the coin needs three of five and one impossible row would cost
+the day.
+
+Three of the twelve exist to give a dead system a reason: flying to two
+different destinations (range is worth 2.4% either way), buying fuel under $8 a
+unit (the market reprices hourly and nothing rewarded watching it), and buying
+500 units at a time (the batch multipliers).
+
+See `QUESTS.md`.
+
 ### Progression and economy
 
 You start with **$5,000, 15 coins, and a granted DC-3**. 36 aircraft on the
-shop ladder across levels 1-50, seven of them coin-only — coin aircraft ignore
-the level gate entirely, which is why the starting coin float is small.
+shop ladder across levels 1-50, eight of them coin-priced and totalling 243
+coins.
+
+**Coin aircraft obey the level gate**, same as everything else. They used to
+ignore it - the pay-to-win lane, buyable from minute one - which made every coin
+a purchase of progress rather than of content. Gating it did not make coins free
+of pacing (2 coins a set against 5 is still 32.7 h against 28.0 h), but it
+changed the shape of the advantage: a coin now buys a DIFFERENT aircraft at a
+point you could have afforded one anyway.
 
 Aircraft affinity accrues with use and caps at level 10, worth 1% speed each.
 Liveries are a coin purchase that makes one specific aircraft faster.
@@ -146,8 +207,25 @@ Liveries are a coin purchase that makes one specific aircraft faster.
 ### Buildings
 
 42 plots, built from a shop, each earning rent on a cycle you tap to collect,
-with a small chance of turning up a coin. Demolition refunds half. Population
-housed feeds the popularity multiplier above.
+with a small chance of turning up a coin. Population housed feeds the popularity
+multiplier above.
+
+**Plots carry a level, to 10.** Rent x1.45 each, so the cheapest building on the
+board ends up paying more than an Eiffel Tower - about $1.04M and six hours of
+construction. Cost rides the building's own price, so a level is $8,271 on a
+roadside hotel and $110,275 on an office building.
+
+A building **does not earn while upgrading**: taking it out of service is the
+cost of improving it. The site shows a cone bubble and a countdown while it is
+down. Upgrades are per plot, not a queue - the limit is money.
+
+Upgrades raise **rent only, never population**, and that is load-bearing:
+popularity multiplies flight cash and is uncapped, so scaling population with
+levels would take a maxed city past +1,600% on every flight and void every
+pacing number here.
+
+Demolition refunds half of everything sunk in, upgrades included. See
+`UPGRADES.md`.
 
 ### Development tooling
 
@@ -167,8 +245,16 @@ second delta at x300 and greys the screen out. It **holds while a panel is
 open** — fast-forward multiplies the world, not the hand holding the phone —
 except Routes, which is the panel you turn the fleet around in.
 
-**Scenarios** jump the save to early/mid/late/endgame so content past the
-early hours can be tested at all.
+**Scenarios** jump the save to early/mid/late/endgame so content past the early
+hours can be tested at all. "Endgame (everything)" means it: level 72, above the
+Carrier's gate at 70, with all eleven zones and 184 pads across three airports.
+
+**The bot cannot touch your save.** It calls `reset_to_defaults()` and plays 90
+simulated days, and all of that used to be written straight to `game/data` - a
+session of bot runs silently replaced a level 24 airport with a level 1 one.
+Three paths reached the disk (`SaveGame.save`/`wipe`, the per-system `_save()`s,
+and the delete loop in `reset_to_defaults`); all three refuse when `--bot` is
+present.
 
 **The bot** (`scripts/bot.gd`) plays the real autoloads headless:
 
@@ -189,13 +275,25 @@ day, 10 minutes each):
 
 | milestone | play time |
 |---|---|
-| Zone2 | 1.0 h |
-| all six homeland zones | 40.3 h |
+| Zone2 | 0.3 h |
+| all six homeland zones | 32.7 h |
 | all 42 building plots | ~31 h (gated behind the zones) |
+| the city | still being upgraded at day 90 - 413 levels, 35 of 42 maxed |
+| all pads | not reached in 90 days |
 
 **Pacing is XP-gated, not money-gated.** Quadrupling zone prices moved a casual
 player 9.5h to 10.0h; stretching the level requirements moved a regular player
-to 40h. Prices are close to irrelevant; levels are the whole lever.
+to 40h. Prices are close to irrelevant; levels are the whole lever - and the
+corollary is that **coins are, because coin aircraft are aircraft you did not
+pay cash for.** Cash and fuel quest rewards together are worth about half an
+hour across a playthrough; the coin is worth several.
+
+Everything here is measured, and the measuring instrument has been wrong three
+times. The bot did not claim quests, did not upgrade buildings, and rolled its
+day off `_process` which never fires when it advances the clock by hand - each
+of those reported "this change does nothing", which was a statement about the
+bot. If a run says a change had no effect, check the bot models the change at
+all before believing it.
 
 ### Saves
 
@@ -315,6 +413,18 @@ the canvas edge. Do not assume a uniform trim margin in any importer.
   x1.45 each. The "two hours" figure this used to quote was stale anyway: it
   predated plots being gated behind zone regions, and the last plot actually
   lands at ~31 h. See UPGRADES.md.
+- ~~The coin catalogue is unreachable~~ **DONE** - daily tasks are the faucet,
+  and coin aircraft now obey the level gate. See QUESTS.md.
+- **The fleet ladder stops at level 50 while zone gates run to 70.** Dreamland
+  opens at 57-66 and the Carrier at 70, so the levels that gate the last four
+  zones have no aircraft behind them at all - and the endgame scenario sits at
+  72, above every aircraft in the game. The Ark ran into the same wall from the
+  other side: it is the top of the ladder and there is nothing to improve to.
+  Either the ladder extends past 50 or those gates come down.
+- **Late-game cash is not a lever.** Repricing the Ark from $4.5M to $7M changed
+  a 90-day run by nothing at all - by then income is large enough that price
+  does not bind. Only level and availability do, which is worth remembering
+  before tuning any top-of-ladder number.
 - **Dreamland and the Carrier are gated but not built.** Levels 57-70 unlock
   content that does not exist yet - dreamland has aprons and nothing else. The
   honest route to a 40-hour game past the homeland zones runs through building
