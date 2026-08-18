@@ -57,6 +57,10 @@ var area_index := 0
 var data: Dictionary = {}
 var _slots: Dictionary = {}  # area_name -> {apron_id: Area2D}
 var _world_aircraft: Dictionary = {}  # aircraft_id -> Node2D
+# True until the first _sync_world_aircraft after a load or a travel. See
+# reload_for_map - the first pass places what exists, it does not animate it
+# into being.
+var _first_sync := true
 var _hud: EditorHud
 var _hover_pos := Vector2.ZERO
 var _hover_valid := false
@@ -126,6 +130,14 @@ func reload_for_map() -> void:
 	for node in _world_aircraft.values():
 		node.queue_free()
 	_world_aircraft.clear()
+	# THE FIRST SYNC AFTER A LOAD OR A TRAVEL PARKS EVERYTHING.
+	#
+	# The arrival animation is for an aircraft that just came home while you were
+	# watching. On load every aircraft sitting in AWAITING_HOME_CLAIM is a first
+	# appearance, so all of them flew the approach at once - one at a time
+	# through the single runway, minutes of queue - and dispatching during that
+	# handed each of those nodes a departure mid-arrival.
+	_first_sync = true
 
 	# Effective, so a destination that borrows another's pads still draws them.
 	# Editing one is refused rather than silently forking it - see _can_edit.
@@ -333,6 +345,8 @@ func _visible_apron_for(a: FleetAircraft) -> int:
 # apron, and removes any that got unassigned, no longer exist, or just
 # departed.
 func _sync_world_aircraft() -> void:
+	var was_first := _first_sync
+	_first_sync = false
 	var seen := {}
 	for a in Fleet.aircraft:
 		var apron_id := _visible_apron_for(a)
@@ -350,7 +364,10 @@ func _sync_world_aircraft() -> void:
 			# A plane appearing straight out of a return flight flies the
 			# traced approach in rather than blinking onto the apron. Any
 			# other first appearance (a fresh assignment) just parks.
-			if a.state == FleetAircraft.State.AWAITING_HOME_CLAIM:
+			# Not on the first sync - see reload_for_map. A save full of landed
+			# aircraft should open with them parked, not with the whole fleet
+			# queueing for the strip.
+			if a.state == FleetAircraft.State.AWAITING_HOME_CLAIM and not was_first:
 				node.play_arrival()
 		else:
 			# Not setup() - that adds a fresh set of child sprites every
@@ -375,7 +392,9 @@ func _sync_world_aircraft() -> void:
 			# route - or selling an aircraft - played a full takeoff roll for a
 			# machine that went to the hangar, or that no longer exists at all.
 			# Only something actually in the air departs.
-			if departing == null or not departing.is_in_transit():
+			# Same on the way out: on the first sync nothing "just departed",
+			# it was already gone when the save was written.
+			if was_first or departing == null or not departing.is_in_transit():
 				_world_aircraft[aircraft_id].queue_free()
 				_world_aircraft.erase(aircraft_id)
 				continue
