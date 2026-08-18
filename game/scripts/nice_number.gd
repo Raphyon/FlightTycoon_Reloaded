@@ -25,6 +25,13 @@ static func cash(n: int) -> int:
 	return -out if n < 0 else out
 
 
+# Coins are small integers, so the cash steps would flatten them to nothing.
+# Multiples of five, never less than five - a price of "17 coins" is a formula
+# talking where "15" is a number somebody chose.
+static func coins(n: int) -> int:
+	return maxi(5, int(round(float(maxi(0, n)) / 5.0)) * 5)
+
+
 # Durations the same way. A build time of 6m58s is a formula talking; 7m is a
 # number. Steps chosen so the result is always something a clock face would
 # show: whole minutes under ten, five-minute marks under an hour, quarter hours

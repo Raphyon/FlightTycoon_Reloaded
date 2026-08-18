@@ -29,6 +29,17 @@ const RENT_PER_LEVEL := 1.45
 # expensive ones are a trap you paid extra to enter.
 const UPGRADE_COST_EXPONENT := 2.2
 const UPGRADE_COST_SHARE := 0.6
+# A COIN BUILDING UPGRADES WITH COINS. Its `price` is denominated in coins, so
+# running it through the cash curve produced a figure derived from coins and
+# charged in dollars - the Eiffel Tower, the best building in the game at 5,000
+# a cycle, went to level 10 for $2,800 while a roadside hotel wanted $290,000.
+#
+# Much gentler curve, because coins are scarce: a whole playthrough earns about
+# 150-260 of them (see QUESTS.md) and the aircraft catalogue alone is 243. Maxing
+# a coin building costs roughly 180, which is meant to be a real choice against
+# buying an aircraft rather than a formality.
+const UPGRADE_COIN_SHARE := 0.12
+const UPGRADE_COIN_EXPONENT := 1.0
 # Two minutes for the first, about two hours for the last. The time is the
 # point: a building you come back to is worth more than one you buy.
 const UPGRADE_BASE_SECONDS := 120.0
@@ -236,11 +247,20 @@ func rent_at_level(building_key: String, level: int) -> int:
 	return int(round(BuildingLayout.rent_of(building_key) * pow(RENT_PER_LEVEL, level - 1)))
 
 
+# Which currency this plot's next level is priced in - the same one it was
+# bought with, so a coin building stays a coin building all the way up.
+func upgrade_currency(plot_id: int, map_key: String = "") -> String:
+	return BuildingLayout.currency_of(building_at(plot_id, map_key))
+
+
 func upgrade_cost(plot_id: int, map_key: String = "") -> int:
 	var key := building_at(plot_id, map_key)
 	if key == "":
 		return 0
 	var next := level_at(plot_id, map_key) + 1
+	if BuildingLayout.currency_of(key) == "coins":
+		return NiceNumber.coins(int(round(cost_of(key) * UPGRADE_COIN_SHARE
+			* pow(float(next), UPGRADE_COIN_EXPONENT))))
 	return NiceNumber.cash(int(round(cost_of(key) * UPGRADE_COST_SHARE
 		* pow(float(next), UPGRADE_COST_EXPONENT))))
 
@@ -301,7 +321,10 @@ func start_upgrade(plot_id: int, map_key: String = "") -> bool:
 	if not can_upgrade(plot_id, map_key):
 		return false
 	var cost := upgrade_cost(plot_id, map_key)
-	if not Economy.spend_money(cost):
+	if upgrade_currency(plot_id, map_key) == "coins":
+		if not Coins.spend(cost):
+			return false
+	elif not Economy.spend_money(cost):
 		return false
 	var mk := map_key if map_key != "" else Maps.current
 	var m := _map(mk)

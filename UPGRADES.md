@@ -75,6 +75,21 @@ More than an Eiffel Tower pays, for about $1.04M and six hours of construction.
 Cost rides the building's own price, so a level costs what the building is
 worth: **$8,300 on a roadside hotel against $110,000 on an office building**.
 
+**A coin building upgrades with coins.** The Eiffel Tower's price is 30 COINS,
+so running it through the cash curve produced a figure derived from coins and
+charged in dollars - the best building in the game, at 5,000 a cycle, reached
+level 10 for $2,800 while a roadside hotel wanted $290,000.
+
+Its own curve is far gentler, because coins are scarce - a playthrough earns
+150-260 and the aircraft catalogue alone is 243:
+
+| level | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 |
+|---|---|---|---|---|---|---|---|---|---|
+| coins | 5 | 10 | 15 | 20 | 20 | 25 | 30 | 30 | 35 |
+
+About 190 coins to max, which is meant to be a real choice against buying an
+aircraft rather than a formality.
+
 ## THE THING THAT WILL BREAK IF WE ARE NOT CAREFUL
 
 **Popularity multiplies flight cash, and it is uncapped.**
