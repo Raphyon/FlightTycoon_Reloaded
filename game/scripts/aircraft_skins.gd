@@ -21,6 +21,18 @@ const COST := 10
 
 # Only the models we actually have alternate body art for.
 const LIVERIES := {
+	# Derived from full-size renders in source-assets/aircraft/atr_72_*.png
+	# rather than from shop icons - cropped to their own alpha and scaled to the
+	# stock body's 114x88. Checked against it edge by edge: zero drift on all
+	# four sides, so switching paint does not shift the aircraft on its pad.
+	"atr72": [
+		{"key": "cloudy", "name": "Cloudy",
+			"body": "res://assets/aircraft/atr72/body_cloudy_2x.png"},
+		{"key": "metaliminal", "name": "Metaliminal",
+			"body": "res://assets/aircraft/atr72/body_metaliminal_2x.png"},
+		{"key": "pinkdreams", "name": "Pink Dreams",
+			"body": "res://assets/aircraft/atr72/body_pinkdreams_2x.png"},
+	],
 	"blackh": [
 		{"key": "desert", "name": "Desert",
 			"body": "res://assets/aircraft/blackh/body_desert_2x.png"},
