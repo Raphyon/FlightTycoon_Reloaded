@@ -18,12 +18,7 @@ extends Node2D
 # VTOL models (tiltrotors, helicopters, UFOs - see Fleet.WORLD_SPRITES
 # "vtol") skip the runway track entirely and lift straight up from the
 # apron instead - see _play_vertical_liftoff / _play_vertical_landing.
-# Doubled from 0.4 to stretch the startup out. THIS one constant rather than the
-# repeat count, because the shadow and the downwash both wait
-# tween_interval(STARTUP_DURATION) before they begin - scaling it keeps all three
-# in the same relative timing, where doubling the repeats would leave the wobble
-# still rocking after the wash had started.
-const STARTUP_DURATION := 0.8
+const STARTUP_DURATION := 0.4
 # WHICH WAY IT ROCKS, and how far. A shift, not a rotation.
 #
 # It was Vector2(-1, -1) at 2px - along the isometric diagonal, which on these
@@ -36,7 +31,16 @@ const STARTUP_DURATION := 0.8
 # side by side in one departure.
 const STARTUP_WOBBLE_AXIS := Vector2(0, -1)
 const STARTUP_WOBBLE_DISTANCE := 1.2
-const STARTUP_WOBBLE_REPEATS := 2
+# FOUR, not two - twice as long at the same tempo, rather than the same number of
+# strokes played slower. Stretching STARTUP_DURATION instead made each bob 0.32s,
+# which read as sluggish rather than as an engine running longer.
+#
+# Note this widens an overlap that already existed: the shadow and the downwash
+# wait tween_interval(STARTUP_DURATION) = 0.4s before they begin, while the
+# wobble now runs 1.36s, so they start about a third of the way in rather than
+# just over halfway. If that reads wrong, tie those intervals to the wobble's own
+# length rather than to STARTUP_DURATION.
+const STARTUP_WOBBLE_REPEATS := 4
 # Engine-idle vibration while queued for the runway - tighter and quicker
 # than the startup wobble so it reads as ticking over, not taxiing.
 const IDLE_SHAKE_DISTANCE := 1.0
