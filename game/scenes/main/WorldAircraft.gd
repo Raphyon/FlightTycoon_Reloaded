@@ -18,8 +18,24 @@ extends Node2D
 # VTOL models (tiltrotors, helicopters, UFOs - see Fleet.WORLD_SPRITES
 # "vtol") skip the runway track entirely and lift straight up from the
 # apron instead - see _play_vertical_liftoff / _play_vertical_landing.
-const STARTUP_DURATION := 0.4
-const STARTUP_WOBBLE_DISTANCE := 2.0  # px, diagonal shift not rotation
+# Doubled from 0.4 to stretch the startup out. THIS one constant rather than the
+# repeat count, because the shadow and the downwash both wait
+# tween_interval(STARTUP_DURATION) before they begin - scaling it keeps all three
+# in the same relative timing, where doubling the repeats would leave the wobble
+# still rocking after the wash had started.
+const STARTUP_DURATION := 0.8
+# WHICH WAY IT ROCKS, and how far. A shift, not a rotation.
+#
+# It was Vector2(-1, -1) at 2px - along the isometric diagonal, which on these
+# sprites reads as the aircraft rocking sideways. Trying it on the vertical
+# instead, and gentler: a pure up/down bob at 1.2px, against the 1.41px of
+# vertical the old diagonal carried.
+#
+# To go back, this is the only line that has to change - Vector2(-1, -1) and
+# 2.0. The idle shake below still uses the diagonal, so the two can be compared
+# side by side in one departure.
+const STARTUP_WOBBLE_AXIS := Vector2(0, -1)
+const STARTUP_WOBBLE_DISTANCE := 1.2
 const STARTUP_WOBBLE_REPEATS := 2
 # Engine-idle vibration while queued for the runway - tighter and quicker
 # than the startup wobble so it reads as ticking over, not taxiing.
@@ -423,12 +439,13 @@ func _add_idle_shake(tween: Tween, origin: Vector2) -> void:
 
 func _add_startup_wobble(tween: Tween) -> void:
 	var start_pos := position
-	var up_left := start_pos + Vector2(-1, -1).normalized() * STARTUP_WOBBLE_DISTANCE
-	var down_right := start_pos + Vector2(1, 1).normalized() * STARTUP_WOBBLE_DISTANCE
+	var axis := STARTUP_WOBBLE_AXIS.normalized() * STARTUP_WOBBLE_DISTANCE
+	var one_way := start_pos + axis
+	var other_way := start_pos - axis
 	for i in range(STARTUP_WOBBLE_REPEATS):
-		tween.tween_property(self, "position", up_left, STARTUP_DURATION * 0.4) \
+		tween.tween_property(self, "position", one_way, STARTUP_DURATION * 0.4) \
 			.set_trans(Tween.TRANS_SINE)
-		tween.tween_property(self, "position", down_right, STARTUP_DURATION * 0.4) \
+		tween.tween_property(self, "position", other_way, STARTUP_DURATION * 0.4) \
 			.set_trans(Tween.TRANS_SINE)
 	tween.tween_property(self, "position", start_pos, STARTUP_DURATION * 0.2) \
 		.set_trans(Tween.TRANS_SINE)
