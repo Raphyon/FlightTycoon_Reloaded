@@ -41,8 +41,9 @@ const STARTUP_WOBBLE_DISTANCE := 1.2
 # just over halfway. If that reads wrong, tie those intervals to the wobble's own
 # length rather than to STARTUP_DURATION.
 const STARTUP_WOBBLE_REPEATS := 4
-# Engine-idle vibration while queued for the runway - tighter and quicker
-# than the startup wobble so it reads as ticking over, not taxiing.
+# Engine-idle vibration while queued for the runway - tighter and quicker than
+# the startup wobble, and on the same axis (STARTUP_WOBBLE_AXIS) so a departure
+# reads as one continuous motion rather than changing direction halfway.
 const IDLE_SHAKE_DISTANCE := 1.0
 const IDLE_SHAKE_DURATION := 0.11
 const FADE_OUT_DURATION := 0.3
@@ -82,6 +83,18 @@ var _is_vtol := false
 var _ground_effect: Sprite2D
 var _home_position := Vector2.ZERO
 var _animating := false
+# WHICH ANIMATION IS THE LIVE ONE.
+#
+# Both play_arrival and play_departure await RunwayControl, and the layer can
+# hand this node a departure WHILE an arrival is still waiting: land, claim and
+# dispatch before the strip clears, and _sync_world_aircraft calls
+# play_departure on the node already mid-arrival. Two coroutines then drove one
+# position and took the runway twice while releasing it once - which is the
+# aircraft stacking up at the end of the runway.
+#
+# Every sequence takes a token; after each await it checks the token is still
+# the current one and bails if not, handing back the runway it just took.
+var _anim_token := 0
 var _holds_runway := false
 # Kept so a livery change can repaint an EXISTING node. Without them the only
 # way the hull art ever got chosen was setup(), which runs once when the node
@@ -316,16 +329,16 @@ func sync_position(screen_pos: Vector2) -> void:
 
 
 func play_arrival() -> void:
-	_animating = true
+	var token := _begin_animation()
 	if _is_vtol:
 		_play_vertical_landing()
 		return
-	_play_runway_arrival()
+	_play_runway_arrival(token)
 
 
 # Flies the traced approach, then fades out and reappears parked at the
 # apron. Nothing traced yet -> stays put at the apron, same as before.
-func _play_runway_arrival() -> void:
+func _play_runway_arrival(token: int) -> void:
 	var path_data := PathLayout.load_effective()
 	var body_points := PathLayout.points_to_vectors(path_data.get("plane_arrival_body", []))
 	if body_points.is_empty():
@@ -350,6 +363,11 @@ func _play_runway_arrival() -> void:
 	# ahead of departures (see RunwayControl.acquire).
 	await RunwayControl.acquire(self, true)
 	if not is_instance_valid(self):
+		return
+	# Superseded while we waited - a departure was handed to this node. Give the
+	# strip straight back rather than flying an approach nobody is expecting.
+	if token != _anim_token:
+		RunwayControl.release()
 		return
 	_holds_runway = true
 
@@ -405,6 +423,22 @@ func _play_vertical_landing() -> void:
 	tween.tween_callback(_settle_at_home)
 
 
+# Starts a new animation and invalidates any older one still in flight.
+#
+# No tween-killing needed: every tween that drives `position` is created AFTER
+# the runway await, so a superseded sequence bails at its token check having
+# created nothing. The one exception is the departure's idle shake, which exists
+# before the await and is killed on both branches there.
+#
+# Releasing here matters though - if the old sequence was holding the strip, the
+# new one would queue behind its own node forever.
+func _begin_animation() -> int:
+	_anim_token += 1
+	_animating = true
+	_release_runway()
+	return _anim_token
+
+
 # Parked state - everything back to the neutral pose the apron expects.
 func _settle_at_home() -> void:
 	_animating = false
@@ -429,15 +463,18 @@ func _settle_at_home() -> void:
 # STARTUP_WOBBLE_REPEATS times, then back to start) instead of rotating in
 # place - reads as the aircraft settling/bracing before it moves, not
 # spinning on the spot.
-# Same diagonal axis as the startup wobble, just smaller/faster. Meant to
-# be driven by a looping tween, so it has no settle-back step - whoever
+# THE SAME AXIS as the startup wobble, just smaller and faster. It had its own
+# hardcoded diagonal, so the startup bobbed vertically and then the aircraft
+# switched to rocking diagonally the moment it started waiting for the runway -
+# one aircraft doing two different things in one departure.
+#
+# Meant to be driven by a looping tween, so it has no settle-back step - whoever
 # kills the loop restores the resting position.
 func _add_idle_shake(tween: Tween, origin: Vector2) -> void:
-	var up_left := origin + Vector2(-1, -1).normalized() * IDLE_SHAKE_DISTANCE
-	var down_right := origin + Vector2(1, 1).normalized() * IDLE_SHAKE_DISTANCE
-	tween.tween_property(self, "position", up_left, IDLE_SHAKE_DURATION) \
+	var axis := STARTUP_WOBBLE_AXIS.normalized() * IDLE_SHAKE_DISTANCE
+	tween.tween_property(self, "position", origin + axis, IDLE_SHAKE_DURATION) \
 		.set_trans(Tween.TRANS_SINE)
-	tween.tween_property(self, "position", down_right, IDLE_SHAKE_DURATION) \
+	tween.tween_property(self, "position", origin - axis, IDLE_SHAKE_DURATION) \
 		.set_trans(Tween.TRANS_SINE)
 
 
@@ -461,17 +498,17 @@ func _add_startup_wobble(tween: Tween) -> void:
 # them over a few frames costs nothing and looks better besides: an airport
 # emptying in sequence reads as traffic, all at once reads as a glitch.
 func play_departure(delay: float = 0.0) -> void:
-	_animating = true
+	var token := _begin_animation()
 	if delay > 0.0:
 		# Bound to this node, so freeing it mid-wait cancels cleanly rather
 		# than firing into a freed object.
 		await get_tree().create_timer(delay).timeout
-		if not is_instance_valid(self):
+		if not is_instance_valid(self) or token != _anim_token:
 			return
 	if _is_vtol:
 		_play_vertical_liftoff()
 		return
-	_play_runway_departure()
+	_play_runway_departure(token)
 
 
 # Straight up from wherever it's currently parked - no runway track, no
@@ -521,7 +558,7 @@ func _play_vertical_liftoff() -> void:
 	tween.tween_callback(queue_free)
 
 
-func _play_runway_departure() -> void:
+func _play_runway_departure(token: int) -> void:
 	var path_data := PathLayout.load_effective()
 	# Falls back to staying put (and the shadow falls back to riding glued
 	# to the body) if these haven't been traced yet with PathLayer (press T
@@ -544,7 +581,11 @@ func _play_runway_departure() -> void:
 	var warmup := create_tween()
 	_add_startup_wobble(warmup)
 	await warmup.finished
-	if not is_instance_valid(self):
+	# The wobble is 1.36s of real time, so this node can be superseded DURING it
+	# - land, claim and dispatch, and the layer hands it a departure while the
+	# arrival is still wobbling. Nothing has been acquired yet here, so bailing
+	# is all it takes.
+	if not is_instance_valid(self) or token != _anim_token:
 		return
 
 	# Keeps idling on the spot for as long as it's queued - a plane sitting
@@ -557,6 +598,10 @@ func _play_runway_departure() -> void:
 
 	await RunwayControl.acquire(self)
 	if not is_instance_valid(self):
+		return
+	if token != _anim_token:
+		RunwayControl.release()
+		idle.kill()
 		return
 	idle.kill()
 	position = hold_pos
