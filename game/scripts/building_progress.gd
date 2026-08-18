@@ -241,13 +241,16 @@ func upgrade_cost(plot_id: int, map_key: String = "") -> int:
 	if key == "":
 		return 0
 	var next := level_at(plot_id, map_key) + 1
-	return int(round(cost_of(key) * UPGRADE_COST_SHARE
-		* pow(float(next), UPGRADE_COST_EXPONENT)))
+	return NiceNumber.cash(int(round(cost_of(key) * UPGRADE_COST_SHARE
+		* pow(float(next), UPGRADE_COST_EXPONENT))))
 
 
+# Rounded to something a clock face would show - whole minutes under ten, five
+# minute marks under an hour, quarter hours above. The curve gave 6m58s and
+# 1h24m, which is a formula talking.
 func upgrade_seconds(plot_id: int, map_key: String = "") -> float:
 	var next := level_at(plot_id, map_key) + 1
-	return UPGRADE_BASE_SECONDS * pow(float(next), UPGRADE_TIME_EXPONENT)
+	return NiceNumber.seconds(UPGRADE_BASE_SECONDS * pow(float(next), UPGRADE_TIME_EXPONENT))
 
 
 func upgrade_finishes_at(plot_id: int, map_key: String = "") -> float:

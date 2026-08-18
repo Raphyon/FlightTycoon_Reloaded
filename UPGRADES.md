@@ -62,15 +62,18 @@ A roadside hotel, the cheapest thing on the board:
 | level | rent | this level cost | build time |
 |---|---|---|---|
 | 1 | $200 | - | - |
-| 2 | $290 | $8,271 | 6m 58s |
-| 5 | $884 | $62,087 | 36m 15s |
-| 8 | $2,695 | $174,610 | 1h 24m |
-| 10 | **$5,667** | $285,280 | 2h 06m |
+| 2 | $290 | $8,300 | 7m |
+| 5 | $884 | $62,000 | 35m |
+| 8 | $2,695 | $170,000 | 1h 30m |
+| 10 | **$5,667** | $290,000 | 2h |
+
+Costs and times both go through `NiceNumber`, because a curve does not produce
+figures anybody would choose - these were $8,271 and 6m58s before.
 
 More than an Eiffel Tower pays, for about $1.04M and six hours of construction.
 
 Cost rides the building's own price, so a level costs what the building is
-worth: **$8,271 on a roadside hotel against $110,275 on an office building**.
+worth: **$8,300 on a roadside hotel against $110,000 on an office building**.
 
 ## THE THING THAT WILL BREAK IF WE ARE NOT CAREFUL
 

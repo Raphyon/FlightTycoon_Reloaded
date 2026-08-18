@@ -69,9 +69,12 @@ func is_built(apron_id: int) -> bool:
 const PAD_COST_GROWTH := 1.35
 
 
+# Rounded, because 1.35^n does not produce numbers anybody would choose - the
+# ladder read $500, $675, $911, $1,230, $1,661 and now reads $500, $700, $900,
+# $1,200, $1,700. Same curve, legible rungs.
 func cost_for_area(area_name: String) -> int:
 	var base: int = ZONE_BASE_COST.get(area_name, 1000)
-	return int(round(base * pow(PAD_COST_GROWTH, built_in_area(area_name))))
+	return NiceNumber.cash(int(round(base * pow(PAD_COST_GROWTH, built_in_area(area_name)))))
 
 
 # How many pads are already standing in this area. Counted off the layout rather

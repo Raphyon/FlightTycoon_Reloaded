@@ -319,7 +319,7 @@ func _target_for(key: String) -> int:
 		# Money targets ride what the fleet actually earns a lap, so "earn
 		# $40,000" means the same amount of PLAY at every level rather than
 		# being a morning's work at 5 and a rounding error at 40.
-		"earn": n = Quests.nice(_fleet_lap_value() * int(e.get("per", 1)))
+		"earn": n = NiceNumber.cash(_fleet_lap_value() * int(e.get("per", 1)))
 		_: n = int(e.get("per", 1))
 	return clampi(n, int(e.get("min", 1)), int(e.get("max", 99)))
 
@@ -543,30 +543,17 @@ func completed_count() -> int:
 
 # --- rewards ----------------------------------------------------------------
 
-# ROUNDED, ALWAYS. A reward of $4,237 is a number a formula produced; $4,200 is
-# a number somebody decided on. The step grows with the figure so it reads clean
-# at every scale rather than carrying five significant digits into the millions.
-static func nice(n: int) -> int:
-	var v := absi(n)
-	var step := 50
-	if v >= 1000000: step = 100000
-	elif v >= 100000: step = 10000
-	elif v >= 10000: step = 1000
-	elif v >= 1000: step = 100
-	return int(round(float(v) / step)) * step
-
-
 func weight_of(key: String) -> float:
 	return float(entry(key).get("weight", 1.0))
 
 
 func cash_reward(key := "") -> int:
-	return nice(int(CASH_BASE * pow(float(Progression.level), CASH_EXPONENT)
+	return NiceNumber.cash(int(CASH_BASE * pow(float(Progression.level), CASH_EXPONENT)
 		* (weight_of(key) if key != "" else 1.0)))
 
 
 func fuel_reward(key := "") -> int:
-	return nice(int(FUEL_BASE * pow(float(Progression.level), FUEL_EXPONENT)
+	return NiceNumber.cash(int(FUEL_BASE * pow(float(Progression.level), FUEL_EXPONENT)
 		* (weight_of(key) if key != "" else 1.0)))
 
 
