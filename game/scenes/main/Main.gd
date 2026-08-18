@@ -60,7 +60,7 @@ const VISITING_HIDDEN := ["TopBarRight", "TopBarLeft", "TopBar", "MapTab"]
 # Panels that must not be left open behind us when we arrive.
 const VISITING_CLOSED := ["WorldMapPanel", "ShopHubPanel", "HangarPanel", "FriendsPanel", "FriendInfoPanel", "RoutesPanel", "ShopPanel",
 	"FuelPanel", "ExpansionShopPanel", "ApronInfoPanel", "SkinPickerPanel",
-	"AssignPickerPanel", "BuildingInfoPanel"]
+	"AssignPickerPanel", "BuildingInfoPanel", "UpgradeConfirmPanel"]
 
 
 func _apply_visiting_ui() -> void:

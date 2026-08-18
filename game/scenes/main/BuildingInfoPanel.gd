@@ -280,10 +280,11 @@ func _refresh_upgrade(key: String, level: int, upgrading: bool) -> void:
 	var affordable := (Coins.amount >= cost) if in_coins else (Economy.money >= cost)
 	_upgrade.texture_normal = UPGRADE_NORMAL if affordable else UPGRADE_OFF
 	_upgrade.disabled = not affordable
-	# What it costs AND what it buys - "Lv 4" on its own says nothing about
-	# whether it is worth the money.
-	_upgrade_label.text = ("Lv %d  %d coins" % [level + 1, cost] if in_coins
-		else "Lv %d  $%s" % [level + 1, _thousands(cost)])
+	# JUST THE VERB. This used to read "Lv 4  110,000 coins" - a level the
+	# building's own name already shows, a price, and no answer to the only
+	# question worth asking, which is what the money buys. That is what
+	# UpgradeConfirmPanel is for, and pressing this opens it.
+	_upgrade_label.text = "Upgrade"
 	_note_upgrade(key, level, cost)
 
 
@@ -301,8 +302,16 @@ func _note_upgrade(_key: String, level: int, _cost: int) -> void:
 func _on_upgrade_pressed() -> void:
 	if _plot_id < 0:
 		return
-	if BuildingProgress.start_upgrade(_plot_id):
-		_refresh()
+	# Ask before spending. The confirm window does the upgrade itself and calls
+	# back so this panel picks up the new level and the countdown.
+	var confirm := get_node_or_null("../UpgradeConfirmPanel")
+	if confirm == null:
+		# No window in this scene - do what the button always did rather than
+		# silently doing nothing.
+		if BuildingProgress.start_upgrade(_plot_id):
+			_refresh()
+		return
+	confirm.show_for_plot(_plot_id, _refresh)
 
 
 func _on_pressed() -> void:
