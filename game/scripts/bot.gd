@@ -275,15 +275,16 @@ func _assign_idle() -> void:
 			taken[a.assigned_apron_id] = true
 	var free: Array = []
 	var starts: Dictionary = ApronLayout.compute_id_starts()
-	var data := ApronLayout.effective_area_data(Maps.DEFAULT_MAP)
-	for area_name in Maps.areas_for(Maps.DEFAULT_MAP):
-		if not ZoneProgress.is_unlocked(area_name) or not starts.has(area_name):
-			continue
-		var pts: Array = data.get(area_name, [])
-		for i in range(pts.size()):
-			var id: int = starts[area_name] + i
-			if ApronProgress.is_built(id) and not taken.has(id):
-				free.append(id)
+	for map_key in _owned_maps():
+		var data := ApronLayout.effective_area_data(map_key)
+		for area_name in Maps.areas_for(map_key):
+			if not ZoneProgress.is_unlocked(area_name) or not starts.has(area_name):
+				continue
+			var pts: Array = data.get(area_name, [])
+			for i in range(pts.size()):
+				var id: int = starts[area_name] + i
+				if ApronProgress.is_built(id) and not taken.has(id):
+					free.append(id)
 	free.sort()
 	var n := 0
 	for a in Fleet.aircraft:
@@ -412,19 +413,35 @@ func _spendable() -> int:
 	return Economy.money - _reserve()
 
 
+# EVERY AIRPORT YOU OWN, not just homeland.
+#
+# The bot looked only at Maps.DEFAULT_MAP everywhere, so it would buy Dreamland
+# at level 57 and then never build one of its 42 pads - the fleet stayed pinned
+# at homeland's 110 from day 50 to day 90, and with it the income and the XP
+# rate. That flat rate was read as "the curve slows down"; it was the bot
+# refusing to expand.
+static func _owned_maps() -> Array:
+	var out: Array = []
+	for map_key in Maps.MAPS:
+		if Maps.is_owned(map_key) and not Maps.MAPS[map_key].has("visiting"):
+			out.append(map_key)
+	return out
+
+
 func _free_pads() -> int:
 	var built := 0
-	for area_name in Maps.areas_for(Maps.DEFAULT_MAP):
-		if ZoneProgress.is_unlocked(area_name):
-			built += _built_in(area_name)
+	for map_key in _owned_maps():
+		for area_name in Maps.areas_for(map_key):
+			if ZoneProgress.is_unlocked(area_name):
+				built += _built_in(area_name, map_key)
 	return built - Fleet.aircraft.size()
 
 
-func _built_in(area_name: String) -> int:
+func _built_in(area_name: String, map_key := Maps.DEFAULT_MAP) -> int:
 	var starts: Dictionary = ApronLayout.compute_id_starts()
 	if not starts.has(area_name):
 		return 0
-	var pts: Array = ApronLayout.effective_area_data(Maps.DEFAULT_MAP).get(area_name, [])
+	var pts: Array = ApronLayout.effective_area_data(map_key).get(area_name, [])
 	var n := 0
 	for i in range(pts.size()):
 		if ApronProgress.is_built(starts[area_name] + i):
@@ -440,21 +457,22 @@ func _build_pad() -> bool:
 	var best_id := -1
 	var best_cost := 1 << 30
 	var starts: Dictionary = ApronLayout.compute_id_starts()
-	var data := ApronLayout.effective_area_data(Maps.DEFAULT_MAP)
-	for area_name in Maps.areas_for(Maps.DEFAULT_MAP):
-		if not ZoneProgress.is_unlocked(area_name) or not starts.has(area_name):
-			continue
-		var cost := ApronProgress.cost_for_area(area_name)
-		if cost >= best_cost:
-			continue
-		var pts: Array = data.get(area_name, [])
-		for i in range(pts.size()):
-			var id: int = starts[area_name] + i
-			if not ApronProgress.is_built(id):
-				best_area = area_name
-				best_id = id
-				best_cost = cost
-				break
+	for map_key in _owned_maps():
+		var data := ApronLayout.effective_area_data(map_key)
+		for area_name in Maps.areas_for(map_key):
+			if not ZoneProgress.is_unlocked(area_name) or not starts.has(area_name):
+				continue
+			var cost := ApronProgress.cost_for_area(area_name)
+			if cost >= best_cost:
+				continue
+			var pts: Array = data.get(area_name, [])
+			for i in range(pts.size()):
+				var id: int = starts[area_name] + i
+				if not ApronProgress.is_built(id):
+					best_area = area_name
+					best_id = id
+					best_cost = cost
+					break
 	if best_id < 0 or _spendable() < best_cost:
 		return false
 	return ApronProgress.build(best_id, best_area)
@@ -611,8 +629,9 @@ func _thousands(n: int) -> String:
 
 func _total_pads() -> int:
 	var n := 0
-	for area_name in Maps.areas_for(Maps.DEFAULT_MAP):
-		n += _built_in(area_name)
+	for map_key in _owned_maps():
+		for area_name in Maps.areas_for(map_key):
+			n += _built_in(area_name, map_key)
 	return n
 
 
