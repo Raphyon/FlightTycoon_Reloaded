@@ -10,10 +10,11 @@ extends Control
 # now, an arrow, and the building as it will be. The price sits under the pair
 # and the confirm is the last thing you touch.
 #
-# NO BOARD BEHIND IT. Every other window in the game is built on a board and
-# this one deliberately is not - the two cards ARE the window, in the same art
-# the shops use, so the thing you are comparing is the only thing on screen.
+# Built on the pickers' board, at the pickers' size, and LANDSCAPE because two
+# cards side by side is a wide shape and that is the board the game has. The
+# comparison takes the left, the price and the confirm take the right.
 
+const BOARD := preload("res://assets/board/board_changelist@ipad.png")
 const CARD_ART := preload("res://assets/board/board_card1@2x.png")
 const TAG_ART := preload("res://assets/board/board_price@2x.png")
 const ARROW_ART := preload("res://assets/buttons/button_arrow_right@2x.png")
@@ -23,11 +24,19 @@ const COST_COIN := preload("res://assets/hud/icon_medium_coin@2x.png")
 const COST_CASH := preload("res://assets/hud/icon_medium_money1@2x.png")
 const RENT_ICON := preload("res://assets/hud/icon_medium_money1@2x.png")
 
-# The shop's card, at the shop's size. Same reason the pickers use it: this is
-# the size board_card1 is drawn at everywhere else in the game.
+const BOARD_NATIVE := Vector2(943, 452)
+const BOARD_SCALE := 0.72
+const BOARD_SIZE := Vector2(679, 325)
+
+# The shop's card, at the shop's size - this is what board_card1 is drawn at
+# everywhere else in the game.
 const CARD_PX := Vector2(122.5, 200.0)
 const CARD_GAP := 46.0
-const PANEL_SIZE := Vector2(CARD_PX.x * 2.0 + CARD_GAP, 316.0)
+const CARDS_X := 46.0
+const CARDS_Y := 84.0
+const CARDS_W := CARD_PX.x * 2.0 + CARD_GAP
+
+const TITLE_Y := 24.0
 
 # Inside a card, as a fraction of it.
 const CARD_ART_RECT := Rect2(0.10, 0.10, 0.80, 0.42)
@@ -37,13 +46,20 @@ const RENT_ICON_H := 20.0
 const RENT_GAP := 4.0
 
 const ARROW_SCALE := 1.6
+
+# The action column, centred in what is left to the right of the cards.
+const ACTION_CX := (CARDS_X + CARDS_W + BOARD_SIZE.x) * 0.5
 const TAG_W := 150.0
-const TAG_Y := 212.0
+const TAG_Y := 120.0
 const TAG_GAP := 5.0
 const BUTTON_W := 128.0
-const BUTTON_Y := 244.0
-const NOTE_Y := 296.0
+const BUTTON_Y := 162.0
+const NOTE_Y := 232.0
 
+# ONLY THE TITLE is board text. Everything else sits on a card or a button that
+# is drawn at its own native size whatever the board does, so it uses literal
+# sizes - running these through _fs() put the card text at 9pt.
+const FONT_TITLE := 22
 const FONT_LEVEL := 13
 const FONT_RENT := 15
 const FONT_TAG := 15
@@ -63,14 +79,22 @@ var _content: Control
 
 func _ready() -> void:
 	visible = false
-	custom_minimum_size = PANEL_SIZE
-	size = PANEL_SIZE
+	custom_minimum_size = BOARD_SIZE
+	size = BOARD_SIZE
+
+	var board := TextureRect.new()
+	board.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	board.stretch_mode = TextureRect.STRETCH_SCALE
+	board.texture = BOARD
+	board.size = BOARD_SIZE
+	board.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(board)
 
 	_content = Control.new()
 	_content.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_content)
 
-	CloseButton.add_to(self, PANEL_SIZE, hide)
+	CloseButton.add_to(self, BOARD_SIZE, hide)
 	Coins.coins_changed.connect(func(_n = null) -> void: _rebuild())
 	Economy.money_changed.connect(func(_n = null) -> void: _rebuild())
 
@@ -106,8 +130,13 @@ func _rebuild() -> void:
 
 	var now_rent := BuildingProgress.rent_at(_plot_id)
 	var next_rent := BuildingProgress.rent_at_level(key, level + 1)
-	_card(key, 0.0, level, now_rent, false)
-	_card(key, CARD_PX.x + CARD_GAP, level + 1, next_rent, true)
+	var title := _label(_fs(FONT_TITLE), COLOR_NOW)
+	title.text = BuildingLayout.name_of(key)
+	title.position = Vector2(0.0, TITLE_Y)
+	title.size = Vector2(BOARD_SIZE.x, 26.0)
+
+	_card(key, CARDS_X, level, now_rent, false)
+	_card(key, CARDS_X + CARD_PX.x + CARD_GAP, level + 1, next_rent, true)
 
 	# The arrow reads left to right, which is what says which card is the one
 	# you have and which is the one you are buying.
@@ -117,8 +146,8 @@ func _rebuild() -> void:
 	arrow.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	arrow.custom_minimum_size = Vector2.ZERO
 	arrow.size = Vector2(ARROW_ART.get_width(), ARROW_ART.get_height()) * ARROW_SCALE
-	arrow.position = Vector2(CARD_PX.x + (CARD_GAP - arrow.size.x) * 0.5,
-		CARD_PX.y * 0.5 - arrow.size.y * 0.5)
+	arrow.position = Vector2(CARDS_X + CARD_PX.x + (CARD_GAP - arrow.size.x) * 0.5,
+		CARDS_Y + CARD_PX.y * 0.5 - arrow.size.y * 0.5)
 	arrow.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_content.add_child(arrow)
 
@@ -128,12 +157,12 @@ func _rebuild() -> void:
 	_price_tag(cost, in_coins, affordable)
 	_confirm_button(affordable)
 
-	var note := _label(_fs(FONT_NOTE), COLOR_NOTE)
+	var note := _label(FONT_NOTE, COLOR_NOTE)
 	# The part that is easy to miss: an upgrading building earns nothing while
 	# the work is on, so this is a real cost and not a detail.
 	note.text = "No rent for %s" % _countdown(BuildingProgress.upgrade_seconds(_plot_id))
-	note.position = Vector2(0.0, NOTE_Y)
-	note.size = Vector2(PANEL_SIZE.x, 16.0)
+	note.position = Vector2(ACTION_CX - 110.0, NOTE_Y)
+	note.size = Vector2(220.0, 16.0)
 
 
 func _card(key: String, x: float, level: int, rent: int, is_next: bool) -> void:
@@ -143,7 +172,7 @@ func _card(key: String, x: float, level: int, rent: int, is_next: bool) -> void:
 	# below is silently clamped back up to it.
 	card.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	card.stretch_mode = TextureRect.STRETCH_SCALE
-	card.position = Vector2(x, 0.0)
+	card.position = Vector2(x, CARDS_Y)
 	card.size = CARD_PX
 	card.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	if not is_next:
@@ -156,7 +185,7 @@ func _card(key: String, x: float, level: int, rent: int, is_next: bool) -> void:
 	art.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	art.custom_minimum_size = Vector2.ZERO
 	art.position = Vector2(x + CARD_PX.x * CARD_ART_RECT.position.x,
-		CARD_PX.y * CARD_ART_RECT.position.y)
+		CARDS_Y + CARD_PX.y * CARD_ART_RECT.position.y)
 	art.size = Vector2(CARD_PX.x * CARD_ART_RECT.size.x,
 		CARD_PX.y * CARD_ART_RECT.size.y)
 	art.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -167,15 +196,15 @@ func _card(key: String, x: float, level: int, rent: int, is_next: bool) -> void:
 		art.modulate = Color(0.80, 0.78, 0.76)
 	_content.add_child(art)
 
-	var lv := _label(_fs(FONT_LEVEL), COLOR_NEXT if is_next else COLOR_NOW)
+	var lv := _label(FONT_LEVEL, COLOR_NEXT if is_next else COLOR_NOW)
 	lv.text = "Level %d" % level
-	lv.position = Vector2(x, CARD_PX.y * CARD_LEVEL_Y)
+	lv.position = Vector2(x, CARDS_Y + CARD_PX.y * CARD_LEVEL_Y)
 	lv.size = Vector2(CARD_PX.x, 18.0)
 
 	# Rent as an icon and a number, which is the whole point of the comparison -
 	# the two cards differ in exactly one figure and it should be the one thing
 	# your eye lands on.
-	var amount := _label(_fs(FONT_RENT), COLOR_NEXT if is_next else COLOR_NOW)
+	var amount := _label(FONT_RENT, COLOR_NEXT if is_next else COLOR_NOW)
 	_content.add_child(amount)
 	amount.text = _thousands(rent)
 	var text_w: float = amount.get_minimum_size().x
@@ -189,7 +218,7 @@ func _card(key: String, x: float, level: int, rent: int, is_next: bool) -> void:
 	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	icon.custom_minimum_size = Vector2.ZERO
 	icon.size = Vector2(icon_w, RENT_ICON_H)
-	icon.position = Vector2(left, CARD_PX.y * CARD_RENT_Y)
+	icon.position = Vector2(left, CARDS_Y + CARD_PX.y * CARD_RENT_Y)
 	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	if not is_next:
 		icon.modulate = Color(0.82, 0.82, 0.82)
@@ -197,7 +226,7 @@ func _card(key: String, x: float, level: int, rent: int, is_next: bool) -> void:
 
 	amount.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 	amount.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	amount.position = Vector2(left + icon_w + RENT_GAP, CARD_PX.y * CARD_RENT_Y)
+	amount.position = Vector2(left + icon_w + RENT_GAP, CARDS_Y + CARD_PX.y * CARD_RENT_Y)
 	amount.size = Vector2(text_w, RENT_ICON_H)
 
 
@@ -207,12 +236,12 @@ func _price_tag(cost: int, in_coins: bool, affordable: bool) -> void:
 	tag.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	tag.stretch_mode = TextureRect.STRETCH_SCALE
 	tag.size = Vector2(TAG_W, TAG_W * TAG_ART.get_height() / float(TAG_ART.get_width()))
-	tag.position = Vector2((PANEL_SIZE.x - TAG_W) * 0.5, TAG_Y)
+	tag.position = Vector2(ACTION_CX - TAG_W * 0.5, TAG_Y)
 	tag.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_content.add_child(tag)
 
 	var art: Texture2D = COST_COIN if in_coins else COST_CASH
-	var price := _label(_fs(FONT_TAG),
+	var price := _label(FONT_TAG,
 		Color(1, 0.94, 0.68) if affordable else COLOR_SHORT)
 	_content.add_child(price)
 	price.text = str(cost) if in_coins else _thousands(cost)
@@ -248,13 +277,13 @@ func _confirm_button(affordable: bool) -> void:
 	b.texture_normal = BUTTON_ART if affordable else BUTTON_OFF_ART
 	b.custom_minimum_size = Vector2.ZERO
 	b.size = Vector2(BUTTON_W, h)
-	b.position = Vector2((PANEL_SIZE.x - BUTTON_W) * 0.5, BUTTON_Y)
+	b.position = Vector2(ACTION_CX - BUTTON_W * 0.5, BUTTON_Y)
 	b.disabled = not affordable
 	if affordable:
 		b.pressed.connect(_on_confirm)
 	_content.add_child(b)
 
-	var caption := _label(_fs(FONT_BUTTON),
+	var caption := _label(FONT_BUTTON,
 		Color.WHITE if affordable else Color(0.78, 0.75, 0.72))
 	caption.text = "Upgrade" if affordable else "Not enough"
 	caption.clip_text = true
@@ -285,7 +314,7 @@ func _label(size_px: int, color: Color) -> Label:
 
 
 func _fs(native: int) -> int:
-	return maxi(FONT_MIN, native)
+	return maxi(FONT_MIN, roundi(native * BOARD_SCALE))
 
 
 func _thousands(n: int) -> String:
