@@ -105,11 +105,15 @@ var _quest_coins := 0
 # sources can be sized against each other - the whole question of whether a
 # building upgrade is worth anything turns on which one dominates.
 var _building_coins := 0
+# Milestone payouts, apart from drops - they are a different lever with a
+# different cap and sizing one against the other is the whole point.
+var _milestone_coins := 0
 var _sets_done := 0
 var _started := 0.0
 
 
 func _ready() -> void:
+	BuildingProgress.milestone_reached.connect(_on_milestone)
 	var args := OS.get_cmdline_user_args()
 	if not args.has("--bot"):
 		return
@@ -264,9 +268,14 @@ func _collect() -> void:
 					_buy_fuel(need)
 				_taps += 1
 				Fleet.refuel_and_depart(a.id)
+	# Measured as a delta MINUS whatever milestones landed inside the call - a
+	# rent collection settles finished upgrades on its way through, so a
+	# milestone can be paid in here and would otherwise be counted as a drop.
 	var coins_before: int = Coins.amount
+	var milestones_before: int = _milestone_coins
 	BuildingProgress.collect_all()
-	_building_coins += Coins.amount - coins_before
+	_building_coins += (Coins.amount - coins_before) \
+		- (_milestone_coins - milestones_before)
 
 
 # EVERY AIRCRAFT NEEDS A PAD BEFORE IT CAN DO ANYTHING. Fleet.buy only adds it
@@ -669,6 +678,7 @@ func _summary() -> void:
 	print("  routing policy: %s   daily tasks: %s" % [_routing, "on" if _do_quests else "off"])
 	print("  quests: %d sets completed, %d coins earned" % [_sets_done, _quest_coins])
 	print("  building coin drops: %d" % _building_coins)
+	print("  milestone coins: %d" % _milestone_coins)
 	print("  coins: %d earned over the run (started with %d), against %d coin aircraft in the shop"
 		% [Coins.amount - Coins.DEFAULT_AMOUNT, Coins.DEFAULT_AMOUNT, _coin_models()])
 	print("\n  fuel: spent $%s against $%s earned = %.1f%% of income"
@@ -681,3 +691,7 @@ func _summary() -> void:
 			_latency, roundi(_speed)])
 	print("\n  wall time %.1f s" % (Time.get_ticks_msec() / 1000.0 - _started))
 	get_tree().quit()
+
+
+func _on_milestone(_plot_id: int, amount: int) -> void:
+	_milestone_coins += amount

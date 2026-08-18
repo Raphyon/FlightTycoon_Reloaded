@@ -20,6 +20,7 @@ const TAG_ART := preload("res://assets/board/board_price@2x.png")
 const ARROW_ART := preload("res://assets/buttons/button_arrow_right@2x.png")
 const BUTTON_ART := preload("res://assets/buttons/button_orange2@2x.png")
 const BUTTON_OFF_ART := preload("res://assets/buttons/button_grey3@2x.png")
+const MILESTONE_ICON := preload("res://assets/hud/icon_medium_coin@2x.png")
 const COST_COIN := preload("res://assets/hud/icon_medium_coin@2x.png")
 const COST_CASH := preload("res://assets/hud/icon_medium_money1@2x.png")
 const RENT_ICON := preload("res://assets/hud/icon_medium_money1@2x.png")
@@ -42,6 +43,7 @@ const TITLE_Y := 24.0
 const CARD_ART_RECT := Rect2(0.10, 0.10, 0.80, 0.42)
 const CARD_LEVEL_Y := 0.56
 const CARD_RENT_Y := 0.72
+const CARD_BONUS_Y := 0.86
 const RENT_ICON_H := 20.0
 const RENT_GAP := 4.0
 
@@ -228,6 +230,39 @@ func _card(key: String, x: float, level: int, rent: int, is_next: bool) -> void:
 	amount.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	amount.position = Vector2(left + icon_w + RENT_GAP, CARDS_Y + CARD_PX.y * CARD_RENT_Y)
 	amount.size = Vector2(text_w, RENT_ICON_H)
+
+	# The milestone, promised BEFORE you commit rather than arriving as a
+	# surprise afterwards - which is the whole reason it exists. Levels 5 and 10
+	# pay a coin on the spot, and this is where you find that out.
+	if not is_next:
+		return
+	var bonus := BuildingProgress.milestone_coins_for(level)
+	if bonus <= 0:
+		return
+	var b_label := _label(FONT_LEVEL, COLOR_NEXT)
+	_content.add_child(b_label)
+	b_label.text = "+%d" % bonus
+	b_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	b_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	var b_text: float = b_label.get_minimum_size().x
+	var b_icon_h: float = RENT_ICON_H * 0.85
+	var b_icon_w: float = b_icon_h * MILESTONE_ICON.get_width() / float(MILESTONE_ICON.get_height())
+	var b_group: float = b_text + RENT_GAP + b_icon_w
+	var b_left: float = x + (CARD_PX.x - b_group) * 0.5
+
+	b_label.position = Vector2(b_left, CARDS_Y + CARD_PX.y * CARD_BONUS_Y)
+	b_label.size = Vector2(b_text, b_icon_h)
+
+	var b_icon := TextureRect.new()
+	b_icon.texture = MILESTONE_ICON
+	b_icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	b_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	b_icon.custom_minimum_size = Vector2.ZERO
+	b_icon.size = Vector2(b_icon_w, b_icon_h)
+	b_icon.position = Vector2(b_left + b_text + RENT_GAP,
+		CARDS_Y + CARD_PX.y * CARD_BONUS_Y)
+	b_icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_content.add_child(b_icon)
 
 
 func _price_tag(cost: int, in_coins: bool, affordable: bool) -> void:

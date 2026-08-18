@@ -153,11 +153,35 @@ supplied about 40% of them, just blind to level.
 All six home zones finished at 19.3-19.7 h in every run, because coins do not
 gate zones - XP does. The city gets a purpose and the ladder does not move.
 
-**Honest limit: this is a portfolio effect, not a per-building one.** One
-office going 5->6 moves its own chance by 0.002 a collection. Nobody will feel
-that as "this upgrade got me a coin" - what they will feel is the city as a
-whole paying out faster. If upgrading needs to be PERCEPTIBLE, a one-off coin
-bonus at level 5 and level 10 would do it, and is still bounded.
+### And a one-off at levels 5 and 10
+
+The chance bonus alone is a PORTFOLIO effect: one office going 5->6 moves its
+own odds by 0.002 a collection, which nobody can feel. What they would feel is
+the city as a whole paying out faster - true, but not legible.
+
+So reaching **level 5 or level 10 pays a coin on the spot**, on the building you
+just upgraded, and the confirmation window promises it before you commit rather
+than springing it afterwards.
+
+Sizing them meant taking some economy back out of the drip. Totals over 90 days,
+all coins from all sources, against a 243-coin catalogue:
+
+| chance bonus | milestones | total coins | |
+|---|---|---|---|
+| 0.00 | none | ~277 | the old game - a level bought nothing |
+| 0.15 | none | 327 | all of it invisible |
+| 0.15 | 5:1, 10:2 | 411 | coins stop being scarce |
+| 0.15 | 5:1, 10:1 | 381 | |
+| **0.08** | **5:1, 10:1** | **323** | **shipped** |
+
+The last row is the point: it lands the same total economy as 0.15 with no
+milestones, but a chunk of it arrives as a payout you can see. **Drops carry the
+economy, milestones carry the feedback.**
+
+Milestones get their own signal rather than borrowing `coin_found`. They can
+fire from inside a rent collection - `collect_rent` reads `rent_at`, which reads
+`level_at`, which settles a finished upgrade - so anything telling the two apart
+by when they arrive would be wrong.
 
 ## What it needs
 

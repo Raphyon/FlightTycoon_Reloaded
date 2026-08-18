@@ -350,7 +350,8 @@ func _finish_upgrade(plot_id: int, map_key: String = "") -> void:
 	var d := e as Dictionary
 	if float(d.get("upgrading_until", 0.0)) <= 0.0:
 		return
-	d["level"] = mini(int(d.get("level", 1)) + 1, MAX_LEVEL)
+	var new_level: int = mini(int(d.get("level", 1)) + 1, MAX_LEVEL)
+	d["level"] = new_level
 	d.erase("upgrading_until")
 	# The rent cycle restarts from the moment it comes back into service, so an
 	# upgrade cannot also hand over a cycle's rent for the time it was shut.
@@ -358,6 +359,13 @@ func _finish_upgrade(plot_id: int, map_key: String = "") -> void:
 	m[str(plot_id)] = d
 	built[mk] = m
 	_save()
+	# Paid AFTER the save, and announced through the same signal a rent drop
+	# uses, so it lands on the building with the same coin animation rather than
+	# only as the HUD counter moving.
+	var bonus: int = int(COIN_MILESTONES.get(new_level, 0))
+	if bonus > 0:
+		Coins.add(bonus)
+		milestone_reached.emit(plot_id, bonus)
 	upgrade_changed.emit(plot_id)
 	rent_changed.emit()
 
@@ -427,18 +435,30 @@ const COIN_DROP_AMOUNT := 1
 # Deliberately not linear in level. At x10 a maxed city would out-earn quests
 # several times over and the coin economy would stop meaning anything; this puts
 # level 10 at COIN_LEVEL_BONUS x 9 above level 1.
-# 0.15 measured, 90-day runs. Building coin drops over a run:
+# Measured over 90-day runs, as TOTAL coins earned (quests + drops + milestones)
+# against a 243-coin catalogue. Quests are a steady 166-168 throughout:
 #
-#   0.00  (today)   98, 107, 118, 122     ~40% of all coins
-#   0.15  x2.35     161, 162              ~49%
-#   0.35  x4.15     248                   ~60%, and total coin income +50%
+#   0.00, no milestones      ~277    the old game - level bought nothing
+#   0.15, no milestones       327    all of it an invisible drip
+#   0.15 + {5:1, 10:2}        411    coins stop being scarce
+#   0.15 + {5:1, 10:1}        381
+#   0.08 + {5:1, 10:1}        323    <- here
 #
-# 0.35 makes buildings the coin economy and puts a run past 400 coins against a
-# 243-coin catalogue, which is a different game. 0.15 lifts total coin income
-# about 18% and leaves quests the larger source. Every run finished all six home
-# zones at 19.3-19.7 h either way - coins do not gate zones, XP does, so this
-# buys the city a purpose without touching the pacing ladder.
-const COIN_LEVEL_BONUS := 0.15
+# The last two lines are the point: 0.08 with milestones lands the same total
+# economy as 0.15 without them, but a chunk of it arrives as a payout you can
+# SEE instead of odds you cannot. Drops carry the economy, milestones carry the
+# feedback. Every run finished all six home zones at 19.3-19.7 h - coins do not
+# gate zones, XP does.
+const COIN_LEVEL_BONUS := 0.08
+# AND A ONE-OFF AT THE MILESTONES. The chance bonus above is a portfolio effect -
+# one building going 5->6 moves its own odds by 0.002 a collection, which nobody
+# can feel. These are the part you SEE: reaching level 5 or level 10 pays out
+# there and then, on the building you just upgraded.
+#
+# Small on purpose. There are 42 plots, so paying 5 and 10 would put 630 coins
+# on the board against a 243-coin catalogue - the milestone would become the
+# coin economy. Sized against a measured run below.
+const COIN_MILESTONES := {5: 1, 10: 1}
 
 
 func coin_chance_for(building_key: String) -> float:
@@ -446,6 +466,12 @@ func coin_chance_for(building_key: String) -> float:
 
 
 # The chance for a PLOT, which is the one that counts - it knows the level.
+# What reaching `level` pays as a one-off, for the confirmation window to show
+# before you commit rather than as a surprise afterwards.
+func milestone_coins_for(level: int) -> int:
+	return int(COIN_MILESTONES.get(level, 0))
+
+
 func coin_chance_at(plot_id: int, map_key: String = "") -> float:
 	var level := level_at(plot_id, map_key)
 	return coin_chance_for(building_at(plot_id, map_key)) \
@@ -454,6 +480,12 @@ func coin_chance_at(plot_id: int, map_key: String = "") -> float:
 # So a drop can be shown. Without it the only feedback is the HUD counter
 # ticking up, which nobody is looking at while tapping a building.
 signal coin_found(plot_id: int, amount: int)
+
+# Milestones get their OWN signal rather than borrowing coin_found. They can
+# fire from inside a rent collection - collect_rent reads rent_at, which reads
+# level_at, which settles a finished upgrade - so anything trying to tell the
+# two apart by when they arrive would be wrong.
+signal milestone_reached(plot_id: int, amount: int)
 
 
 func collect_rent(plot_id: int, map_key: String = "") -> int:
