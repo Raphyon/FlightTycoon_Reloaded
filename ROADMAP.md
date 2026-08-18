@@ -18,17 +18,18 @@ So the split is clean:
 | | needs new art? | |
 |---|---|---|
 | 1 progress bars | no - drawable in code | **DONE** |
+| 9 quests | no - existing board art | **DONE** |
 | 2 level-up rewards | no - flourish optional | **start now** |
-| 9 quests | no - existing board art | **start now** |
 | 3 daily login | no - `source-assets/login/login_back@ipad.jpg` is unused | **start now** |
 | 4 boost items | icons, but HUD art could stand in | prototype now |
 | 5 more models | yes, per model | blocked |
 | 6 more buildings | yes, per building | blocked |
 | 7 events | yes, a lot | blocked |
 | 8 passenger animations | yes, none exists | blocked |
+| 10 extend the ladder | yes, ~8 models | blocked, but specced |
 
-Four of the nine are pure code against systems that already run. That is the
-work available without waiting on anything.
+Building upgrades were on this list as a Known Issue rather than a numbered item
+and are also DONE - see UPGRADES.md.
 
 ---
 
@@ -51,24 +52,6 @@ Shipped as three things rather than one:
 
 Still open: green for aircraft a FRIEND has sent you. There is no notion of
 another player's aircraft in Fleet, so only the visiting half is live.
-
-| | |
-|---|---|
-| touches | `ApronSlot.gd`, `BuildingSlot.gd` |
-| needs | a bar texture; the timers already exist |
-| art | one sprite, maybe two |
-
-The data is all there - `BuildingProgress.is_rent_ready`, an aircraft's
-`flight_time_left` - and nothing is drawn from it. There is **no ProgressBar or
-TextureProgress anywhere in the project**, so this is the first one.
-
-Do this first. It is the cheapest item on the list and it is the only one that
-makes the existing loop more legible rather than adding to it. Callouts are
-already the game's whole button vocabulary; giving them a fill is a small change
-to a thing the player looks at hundreds of times an hour.
-
-**Watch out for:** the callout is a fixed-position button by deliberate design
-(`CALLOUT_LIFT`) - a bar must not make it move or resize per state.
 
 ---
 
@@ -178,10 +161,9 @@ times over, and every player's airport looks the same.
 new type is a new sprite, from the dump or from `source-assets/original`.
 
 Once art exists this is the highest ratio of visible change to work on the list.
-It also partially answers a measured problem: all 42 plots are exhausted about two hours
-in, for every kind of player, after which the city stops being a system. More
-types alone will not fix that - upgrades would - but it makes the two hours less
-repetitive.
+The city no longer RUNS OUT - plots are gated behind zones (last one at ~38 h)
+and carry upgrade levels now - but it still repeats itself, and nine types across
+42 plots is why every airport looks the same.
 
 ---
 
@@ -301,3 +283,80 @@ machinery that 9 would build first.
 
 5 whenever art appears. 7 and 8 last: one is art-blocked outright, the other
 wants a settled loop underneath it.
+
+---
+
+## 10. Extend the fleet ladder past level 50
+
+The shop stops at level 50, which a regular player reaches at **31 hours**. The
+last two unlocks in the game are Dreamland at level 57 (47 h) and the Carrier at
+level 70 (93 h), so **62 hours of play sit past the end of the ladder with two
+events in them**. The level curve is `n^4.2` - levels 1-50 are only a quarter of
+the XP needed for 70 - so those hours are not a mistake, they are simply empty.
+
+Measured, regular player, all three airports:
+
+| | day | play time |
+|---|---|---|
+| level 50, every aircraft unlocked AND bought | 47 | 31 h |
+| all six homeland zones, all 42 plots | 57 | 38 h |
+| level 57, Dreamland opens | 70 | 47 h |
+| level 70, the Carrier opens | 140 | 93 h |
+
+### The prices are the design
+
+Cash on hand across the tail is not what it looks like:
+
+| day | cash | |
+|---|---|---|
+| 60-100 | $0.4M - $2.8M | starved: pads, zones and building levels eat everything |
+| 110 | $128M | the city is maxed, every existing sink is exhausted |
+| 130 | $409M | +$14M a day with nothing to buy |
+
+So the middle of the tail has money PRESSURE and nothing to want, and the end has
+money and nothing to spend it on. Expensive aircraft fix both halves - a thing to
+save toward while poor, and a sink once rich.
+
+The top of the cash ladder climbs about x1.4 a level ($800k at 45 to $7M at 50).
+Continuing that slope to 70 gives $5.6B, four times what the tail earns.
+**x1.25 a level** lands right:
+
+| level | price | | level | price |
+|---|---|---|---|---|
+| 53 | $14M | | 62 | $105M |
+| 56 | $27M | | 65 | $200M |
+| 59 | $55M | | 68 | $390M |
+
+Eight entries totalling ~$1.1B against ~$1.3B earned across the tail. You can own
+nearly all of them by level 70, but not without choosing an order, and each is a
+several-hour goal rather than an instant purchase.
+
+### Stat envelope: ordinary on purpose
+
+**Hold XP per claim near the a400m/Ark tier (roughly 470-670).** XP runs 64 at
+the bottom of the ladder to 532 at the top - an 8x climb - and continuing that
+curve into 50-70 would raise the XP rate and pull level 70 in from 93 h. The
+aircraft added to fill the gap would shorten the gap. The PRICE is what makes
+these a goal, so the stats do not have to be.
+
+Seats and range likewise: near the top of what exists, not past it. A 2000-seat
+aircraft would double income per pad and undo the pacing twice over - the same
+trap the Ark hit when it moved to cash.
+
+### Art is the whole blocker
+
+All 35 shop icons are used by the ladder. `source-assets/raw` has 20 files and no
+unmined aircraft. Every entry needs art authored into `source-assets/original` or
+sourced - which is why this is written down rather than built.
+
+Per entry: a shop icon, a world body and shadow (plane_derive.py takes both from
+the shop icon), and a prop or thruster strip if it needs one.
+
+### What this does NOT do
+
+It does not lengthen the game. The 62 hours already exist; this fills them. And
+it must not shorten them either, which is what the XP note above is for.
+
+The alternative considered and set aside: lowering the Dreamland and Carrier
+gates (they are PLACEHOLDER levels) to land inside the 31-50 window. Free, uses
+content that exists, but moves content rather than adding it.
