@@ -1,5 +1,16 @@
 extends Node2D
 
+# THIS IS A RUNTIME LAYER FIRST, an editor second.
+#
+# The name is historical: the placement tool was written inside the node that
+# spawns the things, so about 93% of this file is the game and the rest is the
+# tool. Deleting it would remove the road paths the traffic follows from every
+# airport - not just the ability to move them around.
+#
+# The placement mode is off in normal play and switched on from the F1 menu;
+# see `editing` below.
+
+
 # Generic click-to-trace path placement, replacing the old fixed 3-point
 # RunwayEditor - works like the apron/cloud placement tools, but each click
 # appends a point and draws a line back to the previous one instead of

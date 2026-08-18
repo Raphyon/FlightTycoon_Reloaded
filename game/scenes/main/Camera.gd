@@ -60,7 +60,12 @@ func _editor_active() -> bool:
 	if world == null:
 		return false
 	for child in world.get_children():
-		if child.name.ends_with("Editor") and "editing" in child and child.editing:
+		# THE PROPERTY, not the name. This matched on a node called something
+		# ending in "Editor", which happens to be true today and is not a fact
+		# about anything - rename a node and the camera silently stops
+		# unlocking the map while you place. Owning an `editing` flag that is
+		# true IS the definition of an editor being active.
+		if "editing" in child and child.editing:
 			return true
 	return false
 

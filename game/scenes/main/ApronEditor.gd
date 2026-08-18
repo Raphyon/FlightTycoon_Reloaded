@@ -1,5 +1,16 @@
 extends Node2D
 
+# THIS IS A RUNTIME LAYER FIRST, an editor second.
+#
+# The name is historical: the placement tool was written inside the node that
+# spawns the things, so about 95% of this file is the game and the rest is the
+# tool. Deleting it would remove the aprons and every world aircraft from every
+# airport - not just the ability to move them around.
+#
+# The placement mode is off in normal play and switched on from the F1 menu;
+# see `editing` below.
+
+
 # In-game apron placement tool for all 7 apron areas, including the starting
 # one - one system for everything instead of Zone1 being a special case.
 #

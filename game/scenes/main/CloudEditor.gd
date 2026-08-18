@@ -1,5 +1,16 @@
 extends Node2D
 
+# THIS IS A RUNTIME LAYER FIRST, an editor second.
+#
+# The name is historical: the placement tool was written inside the node that
+# spawns the things, so about 90% of this file is the game and the rest is the
+# tool. Deleting it would remove the cloud covers over locked zones from every
+# airport - not just the ability to move them around.
+#
+# The placement mode is off in normal play and switched on from the F1 menu;
+# see `editing` below.
+
+
 # Manual placement tool for cloud cover, one point per lockable zone - same
 # workflow as ApronEditor (no measured positions exist for these crops, so
 # they're eyeballed and placed by hand).
