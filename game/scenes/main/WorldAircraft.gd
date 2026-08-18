@@ -515,22 +515,28 @@ func play_departure(delay: float = 0.0) -> void:
 #
 # "Run all" dispatches a whole airport on one press, and the strip takes one
 # aircraft at a time for about 4.2s each: 20 aircraft is 83 seconds of queue, 62
-# is over four minutes of planes shuffling on their pads. Correct by the runway's
-# rules and nothing anybody wants to sit through.
+# is over four minutes of planes shuffling on their pads. Correct by the
+# runway's rules and nothing anybody wants to sit through.
 #
-# So it does what the VTOLs already do - goes without the strip - but keeps the
-# startup wobble, because a fleet that blinks out is a bug and a fleet that
-# fires up and lifts away is an airport emptying. The stagger it is given
-# (BULK_LAUNCH_STAGGER) still spaces them, so it reads as a wave rather than a
-# single event.
+# IT DOES NOT LIFT. The first version climbed on the body offset like a VTOL,
+# which made every airliner on the field rise straight up like a hovercraft.
+# A fixed-wing aircraft leaving without a runway has no honest way to look like
+# it flew, so it does not try: it spins up and fades out on the spot, which
+# reads as "gone to work" rather than as physics nobody asked for.
+#
+# VTOLs still rise, because for them that IS the departure - see
+# _play_vertical_liftoff, which this defers to.
 func play_bulk_departure(delay: float = 0.0) -> void:
 	var token := _begin_animation()
 	if delay > 0.0:
 		await get_tree().create_timer(delay).timeout
 		if not is_instance_valid(self) or token != _anim_token:
 			return
-	_show_spin_rotors()
+	if _is_vtol:
+		_play_vertical_liftoff()
+		return
 
+	_show_spin_rotors()
 	var warmup := create_tween()
 	_add_startup_wobble(warmup)
 	await warmup.finished
@@ -538,15 +544,7 @@ func play_bulk_departure(delay: float = 0.0) -> void:
 		return
 
 	var tween := create_tween()
-	# Up and out, the same shape as a VTOL liftoff - the body climbs on its own
-	# offset while the shadow stays put and fades, so it reads as leaving the
-	# ground rather than sliding off it.
-	if _body:
-		tween.parallel().tween_property(_body, "position:y",
-			_body_base.y - VTOL_RISE_DISTANCE, VTOL_RISE_DURATION) \
-			.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
-	tween.parallel().tween_property(self, "modulate:a", 0.0, FADE_OUT_DURATION) \
-		.set_delay(maxf(0.0, VTOL_RISE_DURATION - FADE_OUT_DURATION)) \
+	tween.tween_property(self, "modulate:a", 0.0, FADE_OUT_DURATION) \
 		.set_trans(Tween.TRANS_LINEAR)
 	tween.tween_callback(queue_free)
 
