@@ -1095,6 +1095,7 @@ func advance_all() -> Dictionary:
 		if steps > 0:
 			moved += 1
 			if a.state == FleetAircraft.State.FLYING_OUT:
+				a.bulk_departure = true
 				a.launch_delay = departed * step
 				a.flight_time_left += a.launch_delay
 				a.flight_time_total = a.flight_time_left

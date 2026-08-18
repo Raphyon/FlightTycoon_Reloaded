@@ -31,6 +31,15 @@ var destination: String = ""
 # what you see and what the clock does agree: it leaves late and lands late by
 # exactly as much. Transient - not saved, and cleared once consumed.
 var launch_delay: float = 0.0
+# Dispatched by "Run all" rather than tapped off its pad one at a time.
+#
+# A runway departure holds the strip for about 4.2s, so a bulk dispatch of a full
+# airport is four minutes of aircraft idling in a queue - correct by the runway's
+# own rules and useless to watch. Bulk departures leave from the pad instead.
+#
+# Consumed by ApronLayer the moment the animation is chosen, like launch_delay,
+# so it never outlives the batch that set it.
+var bulk_departure := false
 var livery: String = ""
 var owned_liveries: Dictionary = {}
 var state: int = State.PARKED

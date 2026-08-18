@@ -402,7 +402,16 @@ func _sync_world_aircraft() -> void:
 			# animation and the flight clock agree (Fleet.BULK_LAUNCH_STAGGER).
 			var hold: float = departing.launch_delay
 			departing.launch_delay = 0.0
-			_world_aircraft[aircraft_id].play_departure(hold)
+			# Run all sends the whole airport at once, and the runway takes them
+			# one at a time - so the full treatment is four minutes of queue for
+			# a button press that meant "just go". Bulk departures lift from the
+			# pad without the strip.
+			var bulk: bool = departing.bulk_departure
+			departing.bulk_departure = false
+			if bulk:
+				_world_aircraft[aircraft_id].play_bulk_departure(hold)
+			else:
+				_world_aircraft[aircraft_id].play_departure(hold)
 			_world_aircraft.erase(aircraft_id)
 
 
