@@ -101,6 +101,10 @@ var _routing := "match"
 # would report "quests changed nothing", which is a statement about the bot.
 var _do_quests := true
 var _quest_coins := 0
+# Coins that fell out of BUILDINGS, kept apart from quest coins so the two
+# sources can be sized against each other - the whole question of whether a
+# building upgrade is worth anything turns on which one dominates.
+var _building_coins := 0
 var _sets_done := 0
 var _started := 0.0
 
@@ -260,7 +264,9 @@ func _collect() -> void:
 					_buy_fuel(need)
 				_taps += 1
 				Fleet.refuel_and_depart(a.id)
+	var coins_before: int = Coins.amount
 	BuildingProgress.collect_all()
+	_building_coins += Coins.amount - coins_before
 
 
 # EVERY AIRCRAFT NEEDS A PAD BEFORE IT CAN DO ANYTHING. Fleet.buy only adds it
@@ -662,6 +668,7 @@ func _summary() -> void:
 		% [levels, maxed])
 	print("  routing policy: %s   daily tasks: %s" % [_routing, "on" if _do_quests else "off"])
 	print("  quests: %d sets completed, %d coins earned" % [_sets_done, _quest_coins])
+	print("  building coin drops: %d" % _building_coins)
 	print("  coins: %d earned over the run (started with %d), against %d coin aircraft in the shop"
 		% [Coins.amount - Coins.DEFAULT_AMOUNT, Coins.DEFAULT_AMOUNT, _coin_models()])
 	print("\n  fuel: spent $%s against $%s earned = %.1f%% of income"

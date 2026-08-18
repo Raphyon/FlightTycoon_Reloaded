@@ -417,10 +417,39 @@ func is_rent_ready(plot_id: int, map_key: String = "") -> bool:
 # tools/econ_sim.py --coins.
 const COIN_CHANCE_PER_CYCLE_MINUTE := 0.00083
 const COIN_DROP_AMOUNT := 1
+# AND THE LEVEL RAISES IT. Before this an upgrade produced exactly one thing -
+# more cash - and cash is not what paces this game: a mid-game level pays for
+# itself in 20 to 40 hours of collecting every single cycle, and buys a currency
+# the late game already has too much of. Coins are the scarce one, and buildings
+# already supply about 42% of them, so level is the natural place to put the
+# lever.
+#
+# Deliberately not linear in level. At x10 a maxed city would out-earn quests
+# several times over and the coin economy would stop meaning anything; this puts
+# level 10 at COIN_LEVEL_BONUS x 9 above level 1.
+# 0.15 measured, 90-day runs. Building coin drops over a run:
+#
+#   0.00  (today)   98, 107, 118, 122     ~40% of all coins
+#   0.15  x2.35     161, 162              ~49%
+#   0.35  x4.15     248                   ~60%, and total coin income +50%
+#
+# 0.35 makes buildings the coin economy and puts a run past 400 coins against a
+# 243-coin catalogue, which is a different game. 0.15 lifts total coin income
+# about 18% and leaves quests the larger source. Every run finished all six home
+# zones at 19.3-19.7 h either way - coins do not gate zones, XP does, so this
+# buys the city a purpose without touching the pacing ladder.
+const COIN_LEVEL_BONUS := 0.15
 
 
 func coin_chance_for(building_key: String) -> float:
 	return COIN_CHANCE_PER_CYCLE_MINUTE * float(BuildingLayout.entry(building_key).get("minutes", 0))
+
+
+# The chance for a PLOT, which is the one that counts - it knows the level.
+func coin_chance_at(plot_id: int, map_key: String = "") -> float:
+	var level := level_at(plot_id, map_key)
+	return coin_chance_for(building_at(plot_id, map_key)) \
+		* (1.0 + COIN_LEVEL_BONUS * float(level - 1))
 
 # So a drop can be shown. Without it the only feedback is the HUD counter
 # ticking up, which nobody is looking at while tapping a building.
@@ -433,7 +462,7 @@ func collect_rent(plot_id: int, map_key: String = "") -> int:
 	var key := building_at(plot_id, map_key)
 	var amount := rent_at(plot_id, map_key)
 	Economy.add_money(amount)
-	if randf() < coin_chance_for(key):
+	if randf() < coin_chance_at(plot_id, map_key):
 		Coins.add(COIN_DROP_AMOUNT)
 		coin_found.emit(plot_id, COIN_DROP_AMOUNT)
 	var mk := map_key if map_key != "" else Maps.current

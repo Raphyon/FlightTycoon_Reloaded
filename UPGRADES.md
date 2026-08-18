@@ -110,6 +110,55 @@ built, not how far you have taken it. The city's economy and the fleet's grow
 separately, which is how they work today, and no pacing number already measured
 is invalidated.
 
+## AND A LEVEL RAISES THE COIN CHANCE
+
+ADDED AFTER PLAYING IT. The verdict from the table above was "upgrading is
+essentially worthless", and measuring said that was right - and structural
+rather than a tuning problem.
+
+An upgrade produced exactly ONE thing: more cash. `coin_chance_for()` read only
+the building's cycle minutes, so level was not in it, and rent has never paid
+XP - only flight claims do. So a level bought cash, and cash is the resource the
+late game already has too much of.
+
+Payback on one level, assuming you collect EVERY cycle:
+
+| building | level | cost | +rent/hr | payback |
+|---|---|---|---|---|
+| Coffee House | 3->4 | $20,000 | $2,270 | 8.8 h |
+| Office | 3->4 | $270,000 | $9,579 | 28 h |
+| Office | 5->6 | $830,000 | $20,140 | **41 h** |
+
+41 hours of perfect collection, on a game that reaches level 70 in 93. Nobody
+taps 42 buildings on cycle, so the real figure is worse.
+
+**Population was the obvious fix and is the wrong one.** Popularity multiplies
+FLIGHT cash, so scaling it with level makes upgrades produce more of the same
+abundant currency - and it is the most dangerous number in the game, uncapped
+and applied to every flight. A live save sits at x2.40 today. See the section
+below, which still stands.
+
+So level raises the COIN chance instead, because coins are what is actually
+scarce - the catalogue is 243 and a run earns 150-260 - and buildings already
+supplied about 40% of them, just blind to level.
+
+`COIN_LEVEL_BONUS = 0.15`, so level 10 is 2.35x level 1. Measured over 90 days:
+
+| bonus | level 10 | building coins | share of all coins |
+|---|---|---|---|
+| 0.00 | x1 | 98, 107, 118, 122 | ~40% |
+| **0.15** | **x2.35** | **161, 162** | **~49%** |
+| 0.35 | x4.15 | 248 | ~60%, total income +50% |
+
+All six home zones finished at 19.3-19.7 h in every run, because coins do not
+gate zones - XP does. The city gets a purpose and the ladder does not move.
+
+**Honest limit: this is a portfolio effect, not a per-building one.** One
+office going 5->6 moves its own chance by 0.002 a collection. Nobody will feel
+that as "this upgrade got me a coin" - what they will feel is the city as a
+whole paying out faster. If upgrading needs to be PERCEPTIBLE, a one-off coin
+bonus at level 5 and level 10 would do it, and is still bounded.
+
 ## What it needs
 
 | | |
