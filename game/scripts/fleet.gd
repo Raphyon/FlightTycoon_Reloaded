@@ -261,6 +261,14 @@ const WORLD_SPRITES := {
 		"body": "res://assets/aircraft/balloon/body_2x.png",
 		"shadow": "res://assets/aircraft/balloon/shadow_2x.png",
 		"vtol": true,
+		# THE BASKET SITS ON THE PAD, not the envelope. Every other aircraft is
+		# its own footprint, so centring the sprite puts the thing on the ground;
+		# a balloon is 132px of envelope above a 14px basket, and centring parked
+		# it with the canopy on the tarmac and the basket hanging through it.
+		#
+		# Measured off the art: the basket runs y 118-132, centre 125, against a
+		# sprite centre of 66.
+		"body_offset": Vector2(0, -59),
 	},
 	"dc3": {
 		"body": "res://assets/aircraft/dc3/body_2x.png",

@@ -49,6 +49,10 @@ const RUNWAY_RELEASE_FRACTION := 0.5
 var _shadow: Sprite2D
 var _shadow_parked: Texture2D
 var _shadow_spinning: Texture2D
+# BODY_BASE_OFFSET plus whatever this model asks for - see WORLD_SPRITES
+# "body_offset". Everything that moves the hull reads this rather than the
+# constant, or the balloon would snap back to centred the first time it flew.
+var _body_base := BODY_BASE_OFFSET
 var _body: Sprite2D
 var _body_parked: Texture2D
 var _body_spinning: Texture2D
@@ -113,6 +117,7 @@ func setup(model_key: String, screen_pos: Vector2, livery: String = "") -> void:
 		if entry.has("body_spin"):
 			sprites["body_spin"] = entry["body_spin"]
 	_is_vtol = sprites.get("vtol", false)
+	_body_base = BODY_BASE_OFFSET + (sprites.get("body_offset", Vector2.ZERO) as Vector2)
 	if sprites.has("shadow"):
 		_shadow = Sprite2D.new()
 		_shadow.texture = load(sprites["shadow"])
@@ -127,7 +132,7 @@ func setup(model_key: String, screen_pos: Vector2, livery: String = "") -> void:
 	if sprites.has("body"):
 		_body = Sprite2D.new()
 		_body.texture = load(sprites["body"])
-		_body.position = BODY_BASE_OFFSET
+		_body.position = _body_base
 		add_child(_body)
 		# A model whose whole hull changes on takeoff rather than just a rotor -
 		# the UFO's six thrusters fire - ships a second body. Both frames are
@@ -353,13 +358,13 @@ func _play_vertical_landing() -> void:
 		_settle_at_home()
 		return
 
-	_body.position = BODY_BASE_OFFSET + Vector2(0, -VTOL_RISE_DISTANCE)
+	_body.position = _body_base + Vector2(0, -VTOL_RISE_DISTANCE)
 	_body.modulate.a = 0.0
 	if _shadow:
 		_shadow.modulate.a = 0.0
 
 	var tween := create_tween()
-	tween.tween_property(_body, "position:y", BODY_BASE_OFFSET.y, VTOL_RISE_DURATION) \
+	tween.tween_property(_body, "position:y", _body_base.y, VTOL_RISE_DURATION) \
 		.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	tween.parallel().tween_property(_body, "modulate:a", 1.0, VTOL_RISE_DURATION * 0.4) \
 		.set_trans(Tween.TRANS_LINEAR)
@@ -390,7 +395,7 @@ func _settle_at_home() -> void:
 	scale.x = 1.0
 	modulate.a = 1.0
 	if _body:
-		_body.position = BODY_BASE_OFFSET
+		_body.position = _body_base
 		_body.modulate.a = 1.0
 	if _shadow:
 		_shadow.position = Vector2.ZERO
@@ -486,7 +491,7 @@ func _play_vertical_liftoff() -> void:
 	# 2. Rise straight up (the body's own local offset, not self.position,
 	# so the shadow - a separate child - is unaffected), accelerating away
 	# and fading out near the top of the climb.
-	tween.tween_property(_body, "position:y", BODY_BASE_OFFSET.y - VTOL_RISE_DISTANCE, VTOL_RISE_DURATION) \
+	tween.tween_property(_body, "position:y", _body_base.y - VTOL_RISE_DISTANCE, VTOL_RISE_DURATION) \
 		.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
 	tween.parallel().tween_property(_body, "modulate:a", 0.0, VTOL_RISE_DURATION * 0.4) \
 		.set_delay(VTOL_RISE_DURATION * 0.6) \
