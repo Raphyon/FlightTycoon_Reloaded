@@ -69,8 +69,16 @@ func _mark_dirty() -> void:
 # Refusing here rather than in the bot: anything that drives the autoloads
 # headless has the same problem, and there is exactly one place a save is
 # written.
-func _is_headless_bot() -> bool:
+# PUBLIC, because this is not one file's rule - it is the invariant that a bot
+# run writes NOTHING to res://data. It has been enforced per-file three times and
+# leaked three times, most recently through ApronSkins, which destroyed a real
+# playthrough. Every writer in scripts/ calls this now.
+func is_bot_run() -> bool:
 	return OS.get_cmdline_user_args().has("--bot")
+
+
+func _is_headless_bot() -> bool:
+	return is_bot_run()
 
 
 func save() -> void:

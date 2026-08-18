@@ -24,6 +24,9 @@ func _ready() -> void:
 
 
 func _save() -> void:
+	# A bot run writes nothing to disk - see SaveGame.is_bot_run().
+	if SaveGame.is_bot_run():
+		return
 	DirAccess.make_dir_recursive_absolute("res://data")
 	var f := FileAccess.open(SAVE_PATH, FileAccess.WRITE)
 	f.store_string(JSON.stringify(removed, "\t"))

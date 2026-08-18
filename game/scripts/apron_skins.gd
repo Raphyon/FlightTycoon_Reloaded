@@ -155,6 +155,9 @@ func _load(path: String) -> Dictionary:
 
 
 func _save(path: String, data: Dictionary) -> void:
+	# A bot run writes nothing to disk - see SaveGame.is_bot_run().
+	if SaveGame.is_bot_run():
+		return
 	DirAccess.make_dir_recursive_absolute("res://data")
 	var f := FileAccess.open(path, FileAccess.WRITE)
 	f.store_string(JSON.stringify(data, "\t"))
