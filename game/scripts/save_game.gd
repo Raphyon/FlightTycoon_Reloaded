@@ -200,6 +200,7 @@ func reset_to_defaults() -> void:
 	ApronProgress.built_ids.clear()
 	ZoneProgress.unlocked_zones.clear()
 	AircraftAffinity.reset()
+	ApronSkins.reset()
 	BuildingProgress.built.clear()
 
 	# Everything that draws from the above has to be told, or the world keeps
@@ -210,6 +211,7 @@ func reset_to_defaults() -> void:
 	ApronProgress.built_changed.emit()
 	ZoneProgress.unlocked_changed.emit()
 	AircraftAffinity.affinity_changed.emit()
+	ApronSkins.skin_changed.emit()
 	BuildingProgress.built_changed.emit()
 	Fleet.fleet_changed.emit()
 	_dirty = false

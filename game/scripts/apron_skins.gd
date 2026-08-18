@@ -91,6 +91,19 @@ func is_unlocked(skin_key: String) -> bool:
 	return Progression.level >= level_for(skin_key)
 
 
+# A fresh game has no pads, so it cannot have painted ones. Neither of these
+# files was cleared by SaveGame.reset_to_defaults - apron_skins.json is not even
+# in PROGRESS_FILES - so a reset left the skins applied to aprons that no longer
+# existed, waiting for their ids to come round again.
+func reset() -> void:
+	_applied.clear()
+	owned.clear()
+	_save(SAVE_PATH, _applied)
+	_save(OWNED_SAVE_PATH, owned)
+	skin_changed.emit()
+	owned_changed.emit()
+
+
 func is_owned(apron_id: int, skin_key: String) -> bool:
 	var for_apron: Dictionary = owned.get(str(apron_id), {})
 	return for_apron.has(skin_key)
