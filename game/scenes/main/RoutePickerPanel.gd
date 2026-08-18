@@ -559,6 +559,14 @@ func _on_confirm() -> void:
 		# Swapping is the part that needs it home; re-pointing is not.
 		if not _can_change_aircraft(sitting):
 			return
+		# SETTLE THE ONE BEING REPLACED, not just the one arriving. _settle(a)
+		# above is a no-op when swapping - `a` is the incoming aircraft and its
+		# assigned_apron_id is -1, not this pad - so the machine actually
+		# standing here was never tidied up. An aircraft that has just landed
+		# sits in AWAITING_HOME_CLAIM rather than PARKED, which is the normal
+		# state of one you have flown, and the check below then returned
+		# SILENTLY: press Set route, nothing happens, no reason given, forever.
+		_settle(sitting)
 		if sitting.state != FleetAircraft.State.PARKED:
 			return
 		Fleet.unassign(sitting.id)
