@@ -28,6 +28,9 @@ const TITLE_Y := 0.055
 # Three at a time. A fourth would not fit beside the arrows at a card size the
 # art is still readable at, and no model has more than three anyway.
 const VISIBLE := 3
+# The corner radius of the frame art, so nine-slicing leaves it alone.
+const FRAME_MARGIN := 22
+
 const CARD_W := 0.225
 const CARD_H := 0.50
 const CARD_GAP := 0.025
@@ -186,10 +189,17 @@ func _card(a: FleetAircraft, opt: Dictionary, fx: float) -> void:
 	var equipped := a.livery == key
 	var owned := key == "" or a.owned_liveries.has(key)
 
-	var frame := TextureRect.new()
-	frame.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	frame.stretch_mode = TextureRect.STRETCH_SCALE
+	# NINE-SLICED, not scaled. The art is a 157x90 badge and the card is 153x162
+	# - taller than it is wide - so STRETCH_SCALE squashed it to half its
+	# proportions, worst on the equipped card because that is the one using the
+	# filled variant. Nine-slicing keeps the corners and the border at their
+	# authored size and stretches only the middle.
+	var frame := NinePatchRect.new()
 	frame.texture = FRAME_FILLED if equipped else FRAME_EMPTY
+	frame.patch_margin_left = FRAME_MARGIN
+	frame.patch_margin_right = FRAME_MARGIN
+	frame.patch_margin_top = FRAME_MARGIN
+	frame.patch_margin_bottom = FRAME_MARGIN
 	frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	frame.position = _px(fx, ROW_Y)
 	frame.size = _px(CARD_W, CARD_H)

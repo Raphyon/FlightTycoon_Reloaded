@@ -1154,47 +1154,18 @@ grow_horizontal = 2
 grow_vertical = 0
 script = ExtResource("8")
 
-[node name="SkinPickerPanel" type="PanelContainer" parent="UI"]
-theme_override_styles/panel = SubResource("StyleBoxEmpty_bg")
-visible = false
+[node name="SkinPickerPanel" type="Control" parent="UI"]
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -320.0
-offset_top = -220.0
-offset_right = 320.0
-offset_bottom = 220.0
+offset_left = -339.5
+offset_top = -162.5
+offset_right = 339.5
+offset_bottom = 162.5
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("29")
-
-[node name="Margin" type="MarginContainer" parent="UI/SkinPickerPanel"]
-layout_mode = 2
-theme_override_constants/margin_left = 16
-theme_override_constants/margin_top = 16
-theme_override_constants/margin_right = 16
-theme_override_constants/margin_bottom = 16
-
-[node name="VBox" type="VBoxContainer" parent="UI/SkinPickerPanel/Margin"]
-layout_mode = 2
-theme_override_constants/separation = 12
-
-[node name="TitleLabel" type="Label" parent="UI/SkinPickerPanel/Margin/VBox"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 24
-text = "Choose Apron Skin"
-
-[node name="Grid" type="GridContainer" parent="UI/SkinPickerPanel/Margin/VBox"]
-layout_mode = 2
-size_flags_vertical = 3
-theme_override_constants/h_separation = 20
-theme_override_constants/v_separation = 16
-columns = 4
-
-[node name="CloseButton" type="Button" parent="UI/SkinPickerPanel/Margin/VBox"]
-layout_mode = 2
-text = "Close"
 
 [node name="AssignPickerPanel" type="PanelContainer" parent="UI"]
 theme_override_styles/panel = SubResource("StyleBoxEmpty_bg")
