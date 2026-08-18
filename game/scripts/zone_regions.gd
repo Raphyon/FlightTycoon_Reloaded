@@ -1,7 +1,7 @@
 class_name ZoneRegions
 extends RefCounted
 
-# The SHAPE of each zone on the ground, as a polygon you draw with ZoneEditor.
+# The SHAPE of each zone on the ground, as a polygon drawn by hand in game.
 #
 # Aprons already know their zone because the apron editor asks which area you
 # are placing into. Nothing else does. Building plots are just an id and a

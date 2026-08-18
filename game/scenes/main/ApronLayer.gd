@@ -1,14 +1,14 @@
 extends Node2D
 
-# THIS IS A RUNTIME LAYER FIRST, an editor second.
+# A RUNTIME LAYER that also carries a placement mode.
 #
-# The name is historical: the placement tool was written inside the node that
-# spawns the things, so about 95% of this file is the game and the rest is the
-# tool. Deleting it would remove the aprons and every world aircraft from every
-# airport - not just the ability to move them around.
+# It used to be called ApronEditor, which read as a tool you could delete once
+# everything was placed - it is not. This spawns the aprons and every world aircraft, and
+# the placement mode is the small part bolted on, because the tool was written
+# inside the node that draws the things.
 #
-# The placement mode is off in normal play and switched on from the F1 menu;
-# see `editing` below.
+# The mode is off in normal play and switched on from the F1 menu; see
+# `editing` below.
 
 
 # In-game apron placement tool for all 7 apron areas, including the starting
@@ -43,8 +43,8 @@ const MATCH_RADIUS := 8.0  # px - how close a click has to be to hit an existing
 #
 # Without it the tool DID switch off - every handler is guarded on `editing` -
 # but nothing redrew, so its on-screen readout stayed up and it looked like the
-# thing would not close. LandmarkEditor and ZoneEditor were fixed when this bit
-# the first time; these five were not.
+# thing would not close. It bit the cloud tool first and was fixed piecemeal;
+# every remaining tool carries the setter now.
 var editing := false:
 	set(value):
 		if editing == value:
@@ -391,8 +391,8 @@ func _on_slot_clicked(apron: Apron, area_name: String) -> void:
 	# While placing clouds, a click almost always lands on an apron
 	# underneath (that's the point - clouds cover apron areas), which would
 	# otherwise pop the apron info panel or trigger an assign on top of
-	# whatever CloudEditor is doing with that same click. Ignore it here.
-	if get_node("../CloudEditor").editing:
+	# whatever CloudLayer is doing with that same click. Ignore it here.
+	if get_node("../CloudLayer").editing:
 		return
 	if editing and area_name == _current_area_name():
 		_remove_point(apron.screen_pos)

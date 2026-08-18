@@ -4,7 +4,7 @@ extends CanvasLayer
 # Shared on-screen readout for the in-game placement tools.
 #
 # They all want the same thing: a dark panel of plain text pinned top-left,
-# visible only while that tool is active. RotorEditor and PathEditor had each
+# visible only while that tool is active. RotorEditor and PathLayer had each
 # grown a byte-identical copy of it, and the apron and cloud editors had none
 # at all - they only printed to the console, which is invisible when the game
 # is running fullscreen, so you were placing tiles with no idea which area was

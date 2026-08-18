@@ -2,7 +2,7 @@ class_name CloudLayout
 extends RefCounted
 
 # {area_name: [x,y]} - one placed point per lockable zone, set by hand with
-# CloudEditor the same way apron points are (see ApronLayout) - no
+# CloudLayer the same way apron points are (see ApronLayout) - no
 # positional data exists anywhere for these cloud crops, so they're placed
 # by eye, not measured.
 const SAVE_PATH := "res://data/cloud_layout.json"

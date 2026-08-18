@@ -1,14 +1,14 @@
 extends Node2D
 
-# THIS IS A RUNTIME LAYER FIRST, an editor second.
+# A RUNTIME LAYER that also carries a placement mode.
 #
-# The name is historical: the placement tool was written inside the node that
-# spawns the things, so about 93% of this file is the game and the rest is the
-# tool. Deleting it would remove the road paths the traffic follows from every
-# airport - not just the ability to move them around.
+# It used to be called PathEditor, which read as a tool you could delete once
+# everything was placed - it is not. This spawns the road paths the traffic follows, and
+# the placement mode is the small part bolted on, because the tool was written
+# inside the node that draws the things.
 #
-# The placement mode is off in normal play and switched on from the F1 menu;
-# see `editing` below.
+# The mode is off in normal play and switched on from the F1 menu; see
+# `editing` below.
 
 
 # Generic click-to-trace path placement, replacing the old fixed 3-point
@@ -66,8 +66,8 @@ var _click := ClickDrag.new()
 #
 # Without it the tool DID switch off - every handler is guarded on `editing` -
 # but nothing redrew, so its on-screen readout stayed up and it looked like the
-# thing would not close. LandmarkEditor and ZoneEditor were fixed when this bit
-# the first time; these five were not.
+# thing would not close. It bit the cloud tool first and was fixed piecemeal;
+# every remaining tool carries the setter now.
 var editing := false:
 	set(value):
 		if editing == value:

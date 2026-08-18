@@ -5,7 +5,7 @@ extends Node2D
 # to build something. Once bought it shows the building instead.
 #
 # Position is the point where the base meets the ground, which is what
-# BuildingEditor places, so the sprite hangs UP and LEFT from it rather than
+# the placement tool placed, so the sprite hangs UP and LEFT from it rather than
 # being centred on it.
 
 signal clicked(plot_id: int)

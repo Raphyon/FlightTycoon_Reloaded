@@ -4,12 +4,12 @@ extends Node2D
 func _ready() -> void:
 	print("ft-proto booted")
 	# Aprons and world aircraft (including the starting plane) are all
-	# spawned by ApronEditor.gd, driven by Fleet's assignment data - see
+	# spawned by ApronLayer.gd, driven by Fleet's assignment data - see
 	# AreaOrigins for the markers and data/apron_layout.json for the cells.
 	Maps.map_changed.connect(_on_map_changed)
 	_apply_map()
 	_apply_visiting_ui()
-	$Camera2D.position = $ApronEditor.get_occupied_position()
+	$Camera2D.position = $ApronLayer.get_occupied_position()
 
 
 # Travelling swaps the whole world: each airport is its own background at its
@@ -20,9 +20,9 @@ func _on_map_changed(_map_key: String) -> void:
 	# Both editors key everything off the current map, so they have to rebuild
 	# rather than keep showing the airport we just left. Deferred because a
 	# rebuild frees the existing slot nodes.
-	$ApronEditor.call_deferred("reload_for_map")
-	$CloudEditor.call_deferred("reload_for_map")
-	$PathEditor.call_deferred("reload_for_map")
+	$ApronLayer.call_deferred("reload_for_map")
+	$CloudLayer.call_deferred("reload_for_map")
+	$PathLayer.call_deferred("reload_for_map")
 	# Nothing is guaranteed to be occupied on a map you've never built on, so
 	# fall back to the middle of the new world rather than leaving the camera
 	# parked over wherever the last airport's aircraft was.
@@ -42,7 +42,7 @@ func _apply_map() -> void:
 
 
 func _recentre_camera() -> void:
-	var occupied: Vector2 = $ApronEditor.get_occupied_position()
+	var occupied: Vector2 = $ApronLayer.get_occupied_position()
 	$Camera2D.position = occupied if occupied != Vector2.ZERO else Vector2(Maps.size_for()) * 0.5
 
 

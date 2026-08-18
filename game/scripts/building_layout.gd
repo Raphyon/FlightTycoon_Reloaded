@@ -2,7 +2,7 @@ class_name BuildingLayout
 extends RefCounted
 
 # Where the BUILDING PLOTS are - the empty construction sites, not the
-# buildings. Placed by hand with BuildingEditor (press G in game), for the same
+# buildings. Placed by hand in game with the plot editor, for the same
 # reason every other position in this project is: nothing measured exists for
 # them, and working them out from the art has gone badly.
 #
@@ -20,7 +20,7 @@ extends RefCounted
 # "buildings". A plot on tarmac gets the fenced version; one on grass gets bare
 # machinery, because a fenced concrete pad drawn on a forest floor reads as a
 # mistake. Which plot is which is a placement decision, so it is set by hand in
-# BuildingEditor rather than guessed from coordinates.
+# by hand in game rather than guessed from coordinates.
 #
 # Ids are stable and are what BuildingProgress keys against, so re-ordering or
 # deleting a plot cannot silently move somebody's building to another site.

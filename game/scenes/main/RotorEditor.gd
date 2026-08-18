@@ -45,8 +45,8 @@ const ROTOR_COLORS := [
 #
 # Without it the tool DID switch off - every handler is guarded on `editing` -
 # but nothing redrew, so its on-screen readout stayed up and it looked like the
-# thing would not close. LandmarkEditor and ZoneEditor were fixed when this bit
-# the first time; these five were not.
+# thing would not close. It bit the cloud tool first and was fixed piecemeal;
+# every remaining tool carries the setter now.
 var editing := false:
 	set(value):
 		if editing == value:

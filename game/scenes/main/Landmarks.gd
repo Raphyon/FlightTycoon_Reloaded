@@ -1,6 +1,6 @@
 extends Node2D
 
-# Draws the fixed scenery placed by LandmarkEditor - the terminal, and whatever
+# Draws the fixed scenery in data/landmark_layout.json - the terminal, and whatever
 # joins it. Nothing here is interactive: a landmark has no bubble, no cost and
 # nothing to collect, so it is scenery that happens to be enormous.
 #

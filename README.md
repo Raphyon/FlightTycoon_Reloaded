@@ -80,7 +80,7 @@ Open `game/project.godot` in the Godot editor to run it.
 
 ## What's implemented
 
-21 autoloaded systems, 21 UI panels, 7 in-game placement editors.
+20 autoloaded systems, 21 UI panels, 4 in-game placement tools.
 
 ### Airports and travel
 
@@ -229,15 +229,23 @@ Demolition refunds half of everything sunk in, upgrades included. See
 
 ### Development tooling
 
-Nothing in this project guesses at placements. Seven editors put it in the
-game instead, all reached from the F1 debug menu:
+Nothing in this project guesses at placements - everything was placed in game
+and lives as coordinates in `game/data/*.json`.
 
-`ApronEditor` · `BuildingEditor` · `CloudEditor` · `LandmarkEditor` ·
-`PathEditor` · `RotorEditor` · `ZoneEditor`
+Three of the tools turned out to be the game itself. `ApronLayer` spawns every
+apron and world aircraft, `CloudLayer` the covers over locked zones, `PathLayer`
+the roads traffic follows - roughly 90-95% of each file is runtime, with the
+placement mode bolted on because the tool was written inside the node that draws
+the things. They were called `*Editor` until the names started misleading people
+about what deleting them would do.
 
-All five that place world objects use `_input` rather than `_unhandled_input`,
-because an apron's Area2D claims world clicks through physics picking first.
-They act on mouse *release* without drag, so a left-drag still pans the camera.
+`RotorEditor` is a genuine tool and is kept for the next aircraft with a
+propeller. The building-plot, landmark and zone-region editors were deleted once
+their data was placed; the coordinates they produced are in `game/data`.
+
+They use `_input` rather than `_unhandled_input`, because an apron's Area2D
+claims world clicks through physics picking first, and act on mouse *release*
+without drag so a left-drag still pans the camera.
 
 **Fast-forward** (`GameClock`) advances the simulation by hand while the engine
 stays at 1x. Scaling `Engine.time_scale` instead hands every frame a five
@@ -245,9 +253,13 @@ second delta at x300 and greys the screen out. It **holds while a panel is
 open** — fast-forward multiplies the world, not the hand holding the phone —
 except Routes, which is the panel you turn the fleet around in.
 
-**Scenarios** jump the save to early/mid/late/endgame so content past the early
-hours can be tested at all. "Endgame (everything)" means it: level 72, above the
-Carrier's gate at 70, with all eleven zones and 184 pads across three airports.
+**Give controls** in the F1 menu nudge the save by hand - cash in 10k/100k/1m/10m
+steps, coins in 5/10/50/100, levels in 1/5/10. Levels are granted as XP rather
+than assigned, so `add_xp` runs its own loop and every `level_changed` fires;
+the shop, the zone cards and the quest gates all listen for those.
+
+These replaced four scenario presets that jumped to fixed points and wiped the
+save to get there. Most testing wants one number nudged, not a new game.
 
 **The bot cannot touch your save.** It calls `reset_to_defaults()` and plays 90
 simulated days, and all of that used to be written straight to `game/data` - a

@@ -571,7 +571,7 @@ func in_range(model_key: String, map_key: String) -> bool:
 var aircraft: Array[FleetAircraft] = []
 var _next_id := 1
 # Bulk operations (advance_all) touch every aircraft and would otherwise fire
-# fleet_changed once per action per aircraft - and ApronEditor rebuilds every
+# fleet_changed once per action per aircraft - and ApronLayer rebuilds every
 # apron slot and world sprite on that signal. With 110 aircraft that was
 # hundreds of full rebuilds of 220 nodes in one press, which exhausted Godot's
 # 32MB deferred-call queue outright. One signal at the end instead.

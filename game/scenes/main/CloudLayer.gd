@@ -1,18 +1,18 @@
 extends Node2D
 
-# THIS IS A RUNTIME LAYER FIRST, an editor second.
+# A RUNTIME LAYER that also carries a placement mode.
 #
-# The name is historical: the placement tool was written inside the node that
-# spawns the things, so about 90% of this file is the game and the rest is the
-# tool. Deleting it would remove the cloud covers over locked zones from every
-# airport - not just the ability to move them around.
+# It used to be called CloudEditor, which read as a tool you could delete once
+# everything was placed - it is not. This spawns the cloud covers over locked zones, and
+# the placement mode is the small part bolted on, because the tool was written
+# inside the node that draws the things.
 #
-# The placement mode is off in normal play and switched on from the F1 menu;
-# see `editing` below.
+# The mode is off in normal play and switched on from the F1 menu; see
+# `editing` below.
 
 
 # Manual placement tool for cloud cover, one point per lockable zone - same
-# workflow as ApronEditor (no measured positions exist for these crops, so
+# workflow as ApronLayer (no measured positions exist for these crops, so
 # they're eyeballed and placed by hand).
 #
 #   Switched on from the F1 menu - no toggle key, see _input.
@@ -32,8 +32,8 @@ var _click := ClickDrag.new()
 #
 # Without it the tool DID switch off - every handler is guarded on `editing` -
 # but nothing redrew, so its on-screen readout stayed up and it looked like the
-# thing would not close. LandmarkEditor and ZoneEditor were fixed when this bit
-# the first time; these five were not.
+# thing would not close. It bit the cloud tool first and was fixed piecemeal;
+# every remaining tool carries the setter now.
 var editing := false:
 	set(value):
 		if editing == value:
@@ -109,7 +109,7 @@ func _current_area_name() -> String:
 
 
 # Uses _input (fires before GUI, physics picking, and _unhandled_input),
-# not _unhandled_input like ApronEditor - a placement click almost always
+# not _unhandled_input like ApronLayer - a placement click almost always
 # lands on an apron underneath (that's the point, clouds cover apron
 # areas), and its Area2D would otherwise claim the click via physics
 # picking before this node ever saw it, so nothing got placed. Claiming

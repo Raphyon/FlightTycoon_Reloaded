@@ -12,7 +12,7 @@ extends Control
 const TOGGLE_KEY := KEY_F1
 # Width is fixed; HEIGHT IS WHATEVER THE WINDOW HAS. This used to be a fixed
 # 430x700 pinned at (240, 120), which on a 720-tall window ran to 820 and put
-# the bottom third - the placement tools, then the scenarios, then the speed
+# the bottom third - the placement tools, then the give controls, then the speed
 # controls - off the screen entirely. It grew every time a tool was added, so a
 # fixed size was always going to lose this argument eventually.
 const PANEL_WIDTH := 430.0
@@ -30,24 +30,16 @@ const FLAGS := [
 # menu flips that bool directly so the button and the key stay in sync.
 const EDITORS := [
 	{
-		"node": "ApronEditor", "label": "Apron placement", "key": "",
+		"node": "ApronLayer", "label": "Apron placement", "key": "",
 		"help": "1-7 pick area  ·  click add  ·  click a tile to remove",
 	},
 	{
-		"node": "CloudEditor", "label": "Cloud placement", "key": "",
+		"node": "CloudLayer", "label": "Cloud placement", "key": "",
 		"help": "1-7 pick zone  ·  click place/move  ·  click its cloud to remove",
 	},
 	{
-		"node": "PathEditor", "label": "Path tracing", "key": "",
+		"node": "PathLayer", "label": "Path tracing", "key": "",
 		"help": "1-4 plane paths  ·  5 roads (N new, C category, [ ] switch, X delete)  ·  H clouds",
-	},
-	{
-		"node": "ZoneEditor", "label": "Zone regions", "key": "",
-		"help": "1-7 pick zone  ·  click corner  ·  right click undo  ·  C clear  ·  H fills",
-	},
-	{
-		"node": "LandmarkEditor", "label": "Landmark placement", "key": "",
-		"help": "click place/move  ·  M next  ·  - + resize  ·  X delete",
 	},
 	{
 		"node": "RotorEditor", "label": "Rotor placement", "key": "",
@@ -56,9 +48,18 @@ const EDITORS := [
 ]
 
 var _speed_buttons: Array = []
-var _scenario_buttons: Array = []
-var _armed_scenario := ""
 var _rows: Array = []
+
+
+# HAND CONTROLS, rather than the four scenario presets alone. A preset drops you
+# at a fixed point and wipes what you had; most testing wants one number nudged -
+# enough cash for the next zone, enough levels to see what a gate does - without
+# throwing the rest of the save away.
+const GIVE_ROWS := [
+	{"kind": "cash", "label": "Cash", "amounts": [10000, 100000, 1000000, 10000000]},
+	{"kind": "coins", "label": "Coins", "amounts": [5, 10, 50, 100]},
+	{"kind": "levels", "label": "Levels", "amounts": [1, 5, 10]},
+]
 
 
 func _ready() -> void:
@@ -141,6 +142,25 @@ func _build() -> void:
 	_refresh_speeds()
 
 	col.add_child(HSeparator.new())
+	col.add_child(_heading("Give", 14))
+	col.add_child(_note("Nudge the save by hand. Levels grant the XP to reach them,"
+		+ " so every level-up fires as it normally would."))
+	for row in GIVE_ROWS:
+		var line := HBoxContainer.new()
+		line.add_theme_constant_override("separation", 6)
+		var label := Label.new()
+		label.text = str(row["label"])
+		label.custom_minimum_size = Vector2(56, 0)
+		label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		line.add_child(label)
+		for amount in row["amounts"]:
+			var b := Button.new()
+			b.text = "+%s" % _short(int(amount))
+			b.pressed.connect(_on_give_pressed.bind(str(row["kind"]), int(amount)))
+			line.add_child(b)
+		col.add_child(line)
+
+	col.add_child(HSeparator.new())
 	col.add_child(_heading("Daily tasks", 14))
 	col.add_child(_note("No toolbar button yet - this is how you reach the panel."))
 	var quests_button := Button.new()
@@ -156,16 +176,6 @@ func _build() -> void:
 	col.add_child(roll)
 
 	col.add_child(HSeparator.new())
-	col.add_child(_heading("Jump to a scenario", 14))
-	col.add_child(_note("Wipes the save and rebuilds it. There is no undo - see Scenarios.gd."))
-	for key in Scenarios.names():
-		var b := Button.new()
-		b.text = Scenarios.label_for(key)
-		b.pressed.connect(_on_scenario_pressed.bind(key))
-		col.add_child(b)
-		_scenario_buttons.append({"button": b, "key": key})
-
-	col.add_child(HSeparator.new())
 	col.add_child(_heading("Placement tools", 14))
 	col.add_child(_note("Only one should be active at a time - they all claim clicks."))
 	for entry in EDITORS:
@@ -178,30 +188,31 @@ func _build() -> void:
 			"key": entry["key"], "control": button})
 
 
-# Two presses, like every other destructive control here - the first arms the
-# button and the second does it. A scenario throws away whatever you were
-# holding, and these sit one row above the placement tools.
-func _on_scenario_pressed(key: String, ) -> void:
-	if _armed_scenario != key:
-		_armed_scenario = key
-		_refresh_scenario_labels()
-		return
-	_armed_scenario = ""
-	Scenarios.apply(key)
-	_refresh_scenario_labels()
-	visible = false
+# 10000 -> "10k", 1000000 -> "1m". A row of full figures is unreadable at this
+# size and the button only has to say which of four it is.
+func _short(n: int) -> String:
+	if n >= 1000000:
+		return "%dm" % (n / 1000000)
+	if n >= 1000:
+		return "%dk" % (n / 1000)
+	return str(n)
 
 
-func _refresh_scenario_labels() -> void:
-	for row in _scenario_buttons:
-		var b: Button = row["button"]
-		var key: String = row["key"]
-		b.text = ("Confirm - wipe and load \"%s\"" % Scenarios.label_for(key)
-			if _armed_scenario == key else Scenarios.label_for(key))
+func _on_give_pressed(kind: String, amount: int) -> void:
+	match kind:
+		"cash":
+			Economy.add_money(amount)
+		"coins":
+			Coins.add(amount)
+		"levels":
+			# Granted as XP rather than by setting `level` directly, so add_xp
+			# runs its own loop and every level_changed fires - the shop, the
+			# zone cards and the quest gates all listen for those.
+			var target: int = Progression.level + amount
+			Progression.add_xp(maxi(0, Progression.xp_for_level(target) - Progression.xp))
+	_refresh()
 
 
-# Speeding up the world is not destructive, so no arming step - but the badge
-# GameClock draws makes sure it is never on without you knowing.
 func _on_speed_pressed(value: float) -> void:
 	GameClock.set_scale(value)
 	_refresh_speeds()

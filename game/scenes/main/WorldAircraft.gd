@@ -7,7 +7,7 @@ extends Node2D
 # continuously accelerating curve, 4) disappear off-canvas (no fade-out).
 # Body and shadow move along their own separately traced paths (arbitrary
 # point count) so the shadow can stay on the ground while the body climbs
-# away from it - all placed by hand with PathEditor (press T in-game), not
+# away from it - all placed by hand with PathLayer (press T in-game), not
 # guessed - see PathLayout.
 #
 # Arrivals mirror that: fly in along the separately traced approach paths,
@@ -498,7 +498,7 @@ func _play_vertical_liftoff() -> void:
 func _play_runway_departure() -> void:
 	var path_data := PathLayout.load_effective()
 	# Falls back to staying put (and the shadow falls back to riding glued
-	# to the body) if these haven't been traced yet with PathEditor (press T
+	# to the body) if these haven't been traced yet with PathLayer (press T
 	# in-game) - harmless no-op instead of a crash. Read with .get(): paths
 	# are per-airport now, so an airport nobody has traced yet has no keys at
 	# all, not empty ones.

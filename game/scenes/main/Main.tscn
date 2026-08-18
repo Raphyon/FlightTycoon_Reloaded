@@ -4,14 +4,14 @@
 [ext_resource type="Texture2D" uid="uid://c8dku5kcf8ygj" path="res://assets/background/airport001.png" id="2"]
 [ext_resource type="Script" uid="uid://bkwyw07ytbilj" path="res://scenes/main/Camera.gd" id="5"]
 [ext_resource type="Script" uid="uid://cfd5jo3hugstt" path="res://scenes/main/GridOverlay.gd" id="6"]
-[ext_resource type="Script" uid="uid://bfd4tc8yrj2vp" path="res://scenes/main/ApronEditor.gd" id="7"]
+[ext_resource type="Script" uid="uid://bfd4tc8yrj2vp" path="res://scenes/main/ApronLayer.gd" id="7"]
 [ext_resource type="Script" uid="uid://dn70ms0jgb7p" path="res://scenes/main/ApronInfoPanel.gd" id="8"]
 [ext_resource type="Texture2D" path="res://assets/hud/icon_medium_money1@2x.png" id="9"]
 [ext_resource type="Texture2D" uid="uid://c220asf3bpyfv" path="res://assets/hud/icon_medium_xp@2x.png" id="10"]
 [ext_resource type="Script" uid="uid://bmj0j2k8gwvtb" path="res://scenes/main/TopBar.gd" id="11"]
 [ext_resource type="Script" uid="uid://dhir8w21yu38y" path="res://scenes/main/ShopPanel.gd" id="12"]
 [ext_resource type="Script" uid="uid://cr44ii2sx8ybs" path="res://scenes/main/HangarPanel.gd" id="13"]
-[ext_resource type="Script" uid="uid://bwm7is8i2pxqq" path="res://scenes/main/CloudEditor.gd" id="14"]
+[ext_resource type="Script" uid="uid://bwm7is8i2pxqq" path="res://scenes/main/CloudLayer.gd" id="14"]
 [ext_resource type="Script" uid="uid://bjiin7bgjxrj6" path="res://scenes/main/ZoneUnlockPanel.gd" id="15"]
 [ext_resource type="Texture2D" uid="uid://dpkflvv8uatk7" path="res://assets/buttons/button_Store@2x.png" id="16"]
 [ext_resource type="Texture2D" uid="uid://dk0oss4gtef8" path="res://assets/buttons/button_store2_pressed@2x.png" id="17"]
@@ -27,7 +27,7 @@
 [ext_resource type="Script" path="res://scenes/main/SkinPickerPanel.gd" id="29"]
 [ext_resource type="Texture2D" path="res://assets/hud/icon_medium_coin@2x.png" id="30"]
 [ext_resource type="Script" path="res://scenes/main/AssignPickerPanel.gd" id="31"]
-[ext_resource type="Script" path="res://scenes/main/PathEditor.gd" id="32"]
+[ext_resource type="Script" path="res://scenes/main/PathLayer.gd" id="32"]
 [ext_resource type="Script" path="res://scenes/main/RoadTraffic.gd" id="33"]
 [ext_resource type="Script" path="res://scenes/main/RotorEditor.gd" id="34"]
 [ext_resource type="Script" path="res://scenes/main/ExpansionShopPanel.gd" id="35"]
@@ -62,15 +62,12 @@
 [ext_resource type="Texture2D" path="res://assets/buttons/button_social2@2x.png" id="59"]
 [ext_resource type="Script" path="res://scenes/main/RoutePickerPanel.gd" id="64"]
 [ext_resource type="Script" path="res://scenes/main/LiveryPickerPanel.gd" id="65"]
-[ext_resource type="Script" path="res://scenes/main/BuildingEditor.gd" id="66"]
 [ext_resource type="Script" path="res://scenes/main/Buildings.gd" id="67"]
 [ext_resource type="Script" path="res://scenes/main/PropShopPanel.gd" id="68"]
 [ext_resource type="Script" path="res://scenes/main/OptionsPanel.gd" id="70"]
 [ext_resource type="Texture2D" path="res://assets/ui/gear_icon.svg" id="71"]
 [ext_resource type="Script" path="res://scenes/main/BuildingInfoPanel.gd" id="72"]
 [ext_resource type="Script" path="res://scenes/main/Landmarks.gd" id="75"]
-[ext_resource type="Script" path="res://scenes/main/LandmarkEditor.gd" id="76"]
-[ext_resource type="Script" path="res://scenes/main/ZoneEditor.gd" id="77"]
 [ext_resource type="Texture2D" path="res://assets/buttons/button_arrow_left@2x.png" id="73"]
 [ext_resource type="Texture2D" path="res://assets/buttons/button_arrow_right@2x.png" id="74"]
 [ext_resource type="Script" path="res://scenes/main/QuestsPanel.gd" id="78"]
@@ -113,35 +110,25 @@ position = Vector2(2735.4, 2026.1)
 [node name="GridOverlay" type="Node2D" parent="." unique_id=1163300136]
 script = ExtResource("6")
 
-[node name="ApronEditor" type="Node2D" parent="." unique_id=1040825060]
+[node name="ApronLayer" type="Node2D" parent="." unique_id=1040825060]
 script = ExtResource("7")
 
 [node name="Landmarks" type="Node2D" parent="."]
 y_sort_enabled = true
 script = ExtResource("75")
 
-[node name="ZoneEditor" type="Node2D" parent="."]
-z_index = 400
-script = ExtResource("77")
-
-[node name="LandmarkEditor" type="Node2D" parent="."]
-script = ExtResource("76")
-
 [node name="Buildings" type="Node2D" parent="."]
 y_sort_enabled = true
 script = ExtResource("67")
 
-[node name="BuildingEditor" type="Node2D" parent="."]
-script = ExtResource("66")
-
 [node name="Clouds" type="Node2D" parent="." unique_id=140231114]
 
-[node name="CloudEditor" type="Node2D" parent="." unique_id=2115948767]
+[node name="CloudLayer" type="Node2D" parent="." unique_id=2115948767]
 script = ExtResource("14")
 
 [node name="WorldAircraft" type="Node2D" parent="." unique_id=1232857671]
 
-[node name="PathEditor" type="Node2D" parent="." unique_id=3320458812]
+[node name="PathLayer" type="Node2D" parent="." unique_id=3320458812]
 script = ExtResource("32")
 
 [node name="RoadTraffic" type="Node2D" parent="." unique_id=3841029571]

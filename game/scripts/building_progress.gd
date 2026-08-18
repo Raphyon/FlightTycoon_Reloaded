@@ -101,7 +101,7 @@ func buildings_unlocked() -> bool:
 	return true
 
 
-# Which zone a plot sits in, from the regions drawn with ZoneEditor, and
+# Which zone a plot sits in, from the hand-drawn regions in zone_regions.json, and
 # whether that zone is bought yet.
 #
 # An UNDRAWN plot - one no region contains - stays available. A half-drawn map

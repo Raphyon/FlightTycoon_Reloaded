@@ -69,7 +69,7 @@ func _hit_polygons(texture: Texture2D) -> Array:
 	return out
 
 
-# A cover only needs to take clicks while CloudEditor is placing them; that's
+# A cover only needs to take clicks while CloudLayer is placing them; that's
 # the only handler that does anything with one. In normal play it must NOT,
 # because swallowing a click is exactly how a cover reaches past its own zone
 # and blocks pads that are unlocked, visible and buyable - which is what

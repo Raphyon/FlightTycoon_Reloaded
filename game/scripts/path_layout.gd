@@ -1,7 +1,7 @@
 class_name PathLayout
 extends RefCounted
 
-# Generic traced paths, all placed by hand with PathEditor - no measured/
+# Generic traced paths, all placed by hand with PathLayer - no measured/
 # guessed/derived positions. Every path is just an ordered list of [x, y]
 # points; a click always appends a point connected to the previous one.
 #
@@ -45,7 +45,7 @@ static func save_all(all_data: Dictionary) -> void:
 # paths, but an airport that is a copy of another (the robot mirrors airport1)
 # borrows that one's until it has any of its own.
 #
-# Deliberately separate from load_data: PathEditor must keep seeing the map's
+# Deliberately separate from load_data: PathLayer must keep seeing the map's
 # OWN data, because whatever it holds is what it saves back. Handing it
 # borrowed paths would write homeland's runway into the robot's slot the first
 # time anything was edited there - the same contamination the per-map split was

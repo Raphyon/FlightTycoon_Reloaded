@@ -1,12 +1,12 @@
 extends Node2D
 
-# Ambient background traffic. Every road traced with PathEditor (press T,
+# Ambient background traffic. Every road traced with PathLayer (press T,
 # then 3 for roads) periodically spawns a random vehicle matching that
 # road's category - airport service vehicles never appear on commercial
 # roads and vice versa. Each spawn travels the road's traced path start to
 # end at a steady speed, then despawns off the far end. A road is one
 # direction only - trace a second, separate road for opposing traffic (see
-# PathEditor).
+# PathLayer).
 #
 # Each vehicle has two art variants, both extracted from the source sheet:
 # a "front" (facing down-left) and a "back" (facing up-right, the same
@@ -31,7 +31,7 @@ var _next_spawn: Dictionary = {}  # road_name -> seconds remaining
 
 func _ready() -> void:
 	_reload_roads()
-	get_node("../PathEditor").roads_changed.connect(_reload_roads)
+	get_node("../PathLayer").roads_changed.connect(_reload_roads)
 	# Roads are traced per airport, so travelling has to drop the old ones and
 	# clear any vehicle still driving along a road that no longer exists here.
 	Maps.map_changed.connect(_on_map_changed)

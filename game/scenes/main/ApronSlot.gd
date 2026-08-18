@@ -237,7 +237,7 @@ func _set_callout_arrived(action: Callable) -> void:
 # Claims bubble clicks in _input (fires before physics picking) rather than
 # a second Area2D - a second Area2D's own picking doesn't reliably preempt
 # this node's own diamond Area2D for the same click (same class of bug as
-# CloudEditor vs ApronSlot earlier - both would fire, and the diamond's own
+# CloudLayer vs ApronSlot earlier - both would fire, and the diamond's own
 # click would pop the info panel over top of the bubble action).
 func _input(event: InputEvent) -> void:
 	var tag_live: bool = is_instance_valid(_tag) and _tag.visible and _tag_action.is_valid()

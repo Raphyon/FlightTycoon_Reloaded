@@ -39,7 +39,6 @@ DebugState="*res://scripts/debug_state.gd"
 AircraftSkins="*res://scripts/aircraft_skins.gd"
 Quests="*res://scripts/quests.gd"
 SaveGame="*res://scripts/save_game.gd"
-Scenarios="*res://scripts/scenarios.gd"
 Bot="*res://scripts/bot.gd"
 
 [display]

@@ -1,7 +1,7 @@
 class_name ApronLayout
 extends RefCounted
 
-# Every area is placed with the in-game apron editor (see ApronEditor.gd),
+# Every area is placed with the in-game apron editor (see ApronLayer.gd),
 # each apron just an exact clicked screen position - no grid snapping.
 # Not every apron-shaped tile in the art sits on one consistent lattice (the
 # original Zone1/Zone2 measurements turned out to overlap, and tiles further
@@ -72,7 +72,7 @@ static func ensure_seeded() -> void:
 # the destination's pads and is asked per aircraft on every fleet refresh, and
 # with five destinations that was five file reads and five JSON parses deep
 # inside a UI update. Handing out a copy rather than the cache itself keeps the
-# old contract - ApronEditor mutates what it gets back before saving it.
+# old contract - ApronLayer mutates what it gets back before saving it.
 static var _cache: Dictionary = {}
 static var _cache_valid := false
 
@@ -102,7 +102,7 @@ static func save_all(all_data: Dictionary) -> void:
 
 
 # {area_name: [[x,y], ...]} for one airport - the current one unless told
-# otherwise. Written by ApronEditor.
+# otherwise. Written by ApronLayer.
 static func load_area_data(map_key: String = "") -> Dictionary:
 	var key := map_key if map_key != "" else Maps.current
 	return load_all().get(key, {})
@@ -127,7 +127,7 @@ static func save_area_data(data: Dictionary, map_key: String = "") -> void:
 # its own block and an aircraft parked at one is not parked at another.
 #
 # Deliberately separate from load_area_data, which stays the map's OWN data:
-# ApronEditor writes back whatever it was given, and handing it borrowed points
+# ApronLayer writes back whatever it was given, and handing it borrowed points
 # would fork 110 pads into a second copy on the first click. See PathLayout,
 # which draws the same line for the same reason.
 static func effective_area_data(map_key: String = "") -> Dictionary:
