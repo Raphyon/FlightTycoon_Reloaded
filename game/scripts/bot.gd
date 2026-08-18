@@ -75,6 +75,11 @@ var _zone_times := {}       # area -> [minutes of play, calendar day] when bough
 # this is the tap bill a real player would have to pay to match it.
 var _taps := 0
 var _latency := DEFAULT_LATENCY
+# Whether the player uses the routes panel's DEPART ALL. Off by default, which
+# is what every pacing number measured so far assumed - the bot has always
+# tapped each aircraft twice, claim then depart, and never touched advance_all.
+# That makes depart-all an unmeasured accelerant, which --bulk exists to price.
+var _bulk := false
 var _trace := false
 # Fast-forward multiplier the imaginary player is running at. Taps cost
 # _latency * _speed of GAME time, because their hands do not speed up.
@@ -134,6 +139,7 @@ func _ready() -> void:
 			"--latency": _latency = maxf(0.0, float(args[i + 1]))
 			"--speed": _speed = maxf(1.0, float(args[i + 1]))
 			"--sessions": _sessions = int(args[i + 1])
+			"--bulk": _bulk = args[i + 1] != "off"
 			"--minutes": _minutes = float(args[i + 1])
 	call_deferred("_run")
 
@@ -234,6 +240,27 @@ func _skip(seconds: float) -> void:
 	Quests.tick()
 
 
+# One press of DEPART ALL: it claims and departs every aircraft that can move.
+# Charged two taps - opening the routes panel and pressing the button - against
+# the two PER AIRCRAFT the manual path pays.
+func _collect_bulk() -> void:
+	# advance_all cannot buy fuel, so a dry store would silently stall the whole
+	# fleet and read as the bulk player being slower rather than out of fuel.
+	var need := 0
+	for a in Fleet.aircraft:
+		if not a.is_idle():
+			need += Fleet.fuel_cost(a.model_key, Fleet.destination_of(a))
+	if FuelStore.amount < need:
+		_buy_fuel(need - FuelStore.amount)
+	_taps += 2
+	Fleet.advance_all()
+	var coins_before: int = Coins.amount
+	var milestones_before: int = _milestone_coins
+	BuildingProgress.collect_all()
+	_building_coins += (Coins.amount - coins_before) \
+		- (_milestone_coins - milestones_before)
+
+
 func _next_landing() -> float:
 	var soonest := -1.0
 	for a in Fleet.aircraft:
@@ -244,6 +271,9 @@ func _next_landing() -> float:
 
 
 func _collect() -> void:
+	if _bulk:
+		_collect_bulk()
+		return
 	for a in Fleet.aircraft.duplicate():
 		match a.state:
 			FleetAircraft.State.AWAITING_DEST_CLAIM:

@@ -21,31 +21,37 @@ const BOARD_TOP_MARGIN := 24.0
 # Narrower than the panel on purpose: the back arrow occupies the bottom-right
 # corner (x1038 onward on a 1152-wide panel), and a centred 980px row reached
 # x1066 - straight through it. Plus room for the scrollbar.
-const ROW_SIZE := Vector2(900, 62)
+const ROW_SIZE := Vector2(900, 52)
 const SCROLLBAR_ALLOWANCE := 14.0
-const ICON_SIZE := Vector2(52, 52)
+const ICON_SIZE := Vector2(44, 44)
 # Half the row's height, so a line reads as exactly two buttons tall. The
 # button art is natively 136x62; drawn at half height it needs a smaller label
 # to match, hence ACTION_FONT being well under the row's own font size.
-const ACTION_SIZE := Vector2(118, 31)
-const ACTION_FONT := 13
+#
+# The row was 62 tall. It is 52 now, along with everything sized off it, to fit
+# more of the fleet on screen at once - a 62px row put six lines in the scroll
+# area at a point in the game where the fleet is sixty aircraft.
+const ACTION_SIZE := Vector2(112, 26)
+const ACTION_FONT := 12
 # Column x positions inside a row.
 const COL_ICON := 10.0
 const COL_TYPE := 84.0
 const COL_DEST := 330.0
 const COL_TIME := 560.0
 const COL_ACTION := 752.0
-const ROW_FONT := 17
+const ROW_FONT := 15
 
 # The bulk control. A round trip is five presses per aircraft, so a fleet of
 # five costs twenty-five to go round once - this does the lot in one.
 #
-# Drawn at button_orange4's native 192x62. It used to be the 136x62 button
-# pulled out to 300x46 to fit a longer label - stretched 2.2x wide and squashed
-# to three quarters height, which reads as exactly what it was. The wide art
-# exists for this; the label is cut to suit it rather than the reverse.
-const RUN_ALL_SIZE := Vector2(192, 62)
-const RUN_ALL_FONT := 19
+# Drawn at button_orange4's ASPECT, 192x62, rather than its native size: 138x45
+# is the same 3.1:1 so the art is not squashed, and the 17px it gives back go to
+# the row area. It was the full 192x62, which is a lot of furniture under a list
+# that wanted the space more. It used to be the 136x62 button pulled out to
+# 300x46 - stretched 2.2x wide and squashed to three quarters height, which read
+# as exactly what it was; the wide art exists for this.
+const RUN_ALL_SIZE := Vector2(138, 45)
+const RUN_ALL_FONT := 15
 const RESULT_FONT := 15
 const RESULT_HOLD := 3.0
 const RESULT_WIDTH := 300.0
