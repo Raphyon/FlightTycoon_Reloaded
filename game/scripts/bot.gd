@@ -80,6 +80,10 @@ var _latency := DEFAULT_LATENCY
 # tapped each aircraft twice, claim then depart, and never touched advance_all.
 # That makes depart-all an unmeasured accelerant, which --bulk exists to price.
 var _bulk := false
+# Fleet size is what decides whether DEPART ALL is worth having: the manual path
+# costs two taps per aircraft, the button costs two flat, so the saving is
+# 2N-2. Recording the level at each size says where a gate would actually bite.
+var _fleet_marks := {}
 var _trace := false
 # Fast-forward multiplier the imaginary player is running at. Taps cost
 # _latency * _speed of GAME time, because their hands do not speed up.
@@ -270,7 +274,15 @@ func _next_landing() -> float:
 	return soonest
 
 
+func _note_fleet() -> void:
+	var n: int = Fleet.aircraft.size()
+	for mark in [3, 5, 8, 10, 12, 15, 20, 25, 30, 40]:
+		if n >= mark and not _fleet_marks.has(mark):
+			_fleet_marks[mark] = [Progression.level, _played / 60.0, maxi(0, 2 * n - 2)]
+
+
 func _collect() -> void:
+	_note_fleet()
 	if _bulk:
 		_collect_bulk()
 		return
@@ -708,6 +720,12 @@ func _summary() -> void:
 	print("  routing policy: %s   daily tasks: %s" % [_routing, "on" if _do_quests else "off"])
 	print("  quests: %d sets completed, %d coins earned" % [_sets_done, _quest_coins])
 	print("  building coin drops: %d" % _building_coins)
+	print("  FLEET SIZE vs LEVEL (taps a turnaround saved by Depart All):")
+	for mark in [3, 5, 8, 10, 12, 15, 20, 25, 30, 40]:
+		if _fleet_marks.has(mark):
+			var v: Array = _fleet_marks[mark]
+			print("    %2d aircraft  at level %-3d  %5.1f h of play   saves %d taps"
+				% [mark, v[0], v[1], v[2]])
 	print("  milestone coins: %d" % _milestone_coins)
 	print("  coins: %d earned over the run (started with %d), against %d coin aircraft in the shop"
 		% [Coins.amount - Coins.DEFAULT_AMOUNT, Coins.DEFAULT_AMOUNT, _coin_models()])
