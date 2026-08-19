@@ -319,13 +319,48 @@ save toward while poor, and a sink once rich.
 
 The top of the cash ladder climbs about x1.4 a level ($800k at 45 to $7M at 50).
 Continuing that slope to 70 gives $5.6B, four times what the tail earns.
-**x1.25 a level** lands right:
+**x1.25 a level** lands right.
 
-| level | price | | level | price |
-|---|---|---|---|---|
-| 53 | $14M | | 62 | $105M |
-| 56 | $27M | | 65 | $200M |
-| 59 | $55M | | 68 | $390M |
+### PUT THEM ON THE ZONE UNLOCKS, not at even spacing
+
+REVISED. This section used to space eight entries evenly at 53/56/59/62/65/68.
+That was written before the sawtooth was understood, and even spacing is the one
+layout that does not produce one.
+
+The game already has a sawtooth and it is already aligned: every zone unlock up
+to Beach arrives with new aircraft, and a new model starts at the cheap end of
+the affinity curve, so an unlock hands back a burst of quick airframe levels
+before the ramp bites again.
+
+| zone | level | models arriving |
+|---|---|---|
+| Zone2 | 14 | emb120, dhc8 |
+| DarkZone | 28 | tu104, a318, balloon, a319 |
+| Forest | 36 | blackh, ufo, airship, v22, a300 |
+| Desert | 42 | b787, 747, ncc1701, x37b |
+| Beach | 48 | a380-300, concorde, an-225, a400m, ark |
+| Snow | 53 | **nothing** |
+| Dreamland1 | 57 | **nothing** |
+| Dreamland2 | 62 | **nothing** |
+| Dreamland3 | 66 | **nothing** |
+| Carrier | 70 | **nothing** |
+
+So the tail is not just empty of aircraft - it is missing the pattern that
+carries the first 48 levels. Eight entries, placed on the teeth:
+
+| level | zone it lands with | price |
+|---|---|---|
+| 52 | Snow (53) | $12M |
+| 53 | Snow | $14M |
+| 56 | Dreamland1 (57) | $27M |
+| 57 | Dreamland1 | $34M |
+| 61 | Dreamland2 (62) | $84M |
+| 62 | Dreamland2 | $105M |
+| 66 | Dreamland3 (66) | $250M |
+| 70 | Carrier (70) | $600M |
+
+Same count and roughly the same total as the even spacing, but each zone opens
+with something new to fly rather than a level number.
 
 Eight entries totalling ~$1.1B against ~$1.3B earned across the tail. You can own
 nearly all of them by level 70, but not without choosing an order, and each is a
