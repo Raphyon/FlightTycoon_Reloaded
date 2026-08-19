@@ -27,6 +27,10 @@ const COLOR_GAIN := Color(0.55, 1.0, 0.6)
 const COLOR_SPEND := Color(1.0, 0.78, 0.35)
 const COLOR_COIN := Color(1.0, 0.88, 0.35)
 const COLOR_XP := Color(0.55, 0.80, 1.0)
+# A model gaining a level. Violet, because the other four are already spoken
+# for - green earns, orange spends, gold is coins, blue is XP - and this needs
+# to read as a different KIND of event, not a bigger number.
+const COLOR_LEVEL := Color(0.85, 0.68, 1.0)
 const COLOR_OUTLINE := Color(0.07, 0.06, 0.04)
 
 var _age := 0.0

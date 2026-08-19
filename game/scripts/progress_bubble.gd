@@ -166,6 +166,14 @@ func _process(delta: float) -> void:
 # even knowable up front in every case, because a rent claim can turn up a coin
 # on a dice roll (BuildingProgress.coin_chance_for). A delta reports whatever
 # happened, including the parts nothing predicted.
+# Set by the signal while an action runs; read once the action is done.
+var _levelled_to := 0
+
+
+func _on_model_levelled(_model_key: String, level: int, _reward: int) -> void:
+	_levelled_to = level
+
+
 func _call_and_report(action: Callable) -> void:
 	var money_before: int = Economy.money
 	var fuel_before: int = FuelStore.amount
@@ -174,7 +182,17 @@ func _call_and_report(action: Callable) -> void:
 	# thresholds - so a plain delta is safe across a level-up.
 	var xp_before: int = Progression.xp
 
+	# A model levelling is folded into the money delta above - the reward is
+	# paid inside the claim - so without catching the signal the player just
+	# sees a slightly larger number and no reason for it. Listened to only for
+	# the duration of the action, so a level earned anywhere else on the board
+	# does not surface on this bubble.
+	_levelled_to = 0
+	AircraftAffinity.model_levelled.connect(_on_model_levelled)
+
 	action.call()
+
+	AircraftAffinity.model_levelled.disconnect(_on_model_levelled)
 
 	var money: int = Economy.money - money_before
 	var fuel: int = fuel_before - FuelStore.amount
@@ -197,6 +215,11 @@ func _call_and_report(action: Callable) -> void:
 		stack += 1.0
 	if coins > 0:
 		_float("+%d coin" % coins, FloatingText.COLOR_COIN, at, stack)
+		stack += 1.0
+	# Last, and in its own colour: the cash for it is already inside the "+$"
+	# above, so this is here to say WHY that number was bigger.
+	if _levelled_to > 0:
+		_float("Level %d!" % _levelled_to, FloatingText.COLOR_LEVEL, at, stack)
 
 
 # Two figures off one bubble - cash then XP, or a rent claim that also dropped a
