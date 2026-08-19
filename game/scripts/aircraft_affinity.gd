@@ -12,6 +12,21 @@ signal model_levelled(model_key: String, level: int, reward: int)
 # fixed amount every time an aircraft of that model claims a reward
 # (destination or home leg), leveling up every XP_PER_LEVEL points.
 const XP_PER_LEVEL := 50
+# PROGRESSIVE, not flat. Cumulative XP for level n is XP_PER_LEVEL * (n-1)^this,
+# so a level costs more than the one before it - at 1.0 every level cost a flat
+# five legs, which meant a model did all nine level-ups inside its first 45 legs
+# and then never moved again for the rest of the game.
+#
+# 2.0 keeps the first level at five legs and stretches the last to eighty-five,
+# 405 legs end to end. Far gentler than the PLAYER's curve, which is n^4.2 - the
+# intent is that an airframe gets harder to master, not that it competes with
+# levelling up.
+#
+# This is also what makes the sawtooth work. A new model starts at the cheap end
+# of the curve, so every zone unlock - which is when new models arrive - hands
+# back a burst of quick levels before the ramp bites again. Flat had no ramp, so
+# there was no tooth to reset.
+const XP_LEVEL_EXPONENT := 2.0
 const XP_PER_USE := 10
 
 # WHAT AFFINITY DOES: every level shaves 1% off this model's flight time, to a
@@ -72,8 +87,20 @@ func xp_for(model_key: String) -> int:
 	return _xp.get(model_key, 0)
 
 
+# Inverse of xp_at_level: how many whole levels the XP has paid for.
 func level_for(model_key: String) -> int:
-	return mini(xp_for(model_key) / XP_PER_LEVEL + 1, MAX_LEVEL)
+	var xp := xp_for(model_key)
+	if xp <= 0:
+		return 1
+	var n := int(floor(pow(float(xp) / float(XP_PER_LEVEL), 1.0 / XP_LEVEL_EXPONENT))) + 1
+	return clampi(n, 1, MAX_LEVEL)
+
+
+# Cumulative XP needed to REACH level n. Level 1 is free.
+func xp_at_level(n: int) -> int:
+	if n <= 1:
+		return 0
+	return int(round(XP_PER_LEVEL * pow(float(n - 1), XP_LEVEL_EXPONENT)))
 
 
 func is_maxed(model_key: String) -> bool:
@@ -85,7 +112,16 @@ func is_maxed(model_key: String) -> bool:
 func progress_for(model_key: String) -> float:
 	if is_maxed(model_key):
 		return 1.0
-	return float(xp_for(model_key) % XP_PER_LEVEL) / float(XP_PER_LEVEL)
+	# Between the two thresholds either side, not a modulo - the levels are not
+	# the same size any more, so a modulo would read as a bar that fills at a
+	# different rate depending which level you are on.
+	var level := level_for(model_key)
+	var floor_xp := xp_at_level(level)
+	var next_xp := xp_at_level(level + 1)
+	if next_xp <= floor_xp:
+		return 1.0
+	return clampf(float(xp_for(model_key) - floor_xp)
+		/ float(next_xp - floor_xp), 0.0, 1.0)
 
 
 # What a leg's duration gets MULTIPLIED by - 0.90 at the cap. See Fleet's
@@ -98,7 +134,11 @@ func speed_bonus_percent(model_key: String) -> int:
 	return roundi(SPEED_BONUS_PER_LEVEL * float(level_for(model_key)) * 100.0)
 
 
+signal use_granted(model_key: String)
+
+
 func grant_use(model_key: String) -> void:
+	use_granted.emit(model_key)
 	# NOT reloaded from disk here. _xp is the live state; _load belongs to
 	# _ready. Re-reading the file on every use meant the increment below was
 	# discarded whenever the write did not land - which is exactly what the

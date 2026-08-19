@@ -84,6 +84,7 @@ var _bulk := false
 # costs two taps per aircraft, the button costs two flat, so the saving is
 # 2N-2. Recording the level at each size says where a gate would actually bite.
 var _fleet_marks := {}
+var _legs := {}   # model_key -> legs flown, for pricing the affinity curve
 var _trace := false
 # Fast-forward multiplier the imaginary player is running at. Taps cost
 # _latency * _speed of GAME time, because their hands do not speed up.
@@ -123,6 +124,8 @@ var _started := 0.0
 
 func _ready() -> void:
 	BuildingProgress.milestone_reached.connect(_on_milestone)
+	AircraftAffinity.use_granted.connect(func(k: String) -> void:
+		_legs[k] = int(_legs.get(k, 0)) + 1)
 	var args := OS.get_cmdline_user_args()
 	if not args.has("--bot"):
 		return
@@ -720,6 +723,17 @@ func _summary() -> void:
 	print("  routing policy: %s   daily tasks: %s" % [_routing, "on" if _do_quests else "off"])
 	print("  quests: %d sets completed, %d coins earned" % [_sets_done, _quest_coins])
 	print("  building coin drops: %d" % _building_coins)
+	var counts := []
+	for k in _legs:
+		counts.append([int(_legs[k]), k])
+	counts.sort()
+	counts.reverse()
+	print("  LEGS FLOWN PER MODEL over the run:")
+	for i in range(counts.size()):
+		if i < 6 or i >= counts.size() - 3:
+			print("    %-14s %6d legs" % [counts[i][1], counts[i][0]])
+		elif i == 6:
+			print("    ... %d more models ..." % (counts.size() - 9))
 	print("  FLEET SIZE vs LEVEL (taps a turnaround saved by Depart All):")
 	for mark in [3, 5, 8, 10, 12, 15, 20, 25, 30, 40]:
 		if _fleet_marks.has(mark):
