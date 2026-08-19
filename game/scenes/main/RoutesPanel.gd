@@ -50,6 +50,22 @@ const ROW_FONT := 15
 # that wanted the space more. It used to be the 136x62 button pulled out to
 # 300x46 - stretched 2.2x wide and squashed to three quarters height, which read
 # as exactly what it was; the wide art exists for this.
+# LOCKED UNTIL LEVEL 15. Measured rather than picked: the manual turnaround
+# costs two taps an aircraft and this button costs two flat, so what it saves is
+# 2N-2, and the bot puts the fleet at 5-10 aircraft by level 8 - under 18 taps,
+# which nobody would miss - and at 20 by level 15, where it saves 38 taps, about
+# 46 seconds of tapping every cycle. So the unlock lands where the tedium starts
+# rather than before it.
+#
+# The bot also buys optimally, holding more aircraft at a given level than a
+# person does, which means a level read off its table arrives early rather than
+# late - the safe direction.
+#
+# Level 15 already carries the TV Tower and the Dash 8; 14 is empty if this
+# wants a moment of its own.
+const DEPART_ALL_LEVEL := 15
+const LOCKED_TEXTURE := preload("res://assets/buttons/button_grey3@2x.png")
+
 const RUN_ALL_SIZE := Vector2(138, 45)
 const RUN_ALL_FONT := 15
 const RESULT_FONT := 15
@@ -92,6 +108,7 @@ var _result_timer := 0.0
 
 func _ready() -> void:
 	_close_button.pressed.connect(hide)
+	Progression.level_changed.connect(func(_n = null) -> void: _refresh_run_all())
 	# The reference uses a bottom-right arrow, not a full-width bar.
 	_close_button.visible = false
 	BackButton.add_to($Frame, hide)
@@ -281,6 +298,15 @@ func _build_run_all() -> void:
 func _refresh_run_all() -> void:
 	if not is_instance_valid(_run_all):
 		return
+	# The lock SHOWS ITS LEVEL. A button that is simply absent, or greyed with
+	# no reason, reads as broken rather than as something to play towards.
+	if Progression.level < DEPART_ALL_LEVEL:
+		_run_all.disabled = true
+		_run_all.texture_normal = LOCKED_TEXTURE
+		_run_all.modulate = Color(0.85, 0.85, 0.85, 1.0)
+		_run_all_label.text = "Level %d" % DEPART_ALL_LEVEL
+		return
+	_run_all.texture_normal = WIDE_ACTION_TEXTURE
 	var pending := Fleet.pending_count()
 	_run_all.disabled = pending == 0
 	_run_all.modulate = Color.WHITE if pending > 0 else Color(0.55, 0.55, 0.55, 1.0)
@@ -515,5 +541,10 @@ func _on_action(aircraft_id: int) -> void:
 
 
 func _on_run_all_pressed() -> void:
+	# Belt and braces: the button is disabled below the gate, but a bulk
+	# dispatch is the single most powerful press in the game and should not
+	# depend on one Control's disabled flag being right.
+	if Progression.level < DEPART_ALL_LEVEL:
+		return
 	var result := Fleet.advance_all()
 	_flash_result(result)
