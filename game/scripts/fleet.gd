@@ -383,23 +383,24 @@ const WORLD_SPRITES := {
 		# Two ducted lift fans and no wing to speak of, so it leaves the pad
 		# straight up like the V-22 rather than taxiing the runway track.
 		"vtol": true,
-		# BORROWED from the Black Hawk, the way the propliners borrow the
-		# A400M's prop. Its fans are horizontal discs seen at the isometric
-		# angle - a wide flat ellipse, 1.78:1 - and every propeller in the game
-		# is a vertical disc at 0.41:1, so the helicopter art is the only thing
-		# in the project the right shape. Its own art can replace this later.
-		"rotor_idle_frames": ["res://assets/aircraft/blackh/rotor_idle_2x.png"],
+		# ITS OWN, from tools/banshee_rotor.py. It briefly borrowed the Black
+		# Hawk's disc, which is the right ELLIPSE and the wrong object: a bare
+		# helicopter head feathering out at the edge, where a ducted fan is
+		# enclosed, many-bladed and short.
+		#
+		# NO IDLE FRAMES. The static fans are painted into the body art, the
+		# same arrangement as the A400M's parked props, so only the spin
+		# flipbook is ever layered on.
 		"rotor_spin_frames": [
-			"res://assets/aircraft/blackh/rotor_spin_a_2x.png",
-			"res://assets/aircraft/blackh/rotor_spin_b_2x.png",
+			"res://assets/aircraft/banshee/rotor_spin_a_2x.png",
+			"res://assets/aircraft/banshee/rotor_spin_b_2x.png",
 		],
-		# PLACEHOLDERS, and deliberately wrong. RotorEditor cannot cycle to a
-		# model with no rotor entry at all, so these two exist purely to give it
-		# two hubs to select - they are not a guess at where the fans are, they
-		# are a hook to hang the real placement on. Set them in game with M to
-		# reach the Banshee, 1/2 to pick a hub, click to place, -/+ to size.
+		# PLACEHOLDERS. RotorEditor cannot cycle to a model with no rotor entry,
+		# so these two exist to give it a pair of hubs to select - they are a
+		# hook to hang the real placement on, not a guess at where the fans are.
+		# M to reach the Banshee, 1/2 to pick a hub, click to place, -/+ to size.
 		"rotor_offsets": [Vector2(0, 0), Vector2(0, 0)],
-		"rotor_scale": 1.0,
+		"rotor_scale": 0.82,
 	},
 	"dc10": {
 		"body": "res://assets/aircraft/dc10/body_2x.png",
