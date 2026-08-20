@@ -27,6 +27,7 @@ The balloon is the exception and gets an ellipse instead - see balloon_shadow.
 import os
 
 import numpy as np
+from scipy import ndimage
 from PIL import Image, ImageDraw, ImageFilter
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -90,6 +91,17 @@ MODELS = {
     # B707 above it and the A300, so it takes their height.
     # 60.3m span, near enough the B787's 60.1 to take its height. Four engines
     # and a wing that long is the top of the airliner class, under the 747s.
+    # 35.1m span, a hair over the A318's 34.1 - the smallest airliners in the
+    # fleet, and it sits just above them.
+    "a220":       (92, {"body": "a220_default.png"}),
+    # 64.75m span, near enough the 747-8's 64.4 to take its height band. Five
+    # liveries: four off a 2x2 sheet, plus SAS supplied on its own.
+    "a350-900":   (108, {"body": "a350_900_default.png",
+                         "body_global": ("a350_900_liveries.png", 0),
+                         "body_arctic": ("a350_900_liveries.png", 1),
+                         "body_safari": ("a350_900_liveries.png", 2),
+                         "body_oceanic": ("a350_900_liveries.png", 3),
+                         "body_sas": "a350_900_sas.png"}),
     "a340-300":   (104, {"body": "a340_300_default.png",
                          "body_celestial": "a340_300_celestial.png",
                          "body_global": "a340_300_global.png"}),
@@ -117,10 +129,43 @@ LIVERY_OF_EXISTING = {
 }
 
 
-def load_trimmed(name: str) -> Image.Image:
+def load_trimmed(name) -> Image.Image:
+    """A source is either a filename, or (filename, index) for one aircraft off
+    a sheet. The A350's four liveries arrived as a single 2x2 image, and
+    splitting it here keeps source-assets the one place the art lives - the
+    alternative was exporting four derived PNGs back into the source tree.
+
+    Index is by reading order, top row left to right, which is how the sheet is
+    laid out and how anyone looking at it would number them."""
+    if isinstance(name, tuple):
+        name, index = name
+        img = Image.open(os.path.join(SRC, name)).convert("RGBA")
+        return _sheet_cell(img, index)
     img = Image.open(os.path.join(SRC, name)).convert("RGBA")
     box = img.getchannel("A").getbbox()
     return img.crop(box) if box else img
+
+
+# Ignores specks - antialiasing leaves stray pixels that would otherwise count
+# as aircraft. The real ones are hundreds of thousands of pixels.
+SHEET_MIN_BLOB = 2000
+
+
+def _sheet_cell(img: Image.Image, index: int) -> Image.Image:
+    """One aircraft off a sheet, found by connected alpha rather than by
+    assuming a grid - the cells are not evenly spaced or equally sized."""
+    mask = np.asarray(img)[:, :, 3] > 8
+    labels, count = ndimage.label(mask)
+    sizes = ndimage.sum(mask, labels, range(1, count + 1))
+    boxes = []
+    for i in range(count):
+        if sizes[i] < SHEET_MIN_BLOB:
+            continue
+        ys, xs = np.where(labels == i + 1)
+        boxes.append((ys.min(), xs.min(), xs.max() + 1, ys.max() + 1))
+    boxes.sort(key=lambda b: (b[0], b[1]))
+    top, left, right, bottom = boxes[index]
+    return img.crop((left, top, right, bottom))
 
 
 def scaled_to_height(img: Image.Image, height: int) -> Image.Image:
@@ -174,8 +219,10 @@ def write_bodies(folder: str, height: int, parts: dict) -> int:
     os.makedirs(folder, exist_ok=True)
     made = 0
     for out_name, src_name in parts.items():
-        if not os.path.exists(os.path.join(SRC, src_name)):
-            print("  MISSING %s" % src_name)
+        # A sheet source is (file, index), so check the file half of it.
+        file_name = src_name[0] if isinstance(src_name, tuple) else src_name
+        if not os.path.exists(os.path.join(SRC, file_name)):
+            print("  MISSING %s" % file_name)
             continue
         body = scaled_to_height(load_trimmed(src_name), height)
         # A LIVERY IS PINNED TO THE BODY'S EXACT SIZE, not scaled to the same

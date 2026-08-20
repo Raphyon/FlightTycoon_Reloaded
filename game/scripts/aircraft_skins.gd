@@ -25,6 +25,18 @@ const LIVERIES := {
 	# rather than from shop icons - cropped to their own alpha and scaled to the
 	# stock body's 114x88. Checked against it edge by edge: zero drift on all
 	# four sides, so switching paint does not shift the aircraft on its pad.
+	"a350-900": [
+		{"key": "global", "name": "Global Alliance",
+			"body": "res://assets/aircraft/a350-900/body_global_2x.png"},
+		{"key": "arctic", "name": "Arctic Explorer",
+			"body": "res://assets/aircraft/a350-900/body_arctic_2x.png"},
+		{"key": "safari", "name": "Safari Wings",
+			"body": "res://assets/aircraft/a350-900/body_safari_2x.png"},
+		{"key": "oceanic", "name": "Oceanic",
+			"body": "res://assets/aircraft/a350-900/body_oceanic_2x.png"},
+		{"key": "sas", "name": "SAS",
+			"body": "res://assets/aircraft/a350-900/body_sas_2x.png"},
+	],
 	"a340-300": [
 		{"key": "celestial", "name": "Celestial",
 			"body": "res://assets/aircraft/a340-300/body_celestial_2x.png"},

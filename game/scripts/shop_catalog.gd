@@ -181,6 +181,10 @@ const ENTRIES := [
 	# is what the art folder and the shop icon are called; the aircraft it
 	# actually depicts is the original's Tu-154, so the NAME follows the art.
 	# Same split the P-51 already has (shop "p51", sprites "p-51mustang").
+	# 35.1m span, a hair over the A318 - the small end of the airliner class, so
+	# it sits just above the A319 it shares a cabin size with.
+	{"key": "a220", "name": "Airbus A220-300", "icon": "a220_default.png", "price": 95000, "level": 30,
+		"force": "C", "seats": 290, "fuel": 33, "xp": 250, "range": 4, "has_world_sprite": true},
 	{"key": "b727", "name": "Tupolev Tu-154", "icon": "b727_default.png", "price": 100000, "level": 31,
 		"force": "E", "seats": 300, "fuel": 35, "xp": 294, "range": 4, "has_world_sprite": true},
 	# The rating-4 threshold.
@@ -240,6 +244,10 @@ const ENTRIES := [
 		"force": "A", "seats": 12, "fuel": 95, "xp": 300, "ticket": 1200, "range": 5, "has_world_sprite": true},
 	# 60.3m span, four engines - the top of the airliner class, under the 747s
 	# it shares a level band with. Slots into the empty rung at 44.
+	# 64.75m span, near enough the 747-8's - a modern widebody, so it lands
+	# between the 747 below it and the A340 above.
+	{"key": "a350-900", "name": "Airbus A350-900", "icon": "a350-900_default.png", "price": 580000, "level": 43,
+		"force": "E", "seats": 530, "fuel": 64, "xp": 490, "range": 5, "has_world_sprite": true},
 	{"key": "a340-300", "name": "Airbus A340-300", "icon": "a340-300_default.png", "price": 650000, "level": 44,
 		"force": "E", "seats": 560, "fuel": 66, "xp": 505, "range": 5, "has_world_sprite": true},
 	{"key": "b747", "name": "Boeing 747-8", "icon": "b747_default.png", "price": 800000, "level": 45,
