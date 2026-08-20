@@ -372,9 +372,26 @@ const WORLD_SPRITES := {
 	"banshee": {
 		"body": "res://assets/aircraft/banshee/body_2x.png",
 		"shadow": "res://assets/aircraft/banshee/shadow_2x.png",
-		# Its two ducted rotors are PAINTED INTO the body and there is no spin
-		# strip yet, so they sit still. RotorEditor places the discs by hand
-		# when there is art for them - this project does not guess placements.
+		# Two ducted lift fans and no wing to speak of, so it leaves the pad
+		# straight up like the V-22 rather than taxiing the runway track.
+		"vtol": true,
+		# BORROWED from the Black Hawk, the way the propliners borrow the
+		# A400M's prop. Its fans are horizontal discs seen at the isometric
+		# angle - a wide flat ellipse, 1.78:1 - and every propeller in the game
+		# is a vertical disc at 0.41:1, so the helicopter art is the only thing
+		# in the project the right shape. Its own art can replace this later.
+		"rotor_idle_frames": ["res://assets/aircraft/blackh/rotor_idle_2x.png"],
+		"rotor_spin_frames": [
+			"res://assets/aircraft/blackh/rotor_spin_a_2x.png",
+			"res://assets/aircraft/blackh/rotor_spin_b_2x.png",
+		],
+		# PLACEHOLDERS, and deliberately wrong. RotorEditor cannot cycle to a
+		# model with no rotor entry at all, so these two exist purely to give it
+		# two hubs to select - they are not a guess at where the fans are, they
+		# are a hook to hang the real placement on. Set them in game with M to
+		# reach the Banshee, 1/2 to pick a hub, click to place, -/+ to size.
+		"rotor_offsets": [Vector2(0, 0), Vector2(0, 0)],
+		"rotor_scale": 1.0,
 	},
 	"dc10": {
 		"body": "res://assets/aircraft/dc10/body_2x.png",
