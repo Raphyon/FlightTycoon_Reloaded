@@ -365,6 +365,14 @@ const WORLD_SPRITES := {
 		"body": "res://assets/aircraft/b707/body_2x.png",
 		"shadow": "res://assets/aircraft/b707/shadow_2x.png",
 	},
+	"a340-300": {
+		"body": "res://assets/aircraft/a340-300/body_2x.png",
+		"shadow": "res://assets/aircraft/a340-300/shadow_2x.png",
+	},
+	"c17": {
+		"body": "res://assets/aircraft/c17/body_2x.png",
+		"shadow": "res://assets/aircraft/c17/shadow_2x.png",
+	},
 	"il62": {
 		"body": "res://assets/aircraft/il62/body_2x.png",
 		"shadow": "res://assets/aircraft/il62/shadow_2x.png",

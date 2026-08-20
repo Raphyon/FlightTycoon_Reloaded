@@ -238,6 +238,10 @@ const ENTRIES := [
 	# between them rather than papering over that.
 	{"key": "banshee", "name": "Banshee", "icon": "banshee_default.png", "price": 50, "currency": COINS, "level": 45,
 		"force": "A", "seats": 12, "fuel": 95, "xp": 300, "ticket": 1200, "range": 5, "has_world_sprite": true},
+	# 60.3m span, four engines - the top of the airliner class, under the 747s
+	# it shares a level band with. Slots into the empty rung at 44.
+	{"key": "a340-300", "name": "Airbus A340-300", "icon": "a340-300_default.png", "price": 650000, "level": 44,
+		"force": "E", "seats": 560, "fuel": 66, "xp": 505, "range": 5, "has_world_sprite": true},
 	{"key": "b747", "name": "Boeing 747-8", "icon": "b747_default.png", "price": 800000, "level": 45,
 		"force": "E", "seats": 600, "fuel": 72, "xp": 520, "range": 5, "has_world_sprite": true},
 	# LIVE 1000000/E/700/70/5cl.
@@ -247,6 +251,10 @@ const ENTRIES := [
 	# ladder. Twice the A380's price for a third of its income: 107 legs to
 	# pay for itself against the 747's 13. A trophy, not an investment, and
 	# it is theirs - kept as priced rather than 'fixed'.
+	# A bigger A400M - 51.7m span against 42.4 - so it sits above it, and takes
+	# the A400M's grade because a heavy lifter is what it is.
+	{"key": "c17", "name": "C-17 Globemaster III", "icon": "c17_default.png", "price": 1500000, "level": 47,
+		"force": "D", "seats": 620, "fuel": 70, "xp": 580, "range": 5, "has_world_sprite": true},
 	{"key": "concorde", "name": "Concorde", "icon": "concorde_default.png", "price": 2000000, "level": 48,
 		"force": "C", "seats": 250, "fuel": 75, "xp": 335, "range": 5, "has_world_sprite": true},
 	{"key": "an-225", "name": "An-225", "icon": "an-225_default.png", "price": 2500000, "level": 49,

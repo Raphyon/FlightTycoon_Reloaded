@@ -25,6 +25,12 @@ const LIVERIES := {
 	# rather than from shop icons - cropped to their own alpha and scaled to the
 	# stock body's 114x88. Checked against it edge by edge: zero drift on all
 	# four sides, so switching paint does not shift the aircraft on its pad.
+	"a340-300": [
+		{"key": "celestial", "name": "Celestial",
+			"body": "res://assets/aircraft/a340-300/body_celestial_2x.png"},
+		{"key": "global", "name": "Global",
+			"body": "res://assets/aircraft/a340-300/body_global_2x.png"},
+	],
 	"il62": [
 		{"key": "zipped", "name": "Zipped",
 			"body": "res://assets/aircraft/il62/body_zipped_2x.png"},

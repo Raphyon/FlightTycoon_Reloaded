@@ -65,7 +65,10 @@ MODELS = {
     # this render's height is float and strut rather than airframe - matched on
     # how big the fuselage reads, not on the bounding box.
     "dhc6":       (84, {"body": "dhc_6_twin_otter.png"}),
-    "atr72":      (88, {"body": "atr_72_default.png"}),
+    "atr72":      (88, {"body": "atr_72_default.png",
+                        "body_cloudy": "atr_72_cloudy.png",
+                        "body_metaliminal": "atr_72_metaliminal.png",
+                        "body_pinkdreams": "atr_72_pinkdreams.png"}),
     "an140":      (86, {"body": "an_140_default.png"}),
     "uss51":      (84, {"body": "uss_51_default.png"}),
     "crj700":     (86, {"body": "crj_700_default.png", "body_sas": "crj_700_sas.png"}),
@@ -85,6 +88,14 @@ MODELS = {
     "b747":       (112, {"body": "b747_default.png", "body_yellow": "b747_yellow.png"}),
     # Four rear-mounted engines and a T-tail, 43m span - the same class as the
     # B707 above it and the A300, so it takes their height.
+    # 60.3m span, near enough the B787's 60.1 to take its height. Four engines
+    # and a wing that long is the top of the airliner class, under the 747s.
+    "a340-300":   (104, {"body": "a340_300_default.png",
+                         "body_celestial": "a340_300_celestial.png",
+                         "body_global": "a340_300_global.png"}),
+    # A bigger A400M - 51.7m span against 42.4 - so it sits above it at the
+    # DC-10's height rather than taking the A400M's 96.
+    "c17":        (100, {"body": "c_17_globemaster.png"}),
     "il62":       (96, {"body": "il_62_default.png",
                         "body_zipped": "il_62_zipped.png"}),
     # A gunship, not an airliner: sized between the Black Hawk at 86 and the
