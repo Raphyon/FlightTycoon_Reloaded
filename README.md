@@ -161,6 +161,26 @@ second behind it, and a coin if a rent claim turned one up. Measured as
 before/after deltas rather than predicted, so it reports what actually
 happened, including the parts nothing predicted.
 
+**Depart All** in the routes panel does the whole turnaround for every aircraft
+in one press, and is **locked until level 15**. Locked, it wears the grey art
+and reads "Level 15" rather than going absent. The level is measured, not
+picked: the manual path costs two taps an aircraft and the button costs two
+flat, so it saves 2N-2, and the fleet is 5-10 aircraft by level 8 - under 18
+taps, which nobody would miss - against 20 aircraft by level 15, where it saves
+38, about 46 seconds of tapping a cycle. Priced over 90 days:
+
+| | taps over 30 h of play | six home zones |
+|---|---|---|
+| without | 112,420 | 19.7 h |
+| with | 18,260 | 15.3 h |
+
+Six times fewer taps and 4.4 hours. Worth knowing that **the bot had never used
+it**, so every pacing figure below assumes the manual path.
+
+Routes panel rows are 52px, down from 62, and the bulk button keeps its art's
+3.1:1 at 138x45 rather than its native 192x62 - about 8 lines visible instead of
+6, which matters when the fleet is sixty aircraft.
+
 An aircraft in the air carries a **countdown tag** on its pad - `47m 42s` - but
 only while that pad's own menu is open, since there is nothing to tap. Once it
 lands the tag says "Arrived", shows unasked and travels you there. Blue for your
@@ -190,7 +210,7 @@ See `QUESTS.md`.
 
 ### Progression and economy
 
-You start with **$5,000, 15 coins, and a granted DC-3**. 36 aircraft on the
+You start with **$5,000, 15 coins, and a granted DC-3**. 35 aircraft on the
 shop ladder across levels 1-50, eight of them coin-priced and totalling 243
 coins.
 
@@ -201,8 +221,34 @@ of pacing (2 coins a set against 5 is still 32.7 h against 28.0 h), but it
 changed the shape of the advantage: a coin now buys a DIFFERENT aircraft at a
 point you could have afforded one anyway.
 
-Aircraft affinity accrues with use and caps at level 10, worth 1% speed each.
-Liveries are a coin purchase that makes one specific aircraft faster.
+**Aircraft affinity** is per MODEL, not per aircraft, and caps at level 10 worth
+1% speed each. It accrues per LEG - both the destination claim and the home
+claim grant - so a round trip counts twice, and six DC-3s in service fill the
+same DC-3 pool six times over.
+
+Levelling one **pays $1,000, flat**. Flat because it aims at the early game:
+1,000 is real money against a 3,000 DC-3 and quietly becomes nothing against a
+7,000,000 Ark, with no taper to tune. Scaling it by the model's price would do
+the opposite, since the early models ARE the cheap ones. The claim bubble floats
+"Level 2!" in violet when it happens - the cash is paid inside the claim, so
+without that the player sees a bigger number and no reason for it.
+
+The curve is **progressive**, `50 x (n-1)^2` XP:
+
+| level | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 |
+|---|---|---|---|---|---|---|---|---|---|
+| legs for this level | 5 | 15 | 25 | 35 | 45 | 55 | 65 | 75 | 85 |
+| legs, cumulative | 5 | 20 | 45 | 80 | 125 | 180 | 245 | 320 | 405 |
+
+It was flat five legs a level, which meant a model did all nine level-ups inside
+its first 45 legs and never moved again. Far gentler than the PLAYER curve at
+`n^4.2` - an airframe should get harder to master, not compete with levelling.
+
+Liveries are a coin purchase that makes one specific aircraft faster. Both
+livery shops - aircraft and apron paint - are built from the building shop's own
+pieces: `board_card1` at 122.5x200, the price tag, and a real buy button reading
+Buy / Wear / Worn. They used to be a 157x90 badge stretched to card shape with
+no button at all, the whole card being one invisible Button.
 
 ### Buildings
 
@@ -212,8 +258,11 @@ multiplier above.
 
 **Plots carry a level, to 10.** Rent x1.45 each, so the cheapest building on the
 board ends up paying more than an Eiffel Tower - about $1.04M and six hours of
-construction. Cost rides the building's own price, so a level is $8,271 on a
-roadside hotel and $110,275 on an office building.
+construction. Cost rides the building's own price, so a level is $8,300 on a
+roadside hotel and $110,000 on an office building - both through `NiceNumber`,
+because a curve does not produce figures anybody would choose. **A coin building
+upgrades with coins:** the Eiffel Tower's price is denominated in them, so the
+cash curve was charging dollars for a number derived from coins.
 
 A building **does not earn while upgrading**: taking it out of service is the
 cost of improving it. The site shows a cone bubble and a countdown while it is
@@ -223,6 +272,21 @@ Upgrades raise **rent only, never population**, and that is load-bearing:
 popularity multiplies flight cash and is uncapped, so scaling population with
 levels would take a maxed city past +1,600% on every flight and void every
 pacing number here.
+
+**A level also raises the coin drop chance**, +8% a level, and reaching level 5
+or level 10 pays a coin on the spot. That exists because rent alone made
+upgrading close to worthless: a level produced cash and nothing else, and an
+Office at 5->6 costs $830,000 to gain $20,140 an hour - 41 hours of never
+missing a 16-minute collection, on a game that reaches level 70 in 93. Coins are
+what is actually scarce, and buildings already supplied about 40% of them, just
+blind to level. Population was the obvious lever and is the wrong one; see
+`UPGRADES.md` for why, and for the measured curve.
+
+Pressing **Upgrade** opens a confirmation window rather than spending: the
+building as it is and as it will be, side by side with an arrow between them,
+the rent difference, the price, and any milestone coin promised before you
+commit. The button used to read "Lv 4  510,000 coins" - a level the building's
+own name already shows, a price, and no answer to what the money buys.
 
 Demolition refunds half of everything sunk in, upgrades included. See
 `UPGRADES.md`.
@@ -264,9 +328,20 @@ save to get there. Most testing wants one number nudged, not a new game.
 **The bot cannot touch your save.** It calls `reset_to_defaults()` and plays 90
 simulated days, and all of that used to be written straight to `game/data` - a
 session of bot runs silently replaced a level 24 airport with a level 1 one.
-Three paths reached the disk (`SaveGame.save`/`wipe`, the per-system `_save()`s,
-and the delete loop in `reset_to_defaults`); all three refuse when `--bot` is
-present.
+
+The guard was added per-file, three times, to the three paths that had leaked so
+far. That is a rule which only covers the files somebody remembered, and it
+leaked again through `ApronSkins`. It is now one public statement -
+`SaveGame.is_bot_run()` - called by every writer under `scripts/`; nine were
+unguarded when it was audited per WRITE rather than per file. Bot runs are still
+snapshotted and restored around, because a guard that has failed is a guard you
+verify rather than trust.
+
+One live cost of that guard, found by a sweep that returned three identical
+runs: `AircraftAffinity.grant_use` opened by re-reading its own file, so the
+increment two lines later only survived if the write landed. Blocked writes meant
+it never did. **No bot run had ever levelled an aircraft**, and every pacing
+figure in this project was measured with no affinity speed bonus.
 
 **The bot** (`scripts/bot.gd`) plays the real autoloads headless:
 
@@ -277,6 +352,12 @@ godot --headless --path game -- --bot --who regular
 It drives Fleet, Economy, Progression and the rest directly rather than
 reimplementing them, because `tools/econ_sim.py` reimplemented the rules and
 was wrong three separate times in ways that invalidated everything it had said.
+
+Flags worth knowing: `--bulk on` makes it use Depart All instead of tapping each
+aircraft, which is how that button was priced. It also reports **legs flown per
+model** (over 90 days it flew the atr72 41,060 legs and only three other models
+at all, so for a workhorse any affinity curve maxes) and **fleet size against
+level**, which is where the level 15 gate came from.
 A tap costs 1.2s of session time (`--latency`), and `--speed` charges taps at
 `latency x speed` since fast-forward does not speed the player up either.
 
@@ -300,12 +381,36 @@ corollary is that **coins are, because coin aircraft are aircraft you did not
 pay cash for.** Cash and fuel quest rewards together are worth about half an
 hour across a playthrough; the coin is worth several.
 
-Everything here is measured, and the measuring instrument has been wrong three
+**The game has a sawtooth, and it stops at level 48.** Every zone unlock up to
+Beach arrives with new aircraft, and a new model starts at the cheap end of the
+affinity curve, so an unlock hands back a burst of quick airframe levels before
+the ramp bites again:
+
+| zone | level | models arriving |
+|---|---|---|
+| Zone2 | 14 | emb120, dhc8 |
+| DarkZone | 28 | tu104, a318, balloon, a319 |
+| Forest | 36 | blackh, ufo, airship, v22, a300 |
+| Desert | 42 | b787, 747, ncc1701, x37b |
+| Beach | 48 | a380-300, concorde, an-225, a400m, ark |
+| Snow | 53 | **nothing** |
+| Dreamland1-3, Carrier | 57-70 | **nothing** |
+
+So the tail is not only empty of aircraft, it is missing the pattern that
+carries the first 48 levels - and that tail is 62 of the 93 hours. Eight
+entries, placed on the teeth rather than spaced evenly, are specced in
+`ROADMAP.md` item 10. It is an art problem: eight shop icons.
+
+Everything here is measured, and the measuring instrument has been wrong five
 times. The bot did not claim quests, did not upgrade buildings, and rolled its
 day off `_process` which never fires when it advances the clock by hand - each
 of those reported "this change does nothing", which was a statement about the
-bot. If a run says a change had no effect, check the bot models the change at
-all before believing it.
+bot. Then it only ever expanded the homeland, so the late game looked flatter
+than it is. Then `AircraftAffinity.grant_use` re-read its file on every call, so
+with writes blocked under `--bot` the increment was discarded every time and
+**no bot run had ever levelled an aircraft** - every figure here was measured
+with no affinity speed bonus at all. If a run says a change had no effect, check
+the bot models the change at all before believing it.
 
 ### Saves
 
@@ -313,6 +418,12 @@ all before believing it.
 All four are gitignored, and `aircraft_affinity.json` is tracked at its day 0
 `{}` and marked `skip-worktree`, so **the repo carries a day 0 save** and a
 live playthrough cannot be committed over it.
+
+**A bot run writes nothing to disk**, stated once as `SaveGame.is_bot_run()` and
+called by every writer under `scripts/`. It was enforced per-file before, which
+is a rule that only covers the files somebody remembered - it leaked through
+`ApronSkins` and destroyed a real playthrough. Bot runs are still snapshotted
+and restored around, because a guard that has failed is a guard you check.
 
 ## Asset format
 
@@ -381,6 +492,10 @@ the canvas edge. Do not assume a uniform trim margin in any importer.
 
 ### Design
 
+- **The last five zones have no aircraft.** Snow (53), Dreamland 1-3 (57/62/66)
+  and the Carrier (70) all unlock with nothing new to fly, so the sawtooth that
+  carries the first 48 levels flatlines across 62 of the game's 93 hours.
+  Specced in `ROADMAP.md` item 10, blocked on eight shop icons.
 - **Range is inert - it buys nothing measurable.** A leg pays x5 from the
   nearest destination to the furthest while taking x420 as long, so the 1-cloud
   hop is 84x better per MINUTE - but a lap is four taps whatever its length, so
