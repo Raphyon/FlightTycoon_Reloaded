@@ -365,6 +365,17 @@ const WORLD_SPRITES := {
 		"body": "res://assets/aircraft/b707/body_2x.png",
 		"shadow": "res://assets/aircraft/b707/shadow_2x.png",
 	},
+	"il62": {
+		"body": "res://assets/aircraft/il62/body_2x.png",
+		"shadow": "res://assets/aircraft/il62/shadow_2x.png",
+	},
+	"banshee": {
+		"body": "res://assets/aircraft/banshee/body_2x.png",
+		"shadow": "res://assets/aircraft/banshee/shadow_2x.png",
+		# Its two ducted rotors are PAINTED INTO the body and there is no spin
+		# strip yet, so they sit still. RotorEditor places the discs by hand
+		# when there is art for them - this project does not guess placements.
+	},
 	"dc10": {
 		"body": "res://assets/aircraft/dc10/body_2x.png",
 		"shadow": "res://assets/aircraft/dc10/shadow_2x.png",

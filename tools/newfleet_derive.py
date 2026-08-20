@@ -83,6 +83,17 @@ MODELS = {
                          "body_flash": "b787_flash.png",
                          "body_sharky": "b787_sharky.png"}),
     "b747":       (112, {"body": "b747_default.png", "body_yellow": "b747_yellow.png"}),
+    # Four rear-mounted engines and a T-tail, 43m span - the same class as the
+    # B707 above it and the A300, so it takes their height.
+    "il62":       (96, {"body": "il_62_default.png",
+                        "body_zipped": "il_62_zipped.png"}),
+    # A gunship, not an airliner: sized between the Black Hawk at 86 and the
+    # V-22 at 99, since it reads heavier than one and smaller than the other.
+    #
+    # ITS ROTORS ARE PAINTED INTO THE BODY and it has no prop strip, so they do
+    # not turn yet. RotorEditor (kept for exactly this) places the discs by
+    # hand - see the readme; nothing in this project guesses at placements.
+    "banshee":    (92, {"body": "banshee_default.png"}),
 }
 
 # Not a model of its own. The A380 we already have is an airline livery of the
@@ -146,6 +157,9 @@ def balloon_shadow(body: Image.Image) -> Image.Image:
 
 
 def write_bodies(folder: str, height: int, parts: dict) -> int:
+    # "body" first, whatever order the dict is in - the liveries below measure
+    # themselves against the file it writes.
+    parts = dict(sorted(parts.items(), key=lambda kv: kv[0] != "body"))
     os.makedirs(folder, exist_ok=True)
     made = 0
     for out_name, src_name in parts.items():
@@ -153,6 +167,18 @@ def write_bodies(folder: str, height: int, parts: dict) -> int:
             print("  MISSING %s" % src_name)
             continue
         body = scaled_to_height(load_trimmed(src_name), height)
+        # A LIVERY IS PINNED TO THE BODY'S EXACT SIZE, not scaled to the same
+        # height and left to land where its own aspect puts it. The renders are
+        # drawn a hair apart - the A380's midnight paint came out 130 wide
+        # against a 137 body - and since a sprite is centred on its pad, a
+        # seven pixel difference walks the aircraft sideways when you change
+        # its paint. Eight livery sprites were off before this.
+        if out_name != "body":
+            base_path = os.path.join(folder, "body_2x.png")
+            if os.path.exists(base_path):
+                target = Image.open(base_path).size
+                if body.size != target:
+                    body = body.resize(target, Image.LANCZOS)
         body.save(os.path.join(folder, "%s_2x.png" % out_name))
         made += 1
     return made

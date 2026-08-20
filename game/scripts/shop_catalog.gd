@@ -186,6 +186,11 @@ const ENTRIES := [
 	# The rating-4 threshold.
 	{"key": "b707", "name": "Boeing 707", "icon": "b707_default.png", "price": 108000, "level": 32,
 		"force": "D", "seats": 320, "fuel": 38, "xp": 304, "range": 4, "has_world_sprite": true},
+	# Sits with its contemporaries rather than in the tail: four rear-mounted
+	# engines, T-tail, 43m span, 900 km/h - a Boeing 707's exact class, so it
+	# takes the 707's grade and the rung above it.
+	{"key": "il62", "name": "Ilyushin IL-62", "icon": "il62_default.png", "price": 112000, "level": 33,
+		"force": "D", "seats": 330, "fuel": 39, "xp": 308, "range": 4, "has_world_sprite": true},
 	# LIVE stats: C / 100 seats / 30 fuel / 80 fare / 5 clouds. A saucer, and
 	# the coin lane's middle rung - 40,000 a leg against the F-15's 16,000.
 	{"key": "uss51", "name": "USS 51", "icon": "uss51_default.png", "price": 28, "currency": COINS, "level": 25,
@@ -224,6 +229,15 @@ const ENTRIES := [
 	# the payload, not passengers.
 	{"key": "x37b", "name": "X-37B", "icon": "x37b_default.png", "price": 48, "currency": COINS, "level": 43,
 		"force": "S", "seats": 4, "fuel": 90, "xp": 42, "ticket": 2000, "range": 5, "has_world_sprite": true},
+	# The coin lane's top rung, above the X-37B's 48. A gunship rather than an
+	# airliner, so it earns the coin lane's way - few seats, a large ticket -
+	# and lands between the X-37B's 40,000 a leg and the NCC-1701's 150,000.
+	#
+	# NOTE the lane it joins is not internally ordered: the NCC-1701 costs 45
+	# coins and pays 150,000, the X-37B costs 48 and pays 40,000. This sits
+	# between them rather than papering over that.
+	{"key": "banshee", "name": "Banshee", "icon": "banshee_default.png", "price": 50, "currency": COINS, "level": 45,
+		"force": "A", "seats": 12, "fuel": 95, "xp": 300, "ticket": 1200, "range": 5, "has_world_sprite": true},
 	{"key": "b747", "name": "Boeing 747-8", "icon": "b747_default.png", "price": 800000, "level": 45,
 		"force": "E", "seats": 600, "fuel": 72, "xp": 520, "range": 5, "has_world_sprite": true},
 	# LIVE 1000000/E/700/70/5cl.

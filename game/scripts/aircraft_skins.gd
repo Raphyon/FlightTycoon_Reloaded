@@ -25,6 +25,10 @@ const LIVERIES := {
 	# rather than from shop icons - cropped to their own alpha and scaled to the
 	# stock body's 114x88. Checked against it edge by edge: zero drift on all
 	# four sides, so switching paint does not shift the aircraft on its pad.
+	"il62": [
+		{"key": "zipped", "name": "Zipped",
+			"body": "res://assets/aircraft/il62/body_zipped_2x.png"},
+	],
 	"atr72": [
 		{"key": "cloudy", "name": "Cloudy",
 			"body": "res://assets/aircraft/atr72/body_cloudy_2x.png"},
