@@ -8,6 +8,9 @@ extends Node2D
 #
 #   Switched on from the F1 menu - no toggle key. Turning it on drops the
 #   preview at the current camera centre.
+#   Escape     leave the tool. It used to be the F1 menu or nothing, and
+#              reaching the menu means clicking, which this reads before the
+#              GUI does - so closing it placed one last thing on the way out.
 #   M          cycle which aircraft model you're rigging
 #   1-9        select which rotor hub you're placing (models with a single
 #              prop, like the P-51, only use 1)
@@ -105,6 +108,13 @@ func _input(event: InputEvent) -> void:
 		# both this and the grid overlay). They are switched on from the F1
 		# menu now, which is the only debug key left. The keys BELOW still
 		# work, but only while this tool is on, so they cost nothing.
+		if editing and event.keycode == KEY_ESCAPE:
+			# A WAY OUT THAT IS NOT A CLICK. Every tool was left only through
+			# the F1 menu, and reaching the menu means pressing the mouse,
+			# which these tools read before the GUI does. Escape costs no
+			# letter - it is not a placement key in any of them.
+			editing = false
+			return
 		if editing and event.keycode == KEY_M:
 			model_index = wrapi(model_index + 1, 0, _model_keys.size())
 			selected = 0
@@ -137,6 +147,8 @@ func _input(event: InputEvent) -> void:
 	if not editing:
 		return
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		if EditorHud.over_gui(self):
+			return
 		get_viewport().set_input_as_handled()
 		_place(get_global_mouse_position())
 

@@ -179,6 +179,13 @@ func _unhandled_input(event: InputEvent) -> void:
 		# both this and the grid overlay). They are switched on from the F1
 		# menu now, which is the only debug key left. The keys BELOW still
 		# work, but only while this tool is on, so they cost nothing.
+		if editing and event.keycode == KEY_ESCAPE:
+			# A WAY OUT THAT IS NOT A CLICK. Every tool was left only through
+			# the F1 menu, and reaching the menu means pressing the mouse,
+			# which these tools read before the GUI does. Escape costs no
+			# letter - it is not a placement key in any of them.
+			editing = false
+			return
 		if editing and event.keycode >= KEY_1 and event.keycode <= KEY_7:
 			var idx: int = event.keycode - KEY_1
 			if idx < _areas().size():
@@ -193,6 +200,8 @@ func _unhandled_input(event: InputEvent) -> void:
 		_hover_valid = true
 		queue_redraw()
 	elif event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		if EditorHud.over_gui(self):
+			return
 		_add_point(get_global_mouse_position())
 
 

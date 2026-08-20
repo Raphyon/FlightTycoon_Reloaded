@@ -16,6 +16,9 @@ extends Node2D
 # they're eyeballed and placed by hand).
 #
 #   Switched on from the F1 menu - no toggle key, see _input.
+#   Escape     leave the tool. It used to be the F1 menu or nothing, and
+#              reaching the menu means clicking, which this reads before the
+#              GUI does - so closing it placed one last thing on the way out.
 #   1-n        pick which area you're placing for - the current airport's
 #              areas (7 on homeland, 3 on Dreamland, 1 on the carrier). Not
 #              every area has cloud art; the on-screen readout says which.
@@ -121,6 +124,13 @@ func _input(event: InputEvent) -> void:
 		# both this and the grid overlay). They are switched on from the F1
 		# menu now, which is the only debug key left. The keys BELOW still
 		# work, but only while this tool is on, so they cost nothing.
+		if editing and event.keycode == KEY_ESCAPE:
+			# A WAY OUT THAT IS NOT A CLICK. Every tool was left only through
+			# the F1 menu, and reaching the menu means pressing the mouse,
+			# which these tools read before the GUI does. Escape costs no
+			# letter - it is not a placement key in any of them.
+			editing = false
+			return
 		if editing and event.keycode >= KEY_1 and event.keycode <= KEY_7:
 			var idx: int = event.keycode - KEY_1
 			if idx < Maps.areas_for().size():
@@ -132,6 +142,8 @@ func _input(event: InputEvent) -> void:
 	# Release-click, nothing swallowed - see ClickDrag for why the press must
 	# reach the camera.
 	if _click.completed(event):
+		if EditorHud.over_gui(self):
+			return
 		_place(get_global_mouse_position())
 
 

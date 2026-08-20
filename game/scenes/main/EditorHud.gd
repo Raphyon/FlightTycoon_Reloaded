@@ -20,6 +20,21 @@ const BG_COLOR := Color(0, 0, 0, 0.7)
 var _label: Label
 
 
+# A CLICK ON A MENU IS NOT A PLACEMENT.
+#
+# The tools all use _input, which fires before GUI processing - they have to,
+# or an apron's Area2D claims the click through physics picking first. The cost
+# is that a press on the F1 menu ALSO reaches the tool, so the click that turns
+# a tool off drops one last tile on the way out. That is how a rotor ended up
+# off position, and why the cloud tool could not be closed without placing a
+# cloud first.
+#
+# Every tool asks this before acting on a mouse press.
+static func over_gui(node: Node) -> bool:
+	var vp := node.get_viewport()
+	return vp != null and vp.gui_get_hovered_control() != null
+
+
 static func create(parent: Node) -> EditorHud:
 	var hud := EditorHud.new()
 	parent.add_child(hud)
