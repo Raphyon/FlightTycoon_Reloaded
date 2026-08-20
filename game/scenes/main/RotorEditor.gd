@@ -56,6 +56,16 @@ var editing := false:
 			return
 		editing = value
 		if is_inside_tree():
+			# THE PREVIEW BELONGS TO THE TOOL, so it arrives and leaves with it.
+			# _drop_preview was only ever called by the M key, which meant the
+			# tool opened showing nothing until you cycled a model, and - worse -
+			# closing it left a full-size aircraft parked in the world with no
+			# way to get rid of it. The header has claimed this behaviour since
+			# it was written; now it is true.
+			if editing:
+				_drop_preview()
+			else:
+				_clear_preview()
 			_update_hud()
 			queue_redraw()
 var model_index := 0
