@@ -181,8 +181,19 @@ func _input(event: InputEvent) -> void:
 func _drop_preview() -> void:
 	_clear_preview()
 	var sprites: Dictionary = Fleet.WORLD_SPRITES.get(_model_key(), {})
-	if not sprites.has("body") or not (sprites.has("rotor_spin_frames") or sprites.has("rotors")):
+	# Exhaust-only models count too. This asked for rotors and nothing else,
+	# so cycling to the F-14 - which has nozzles and no rotors - dropped no
+	# preview at all and left _offsets holding the PREVIOUS model's hubs.
+	var has_rotors: bool = sprites.has("rotor_spin_frames") or sprites.has("rotors")
+	var has_exhaust: bool = sprites.has("exhaust_offsets")
+	if not sprites.has("body") or not (has_rotors or has_exhaust):
 		return
+	# And a model with only nozzles has nothing to show in rotor mode, so the
+	# tool opens on the list it actually has rather than on an empty one.
+	if _exhaust_mode and not has_exhaust:
+		_exhaust_mode = false
+	elif not _exhaust_mode and not has_rotors:
+		_exhaust_mode = true
 	var cam := get_viewport().get_camera_2d()
 	_reference_pos = cam.get_screen_center_position() if cam else Vector2.ZERO
 
@@ -252,8 +263,15 @@ func _clear_preview() -> void:
 
 
 func _place(pos: Vector2) -> void:
+	# BOUNDS-CHECKED, because these three arrays are not guaranteed to be the
+	# same length. _preview_rotors skips any hub whose art failed to resolve,
+	# and _offsets can outlive a model switch that dropped no preview - either
+	# one made this a hard crash on the next click rather than a no-op.
+	if selected < 0 or selected >= _offsets.size():
+		return
 	_offsets[selected] = pos - _reference_pos
-	_preview_rotors[selected].position = _offsets[selected]
+	if selected < _preview_rotors.size():
+		_preview_rotors[selected].position = _offsets[selected]
 	_save()
 	queue_redraw()
 	_update_hud()
