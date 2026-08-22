@@ -25,6 +25,14 @@ const LIVERIES := {
 	# rather than from shop icons - cropped to their own alpha and scaled to the
 	# stock body's 114x88. Checked against it edge by edge: zero drift on all
 	# four sides, so switching paint does not shift the aircraft on its pad.
+	"b777-300er": [
+		{"key": "delta", "name": "Delta",
+			"body": "res://assets/aircraft/b777-300er/body_delta_2x.png"},
+		{"key": "emirates", "name": "Emirates",
+			"body": "res://assets/aircraft/b777-300er/body_emirates_2x.png"},
+		{"key": "ana", "name": "ANA",
+			"body": "res://assets/aircraft/b777-300er/body_ana_2x.png"},
+	],
 	"a350-900": [
 		{"key": "global", "name": "Global Alliance",
 			"body": "res://assets/aircraft/a350-900/body_global_2x.png"},

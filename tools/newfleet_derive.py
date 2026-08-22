@@ -96,6 +96,12 @@ MODELS = {
     "a220":       (92, {"body": "a220_default.png"}),
     # 64.75m span, near enough the 747-8's 64.4 to take its height band. Five
     # liveries: four off a 2x2 sheet, plus SAS supplied on its own.
+    # 64.8m span, the longest twinjet there is - between the A350's 108 and the
+    # 747-8's 112. Three liveries off one sheet.
+    "b777-300er": (110, {"body": "b777_300er_default.png",
+                         "body_delta": ("b777_300er_liveries.png", 0),
+                         "body_emirates": ("b777_300er_liveries.png", 1),
+                         "body_ana": ("b777_300er_liveries.png", 2)}),
     "a350-900":   (108, {"body": "a350_900_default.png",
                          "body_global": ("a350_900_liveries.png", 0),
                          "body_arctic": ("a350_900_liveries.png", 1),

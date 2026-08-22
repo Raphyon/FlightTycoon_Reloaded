@@ -248,6 +248,10 @@ const ENTRIES := [
 	# between the 747 below it and the A340 above.
 	{"key": "a350-900", "name": "Airbus A350-900", "icon": "a350-900_default.png", "price": 580000, "level": 43,
 		"force": "E", "seats": 530, "fuel": 64, "xp": 490, "range": 5, "has_world_sprite": true},
+	# 64.8m span and the longest twinjet there is, so it shares the A340's rung -
+	# the same size class, four decades apart - and slots just above it on price.
+	{"key": "b777-300er", "name": "Boeing 777-300ER", "icon": "b777-300er_default.png", "price": 700000, "level": 44,
+		"force": "E", "seats": 590, "fuel": 68, "xp": 512, "range": 5, "has_world_sprite": true},
 	{"key": "a340-300", "name": "Airbus A340-300", "icon": "a340-300_default.png", "price": 650000, "level": 44,
 		"force": "E", "seats": 560, "fuel": 66, "xp": 505, "range": 5, "has_world_sprite": true},
 	{"key": "b747", "name": "Boeing 747-8", "icon": "b747_default.png", "price": 800000, "level": 45,
