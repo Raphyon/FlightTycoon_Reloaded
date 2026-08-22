@@ -8,28 +8,58 @@ importance. Nothing here is scheduled.
 
 ## What we can start today
 
-**There is no unused art in this project.** `source-assets/buildings` holds 10
-PNGs - the shop's 9 buildings plus the terminal. `source-assets/aircraft` holds
-3 model folders and the only name without a ladder entry is `p-51mustang`,
-which is the known `p51` alias. Everything we have is in the game.
-
-So the split is clean:
+**Art stopped being the blocker.** This list opened with "there is no unused art
+in this project", and for a while that was the whole story: five of the ten
+items were waiting on drawings nobody had. Then aircraft started arriving - 14
+airframes and 20-odd liveries - and the two items that mattered most moved.
 
 | | needs new art? | |
 |---|---|---|
 | 1 progress bars | no - drawable in code | **DONE** |
 | 9 quests | no - existing board art | **DONE** |
-| 2 level-up rewards | no - flourish optional | **start now** |
-| 3 daily login | no - `source-assets/login/login_back@ipad.jpg` is unused | **start now** |
+| 2 level-up rewards | no | **DONE** |
+| 3 daily login | no | **DONE** |
+| 10 extend the ladder | 8 models | **7 of 8 DONE** - Dreamland3 only |
 | 4 boost items | icons, but HUD art could stand in | prototype now |
-| 5 more models | yes, per model | blocked |
+| 5 more models | yes, per model | open - and now unblocked in practice |
 | 6 more buildings | yes, per building | blocked |
 | 7 events | yes, a lot | blocked |
 | 8 passenger animations | yes, none exists | blocked |
-| 10 extend the ladder | yes, ~8 models | blocked, but specced |
 
 Building upgrades were on this list as a Known Issue rather than a numbered item
-and are also DONE - see UPGRADES.md.
+and are DONE - see UPGRADES.md. They were also nearly worthless when first
+built, and fixing that is the more useful half of the story.
+
+### What actually shipped, and what it cost
+
+Four things landed that are not numbered items, because nobody thought to want
+them until something else made them obvious:
+
+**Upgrades pay coins, not just rent.** A level produced cash and nothing else,
+and an Office at 5->6 costs $830,000 to gain $20,140 an hour - 41 hours of never
+missing a collection. Level now raises the coin drop chance, and levels 5 and 10
+pay a coin on the spot. See UPGRADES.md.
+
+**Airframe levelling is a curve.** It was flat five legs a level, so a model did
+all nine level-ups inside its first 45 legs and never moved again. `(n-1)^2` now,
+5 legs to 85. That is also what gives the sawtooth teeth - a new model starts at
+the cheap end, so a zone unlock hands back a burst of quick levels.
+
+**Depart All is gated at 15.** Worth 6x fewer taps and 4.4 hours over a run, and
+the bot had never used it, so every pacing figure in the readme had quietly
+assumed the manual path.
+
+**Afterburners**, which nobody asked for on this list but the fighters wanted -
+art, a rig, an editor mode, per-nozzle rotation and z-order, four aircraft
+placed.
+
+### The bill for all of it
+
+Three coin sources were added in one day. A 90-day run went from 277 coins to
+400, against a catalogue costing 293, and that was kept deliberately - see the
+readme's coin table. **Every pacing figure in this file was measured while coin
+aircraft were rationed.** If a run comes back faster than 32.7 h for the home
+zones, that is why.
 
 ---
 
@@ -55,49 +85,61 @@ another player's aircraft in Fleet, so only the visiting half is live.
 
 ---
 
-## 2. Level-up rewards for aircraft
+## 2. Level-up rewards for aircraft - DONE
 
-Affinity levels should give something worth having.
+A model level pays **$1,000, flat**, and the claim bubble floats "Level 2!" in
+violet when it happens.
 
-| | |
-|---|---|
-| touches | `aircraft_affinity.gd`, `HangarPanel.gd` |
-| needs | a reward table; the XP and levels already exist |
-| art | level-up flourish, optional |
+Flat because it aims at the early game: 1,000 is real money against a 3,000 DC-3
+and quietly nothing against a 7,000,000 Ark, with no taper to tune. Scaling by
+the model's price would have done the opposite - the early models ARE the cheap
+ones.
 
-Affinity already tracks XP per model, caps at level 10, and grants 1% speed a
-level - so the ladder exists and pays almost nothing. Measured, a maxed model is
-10% faster, which is inside the noise of everything else.
+The note this section carried was right and was followed: **anything that
+multiplies XP moves the level curve, and levels are the only thing that paces
+this game.** The reward is on the cash side and 20-day runs at 0, 1,000 and
+5,000 a level all finish Zone2 at 0.2-0.3 h.
 
-This is the cheapest way to add a second progression axis, because the counter
-is already running and already saved. Candidates: a cash or XP multiplier on
-that model, a fuel discount, a free livery slot at max.
+Levelling is a CURVE now rather than flat - `50 * (n-1)^2` XP, 5 legs for the
+first level and 85 for the last, 405 end to end. It was five legs a level flat,
+so a model did all nine level-ups inside its first 45 legs and then never moved
+again for the rest of the game.
 
-**Note:** anything that multiplies XP will move the level curve, and levels are
-the only thing that paces this game. Keep affinity rewards on the cash side, or
-measure before and after with `--bot`.
+**The find here was not the feature.** A sweep came back with three identical
+runs, because `grant_use` re-read its own file on every call and the `--bot`
+guard blocks that write - so no bot run had ever levelled an aircraft, and every
+pacing figure in this project had been measured with no affinity speed bonus at
+all.
 
 ---
 
-## 3. Daily login rewards
+## 3. Daily login rewards - DONE
 
-| | |
-|---|---|
-| touches | new autoload; `SaveGame`, `GameClock` |
-| needs | a streak counter, a reward table, a panel |
-| art | day tiles - but `source-assets/login/login_back@ipad.jpg` is an unused login background |
+Seven tiles, one a day, streak resets if you miss one, and **the panel opens
+itself on launch** when a day is owed - a daily you have to go looking for is
+not a daily. Day 7 is the one worth coming back for: 3 coins and the largest
+cash. Cash rides the quest curve, `level^1.1`.
 
-**Nothing like this exists** - no daily, login or streak anything in the
-codebase.
+Same day boundary as the tasks, `floor(now / 86400)`. They must match, or the
+game tells the player two different things about what day it is.
 
-`GameClock.now()` is the right clock to key off, since every wall-clock reader
-already goes through it. Two known traps: the fast-forward offset is **not
-persisted across restarts**, so a streak keyed off it can be gamed or broken by
-a debug session; and `SaveGame` already records `saved_at` and computes elapsed
-time on load, which is most of the machinery.
+**Both clock traps this section predicted were real**, and both come from
+`GameClock`'s fast-forward offset not being persisted, so a restart after a
+fast-forwarded session moves `now()` BACKWARDS:
 
-Worth doing for the reason daily rewards exist - they pull lapsed players back -
-and this is a game where the hours between sessions are free and doing work.
+  - A streak must not break on it. Losing one to a debug session is the game
+    taking something for nothing, so an earlier day counts as the same day.
+  - `can_claim` was `today() != last_day`, which ALSO fires when the clock has
+    gone back: bank a day, fast-forward, restart, claim it twice. It is
+    `today() > last_day` now. A probe caught that, not a reading of the code.
+
+The art note was wrong, though. `login_back@ipad.jpg` is what marked this item
+unblocked, but it is a splash illustration - a whole sky of aircraft over the
+island - and seven tiles of numbers on it would be unreadable. It is a loading
+screen, not a panel frame, and the panel uses the board every other window uses.
+
+It pays **52 coins a run**, the fourth coin source in the game. See the bill at
+the top of this file.
 
 ---
 
@@ -134,14 +176,25 @@ Two things make this more interesting than it looks:
 | needs | ladder respacing; the asset pipeline already handles this |
 | art | per model - most of the dump is shop-icon only |
 
-36 aircraft across levels 1-50 today. The pipeline for adding one is solid and
-documented, and the ladder was respaced once already.
+**49 aircraft across levels 1-70** today, up from 36 when this was written.
+Fourteen arrived in one stretch, so the sentence this section used to carry -
+"the constraint is art, not code, and there is no slack" - stopped being true.
 
-**The constraint is art, not code, and there is no slack.** Every model folder
-in `source-assets/aircraft` already has a ladder entry. Most models in the dump
-never downloaded their world sprites, so a new entry means deriving one from a
-shop icon or authoring it outright. Adding models also stretches the ladder, which moves
-pacing - measure with `--bot` after.
+The pipeline is one line per aircraft. `tools/newfleet_derive.py` takes ONE
+render, ~1024px with clean alpha and no baked shadow, and produces the world
+body, the ground shadow and the shop icon from it. Give it a target sprite
+HEIGHT, set by the real airframe's span against the rest of the fleet, and the
+width falls out.
+
+Liveries are free after that: any number of aircraft on one sheet, any layout,
+cut by connected alpha rather than by assuming a grid. Keep a sheet within ~1%
+of the default's aspect - the C-17's ran 2.7-4.9% and costs about 4px of stretch
+once pinned to the body.
+
+Placement is still a decision. **By CLASS** puts an aircraft next to its
+contemporaries and changes nothing structural; **by ZONE** puts it on a gate
+that had nothing, which is what item 10 is about. Seven placed by class did not
+move the tail at all.
 
 ---
 
@@ -270,19 +323,23 @@ with no owner. Listed so they are not lost.
 
 ## Suggested order
 
-1, 6, 2 first - all cheap, all visible, none of them touch the level curve.
+REWRITTEN, because most of what it recommended is done. 1, 2, 3 and 9 have
+shipped, and 10 is seven-eighths there.
 
-Then **9**, which has the best case of anything on this list: it is the only
-item that unlocks content already built and shipping. Seven aircraft, every
-livery and every apron skin are currently priced beyond what a sixty-hour
-playthrough can earn.
+**4 next** - boost items, the last item on the list needing no art anybody has
+to draw. It is also the only one that would give the daily login something more
+interesting to hand over than cash.
 
-Then 3 and 4 as a pair, since a daily reward wants something to hand you and
-boosts want a reason to exist - and both share the inventory and claim-panel
-machinery that 9 would build first.
+**10's last entry** is the cheapest thing here in absolute terms: one render,
+the Hughes H-4, and Dreamland3 stops being the one gate in the game that opens
+with a level number and a bill.
 
-5 whenever art appears. 7 and 8 last: one is art-blocked outright, the other
-wants a settled loop underneath it.
+**6** - more buildings - is worth more than its position suggests now that
+upgrades pay coins. The city is a real economy rather than a rent trickle, and
+it has nine buildings.
+
+7 and 8 last, unchanged: one is art-blocked outright, the other wants a settled
+loop underneath it.
 
 ---
 
