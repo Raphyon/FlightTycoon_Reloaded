@@ -22,7 +22,8 @@ extends Node2D
 #   1-9        select which rotor hub you're placing (models with a single
 #              prop, like the P-51, only use 1)
 #   click      set the selected rotor's position - preview updates live
-#   B          toggle whether the selected rotor draws behind the fuselage
+#   B          toggle whether the selected rotor OR NOZZLE draws behind the
+#              fuselage
 #              (an inboard prop on the far wing is partly hidden by the hull,
 #              so its disc must not paint over it)
 #   - / +      shrink/grow the selected rotor's disc (also , and .). The propliners borrow the
@@ -233,7 +234,7 @@ func _drop_preview() -> void:
 		_offsets = AircraftRig.get_exhaust_offsets(_model_key())
 		_scales = AircraftRig.get_exhaust_scales(_model_key())
 		_angles = AircraftRig.get_exhaust_angles(_model_key())
-		_behind = []
+		_behind = AircraftRig.get_exhaust_behind(_model_key())
 	else:
 		_offsets = AircraftRig.get_rotor_offsets(_model_key())
 		_behind = AircraftRig.get_rotor_behind(_model_key())
@@ -366,19 +367,18 @@ func _update_hud() -> void:
 		"Selected: %s %d" % [noun, selected + 1],
 	]
 	for i in range(_offsets.size()):
-		var tag := "" if _exhaust_mode else (
-			"  BEHIND hull" if (i < _behind.size() and _behind[i]) else "")
+		var tag := "  BEHIND hull" if (i < _behind.size() and _behind[i]) else ""
 		var s: float = _scales[i] if i < _scales.size() else 1.0
 		if _exhaust_mode:
 			var a: float = _angles[i] if i < _angles.size() else 0.0
-			lines.append("  %s %d offset: (%.1f, %.1f)  scale %.2f  angle %.0f deg"
-				% [noun, i + 1, _offsets[i].x, _offsets[i].y, s, a])
+			lines.append("  %s %d offset: (%.1f, %.1f)  scale %.2f  angle %.0f deg%s"
+				% [noun, i + 1, _offsets[i].x, _offsets[i].y, s, a, tag])
 		else:
 			lines.append("  %s %d offset: (%.1f, %.1f)  scale %.2f%s"
 				% [noun, i + 1, _offsets[i].x, _offsets[i].y, s, tag])
 	lines.append("")
 	if _exhaust_mode:
-		lines.append("1-%d = select nozzle   click = place it   - + = size   Q W = rotate"
+		lines.append("1-%d = select nozzle   click = place   - + size   Q W rotate   B behind/front"
 			% _offsets.size())
 	else:
 		lines.append("1-%d = select rotor   click = place it   B = behind/front   - + = size"

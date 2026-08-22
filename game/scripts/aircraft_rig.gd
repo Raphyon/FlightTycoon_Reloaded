@@ -68,6 +68,31 @@ static func get_exhaust_offsets(model_key: String) -> Array[Vector2]:
 	return out2
 
 
+# Whether each plume draws BEHIND the fuselage. The first cut hardcoded exhaust
+# to always draw on top, on the reasoning that from this camera the exhaust
+# exits away from the airframe. True for the F-14; not true in general - an
+# aircraft whose tailplane or fins sit across its nozzles wants the plume
+# tucked under the hull, exactly like an inboard prop on a far wing.
+static func get_exhaust_behind(model_key: String) -> Array[bool]:
+	var out: Array[bool] = []
+	var data := load_data()
+	var entries: Array = data.get(rig_key(model_key, true), [])
+	var placed := false
+	for p in entries:
+		if (p as Array).size() > 2:
+			placed = true
+			break
+	if placed:
+		for p in entries:
+			out.append((p as Array).size() > 2 and bool(p[2]))
+		return out
+	var sprites: Dictionary = Fleet.WORLD_SPRITES.get(model_key, {})
+	var defaults: Array = sprites.get("exhaust_behind_body", [])
+	for i in range(get_exhaust_offsets(model_key).size()):
+		out.append(i in defaults)
+	return out
+
+
 # Rotation per NOZZLE, not per model. exhaust_angle on the model is the seed -
 # most aircraft want one slope for both - but the two are not always the same:
 # a nozzle canted out, or one seen more end-on than the other, needs its own.

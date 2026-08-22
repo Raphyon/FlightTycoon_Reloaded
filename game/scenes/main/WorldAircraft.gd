@@ -299,10 +299,11 @@ func _add_flipbook(frame_paths: Array, offset: Vector2, phase_delay: float, pare
 
 # AFTERBURNERS. One flipbook per nozzle, hidden until the thing actually leaves.
 #
-# Drawn OVER the body, unlike a rotor, which can need to hide behind the hull.
-# From this camera the exhaust exits away from the airframe rather than across
-# it, so there is nothing for it to be occluded by - and the first prototype
-# that drew it underneath was almost entirely hidden by the fuselage.
+# Drawn over the body BY DEFAULT, because from this camera the exhaust usually
+# exits away from the airframe - the prototype that drew it underneath was
+# almost entirely hidden by the fuselage. But not always: an aircraft whose
+# tailplane or fins cross its nozzles wants the plume tucked under the hull, so
+# each nozzle carries the same behind flag a rotor hub does.
 #
 # The plume art points straight back along +x and is ROTATED here per aircraft.
 # Baking the angle into the art was the first design and it was wrong: every
@@ -314,6 +315,7 @@ func _add_exhaust(model_key: String, sprites: Dictionary) -> void:
 		return
 	var scales := AircraftRig.get_exhaust_scales(model_key)
 	var angles := AircraftRig.get_exhaust_angles(model_key)
+	var behind := AircraftRig.get_exhaust_behind(model_key)
 	for i in range(offsets.size()):
 		var scale: float = scales[i] if i < scales.size() else 1.0
 		var angle: float = angles[i] if i < angles.size() else 0.0
@@ -331,6 +333,10 @@ func _add_exhaust(model_key: String, sprites: Dictionary) -> void:
 		var glow := CanvasItemMaterial.new()
 		glow.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
 		plume.material = glow
+		# Under the hull when a control surface crosses the nozzle. Drawn on
+		# top by default, which is right for the F-14 and wrong for anything
+		# whose tailplane sits across its exhaust.
+		plume.show_behind_parent = i < behind.size() and behind[i]
 		plume.visible = false
 		_exhaust.append(plume)
 
