@@ -11,6 +11,9 @@ extends Node2D
 #   Escape     leave the tool. It used to be the F1 menu or nothing, and
 #              reaching the menu means clicking, which this reads before the
 #              GUI does - so closing it placed one last thing on the way out.
+#   Q / W      rotate the selected NOZZLE. Exhaust only - a rotor disc is drawn
+#              face-on and has nothing to rotate, but a plume has to lie along
+#              its own airframe, and two nozzles are not always at one angle.
 #   E          switch between ROTOR hubs and EXHAUST nozzles. The same tool
 #              pointed at a different list on the same model - a nozzle and a
 #              rotor both want a position, a size and a z-order placed against
@@ -32,6 +35,9 @@ extends Node2D
 const WorldAircraftScript := preload("res://scenes/main/WorldAircraft.gd")
 const MARKER_RADIUS := 5.0
 const SCALE_STEP := 0.05
+# Degrees per press. Coarse enough to sweep a nozzle round quickly, fine enough
+# to sit it on the fuselage line - hold and it moves.
+const ANGLE_STEP := 2.0
 const SCALE_MIN := 0.2
 const SCALE_MAX := 3.0
 # One distinct colour per hub. Needs to cover the largest rotor count in the
@@ -86,6 +92,7 @@ var _scales: Array[float] = []
 # against a live preview, so they share the editor rather than growing a second
 # one. E switches.
 var _exhaust_mode := false
+var _angles: Array[float] = []
 var _reference_pos := Vector2.ZERO
 var _preview_body: Sprite2D
 var _preview_rotors: Array[Sprite2D] = []
@@ -103,6 +110,23 @@ func _ready() -> void:
 
 # -1, 0 or +1 step from what was actually typed. Brackets still work for anyone
 # whose layout has them somewhere reachable.
+# Q and W, matched on the CHARACTER for the same reason _scale_step is - on a
+# Nordic layout the key that types a bracket is not the keycode you expect.
+func _angle_step(event: InputEventKey) -> float:
+	match char(event.unicode).to_lower():
+		"q":
+			return -ANGLE_STEP
+		"w":
+			return ANGLE_STEP
+	return 0.0
+
+
+func _apply_angles() -> void:
+	for i in range(_preview_rotors.size()):
+		if _exhaust_mode and i < _angles.size():
+			_preview_rotors[i].rotation = deg_to_rad(-_angles[i])
+
+
 func _scale_step(event: InputEventKey) -> float:
 	match char(event.unicode):
 		"-", "_", ",":
@@ -149,6 +173,14 @@ func _input(event: InputEvent) -> void:
 			if selected < _behind.size():
 				_behind[selected] = not _behind[selected]
 				_apply_behind()
+				_save()
+				_update_hud()
+		elif editing and _exhaust_mode and _angle_step(event) != 0.0:
+			# Rotation is EXHAUST ONLY. A rotor disc is drawn face-on and has
+			# nothing to rotate; a plume has to lie along its own airframe.
+			if selected < _angles.size():
+				_angles[selected] = wrapf(_angles[selected] + _angle_step(event), -180.0, 180.0)
+				_apply_angles()
 				_save()
 				_update_hud()
 		elif editing and _scale_step(event) != 0.0:
@@ -200,6 +232,7 @@ func _drop_preview() -> void:
 	if _exhaust_mode:
 		_offsets = AircraftRig.get_exhaust_offsets(_model_key())
 		_scales = AircraftRig.get_exhaust_scales(_model_key())
+		_angles = AircraftRig.get_exhaust_angles(_model_key())
 		_behind = []
 	else:
 		_offsets = AircraftRig.get_rotor_offsets(_model_key())
@@ -211,6 +244,8 @@ func _drop_preview() -> void:
 		_behind.append(false)
 	while _scales.size() < _offsets.size():
 		_scales.append(1.0)
+	while _angles.size() < _offsets.size():
+		_angles.append(float(sprites.get("exhaust_angle", 0.0)))
 
 	_preview_body = Sprite2D.new()
 	_preview_body.texture = load(sprites["body"])
@@ -243,7 +278,7 @@ func _drop_preview() -> void:
 			# own slope, and anchored at the NOZZLE rather than at the middle of
 			# the flame, or you would be aligning the centre of a plume that is
 			# half inside the hull.
-			rotor.rotation = deg_to_rad(-float(sprites.get("exhaust_angle", 0.0)))
+			rotor.rotation = deg_to_rad(-(_angles[i] if i < _angles.size() else 0.0))
 			rotor.offset = Vector2(
 				rotor.texture.get_width() * 0.5 - WorldAircraftScript.EXHAUST_ANCHOR.x, 0.0)
 			var glow := CanvasItemMaterial.new()
@@ -301,6 +336,7 @@ func _save() -> void:
 			_offsets[i].x, _offsets[i].y,
 			1 if (i < _behind.size() and _behind[i]) else 0,
 			_scales[i] if i < _scales.size() else 1.0,
+			_angles[i] if i < _angles.size() else 0.0,
 		])
 	data[AircraftRig.rig_key(_model_key(), _exhaust_mode)] = stored
 	AircraftRig.save_data(data)
@@ -333,11 +369,16 @@ func _update_hud() -> void:
 		var tag := "" if _exhaust_mode else (
 			"  BEHIND hull" if (i < _behind.size() and _behind[i]) else "")
 		var s: float = _scales[i] if i < _scales.size() else 1.0
-		lines.append("  %s %d offset: (%.1f, %.1f)  scale %.2f%s"
-			% [noun, i + 1, _offsets[i].x, _offsets[i].y, s, tag])
+		if _exhaust_mode:
+			var a: float = _angles[i] if i < _angles.size() else 0.0
+			lines.append("  %s %d offset: (%.1f, %.1f)  scale %.2f  angle %.0f deg"
+				% [noun, i + 1, _offsets[i].x, _offsets[i].y, s, a])
+		else:
+			lines.append("  %s %d offset: (%.1f, %.1f)  scale %.2f%s"
+				% [noun, i + 1, _offsets[i].x, _offsets[i].y, s, tag])
 	lines.append("")
 	if _exhaust_mode:
-		lines.append("1-%d = select nozzle   click = place it   - + = size"
+		lines.append("1-%d = select nozzle   click = place it   - + = size   Q W = rotate"
 			% _offsets.size())
 	else:
 		lines.append("1-%d = select rotor   click = place it   B = behind/front   - + = size"

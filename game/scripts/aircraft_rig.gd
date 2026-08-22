@@ -68,6 +68,31 @@ static func get_exhaust_offsets(model_key: String) -> Array[Vector2]:
 	return out2
 
 
+# Rotation per NOZZLE, not per model. exhaust_angle on the model is the seed -
+# most aircraft want one slope for both - but the two are not always the same:
+# a nozzle canted out, or one seen more end-on than the other, needs its own.
+# Stored as the fifth field so every rig written before this reads as "never
+# placed" and defers to the model.
+static func get_exhaust_angles(model_key: String) -> Array[float]:
+	var out: Array[float] = []
+	var data := load_data()
+	var entries: Array = data.get(rig_key(model_key, true), [])
+	var sprites: Dictionary = Fleet.WORLD_SPRITES.get(model_key, {})
+	var fallback := float(sprites.get("exhaust_angle", 0.0))
+	var placed := false
+	for p in entries:
+		if (p as Array).size() > 4:
+			placed = true
+			break
+	if placed:
+		for p in entries:
+			out.append(float(p[4]) if (p as Array).size() > 4 else fallback)
+		return out
+	for i in range(get_exhaust_offsets(model_key).size()):
+		out.append(fallback)
+	return out
+
+
 static func get_exhaust_scales(model_key: String) -> Array[float]:
 	var out: Array[float] = []
 	var data := load_data()

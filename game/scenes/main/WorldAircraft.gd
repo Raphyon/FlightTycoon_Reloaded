@@ -313,9 +313,10 @@ func _add_exhaust(model_key: String, sprites: Dictionary) -> void:
 	if offsets.is_empty():
 		return
 	var scales := AircraftRig.get_exhaust_scales(model_key)
-	var angle := float(sprites.get("exhaust_angle", 0.0))
+	var angles := AircraftRig.get_exhaust_angles(model_key)
 	for i in range(offsets.size()):
 		var scale: float = scales[i] if i < scales.size() else 1.0
+		var angle: float = angles[i] if i < angles.size() else 0.0
 		var plume := _add_flipbook(EXHAUST_FRAMES, offsets[i],
 			# Staggered, so two nozzles on one aircraft do not pulse in lockstep.
 			float(i) * ROTOR_FRAME_DURATION * 0.5, _body, scale)

@@ -339,6 +339,20 @@ const WORLD_SPRITES := {
 	"f15": {
 		"body": "res://assets/aircraft/f15/body_2x.png",
 		"shadow": "res://assets/aircraft/f15/shadow_2x.png",
+		# Only ONE nozzle is actually visible from this camera - the near one
+		# sits behind the near tail fin - but both are placed, because the
+		# hidden one still lights the air beside the fin and dropping it made
+		# the aircraft look like it had one engine.
+		#
+		# The far nozzle is read off the source render at (655, 178) and scaled
+		# by 118/899; the near one is offset by the spacing the F-14's pair
+		# turned out to have. RotorEditor's E mode settles both.
+		"exhaust_offsets": [Vector2(27.0, -14.6), Vector2(42.0, -5.6)],
+		# 24 degrees, against the F-14's 17 - which is the whole reason the
+		# angle lives on the aircraft rather than baked into the art.
+		"exhaust_angle": 24.0,
+		# Smaller airframe than the F-14, 76px against 82.
+		"exhaust_scale": 0.9,
 	},
 	# Four radials, so four hubs - the only one here that uses all four.
 	"dc6": {
