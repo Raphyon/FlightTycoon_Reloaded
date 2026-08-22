@@ -210,9 +210,31 @@ See `QUESTS.md`.
 
 ### Progression and economy
 
-You start with **$5,000, 15 coins, and a granted DC-3**. 42 aircraft on the
-shop ladder across levels 1-50, nine of them coin-priced and totalling 293
+You start with **$5,000, 15 coins, and a granted DC-3**. 49 aircraft on the
+shop ladder **across levels 1-70**, nine of them coin-priced and totalling 293
 coins.
+
+The ladder used to stop at 50 while the zone gates ran to 70, which left 62 of
+the game's 93 hours with nothing new to fly. Seven entries fill it, and every
+one belongs to the zone it opens rather than being another airliner:
+
+| level | zone | price | |
+|---|---|---|---|
+| 52, 53 | Snow | $12M, $14M | An-74, LC-130 on skis |
+| 56, 57 | Dreamland1 | $27M, $34M | Be-200, US-2 - the island is a water resort |
+| 61 | Dreamland2 | $84M | Boeing 314 Clipper |
+| 69, 70 | Carrier | $480M, $600M | E-2 Hawkeye, F-14 - the first naval aircraft |
+
+**The tail is a sink, not an investment.** Every entry past 50 pays
+220,000-300,000 a leg, at or under the Ark's 300,000, so none of it adds income
+the pacing has not already measured. The PRICE is the ladder: $12M to $600M,
+which is payback in 54 legs at the bottom and 2,000 at the top. The F-14 never
+repays itself and is not meant to - it is somewhere for a late game measuring
+$14M a day to put the money.
+
+An entry past 50 must carry an explicit `ticket`. Without one it falls back to
+the flat 15 fare, which is silent: the first two shipped that way and earned
+31,500 a leg against the A400M's 250,000 while costing three times as much.
 
 Seven of those arrived in one stretch and all were placed BY CLASS rather than
 in the empty tail, which was the other option:
@@ -431,18 +453,22 @@ the ramp bites again:
 | Forest | 36 | blackh, ufo, airship, v22, a300 |
 | Desert | 42 | b787, 747, ncc1701, x37b, a350-900, b777-300er, a340-300 |
 | Beach | 48 | a380-300, c17, concorde, an-225, a400m, ark |
-| Snow | 53 | **nothing** |
-| Dreamland1-3, Carrier | 57-70 | **nothing** |
+| Snow | 53 | an74, lc130 |
+| Dreamland1 | 57 | be200, us2 |
+| Dreamland2 | 62 | b314 |
+| Dreamland3 | 66 | **nothing** |
+| Carrier | 70 | e2, f14 |
 
 So the tail is not only empty of aircraft, it is missing the pattern that
 carries the first 48 levels - and that tail is 62 of the 93 hours. Eight
 entries, placed on the teeth rather than spaced evenly, are specced in
 `ROADMAP.md` item 10.
 
-**Seven aircraft arrived and none of them changed this.** They were placed by
-CLASS, which put them all at levels 30-47 - the Desert tooth now carries seven
-models and the tail still carries none. Filling 53-70 is a separate decision
-from adding aircraft, and it is the one that moves the back half of the game.
+**Nine of ten now open with something.** The seven tail entries were placed by
+ZONE rather than by class, which is the difference: an aircraft that belongs to
+the gate it opens. Snow got polar aircraft, Dreamland got flying boats because
+the island is a water resort, the Carrier got the first naval aircraft in the
+game. Only Dreamland3 at 66 is still a level number and a bill.
 
 Everything here is measured, and the measuring instrument has been wrong five
 times. The bot did not claim quests, did not upgrade buildings, and rolled its
@@ -535,10 +561,10 @@ the canvas edge. Do not assume a uniform trim margin in any importer.
 
 ### Design
 
-- **The last five zones have no aircraft.** Snow (53), Dreamland 1-3 (57/62/66)
-  and the Carrier (70) all unlock with nothing new to fly, so the sawtooth that
-  carries the first 48 levels flatlines across 62 of the game's 93 hours.
-  Specced in `ROADMAP.md` item 10, blocked on eight shop icons.
+- ~~The last five zones have no aircraft~~ **MOSTLY DONE** - seven entries
+  built, and nine of the ten zones now open with something new to fly. Only
+  **Dreamland3 at 66** is still bare, wanting the Hughes H-4. `ROADMAP.md`
+  item 10.
 - **Range is inert - it buys nothing measurable.** A leg pays x5 from the
   nearest destination to the furthest while taking x420 as long, so the 1-cloud
   hop is 84x better per MINUTE - but a lap is four taps whatever its length, so
@@ -585,12 +611,9 @@ the canvas edge. Do not assume a uniform trim margin in any importer.
   lands at ~31 h. See UPGRADES.md.
 - ~~The coin catalogue is unreachable~~ **DONE** - daily tasks are the faucet,
   and coin aircraft now obey the level gate. See QUESTS.md.
-- **The fleet ladder stops at level 50 while zone gates run to 70.** Dreamland
-  opens at 57-66 and the Carrier at 70, so the levels that gate the last four
-  zones have no aircraft behind them at all - and the endgame scenario sits at
-  72, above every aircraft in the game. The Ark ran into the same wall from the
-  other side: it is the top of the ladder and there is nothing to improve to.
-  Either the ladder extends past 50 or those gates come down.
+- ~~The fleet ladder stops at level 50 while zone gates run to 70~~ **DONE** -
+  the ladder spans 1-70 now. The Ark is no longer the top of it either, which
+  was the same wall seen from the other side.
 - **Late-game cash is not a lever.** Repricing the Ark from $4.5M to $7M changed
   a 90-day run by nothing at all - by then income is large enough that price
   does not bind. Only level and availability do, which is worth remembering
