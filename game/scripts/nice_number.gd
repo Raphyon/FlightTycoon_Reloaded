@@ -14,6 +14,18 @@ extends RefCounted
 
 # The step grows with the figure, so it reads clean at every scale rather than
 # carrying five significant digits into the millions.
+# "250k", "1.2M" - for somewhere too narrow for the full figure, like a shop
+# card or a daily tile. BuildingItem grew its own copy of this before there was
+# anywhere shared to put it; that one can move here whenever it is next touched.
+static func short(n: int) -> String:
+	if n >= 1000000:
+		var m := float(n) / 1000000.0
+		return ("%.0fM" % m) if m >= 10.0 else ("%.1fM" % m)
+	if n >= 1000:
+		return "%dk" % (n / 1000)
+	return str(n)
+
+
 static func cash(n: int) -> int:
 	var v := absi(n)
 	var step := 50

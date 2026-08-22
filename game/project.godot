@@ -38,6 +38,7 @@ RunwayControl="*res://scripts/runway_control.gd"
 DebugState="*res://scripts/debug_state.gd"
 AircraftSkins="*res://scripts/aircraft_skins.gd"
 Quests="*res://scripts/quests.gd"
+DailyLogin="*res://scripts/daily_login.gd"
 SaveGame="*res://scripts/save_game.gd"
 Bot="*res://scripts/bot.gd"
 

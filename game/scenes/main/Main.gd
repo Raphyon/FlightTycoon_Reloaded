@@ -10,6 +10,24 @@ func _ready() -> void:
 	_apply_map()
 	_apply_visiting_ui()
 	$Camera2D.position = $ApronLayer.get_occupied_position()
+	_offer_daily_login()
+
+
+# A daily that you have to go looking for is not a daily. It opens itself when a
+# day is owed, which is the whole mechanism - the reward is the excuse, coming
+# back is the point.
+#
+# Deferred a frame: SaveGame loads on its own _ready, and asking before that has
+# run reads a streak of zero on every launch and hands out day 1 forever.
+func _offer_daily_login() -> void:
+	await get_tree().process_frame
+	if Maps.is_robot_map():
+		return
+	if not DailyLogin.can_claim():
+		return
+	var panel: Control = $UI.get_node_or_null("DailyLoginPanel")
+	if panel:
+		panel.show_panel()
 
 
 # Travelling swaps the whole world: each airport is its own background at its
@@ -60,7 +78,8 @@ const VISITING_HIDDEN := ["TopBarRight", "TopBarLeft", "TopBar", "MapTab"]
 # Panels that must not be left open behind us when we arrive.
 const VISITING_CLOSED := ["WorldMapPanel", "ShopHubPanel", "HangarPanel", "FriendsPanel", "FriendInfoPanel", "RoutesPanel", "ShopPanel",
 	"FuelPanel", "ExpansionShopPanel", "ApronInfoPanel", "SkinPickerPanel",
-	"AssignPickerPanel", "BuildingInfoPanel", "UpgradeConfirmPanel"]
+	"AssignPickerPanel", "BuildingInfoPanel", "UpgradeConfirmPanel",
+	"DailyLoginPanel"]
 
 
 func _apply_visiting_ui() -> void:

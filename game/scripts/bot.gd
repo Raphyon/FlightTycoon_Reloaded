@@ -119,6 +119,8 @@ var _building_coins := 0
 # different cap and sizing one against the other is the whole point.
 var _milestone_coins := 0
 var _sets_done := 0
+var _login_coins := 0
+var _login_days := 0
 var _started := 0.0
 
 
@@ -219,6 +221,7 @@ func _session(minutes: float) -> void:
 		_peak_stock = maxi(_peak_stock, FuelStore.amount)
 		# The day's tasks, collected like anything else - and charged for.
 		if _do_quests:
+			_claim_daily_login()
 			_claim_quests()
 		# Charge for what all of that just did. At speed > 1 the same hand
 		# movement eats _speed times as much game time.
@@ -409,6 +412,18 @@ func _claim_quests() -> void:
 		if Quests.claim_set():
 			_sets_done += 1
 			_quest_coins += Coins.amount - before
+
+
+# The daily login. One tap - the panel opens itself when a day is owed, so
+# collecting is the only action a player actually performs.
+func _claim_daily_login() -> void:
+	if not DailyLogin.can_claim():
+		return
+	var before: int = Coins.amount
+	_taps += 1
+	if DailyLogin.claim():
+		_login_days += 1
+		_login_coins += Coins.amount - before
 
 
 func _route_for(model_key: String) -> String:
@@ -723,6 +738,7 @@ func _summary() -> void:
 	print("  routing policy: %s   daily tasks: %s" % [_routing, "on" if _do_quests else "off"])
 	print("  quests: %d sets completed, %d coins earned" % [_sets_done, _quest_coins])
 	print("  building coin drops: %d" % _building_coins)
+	print("  daily login: %d days collected, %d coins" % [_login_days, _login_coins])
 	var counts := []
 	for k in _legs:
 		counts.append([int(_legs[k]), k])
