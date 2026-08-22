@@ -394,6 +394,16 @@ const WORLD_SPRITES := {
 		"rotor_offsets": [Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0)],
 		"rotor_scale": 0.85,
 	},
+	"e2": {
+		"body": "res://assets/aircraft/e2/body_2x.png",
+		"shadow": "res://assets/aircraft/e2/shadow_2x.png",
+		# Two turboprops painted into the body, so only the spin flipbook
+		# layers on - borrowed from the A400M like every propliner here.
+		"rotor_spin_frames": A400M_PROP,
+		# PLACEHOLDERS for RotorEditor: M to reach it, 1/2, click, -/+.
+		"rotor_offsets": [Vector2(0, 0), Vector2(0, 0)],
+		"rotor_scale": 0.78,
+	},
 	"f14": {
 		"body": "res://assets/aircraft/f14/body_2x.png",
 		"shadow": "res://assets/aircraft/f14/shadow_2x.png",

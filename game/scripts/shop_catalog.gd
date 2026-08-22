@@ -307,6 +307,11 @@ const ENTRIES := [
 		"force": "D", "seats": 500, "fuel": 60, "xp": 500, "ticket": 100, "range": 5, "has_world_sprite": true},
 	{"key": "b314", "name": "Boeing 314 Clipper", "icon": "b314_default.png", "price": 84000000, "level": 61,
 		"force": "E", "seats": 560, "fuel": 64, "xp": 530, "ticket": 95, "range": 5, "has_world_sprite": true},
+	# The Carrier's other half. A Tomcat and a Hawkeye is the pair a deck
+	# actually runs, and it gives the Carrier two entries the way Snow and
+	# Dreamland1 have two - one zone, one aircraft was the thinnest tooth here.
+	{"key": "e2", "name": "Grumman E-2 Hawkeye", "icon": "e2_default.png", "price": 480000000, "level": 69,
+		"force": "D", "seats": 25, "fuel": 68, "xp": 650, "ticket": 2300, "range": 5, "has_world_sprite": true},
 	# The Carrier's, and the top of the game. Twenty seats at a premium fare
 	# rather than a cabin full - it lands on the Ark's 300,000 a leg either way,
 	# and a Tomcat with 900 seats in it would read as a joke.

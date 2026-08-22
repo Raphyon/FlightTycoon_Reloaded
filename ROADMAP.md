@@ -357,9 +357,12 @@ carries the first 48 levels. Eight entries, placed on the teeth:
 | 61 | Dreamland2 | $84M | **Boeing 314 Clipper** | BUILT |
 | 62 | Dreamland2 | $105M | Dornier Do X | |
 | 66 | Dreamland3 | $250M | Hughes H-4 Hercules | **the only bare zone** |
+| 69 | Carrier | $480M | **Grumman E-2 Hawkeye** | BUILT |
 | 70 | Carrier | $600M | **Grumman F-14 Tomcat** | BUILT |
 
-**Six of eight built.** Nine of the ten zones now open with something new to
+**Seven built, and the Carrier got a pair.** A Tomcat and a Hawkeye is what a
+deck actually runs, and one zone with one aircraft was the thinnest tooth in the
+set - Snow and Dreamland1 both open with two. Nine of the ten zones now open with something new to
 fly; only Dreamland3 at 66 does not, so the H-4 is the one entry that still
 changes whether a gate feels like an unlock or a bill. The Do X at 62 is the
 last of the nice-to-haves - Dreamland2 already has the Clipper.

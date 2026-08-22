@@ -118,6 +118,10 @@ MODELS = {
     # Boeing 314: 46.3m span, past the A400M's 42.4 - the golden-age flying
     # boat, and the largest thing in Dreamland's set.
     "b314":       (100, {"body": "boeing_314_clipper.png"}),
+    # E-2 Hawkeye: 24.6m span, so above the F-14's 19.55m and below the ATR's
+    # 27m. The radar disc is the whole silhouette and nothing else in the fleet
+    # has that shape.
+    "e2":         (86, {"body": "e2_hawkeye_default.png"}),
     # THE CARRIER'S. 19.55m span with the wings out - bigger than the F-15's
     # 13m, so above its 76, and still the second-smallest thing in the fleet.
     "f14":        (82, {"body": "grumman_f14_tomcat.png"}),
