@@ -208,6 +208,54 @@ unit (the market reprices hourly and nothing rewarded watching it), and buying
 
 See `QUESTS.md`.
 
+### Daily login
+
+**Seven tiles, one a day, streak resets if you miss one.** The panel opens
+itself on launch when a day is owed - a daily you have to go looking for is not
+a daily. Day 7 is the one worth coming back for: 3 coins and the largest cash.
+Cash rides the quest curve, `level^1.1`, because a flat figure is real money at
+level 5 and an insult at level 50.
+
+Same day boundary as the tasks above, `floor(now / 86400)`. They must match, or
+the game is telling the player two different things about what day it is.
+
+**Two clock traps**, both because `GameClock`'s fast-forward offset is not
+persisted, so a restart after a fast-forwarded session moves `now()` BACKWARDS.
+A streak must not break on that - losing one to a debug session is the game
+taking something for nothing - so an earlier day counts as the same day. And
+`can_claim` must be `today() > last_day`, not `!=`: the second version also
+fires when the clock has gone back, so you could bank a day, fast-forward,
+restart, and claim it twice.
+
+The panel is NOT built on `source-assets/login/login_back@ipad.jpg`, which was
+what earmarked this feature as unblocked. It is a splash illustration - a whole
+sky of aircraft over the island - and seven tiles of numbers on it would be
+unreadable. A loading screen, not a panel frame.
+
+### Coins, and how many there are
+
+Four sources now, measured over a 90-day run:
+
+| | coins |
+|---|---|
+| daily tasks | 166 |
+| building rent drops | 130 |
+| upgrade milestones | 52 |
+| daily login | 52 |
+| **total** | **400** |
+
+Against a catalogue costing **293**. A run ends about 107 clear of owning every
+coin aircraft in the game.
+
+**That is a decision, not a drift.** Three of those four sources were added in
+one day, and the total went 277 -> 400 against a figure of 323 that had been
+chosen as right. Coins are less scarce than they were, on purpose.
+
+What it spends is what the coin gate used to buy. Coin aircraft were "aircraft
+you did not pay cash for", and every pacing number here was measured while they
+were rationed - so **if a run ever comes back faster than 32.7 h for the home
+zones, this is the first place to look.**
+
 ### Progression and economy
 
 You start with **$5,000, 15 coins, and a granted DC-3**. 49 aircraft on the

@@ -45,10 +45,15 @@ const FUEL_EXPONENT := 0.6
 # chosen as right, and 411 was rejected as "coins stop being scarce". A run now
 # ends 107 coins clear of owning every coin aircraft in the game.
 #
-# So the number to argue about is not this one on its own. Either the login
-# gives less - dropping day 4 makes it three a week and about 39 - or one of the
-# other three sources gives less, or coins are simply less scarce than they
-# were, which is a decision rather than an accident.
+# DECIDED: keep it. Coins are less scarce than they were, on purpose. A run
+# ending able to own the whole coin catalogue with something left over is the
+# shape now, and the three sources added today - drop chance, milestones, this -
+# are all staying at the values they were measured at.
+#
+# What that costs is the thing the coin gate used to buy: coin aircraft were
+# "aircraft you did not pay cash for", and pacing was measured on the assumption
+# that they were rationed. If a future run comes back faster than 32.7 h for the
+# home zones, this is the first place to look.
 #
 # The SHAPE is separate and worth keeping either way: days 1-6 are small and day
 # 7 is the one you came back for. A cycle that pays evenly gives nobody a reason
