@@ -117,6 +117,18 @@ const ENTRIES := [
 	# LIVE 5c/A/10/0/3cl. WEAKER than the starter on purpose - 450 a leg
 	# against 750 - but burns NOTHING and rates 3 clouds. It teaches what
 	# the rating is worth.
+	# THE COIN LANE IS SPACED, and was not. Four of the nine sat inside eight
+	# levels (21, 24, 25, 28) and three more inside four (42, 43, 45), so most of
+	# the lane arrived in two clumps with long nothing either side. It runs on a
+	# 4-5 level step now: 1, 21, 25, 29, 33, 37, 42, 47, 52.
+	#
+	# The Banshee moving 45 -> 52 does a second job: coin aircraft stopped at 45
+	# while the cash ladder runs to 70, so the whole tail had no coin option at
+	# all. It now opens Snow alongside the An-74 and the LC-130.
+	#
+	# The 20 level gap from the Paper Plane to the F-15 is deliberate and stays:
+	# you start with 15 coins and the Paper Plane costs 5, so the early game has
+	# its one coin purchase and then has to earn the next.
 	{"key": "paperplane", "name": "Paper Plane", "icon": "paperplane_default.png", "price": 5, "currency": COINS, "level": 1,
 		"force": "A", "seats": 10, "fuel": 0, "xp": 150, "range": 3, "has_world_sprite": true},
 	# LIVE stats: A / 100 seats / 20 fuel / 15 fare / 1 cloud. The PRICE is not
@@ -162,7 +174,7 @@ const ENTRIES := [
 		"force": "S", "seats": 110, "fuel": 10, "xp": 133, "range": 3, "has_world_sprite": true},
 	# Two seats, so it earns on fare - the same trick the original uses on
 	# its F-15.
-	{"key": "p51", "name": "P-51 Mustang", "icon": "p51_white.png", "price": 27, "currency": COINS, "level": 24,
+	{"key": "p51", "name": "P-51 Mustang", "icon": "p51_white.png", "price": 27, "currency": COINS, "level": 25,
 		"force": "B", "seats": 2, "fuel": 12, "xp": 18, "ticket": 1100, "range": 3, "has_world_sprite": true},
 	{"key": "dc6", "name": "Douglas DC-6", "icon": "dc6_default.png", "price": 55000, "level": 25,
 		"force": "C", "seats": 175, "fuel": 25, "xp": 168, "range": 3, "has_world_sprite": true},
@@ -197,18 +209,18 @@ const ENTRIES := [
 		"force": "D", "seats": 330, "fuel": 39, "xp": 308, "range": 4, "has_world_sprite": true},
 	# LIVE stats: C / 100 seats / 30 fuel / 80 fare / 5 clouds. A saucer, and
 	# the coin lane's middle rung - 40,000 a leg against the F-15's 16,000.
-	{"key": "uss51", "name": "USS 51", "icon": "uss51_default.png", "price": 28, "currency": COINS, "level": 25,
+	{"key": "uss51", "name": "USS 51", "icon": "uss51_default.png", "price": 28, "currency": COINS, "level": 29,
 		"force": "C", "seats": 100, "fuel": 30, "xp": 212, "ticket": 80, "range": 5, "has_world_sprite": true},
 	# LIVE stats (20c/D/50/10/200 fare/5cl); level and coin price are ours,
 	# moved up the coin lane so it doesn't outclass everything cash at level
 	# 12.
-	{"key": "balloon", "name": "Hot Air Balloon", "icon": "balloon_default.png", "price": 30, "currency": COINS, "level": 28,
+	{"key": "balloon", "name": "Hot Air Balloon", "icon": "balloon_default.png", "price": 30, "currency": COINS, "level": 33,
 		"force": "D", "seats": 50, "fuel": 10, "xp": 150, "ticket": 200, "range": 5, "has_world_sprite": true},
 	{"key": "blackh", "name": "Black Hawk", "icon": "blackh_green.png", "price": 115000, "level": 34,
 		"force": "B", "seats": 340, "fuel": 40, "xp": 313, "range": 4, "has_world_sprite": true},
 	{"key": "airship", "name": "Airship", "icon": "airship_default.png", "price": 122000, "level": 35,
 		"force": "E", "seats": 360, "fuel": 45, "xp": 322, "range": 4, "has_world_sprite": true},
-	{"key": "ufo", "name": "UFO", "icon": "ufo_blue.png", "price": 35, "currency": COINS, "level": 34,
+	{"key": "ufo", "name": "UFO", "icon": "ufo_blue.png", "price": 35, "currency": COINS, "level": 37,
 		"force": "S", "seats": 300, "fuel": 50, "xp": 367, "ticket": 60, "range": 5, "has_world_sprite": true},
 	{"key": "v22", "name": "V-22", "icon": "v22_green.png", "price": 130000, "level": 36,
 		"force": "B", "seats": 390, "fuel": 48, "xp": 335, "range": 4, "has_world_sprite": true},
@@ -231,7 +243,7 @@ const ENTRIES := [
 	# An unmanned spaceplane: it carries almost nothing, so like the P-51 and
 	# the F-15 it earns on fare rather than capacity. Four "seats" at 2000 is
 	# the payload, not passengers.
-	{"key": "x37b", "name": "X-37B", "icon": "x37b_default.png", "price": 48, "currency": COINS, "level": 43,
+	{"key": "x37b", "name": "X-37B", "icon": "x37b_default.png", "price": 48, "currency": COINS, "level": 47,
 		"force": "S", "seats": 4, "fuel": 90, "xp": 42, "ticket": 2000, "range": 5, "has_world_sprite": true},
 	# The coin lane's top rung, above the X-37B's 48. A gunship rather than an
 	# airliner, so it earns the coin lane's way - few seats, a large ticket -
@@ -240,7 +252,7 @@ const ENTRIES := [
 	# NOTE the lane it joins is not internally ordered: the NCC-1701 costs 45
 	# coins and pays 150,000, the X-37B costs 48 and pays 40,000. This sits
 	# between them rather than papering over that.
-	{"key": "banshee", "name": "Banshee", "icon": "banshee_default.png", "price": 50, "currency": COINS, "level": 45,
+	{"key": "banshee", "name": "Banshee", "icon": "banshee_default.png", "price": 50, "currency": COINS, "level": 52,
 		"force": "A", "seats": 12, "fuel": 95, "xp": 300, "ticket": 1200, "range": 5, "has_world_sprite": true},
 	# 60.3m span, four engines - the top of the airliner class, under the 747s
 	# it shares a level band with. Slots into the empty rung at 44.
