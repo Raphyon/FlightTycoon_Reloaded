@@ -113,7 +113,17 @@ MODELS = {
                          "body_global": "a340_300_global.png"}),
     # A bigger A400M - 51.7m span against 42.4 - so it sits above it at the
     # DC-10's height rather than taking the A400M's 96.
-    "c17":        (100, {"body": "c_17_globemaster.png"}),
+    # Five liveries off a sheet. They measure 2.7-4.9% wider than the default,
+    # more than the ATR's 0.5% or the 777's 1% - the sheet was drawn a little
+    # apart from the original render. Pinning them to the body's size takes
+    # that out, which is what keeps the aircraft still when you change paint;
+    # the cost is about 4px of vertical stretch on a 100px sprite.
+    "c17":        (100, {"body": "c_17_globemaster.png",
+                         "body_house": ("c_17_globemaster_liveries.png", 0),
+                         "body_military": ("c_17_globemaster_liveries.png", 1),
+                         "body_globecargo": ("c_17_globemaster_liveries.png", 2),
+                         "body_atlas": ("c_17_globemaster_liveries.png", 3),
+                         "body_express": ("c_17_globemaster_liveries.png", 4)}),
     "il62":       (96, {"body": "il_62_default.png",
                         "body_zipped": "il_62_zipped.png"}),
     # A gunship, not an airliner: sized between the Black Hawk at 86 and the

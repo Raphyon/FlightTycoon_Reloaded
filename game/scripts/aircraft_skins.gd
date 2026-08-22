@@ -25,6 +25,18 @@ const LIVERIES := {
 	# rather than from shop icons - cropped to their own alpha and scaled to the
 	# stock body's 114x88. Checked against it edge by edge: zero drift on all
 	# four sides, so switching paint does not shift the aircraft on its pad.
+	"c17": [
+		{"key": "house", "name": "House Blue",
+			"body": "res://assets/aircraft/c17/body_house_2x.png"},
+		{"key": "military", "name": "Military",
+			"body": "res://assets/aircraft/c17/body_military_2x.png"},
+		{"key": "globecargo", "name": "GlobeCargo",
+			"body": "res://assets/aircraft/c17/body_globecargo_2x.png"},
+		{"key": "atlas", "name": "Atlas Air",
+			"body": "res://assets/aircraft/c17/body_atlas_2x.png"},
+		{"key": "express", "name": "Global Express",
+			"body": "res://assets/aircraft/c17/body_express_2x.png"},
+	],
 	"b777-300er": [
 		{"key": "delta", "name": "Delta",
 			"body": "res://assets/aircraft/b777-300er/body_delta_2x.png"},
