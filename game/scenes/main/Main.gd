@@ -79,7 +79,7 @@ const VISITING_HIDDEN := ["TopBarRight", "TopBarLeft", "TopBar", "MapTab"]
 const VISITING_CLOSED := ["WorldMapPanel", "ShopHubPanel", "HangarPanel", "FriendsPanel", "FriendInfoPanel", "RoutesPanel", "ShopPanel",
 	"FuelPanel", "ExpansionShopPanel", "ApronInfoPanel", "SkinPickerPanel",
 	"AssignPickerPanel", "BuildingInfoPanel", "UpgradeConfirmPanel",
-	"DailyLoginPanel"]
+	"DailyLoginPanel", "BoostPanel"]
 
 
 func _apply_visiting_ui() -> void:

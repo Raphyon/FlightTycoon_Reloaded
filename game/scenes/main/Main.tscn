@@ -69,6 +69,8 @@
 [ext_resource type="Script" path="res://scenes/main/BuildingInfoPanel.gd" id="72"]
 [ext_resource type="Script" path="res://scenes/main/UpgradeConfirmPanel.gd" id="80"]
 [ext_resource type="Script" path="res://scenes/main/DailyLoginPanel.gd" id="81"]
+[ext_resource type="Script" path="res://scenes/main/BoostPanel.gd" id="82"]
+[ext_resource type="Script" path="res://scenes/main/BoostButton.gd" id="83"]
 [ext_resource type="Script" path="res://scenes/main/Landmarks.gd" id="75"]
 [ext_resource type="Texture2D" path="res://assets/buttons/button_arrow_left@2x.png" id="73"]
 [ext_resource type="Texture2D" path="res://assets/buttons/button_arrow_right@2x.png" id="74"]
@@ -1272,6 +1274,34 @@ offset_bottom = 163.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("81")
+
+
+[node name="BoostPanel" type="Control" parent="UI"]
+visible = false
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -339.0
+offset_top = -162.0
+offset_right = 340.0
+offset_bottom = 163.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("82")
+
+[node name="BoostButton" type="Control" parent="UI"]
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -136.0
+offset_top = -190.0
+offset_right = -84.0
+offset_bottom = -138.0
+grow_horizontal = 0
+grow_vertical = 0
+script = ExtResource("83")
 
 
 [node name="ZoneUnlockPanel" type="PanelContainer" parent="UI" unique_id=785618106]
