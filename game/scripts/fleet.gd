@@ -497,6 +497,18 @@ const WORLD_SPRITES := {
 	"concorde": {
 		"body": "res://assets/aircraft/concorde/body_2x.png",
 		"shadow": "res://assets/aircraft/concorde/shadow_2x.png",
+		# FOUR engines in two nacelle pairs, and two plumes rather than four:
+		# at 155px the pairs are one dark shape each, so a plume per engine
+		# would be two overlapping flames pretending to be one.
+		#
+		# Read off concorde_zebra.png at (810, 275) and (865, 340), scaled by
+		# 155/963. Reheat on takeoff is the one thing Concorde genuinely did
+		# that the other airliners here did not.
+		"exhaust_offsets": [Vector2(52.9, 0.3), Vector2(61.8, 10.7)],
+		# A slender delta sits much flatter than a fighter - 9 degrees against
+		# the F-15's 26.
+		"exhaust_angle": 9.0,
+		"exhaust_scale": 0.85,
 	},
 	"b787": {
 		"body": "res://assets/aircraft/b787/body_2x.png",
@@ -513,6 +525,13 @@ const WORLD_SPRITES := {
 	"x37b": {
 		"body": "res://assets/aircraft/x37b/body_2x.png",
 		"shadow": "res://assets/aircraft/x37b/shadow_2x.png",
+		# ONE engine, so one plume. Read off x_37b_default.png at (880, 280),
+		# scaled by 111/935. A rocket rather than a turbofan, so there is no
+		# reheat to be honest about - but a lit nozzle suits it, and it is the
+		# only spacecraft in the game that leaves from a runway.
+		"exhaust_offsets": [Vector2(49.0, -13.8)],
+		"exhaust_angle": 19.0,
+		"exhaust_scale": 0.9,
 	},
 	# A flying saucer by any other name - straight up off the pad.
 	"uss51": {
