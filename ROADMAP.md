@@ -19,8 +19,8 @@ airframes and 20-odd liveries - and the two items that mattered most moved.
 | 9 quests | no - existing board art | **DONE** |
 | 2 level-up rewards | no | **DONE** |
 | 3 daily login | no | **DONE** |
+| 4 boost items | no - the icons are generated | **DONE** |
 | 10 extend the ladder | 8 models | **7 of 8 DONE** - Dreamland3 only |
-| 4 boost items | icons, but HUD art could stand in | prototype now |
 | 5 more models | yes, per model | open - and now unblocked in practice |
 | 6 more buildings | yes, per building | blocked |
 | 7 events | yes, a lot | blocked |
@@ -143,58 +143,29 @@ the top of this file.
 
 ---
 
-## 4. Boost items
+## 4. Boost items - DONE
 
-Free-refuel cards, speed boosts, timed multipliers.
+Six cards - three auto-turnaround lengths, speed, double cash, free fuel - held
+in an inventory, used one at a time, expiring on `GameClock`. Four hook points
+in `Fleet`, one line each. Icons from `tools/boost_icons.py`, so this needed no
+art anybody had to draw.
 
-| | |
+**No shop.** Cards come from the daily login, aircraft affinity levels, and
+events when those exist. A boost is a windfall for turning up or for flying one
+model a lot, not another thing to buy.
+
+### What each is worth, measured
+
+| card | worth |
 |---|---|
-| touches | new autoload; `Fleet`, `FuelStore`, `Coins` |
-| needs | an inventory, expiry on the game clock, a UI to hold them |
-| art | an icon per boost, an inventory panel |
+| **auto-turnaround** | **one hour a day nearly halves the time to DarkZone** - 2.2 h to 1.2 h |
+| **speed** | 71% of the fleet qualifies, the fleet gets 26% faster, and it helps the WORST aircraft most - E->A is -33% on a five cloud leg, B->A only -11%, so it is self-limiting by shape |
+| **double cash** | fine early, quietly weak late |
+| **free fuel** | 1.3% of income. Honest as the commonest drop, a trap as anything you spend a coin on |
 
-The nearest existing thing is `ApronSkins` - a permanent flat bonus attached to
-a pad. Timed, consumable, inventory-held is new.
-
-Two things make this more interesting than it looks:
-
-- It is a **coin sink**, and coins are currently spent only on aprons, skins,
-  liveries and the nine coin aircraft.
-- A free-refuel card is worth almost nothing at present, because fuel is 1.3%
-  of income (see Known issues in the readme). Boosts want to be attached to
-  things that actually bind - taps and time - rather than to fuel. A boost that
-  auto-claims a whole airport, or halves flight times for an hour, is worth
-  something. A fuel card is not.
-
-### The four, priced
-
-ART IS DONE - `tools/boost_icons.py`, four icons in `game/assets/boosts`. The
-system is not.
-
-| boost | what it is worth |
-|---|---|
-| **auto-turnaround** | see below - far stronger than the other three combined |
-| **speed: everything below A becomes A** | 71% of the fleet qualifies; the fleet gets **26% faster**. E->A is -33% on a five cloud leg, B->A only -11%, so it helps the worst aircraft most and the best not at all - self-limiting by shape |
-| **double cash** | fine early, quietly weak late: repricing the Ark $4.5M to $7M changed a 90 day run by nothing |
-| **free refuelling** | almost nothing. 1.3% of income over 60 h of play and not one aircraft ever grounded. Honest as a common drop, a trap as something you spend coins on |
-
-### Auto-turnaround, and why rarity is the lever
-
-Measured with `--bot --autoturn <hours>`, 12 day runs:
-
-| | Zone2 | DarkZone |
-|---|---|---|
-| off | 0.2 h | 2.2 h |
-| **1 hour a day** | 0.2 h | **1.2 h** |
-
-One hour a day nearly halves the time to DarkZone, because taps are the binding
-constraint in this game and a boost that turns aircraft round WHILE THE PLAYER
-IS AWAY removes the constraint entirely for as long as it runs.
-
-**DECIDED: keep the 12 hour tier, make it exceedingly rare.** Rarity is a real
-lever rather than a fudge, because what does the damage is total COVERAGE across
-a run, and that is just tier length times drop rate. Sustained one hour a day is
-90 h of coverage over a 90 day run, which is the dose that halved DarkZone:
+Auto-turnaround is the whole balance problem, because taps are the binding
+constraint and it removes them WHILE THE PLAYER IS AWAY. What does the damage is
+total coverage across a run - tier length times drop rate - so:
 
 | tier | 1 per 7 days | 1 per 30 days | 1 per 45 days |
 |---|---|---|---|
@@ -202,53 +173,34 @@ a run, and that is just tier length times drop rate. Sustained one hour a day is
 | 1 hour | 13 h (14%) | 3 h (3%) | 2 h (2%) |
 | **12 hours** | **154 h (171%)** | 36 h (40%) | 24 h (27%) |
 
-A 12 hour card is worth twenty-four 30 minute ones. Weekly, it is worse than the
-dose that halved the game. **One per 30-45 days** puts it at a quarter to a
-third of that, which is a windfall you remember rather than a pace change.
+against the 90 h that halved DarkZone. **The 12 hour card is granted by nothing
+yet** - it is worth twenty-four 30 minute ones and belongs to events at one per
+30-45 days. Login plus affinity is about 17 h a run, comfortably inside.
 
-The 30 minute tier is the one that can be common.
+### The sources, both live
 
-### Where cards come from
+**Days 2 and 6 of the login**, which used to hand over FUEL - the two days in
+the cycle that gave you nothing you would notice. Two 30 minute cards a week.
 
-**DECIDED: the daily login, aircraft affinity levels, and events.** No shop, no
-purchase - a boost is something you are given for turning up, for flying one
-model a lot, or for an event, which is what makes it a windfall rather than an
-economy.
+**Affinity levels 5 and 10**, the same shape the building milestones use, and
+naturally rationed by how much a model actually flies: four models reach level
+10 over a 90 day run, so eight cards. Granted per level CROSSED rather than
+landed on, since `XP_PER_USE` is a constant somebody will raise.
 
-**The login is where this pays off twice**, because two of its seven days are
-currently the weakest thing in the game:
+### Four rules that each cost a bug or nearly did
 
-| day | now | |
-|---|---|---|
-| 1 | cash | |
-| **2** | **fuel** | fuel is 1.3% of income - this day is nearly worthless |
-| 3 | cash | |
-| 4 | 1 coin | |
-| 5 | cash | |
-| **6** | **fuel** | same |
-| 7 | cash + 3 coins | |
+- **Speed can only ever RAISE a grade.** Lifting "everything below A to A"
+  naively drags an S-class down to A - a boost making your best aircraft worse.
+- **All three auto-turnaround lengths share ONE timer**, or the 30 minute card
+  ending also ends the 12 hour one.
+- **Using a running card EXTENDS it**, rather than restarting and throwing away
+  whatever was left.
+- **A saved timer further out than the longest card could reach is stale**,
+  because `GameClock` moves backwards on restart. The daily login hit this twice.
 
-Days 2 and 6 hand over something measured as inert. Swapping them for a 30
-minute card is two cards a week - about 26 a run, 13 h of coverage, 14% of the
-dose that halved DarkZone - and it fixes the two days nobody looks forward to.
-
-**Affinity is naturally rationed by how much you fly one model.** The bot flies
-four models to level 10 in a 90 day run, so:
-
-| a card every | cards a run | coverage | share of the halving dose |
-|---|---|---|---|
-| 9 levels (at max only) | 4 | 2 h | 2% |
-| **4 levels (5 and 10)** | **8** | **4 h** | **4%** |
-| every level | 36 | 18 h | 20% |
-
-Levels 5 and 10 is the same shape the building upgrade milestones already use,
-and lands at 4%. Every level is defensible too at 20%; per model at max only is
-too thin to notice.
-
-Login plus affinity is about **17 h of coverage a run**, comfortably inside the
-24-36 h that the 12 hour tier alone would spend. **Which leaves the 12 hour card
-for events, and nowhere else** - one per 30-45 days, if events run at that
-cadence, is exactly the rate the table above wants.
+**No toolbar button** - every button on that shelf is art with its own pressed
+state and there is none for this. The entry point is one card at the corner of
+the screen, there only while you hold something or something is running.
 
 ---
 
@@ -410,20 +362,21 @@ with no owner. Listed so they are not lost.
 REWRITTEN, because most of what it recommended is done. 1, 2, 3 and 9 have
 shipped, and 10 is seven-eighths there.
 
-**4 next** - boost items, the last item on the list needing no art anybody has
-to draw. It is also the only one that would give the daily login something more
-interesting to hand over than cash.
+**10's last entry** is now the cheapest thing here: one render, the Hughes H-4,
+and Dreamland3 stops being the one gate in the game that opens with a level
+number and a bill.
 
-**10's last entry** is the cheapest thing here in absolute terms: one render,
-the Hughes H-4, and Dreamland3 stops being the one gate in the game that opens
-with a level number and a bill.
+**7 - events - is the one that has grown a reason.** It was last on this list
+because it is art-heavy and wants a settled loop underneath it. It now also owns
+the only home for the 12 hour auto-turnaround card, which is the single most
+valuable thing in the boost system and is currently granted by nothing at all.
 
 **6** - more buildings - is worth more than its position suggests now that
 upgrades pay coins. The city is a real economy rather than a rent trickle, and
 it has nine buildings.
 
-7 and 8 last, unchanged: one is art-blocked outright, the other wants a settled
-loop underneath it.
+8 last, unchanged: passenger animation is art-blocked outright and there is
+nothing in the dump to start from.
 
 ---
 
