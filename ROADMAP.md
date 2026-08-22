@@ -208,6 +208,48 @@ third of that, which is a windfall you remember rather than a pace change.
 
 The 30 minute tier is the one that can be common.
 
+### Where cards come from
+
+**DECIDED: the daily login, aircraft affinity levels, and events.** No shop, no
+purchase - a boost is something you are given for turning up, for flying one
+model a lot, or for an event, which is what makes it a windfall rather than an
+economy.
+
+**The login is where this pays off twice**, because two of its seven days are
+currently the weakest thing in the game:
+
+| day | now | |
+|---|---|---|
+| 1 | cash | |
+| **2** | **fuel** | fuel is 1.3% of income - this day is nearly worthless |
+| 3 | cash | |
+| 4 | 1 coin | |
+| 5 | cash | |
+| **6** | **fuel** | same |
+| 7 | cash + 3 coins | |
+
+Days 2 and 6 hand over something measured as inert. Swapping them for a 30
+minute card is two cards a week - about 26 a run, 13 h of coverage, 14% of the
+dose that halved DarkZone - and it fixes the two days nobody looks forward to.
+
+**Affinity is naturally rationed by how much you fly one model.** The bot flies
+four models to level 10 in a 90 day run, so:
+
+| a card every | cards a run | coverage | share of the halving dose |
+|---|---|---|---|
+| 9 levels (at max only) | 4 | 2 h | 2% |
+| **4 levels (5 and 10)** | **8** | **4 h** | **4%** |
+| every level | 36 | 18 h | 20% |
+
+Levels 5 and 10 is the same shape the building upgrade milestones already use,
+and lands at 4%. Every level is defensible too at 20%; per model at max only is
+too thin to notice.
+
+Login plus affinity is about **17 h of coverage a run**, comfortably inside the
+24-36 h that the 12 hour tier alone would spend. **Which leaves the 12 hour card
+for events, and nowhere else** - one per 30-45 days, if events run at that
+cadence, is exactly the rate the table above wants.
+
 ---
 
 ## 5. More aircraft models
