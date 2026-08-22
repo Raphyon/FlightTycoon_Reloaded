@@ -80,6 +80,15 @@ var _latency := DEFAULT_LATENCY
 # tapped each aircraft twice, claim then depart, and never touched advance_all.
 # That makes depart-all an unmeasured accelerant, which --bulk exists to price.
 var _bulk := false
+# Hours a day an AUTO-TURNAROUND boost is running, for pricing ROADMAP item 4's
+# strongest idea. Aircraft normally land and SIT until the player's next
+# session; with this on they keep going while nobody is watching, which is the
+# whole point of the boost and also why it needs measuring rather than guessing.
+var _autoturn_hours := 0.0
+var _autoturn_calls := 0
+var _autoturn_day := -1
+var _autoturn_left := 0.0
+var _autoturn_covered := 0.0
 # Fleet size is what decides whether DEPART ALL is worth having: the manual path
 # costs two taps per aircraft, the button costs two flat, so the saving is
 # 2N-2. Recording the level at each size says where a gate would actually bite.
@@ -149,6 +158,7 @@ func _ready() -> void:
 			"--speed": _speed = maxf(1.0, float(args[i + 1]))
 			"--sessions": _sessions = int(args[i + 1])
 			"--bulk": _bulk = args[i + 1] != "off"
+			"--autoturn": _autoturn_hours = float(args[i + 1])
 			"--minutes": _minutes = float(args[i + 1])
 	call_deferred("_run")
 
@@ -243,10 +253,53 @@ func _session(minutes: float) -> void:
 
 
 func _skip(seconds: float) -> void:
+	if _autoturn_hours > 0.0:
+		_skip_auto(seconds)
+		return
 	GameClock.skip(seconds)
 	Fleet.advance_by(seconds)
 	# Both of these normally ride _process, which never runs here - see
 	# Quests.tick.
+	Quests.tick()
+
+
+# The same skip, but turning aircraft round as they land instead of leaving them
+# parked. Walked in steps rather than one jump, because advance_by only moves
+# flights along - it does not claim or dispatch, so a single leap would land the
+# whole fleet and leave it sitting exactly as before.
+#
+# Costs NO taps: that is the boost. It also runs for a fixed share of each gap
+# rather than all of it, so --autoturn 12 means twelve hours a day covered.
+func _skip_auto(seconds: float) -> void:
+	# A DAILY budget, not a per-gap one. Capping each skip meant --autoturn 12
+	# covered twelve hours in EVERY gap between sessions - four a day, so up to
+	# forty-eight hours in a twenty-four hour day, which measured a boost nobody
+	# could buy.
+	var d := int(floor(GameClock.now() / 86400.0))
+	if d != _autoturn_day:
+		_autoturn_day = d
+		_autoturn_left = _autoturn_hours * 3600.0
+	var covered := minf(seconds, _autoturn_left)
+	_autoturn_left -= covered
+	if covered <= 0.0:
+		GameClock.skip(seconds)
+		Fleet.advance_by(seconds)
+		Quests.tick()
+		return
+	_autoturn_calls += 1
+	_autoturn_covered += covered
+	var step := 300.0
+	var done := 0.0
+	while done < covered:
+		var chunk := minf(step, covered - done)
+		GameClock.skip(chunk)
+		Fleet.advance_by(chunk)
+		Fleet.advance_all()
+		done += chunk
+	var rest := seconds - covered
+	if rest > 0.0:
+		GameClock.skip(rest)
+		Fleet.advance_by(rest)
 	Quests.tick()
 
 
@@ -738,6 +791,8 @@ func _summary() -> void:
 	print("  routing policy: %s   daily tasks: %s" % [_routing, "on" if _do_quests else "off"])
 	print("  quests: %d sets completed, %d coins earned" % [_sets_done, _quest_coins])
 	print("  building coin drops: %d" % _building_coins)
+	if _autoturn_hours > 0.0:
+		print("  AUTOTURN %.1f h/day: %d skips, %.0f h covered" % [_autoturn_hours, _autoturn_calls, _autoturn_covered / 3600.0])
 	print("  daily login: %d days collected, %d coins" % [_login_days, _login_coins])
 	var counts := []
 	for k in _legs:
