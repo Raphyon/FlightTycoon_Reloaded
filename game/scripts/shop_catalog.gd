@@ -286,10 +286,32 @@ const ENTRIES := [
 	# Stats are deliberately ORDINARY: XP near the A400M's 474, seats and range
 	# inside what already exists. The PRICE is what makes these a goal. Push the
 	# XP and the aircraft added to fill 62 hours would shorten the 62 hours.
+	# EVERY TAIL ENTRY CARRIES A TICKET, and the first two shipped without one -
+	# which meant they fell back to the flat 15 fare and earned 31,500 a leg
+	# against the A400M's 250,000, while costing three times as much. 380 legs
+	# to pay back against fourteen. Nobody would have bought either.
+	#
+	# The band is 220,000-300,000 a leg, at or under the Ark's 300,000, so the
+	# tail adds no income the pacing has not already seen. PRICE is the ladder
+	# here, not payout - these are sinks for a late game that measures $14M a
+	# day with nothing to spend it on.
 	{"key": "an74", "name": "Antonov An-74", "icon": "an74_default.png", "price": 12000000, "level": 52,
-		"force": "D", "seats": 420, "fuel": 55, "xp": 476, "range": 5, "has_world_sprite": true},
+		"force": "D", "seats": 420, "fuel": 55, "xp": 476, "ticket": 105, "range": 5, "has_world_sprite": true},
 	{"key": "lc130", "name": "Lockheed LC-130", "icon": "lc130_default.png", "price": 14000000, "level": 53,
-		"force": "D", "seats": 470, "fuel": 60, "xp": 484, "range": 5, "has_world_sprite": true},
+		"force": "D", "seats": 470, "fuel": 60, "xp": 484, "ticket": 100, "range": 5, "has_world_sprite": true},
+	# Dreamland's boats. The island is a water resort and the fleet had no
+	# flying boat or amphibian in it - see ROADMAP item 10.
+	{"key": "be200", "name": "Beriev Be-200", "icon": "be200_default.png", "price": 27000000, "level": 56,
+		"force": "D", "seats": 480, "fuel": 58, "xp": 492, "ticket": 100, "range": 5, "has_world_sprite": true},
+	{"key": "us2", "name": "ShinMaywa US-2", "icon": "us2_default.png", "price": 34000000, "level": 57,
+		"force": "D", "seats": 500, "fuel": 60, "xp": 500, "ticket": 100, "range": 5, "has_world_sprite": true},
+	{"key": "b314", "name": "Boeing 314 Clipper", "icon": "b314_default.png", "price": 84000000, "level": 61,
+		"force": "E", "seats": 560, "fuel": 64, "xp": 530, "ticket": 95, "range": 5, "has_world_sprite": true},
+	# The Carrier's, and the top of the game. Twenty seats at a premium fare
+	# rather than a cabin full - it lands on the Ark's 300,000 a leg either way,
+	# and a Tomcat with 900 seats in it would read as a joke.
+	{"key": "f14", "name": "Grumman F-14 Tomcat", "icon": "f14_default.png", "price": 600000000, "level": 70,
+		"force": "S", "seats": 20, "fuel": 70, "xp": 660, "ticket": 3000, "range": 5, "has_world_sprite": true},
 ]
 
 # Anything asking for a model we don't have an entry for still gets a flyable

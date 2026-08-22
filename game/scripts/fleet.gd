@@ -373,6 +373,31 @@ const WORLD_SPRITES := {
 		"body": "res://assets/aircraft/a350-900/body_2x.png",
 		"shadow": "res://assets/aircraft/a350-900/shadow_2x.png",
 	},
+	"be200": {
+		"body": "res://assets/aircraft/be200/body_2x.png",
+		"shadow": "res://assets/aircraft/be200/shadow_2x.png",
+	},
+	"us2": {
+		"body": "res://assets/aircraft/us2/body_2x.png",
+		"shadow": "res://assets/aircraft/us2/shadow_2x.png",
+		# Four turboprops painted into the body, like the A400M and the LC-130,
+		# so only the spin flipbook layers on and it borrows the A400M's art.
+		"rotor_spin_frames": A400M_PROP,
+		# PLACEHOLDERS for RotorEditor - M to reach it, 1-4, click, -/+.
+		"rotor_offsets": [Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0)],
+		"rotor_scale": 0.78,
+	},
+	"b314": {
+		"body": "res://assets/aircraft/b314/body_2x.png",
+		"shadow": "res://assets/aircraft/b314/shadow_2x.png",
+		"rotor_spin_frames": A400M_PROP,
+		"rotor_offsets": [Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0)],
+		"rotor_scale": 0.85,
+	},
+	"f14": {
+		"body": "res://assets/aircraft/f14/body_2x.png",
+		"shadow": "res://assets/aircraft/f14/shadow_2x.png",
+	},
 	"an74": {
 		"body": "res://assets/aircraft/an74/body_2x.png",
 		"shadow": "res://assets/aircraft/an74/shadow_2x.png",

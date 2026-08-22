@@ -108,6 +108,19 @@ MODELS = {
     # LC-130 on skis: 40.4m span, just under the A400M's 42.4, so just under
     # its 96.
     "lc130":      (94, {"body": "lockheed_lc130_hercules.png"}),
+    # DREAMLAND'S BOATS. The island is a water resort - lagoons, piers, moored
+    # boats - and the fleet had no flying boat or amphibian in 45 models.
+    #
+    # Be-200: 32.8m span, so it sits with the An-74.
+    "be200":      (88, {"body": "beriev_be200_default.png"}),
+    # US-2: 33.15m span, a heavier boat on the same wing, so a touch above.
+    "us2":        (90, {"body": "shinmaywa_us2_default.png"}),
+    # Boeing 314: 46.3m span, past the A400M's 42.4 - the golden-age flying
+    # boat, and the largest thing in Dreamland's set.
+    "b314":       (100, {"body": "boeing_314_clipper.png"}),
+    # THE CARRIER'S. 19.55m span with the wings out - bigger than the F-15's
+    # 13m, so above its 76, and still the second-smallest thing in the fleet.
+    "f14":        (82, {"body": "grumman_f14_tomcat.png"}),
     "b777-300er": (110, {"body": "b777_300er_default.png",
                          "body_delta": ("b777_300er_liveries.png", 0),
                          "body_emirates": ("b777_300er_liveries.png", 1),

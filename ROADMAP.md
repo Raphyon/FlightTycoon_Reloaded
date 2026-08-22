@@ -352,12 +352,39 @@ carries the first 48 levels. Eight entries, placed on the teeth:
 |---|---|---|---|---|
 | 52 | Snow | $12M | **Antonov An-74** | BUILT |
 | 53 | Snow | $14M | **Lockheed LC-130** | BUILT |
-| 56 | Dreamland1 | $27M | Beriev Be-200 | |
-| 57 | Dreamland1 | $34M | ShinMaywa US-2 | |
-| 61 | Dreamland2 | $84M | Boeing 314 Clipper | |
+| 56 | Dreamland1 | $27M | **Beriev Be-200** | BUILT |
+| 57 | Dreamland1 | $34M | **ShinMaywa US-2** | BUILT |
+| 61 | Dreamland2 | $84M | **Boeing 314 Clipper** | BUILT |
 | 62 | Dreamland2 | $105M | Dornier Do X | |
-| 66 | Dreamland3 | $250M | Hughes H-4 Hercules | |
-| 70 | Carrier | $600M | F-14 / E-2 Hawkeye / Harrier | pick one |
+| 66 | Dreamland3 | $250M | Hughes H-4 Hercules | **the only bare zone** |
+| 70 | Carrier | $600M | **Grumman F-14 Tomcat** | BUILT |
+
+**Six of eight built.** Nine of the ten zones now open with something new to
+fly; only Dreamland3 at 66 does not, so the H-4 is the one entry that still
+changes whether a gate feels like an unlock or a bill. The Do X at 62 is the
+last of the nice-to-haves - Dreamland2 already has the Clipper.
+
+### The tail is a SINK, not an investment, and the numbers say so
+
+| | level | pays a leg | price | legs to pay back |
+|---|---|---|---|---|
+| A400M | 50 | 250,000 | $3.5M | 14 |
+| Ark | 50 | 300,000 | $7M | 23 |
+| An-74 | 52 | 220,500 | $12M | 54 |
+| US-2 | 57 | 250,000 | $34M | 136 |
+| Clipper | 61 | 266,000 | $84M | 315 |
+| F-14 | 70 | 300,000 | $600M | 2,000 |
+
+Every tail entry pays 220,000-300,000 a leg - AT OR UNDER the Ark, deliberately,
+so none of them adds income the pacing has not already measured. What climbs is
+the price, by a factor of fifty across the tail. So payback runs from 54 legs to
+2,000: the top of the ladder never repays itself and is not meant to. It is
+somewhere for a late game measuring $14M a day to put the money.
+
+THE TRAP THIS ALMOST FELL INTO: the first two shipped with no `ticket`, so they
+fell back to the flat 15 fare and earned 31,500 a leg - an eighth of the A400M
+below them, at three times the price, 380 legs to pay back. Every tail entry
+needs an explicit ticket.
 
 ### AND MATCH THE AIRCRAFT TO THE ZONE, which is what named them
 
