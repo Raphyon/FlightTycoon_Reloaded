@@ -212,7 +212,10 @@ See `QUESTS.md`.
 
 **Seven tiles, one a day, streak resets if you miss one.** The panel opens
 itself on launch when a day is owed - a daily you have to go looking for is not
-a daily. Day 7 is the one worth coming back for: 3 coins and the largest cash.
+a daily. Day 7 is the one worth coming back for: 3 coins and the largest cash, and
+**days 2 and 6 hand over a boost card** - they used to hand over fuel, which is
+1.3% of income, so those were the two days in the cycle that gave you nothing
+you would notice.
 Cash rides the quest curve, `level^1.1`, because a flat figure is real money at
 level 5 and an insult at level 50.
 
@@ -231,6 +234,55 @@ The panel is NOT built on `source-assets/login/login_back@ipad.jpg`, which was
 what earmarked this feature as unblocked. It is a splash illustration - a whole
 sky of aircraft over the island - and seven tiles of numbers on it would be
 unreadable. A loading screen, not a panel frame.
+
+### Boosts
+
+Six cards, held in an inventory, used one at a time, expiring on `GameClock`.
+**You are given them** - the daily login, aircraft affinity levels, and events
+once those exist. There is no shop, which is the point: a boost is a windfall
+for turning up or for flying one model a lot, not another thing to buy.
+
+They are nowhere near each other in value, and all four numbers are measured:
+
+| card | worth |
+|---|---|
+| **auto-turnaround** | aircraft turn themselves round while nobody is watching. **One hour a day nearly halves the time to DarkZone** - 2.2 h to 1.2 h |
+| **speed** | everything below A flies as an A. 71% of the fleet qualifies, the fleet gets **26% faster**, and it helps the WORST aircraft most: E->A is -33% on a five cloud leg, B->A only -11% |
+| **double cash** | fine early, quietly weak late - repricing the Ark $4.5M to $7M changed a 90 day run by nothing |
+| **free fuel** | 1.3% of income, which is what fuel is worth in total. Honest as the commonest drop, a trap as anything you would spend a coin on |
+
+Four hook points in `Fleet`, one line each: `grade_for` asks `lift_grade`,
+`fuel_cost` asks `fuel_is_free`, `reward_cash_for` multiplies by
+`cash_multiplier`, and auto-turnaround drives `Fleet.advance_all` on a timer.
+
+**Auto-turnaround is why rarity is the lever.** Taps are the binding constraint
+in this game, and a boost that removes them WHILE THE PLAYER IS AWAY removes the
+constraint entirely for as long as it runs. What does the damage is total
+coverage across a run - tier length times drop rate - and sustained one hour a
+day is 90 h, the dose that halved DarkZone. So a 12 hour card is worth
+twenty-four 30 minute ones, and belongs to events at one per 30-45 days.
+The login and affinity between them are about 17 h a run, comfortably inside it.
+
+Four rules that are not obvious and each cost a bug or nearly did:
+
+- **Speed can only ever RAISE a grade.** Lifting "everything below A to A"
+  naively drags an S-class aircraft down to A, which is a boost making your best
+  aircraft worse. It applies after the livery step, so paint keeps what it
+  bought.
+- **All three auto-turnaround lengths share ONE timer.** Two timers means the
+  30 minute card ending also ends the 12 hour one.
+- **Using a card already running EXTENDS it**, rather than restarting. A restart
+  throws away whatever was left - the player losing something for pressing a
+  button.
+- **A saved timer is discarded if it ends further out than the longest card
+  could reach.** `GameClock`'s offset is not persisted, so a restart moves the
+  clock backwards and a timer written before it reads as running for hours. The
+  same trap the daily login hit twice.
+
+There is **no toolbar button**. Every button on that shelf is art with its own
+pressed state and there is none for this, so the entry point is one card at the
+corner of the screen, there only while you hold something or something is
+running, carrying a count and lit while a boost is live.
 
 ### Coins, and how many there are
 
