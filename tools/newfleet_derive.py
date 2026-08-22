@@ -106,9 +106,8 @@ MODELS = {
     # mounted ABOVE the wing, which is the whole silhouette.
     "an74":       (88, {"body": "an74_default.png"}),
     # LC-130 on skis: 40.4m span, just under the A400M's 42.4, so just under
-    # its 96. The source file is named lc140 - the art says LC-130, which is
-    # the real designation, so the key follows the art.
-    "lc130":      (94, {"body": "lockheed_lc140_hercules.png"}),
+    # its 96.
+    "lc130":      (94, {"body": "lockheed_lc130_hercules.png"}),
     "b777-300er": (110, {"body": "b777_300er_default.png",
                          "body_delta": ("b777_300er_liveries.png", 0),
                          "body_emirates": ("b777_300er_liveries.png", 1),
