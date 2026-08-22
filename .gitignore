@@ -27,3 +27,10 @@ game/data/apron_progress.json
 game/data/building_progress.json
 game/data/zone_progress.json
 game/data/apron_skins_owned.json
+
+# Krita's crash-recovery scratch files. They get committed by accident because
+# they sit beside the real .kra, they change every few minutes while a document
+# is open, and Krita deletes them when it closes cleanly - so they show up as
+# modified or deleted in every status for reasons that have nothing to do with
+# the work.
+*-autosave.kra
