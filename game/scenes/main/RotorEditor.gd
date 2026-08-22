@@ -1,6 +1,6 @@
 extends Node2D
 
-# Manual placement tool for propeller/rotor hub offsets - no more guessing
+# Manual placement tool for propeller/rotor hubs and afterburner nozzles - no more guessing
 # pixel positions off the source art. Drops a full-size live preview of the
 # model (body + every rotor overlay, using the current offsets) wherever
 # the camera is currently centered, so you can see exactly what you're
@@ -11,6 +11,10 @@ extends Node2D
 #   Escape     leave the tool. It used to be the F1 menu or nothing, and
 #              reaching the menu means clicking, which this reads before the
 #              GUI does - so closing it placed one last thing on the way out.
+#   E          switch between ROTOR hubs and EXHAUST nozzles. The same tool
+#              pointed at a different list on the same model - a nozzle and a
+#              rotor both want a position, a size and a z-order placed against
+#              a live preview.
 #   M          cycle which aircraft model you're rigging
 #   1-9        select which rotor hub you're placing (models with a single
 #              prop, like the P-51, only use 1)
@@ -77,6 +81,11 @@ var _model_keys: Array[String] = []
 var _offsets: Array[Vector2] = []
 var _behind: Array[bool] = []
 var _scales: Array[float] = []
+# EXHAUST MODE. The same tool, pointed at a different list on the same model: a
+# nozzle and a rotor hub both want a position, a size and a z-order placed
+# against a live preview, so they share the editor rather than growing a second
+# one. E switches.
+var _exhaust_mode := false
 var _reference_pos := Vector2.ZERO
 var _preview_body: Sprite2D
 var _preview_rotors: Array[Sprite2D] = []
@@ -86,7 +95,7 @@ var _hud: EditorHud
 func _ready() -> void:
 	for key in Fleet.WORLD_SPRITES:
 		var s: Dictionary = Fleet.WORLD_SPRITES[key]
-		if s.has("rotor_spin_frames") or s.has("rotors"):
+		if s.has("rotor_spin_frames") or s.has("rotors") or s.has("exhaust_offsets"):
 			_model_keys.append(key)
 	_model_keys.sort()
 	_hud = EditorHud.create(self)
@@ -124,6 +133,12 @@ func _input(event: InputEvent) -> void:
 			# which these tools read before the GUI does. Escape costs no
 			# letter - it is not a placement key in any of them.
 			editing = false
+			return
+		if editing and event.keycode == KEY_E:
+			_exhaust_mode = not _exhaust_mode
+			selected = 0
+			_drop_preview()
+			_update_hud()
 			return
 		if editing and event.keycode == KEY_M:
 			model_index = wrapi(model_index + 1, 0, _model_keys.size())
@@ -171,13 +186,18 @@ func _drop_preview() -> void:
 	var cam := get_viewport().get_camera_2d()
 	_reference_pos = cam.get_screen_center_position() if cam else Vector2.ZERO
 
-	_offsets = AircraftRig.get_rotor_offsets(_model_key())
+	if _exhaust_mode:
+		_offsets = AircraftRig.get_exhaust_offsets(_model_key())
+		_scales = AircraftRig.get_exhaust_scales(_model_key())
+		_behind = []
+	else:
+		_offsets = AircraftRig.get_rotor_offsets(_model_key())
+		_behind = AircraftRig.get_rotor_behind(_model_key())
+		_scales = AircraftRig.get_rotor_scales(_model_key())
 	if _offsets.is_empty():
 		_offsets = [Vector2.ZERO]
-	_behind = AircraftRig.get_rotor_behind(_model_key())
 	while _behind.size() < _offsets.size():
 		_behind.append(false)
-	_scales = AircraftRig.get_rotor_scales(_model_key())
 	while _scales.size() < _offsets.size():
 		_scales.append(1.0)
 
@@ -194,15 +214,30 @@ func _drop_preview() -> void:
 	# first spin frame just so there's something to align.
 	_preview_rotors.clear()
 	for i in range(_offsets.size()):
-		var frames: Dictionary = WorldAircraftScript.hub_frames(sprites, i)
-		var idle: Array = frames["idle"]
-		var spin: Array = frames["spin"]
-		var paths: Array = idle if not idle.is_empty() else spin
+		var paths: Array = []
+		if _exhaust_mode:
+			paths = WorldAircraftScript.EXHAUST_FRAMES
+		else:
+			var frames: Dictionary = WorldAircraftScript.hub_frames(sprites, i)
+			var idle: Array = frames["idle"]
+			var spin: Array = frames["spin"]
+			paths = idle if not idle.is_empty() else spin
 		if paths.is_empty():
 			continue
 		var rotor := Sprite2D.new()
 		rotor.texture = load(paths[0])
 		rotor.position = _offsets[i]
+		if _exhaust_mode:
+			# Previewed exactly as the game draws it: rotated to the airframe's
+			# own slope, and anchored at the NOZZLE rather than at the middle of
+			# the flame, or you would be aligning the centre of a plume that is
+			# half inside the hull.
+			rotor.rotation = deg_to_rad(-float(sprites.get("exhaust_angle", 0.0)))
+			rotor.offset = Vector2(
+				rotor.texture.get_width() * 0.5 - WorldAircraftScript.EXHAUST_ANCHOR.x, 0.0)
+			var glow := CanvasItemMaterial.new()
+			glow.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
+			rotor.material = glow
 		_preview_body.add_child(rotor)
 		_preview_rotors.append(rotor)
 	_apply_behind()
@@ -249,7 +284,7 @@ func _save() -> void:
 			1 if (i < _behind.size() and _behind[i]) else 0,
 			_scales[i] if i < _scales.size() else 1.0,
 		])
-	data[_model_key()] = stored
+	data[AircraftRig.rig_key(_model_key(), _exhaust_mode)] = stored
 	AircraftRig.save_data(data)
 
 
@@ -268,18 +303,25 @@ func _update_hud() -> void:
 	if not editing:
 		_hud.set_lines(false, [])
 		return
+	var what := "EXHAUST" if _exhaust_mode else "ROTOR"
+	var noun := "nozzle" if _exhaust_mode else "rotor"
 	var lines: Array[String] = [
-		"ROTOR EDITOR - %s  [%d/%d]  (R to exit, M to switch model)"
-			% [_model_key(), model_index + 1, _model_keys.size()],
+		"%s EDITOR - %s  [%d/%d]  (Escape to exit, M model, E rotors/exhaust)"
+			% [what, _model_key(), model_index + 1, _model_keys.size()],
 		"",
-		"Selected: rotor %d" % (selected + 1),
+		"Selected: %s %d" % [noun, selected + 1],
 	]
 	for i in range(_offsets.size()):
-		var tag := "  BEHIND hull" if (i < _behind.size() and _behind[i]) else ""
+		var tag := "" if _exhaust_mode else (
+			"  BEHIND hull" if (i < _behind.size() and _behind[i]) else "")
 		var s: float = _scales[i] if i < _scales.size() else 1.0
-		lines.append("  rotor %d offset: (%.1f, %.1f)  scale %.2f%s"
-			% [i + 1, _offsets[i].x, _offsets[i].y, s, tag])
+		lines.append("  %s %d offset: (%.1f, %.1f)  scale %.2f%s"
+			% [noun, i + 1, _offsets[i].x, _offsets[i].y, s, tag])
 	lines.append("")
-	lines.append("1-%d = select rotor   click = place it   B = behind/front   [ ] = size"
-		% _offsets.size())
+	if _exhaust_mode:
+		lines.append("1-%d = select nozzle   click = place it   - + = size"
+			% _offsets.size())
+	else:
+		lines.append("1-%d = select rotor   click = place it   B = behind/front   - + = size"
+			% _offsets.size())
 	_hud.set_lines(true, lines)

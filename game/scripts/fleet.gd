@@ -407,6 +407,17 @@ const WORLD_SPRITES := {
 	"f14": {
 		"body": "res://assets/aircraft/f14/body_2x.png",
 		"shadow": "res://assets/aircraft/f14/shadow_2x.png",
+		# TWIN nozzles, which is the thing four rounds of eyeballing a
+		# screenshot kept missing - one plume floating between them looks wrong
+		# wherever you put it. These are read off the source render at full
+		# size and scaled by 126/931, so they are a starting point rather than
+		# a guess, but RotorEditor's E mode is what settles them.
+		"exhaust_offsets": [Vector2(31.0, -18.0), Vector2(38.0, 5.0)],
+		# The fuselage runs about 17 degrees above horizontal, nose to nozzle.
+		# The plume art points straight back along +x and is rotated by this,
+		# so every aircraft shares one flipbook.
+		"exhaust_angle": 17.0,
+		"exhaust_scale": 1.0,
 	},
 	"an74": {
 		"body": "res://assets/aircraft/an74/body_2x.png",

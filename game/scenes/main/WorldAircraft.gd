@@ -54,6 +54,18 @@ const ARRIVAL_TRAVEL_DURATION := 5.0  # approach -> touchdown, decelerating
 const BODY_BASE_OFFSET := Vector2(0, -6)
 const ROTOR_FRAME_DURATION := 0.15
 
+# The afterburner flipbook, shared by every aircraft that has nozzles - see
+# tools/afterburner.py. Four frames of ONE flame whose length, intensity and
+# shock-diamond phase animate, rather than four different flames.
+const EXHAUST_FRAMES := [
+	"res://assets/effects/afterburner_a_2x.png",
+	"res://assets/effects/afterburner_b_2x.png",
+	"res://assets/effects/afterburner_c_2x.png",
+	"res://assets/effects/afterburner_d_2x.png",
+]
+# Where the nozzle sits inside that art, which is what a placed hub means.
+const EXHAUST_ANCHOR := Vector2(12, 18)
+
 const VTOL_RISE_DISTANCE := 220.0  # px straight up before it's gone
 const VTOL_RISE_DURATION := 2.8
 # Seconds the downwash takes to fade out over the climb (and to build up
@@ -95,6 +107,7 @@ var _animating := false
 # Every sequence takes a token; after each await it checks the token is still
 # the current one and bails if not, handing back the runway it just took.
 var _anim_token := 0
+var _exhaust: Array[Sprite2D] = []
 var _holds_runway := false
 # Kept so a livery change can repaint an EXISTING node. Without them the only
 # way the hull art ever got chosen was setup(), which runs once when the node
@@ -177,6 +190,8 @@ func setup(model_key: String, screen_pos: Vector2, livery: String = "") -> void:
 			_body_spinning = load(sprites["body_spin"])
 	if sprites.has("rotor_spin_frames") or sprites.has("rotors"):
 		_add_rotors(model_key, sprites)
+	if sprites.has("exhaust_offsets"):
+		_add_exhaust(model_key, sprites)
 	# Parented to self, not the body, so it stays on the pad rather than
 	# riding up with the aircraft.
 	if sprites.has("ground_effect_frames"):
@@ -282,6 +297,50 @@ func _add_flipbook(frame_paths: Array, offset: Vector2, phase_delay: float, pare
 	return sprite
 
 
+# AFTERBURNERS. One flipbook per nozzle, hidden until the thing actually leaves.
+#
+# Drawn OVER the body, unlike a rotor, which can need to hide behind the hull.
+# From this camera the exhaust exits away from the airframe rather than across
+# it, so there is nothing for it to be occluded by - and the first prototype
+# that drew it underneath was almost entirely hidden by the fuselage.
+#
+# The plume art points straight back along +x and is ROTATED here per aircraft.
+# Baking the angle into the art was the first design and it was wrong: every
+# airframe sits at its own slope, so it meant one plume per aircraft instead of
+# one plume. The F-14's fuselage runs about 17 degrees above horizontal.
+func _add_exhaust(model_key: String, sprites: Dictionary) -> void:
+	var offsets := AircraftRig.get_exhaust_offsets(model_key)
+	if offsets.is_empty():
+		return
+	var scales := AircraftRig.get_exhaust_scales(model_key)
+	var angle := float(sprites.get("exhaust_angle", 0.0))
+	for i in range(offsets.size()):
+		var scale: float = scales[i] if i < scales.size() else 1.0
+		var plume := _add_flipbook(EXHAUST_FRAMES, offsets[i],
+			# Staggered, so two nozzles on one aircraft do not pulse in lockstep.
+			float(i) * ROTOR_FRAME_DURATION * 0.5, _body, scale)
+		plume.rotation = deg_to_rad(-angle)
+		# The art is anchored at the NOZZLE rather than at its own centre, so
+		# the sprite is offset by half its width - otherwise placing a hub puts
+		# the middle of the flame on the nozzle and half of it inside the hull.
+		plume.offset = Vector2(plume.texture.get_width() * 0.5 - EXHAUST_ANCHOR.x,
+			0.0)
+		# It is fire: it adds light rather than replacing what is under it,
+		# the same reason the Ark's downwash uses an additive material.
+		var glow := CanvasItemMaterial.new()
+		glow.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
+		plume.material = glow
+		plume.visible = false
+		_exhaust.append(plume)
+
+
+# Lit only while leaving. A fighter parked on its pad with the burner running
+# would be wrong, and the pad is what you actually look at.
+func _set_exhaust(lit: bool) -> void:
+	for plume in _exhaust:
+		plume.visible = lit
+
+
 func _show_spin_rotors() -> void:
 	for rotor in _rotors_idle:
 		rotor.visible = false
@@ -329,6 +388,10 @@ func sync_position(screen_pos: Vector2) -> void:
 
 
 func play_arrival() -> void:
+	# Out on arrival. A departure fades the aircraft out with the burner still
+	# lit, so nothing else turns it off - and the same node is reused when it
+	# comes back, which would land it on the pad still burning.
+	_set_exhaust(false)
 	var token := _begin_animation()
 	if _is_vtol:
 		_play_vertical_landing()
@@ -505,6 +568,7 @@ func play_departure(delay: float = 0.0) -> void:
 		await get_tree().create_timer(delay).timeout
 		if not is_instance_valid(self) or token != _anim_token:
 			return
+	_set_exhaust(true)
 	if _is_vtol:
 		_play_vertical_liftoff()
 		return
@@ -537,6 +601,7 @@ func play_bulk_departure(delay: float = 0.0) -> void:
 		return
 
 	_show_spin_rotors()
+	_set_exhaust(true)
 	var warmup := create_tween()
 	_add_startup_wobble(warmup)
 	await warmup.finished

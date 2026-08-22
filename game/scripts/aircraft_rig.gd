@@ -40,6 +40,54 @@ static func save_data(data: Dictionary) -> void:
 	f.close()
 
 
+# EXHAUST NOZZLES live under their own key in the same file - "f14:exhaust"
+# beside "f14" - rather than in a second file or a second field per hub. A rotor
+# hub and a nozzle want exactly the same three things placed (where, how big,
+# behind or in front), so they share the storage and the editor; they are just
+# different lists on the same model.
+const EXHAUST_SUFFIX := ":exhaust"
+
+
+static func rig_key(model_key: String, exhaust: bool) -> String:
+	return model_key + EXHAUST_SUFFIX if exhaust else model_key
+
+
+# Where each afterburner plume starts. Same fallback rule as the rotors: the
+# model's own exhaust_offsets until the rig has actually been placed.
+static func get_exhaust_offsets(model_key: String) -> Array[Vector2]:
+	var data := load_data()
+	var key := rig_key(model_key, true)
+	if data.has(key):
+		var out: Array[Vector2] = []
+		for p in data[key]:
+			out.append(Vector2(float(p[0]), float(p[1])))
+		return out
+	var sprites: Dictionary = Fleet.WORLD_SPRITES.get(model_key, {})
+	var out2: Array[Vector2] = []
+	out2.assign(sprites.get("exhaust_offsets", []))
+	return out2
+
+
+static func get_exhaust_scales(model_key: String) -> Array[float]:
+	var out: Array[float] = []
+	var data := load_data()
+	var entries: Array = data.get(rig_key(model_key, true), [])
+	var sprites: Dictionary = Fleet.WORLD_SPRITES.get(model_key, {})
+	var fallback := float(sprites.get("exhaust_scale", 1.0))
+	var placed := false
+	for p in entries:
+		if (p as Array).size() > 3:
+			placed = true
+			break
+	if placed:
+		for p in entries:
+			out.append(float(p[3]) if (p as Array).size() > 3 else fallback)
+		return out
+	for i in range(get_exhaust_offsets(model_key).size()):
+		out.append(fallback)
+	return out
+
+
 # Falls back to the hardcoded Fleet.WORLD_SPRITES offsets until the rig has
 # actually been placed with RotorEditor.
 static func get_rotor_offsets(model_key: String) -> Array[Vector2]:
