@@ -159,12 +159,54 @@ a pad. Timed, consumable, inventory-held is new.
 Two things make this more interesting than it looks:
 
 - It is a **coin sink**, and coins are currently spent only on aprons, skins,
-  liveries and the seven coin aircraft.
+  liveries and the nine coin aircraft.
 - A free-refuel card is worth almost nothing at present, because fuel is 1.3%
   of income (see Known issues in the readme). Boosts want to be attached to
   things that actually bind - taps and time - rather than to fuel. A boost that
   auto-claims a whole airport, or halves flight times for an hour, is worth
   something. A fuel card is not.
+
+### The four, priced
+
+ART IS DONE - `tools/boost_icons.py`, four icons in `game/assets/boosts`. The
+system is not.
+
+| boost | what it is worth |
+|---|---|
+| **auto-turnaround** | see below - far stronger than the other three combined |
+| **speed: everything below A becomes A** | 71% of the fleet qualifies; the fleet gets **26% faster**. E->A is -33% on a five cloud leg, B->A only -11%, so it helps the worst aircraft most and the best not at all - self-limiting by shape |
+| **double cash** | fine early, quietly weak late: repricing the Ark $4.5M to $7M changed a 90 day run by nothing |
+| **free refuelling** | almost nothing. 1.3% of income over 60 h of play and not one aircraft ever grounded. Honest as a common drop, a trap as something you spend coins on |
+
+### Auto-turnaround, and why rarity is the lever
+
+Measured with `--bot --autoturn <hours>`, 12 day runs:
+
+| | Zone2 | DarkZone |
+|---|---|---|
+| off | 0.2 h | 2.2 h |
+| **1 hour a day** | 0.2 h | **1.2 h** |
+
+One hour a day nearly halves the time to DarkZone, because taps are the binding
+constraint in this game and a boost that turns aircraft round WHILE THE PLAYER
+IS AWAY removes the constraint entirely for as long as it runs.
+
+**DECIDED: keep the 12 hour tier, make it exceedingly rare.** Rarity is a real
+lever rather than a fudge, because what does the damage is total COVERAGE across
+a run, and that is just tier length times drop rate. Sustained one hour a day is
+90 h of coverage over a 90 day run, which is the dose that halved DarkZone:
+
+| tier | 1 per 7 days | 1 per 30 days | 1 per 45 days |
+|---|---|---|---|
+| 30 min | 6 h (7%) | 1.5 h (2%) | 1 h (1%) |
+| 1 hour | 13 h (14%) | 3 h (3%) | 2 h (2%) |
+| **12 hours** | **154 h (171%)** | 36 h (40%) | 24 h (27%) |
+
+A 12 hour card is worth twenty-four 30 minute ones. Weekly, it is worse than the
+dose that halved the game. **One per 30-45 days** puts it at a quarter to a
+third of that, which is a windfall you remember rather than a pace change.
+
+The 30 minute tier is the one that can be common.
 
 ---
 
