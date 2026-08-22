@@ -373,6 +373,22 @@ const WORLD_SPRITES := {
 		"body": "res://assets/aircraft/a350-900/body_2x.png",
 		"shadow": "res://assets/aircraft/a350-900/shadow_2x.png",
 	},
+	"an74": {
+		"body": "res://assets/aircraft/an74/body_2x.png",
+		"shadow": "res://assets/aircraft/an74/shadow_2x.png",
+	},
+	"lc130": {
+		"body": "res://assets/aircraft/lc130/body_2x.png",
+		"shadow": "res://assets/aircraft/lc130/shadow_2x.png",
+		# Four turboprops, painted into the body like the A400M's, so parked
+		# needs no overlay and only the spin flipbook layers on - and it borrows
+		# the A400M's prop art, the way every propliner here does.
+		"rotor_spin_frames": A400M_PROP,
+		# PLACEHOLDERS, four of them, so RotorEditor has hubs to select. Set in
+		# game: M to reach the LC-130, 1-4 to pick a hub, click, -/+ to size.
+		"rotor_offsets": [Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0)],
+		"rotor_scale": 0.78,
+	},
 	"b777-300er": {
 		"body": "res://assets/aircraft/b777-300er/body_2x.png",
 		"shadow": "res://assets/aircraft/b777-300er/shadow_2x.png",

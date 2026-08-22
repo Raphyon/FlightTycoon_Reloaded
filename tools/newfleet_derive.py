@@ -98,6 +98,17 @@ MODELS = {
     # liveries: four off a 2x2 sheet, plus SAS supplied on its own.
     # 64.8m span, the longest twinjet there is - between the A350's 108 and the
     # 747-8's 112. Three liveries off one sheet.
+    # THE FIRST TWO PAST LEVEL 50. Both are Snow's, and both are polar aircraft
+    # rather than more airliners - see ROADMAP item 10 for why the tail entries
+    # are matched to the zone they open.
+    #
+    # An-74: 31.9m span, so it sits with the A318 at the small end. Engines
+    # mounted ABOVE the wing, which is the whole silhouette.
+    "an74":       (88, {"body": "an74_default.png"}),
+    # LC-130 on skis: 40.4m span, just under the A400M's 42.4, so just under
+    # its 96. The source file is named lc140 - the art says LC-130, which is
+    # the real designation, so the key follows the art.
+    "lc130":      (94, {"body": "lockheed_lc140_hercules.png"}),
     "b777-300er": (110, {"body": "b777_300er_default.png",
                          "body_delta": ("b777_300er_liveries.png", 0),
                          "body_emirates": ("b777_300er_liveries.png", 1),

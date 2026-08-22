@@ -348,16 +348,43 @@ before the ramp bites again.
 So the tail is not just empty of aircraft - it is missing the pattern that
 carries the first 48 levels. Eight entries, placed on the teeth:
 
-| level | zone it lands with | price |
-|---|---|---|
-| 52 | Snow (53) | $12M |
-| 53 | Snow | $14M |
-| 56 | Dreamland1 (57) | $27M |
-| 57 | Dreamland1 | $34M |
-| 61 | Dreamland2 (62) | $84M |
-| 62 | Dreamland2 | $105M |
-| 66 | Dreamland3 (66) | $250M |
-| 70 | Carrier (70) | $600M |
+| level | zone | price | aircraft | |
+|---|---|---|---|---|
+| 52 | Snow | $12M | **Antonov An-74** | BUILT |
+| 53 | Snow | $14M | **Lockheed LC-130** | BUILT |
+| 56 | Dreamland1 | $27M | Beriev Be-200 | |
+| 57 | Dreamland1 | $34M | ShinMaywa US-2 | |
+| 61 | Dreamland2 | $84M | Boeing 314 Clipper | |
+| 62 | Dreamland2 | $105M | Dornier Do X | |
+| 66 | Dreamland3 | $250M | Hughes H-4 Hercules | |
+| 70 | Carrier | $600M | F-14 / E-2 Hawkeye / Harrier | pick one |
+
+### AND MATCH THE AIRCRAFT TO THE ZONE, which is what named them
+
+The zones are not interchangeable backdrops and the aircraft should not be
+either. Two holes in a 42-model fleet, found by looking at the maps rather than
+the catalogue:
+
+**Dream Land is a water resort** - lagoons, piers, moored boats - and there is
+not one flying boat or amphibian in the game. The Twin Otter's floats are the
+only nod to water anywhere in the fleet. So Dreamland's four are all boats: the
+Be-200 and US-2 are working amphibians, and the Clipper and the Do X are the
+golden-age flying boats a resort island is practically asking for. The Do X
+carries twelve engines in six push-pull pairs, which reads at sprite size in a
+way another airliner does not.
+
+**The Carrier is a real flight deck** - catapults, island, thirty pads - and
+there is no naval aircraft at all. Any of the three works; the Harrier earns it
+mechanically, because `vtol: true` already exists and it would leave the deck
+straight up like the V-22 and the Banshee.
+
+**Snow got the polar pair**, and they are BUILT: the An-74 with its engines
+mounted above the wing, and the LC-130 on skis. Neither is another airliner and
+both say where they belong at a glance.
+
+Cheapest to draw are the two that are done. The flying boats are the expensive
+half of this list - hulls, sponsons, many engines - so if the tail wants filling
+quickly, that is worth knowing before starting at the top.
 
 Same count and roughly the same total as the even spacing, but each zone opens
 with something new to fly rather than a level number.

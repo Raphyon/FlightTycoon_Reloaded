@@ -278,6 +278,18 @@ const ENTRIES := [
 		"force": "D", "seats": 500, "fuel": 100, "xp": 474, "ticket": 100, "range": 5, "has_world_sprite": true},
 	{"key": "ark", "name": "Ark", "icon": "ark_default.png", "price": 7000000, "level": 50,
 		"force": "A", "seats": 1000, "fuel": 90, "xp": 671, "ticket": 60, "range": 5, "has_world_sprite": true},
+
+	# PAST LEVEL 50, and the first aircraft that are. Both open Snow, and both
+	# are polar rather than more airliners - a zone should arrive with something
+	# that belongs to it. See ROADMAP item 10.
+	#
+	# Stats are deliberately ORDINARY: XP near the A400M's 474, seats and range
+	# inside what already exists. The PRICE is what makes these a goal. Push the
+	# XP and the aircraft added to fill 62 hours would shorten the 62 hours.
+	{"key": "an74", "name": "Antonov An-74", "icon": "an74_default.png", "price": 12000000, "level": 52,
+		"force": "D", "seats": 420, "fuel": 55, "xp": 476, "range": 5, "has_world_sprite": true},
+	{"key": "lc130", "name": "Lockheed LC-130", "icon": "lc130_default.png", "price": 14000000, "level": 53,
+		"force": "D", "seats": 470, "fuel": 60, "xp": 484, "range": 5, "has_world_sprite": true},
 ]
 
 # Anything asking for a model we don't have an entry for still gets a flyable
