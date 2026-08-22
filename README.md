@@ -260,9 +260,9 @@ It was flat five legs a level, which meant a model did all nine level-ups inside
 its first 45 legs and never moved again. Far gentler than the PLAYER curve at
 `n^4.2` - an airframe should get harder to master, not compete with levelling.
 
-Liveries are a coin purchase that makes one specific aircraft faster. **29
-across 17 models**, the deepest being the A350-900 with five - the first
-aircraft whose picker has to page.
+Liveries are a coin purchase that makes one specific aircraft faster. **34
+across 18 models**, the deepest being the A350-900 and the C-17 with five each -
+the first aircraft whose pickers have to page, since the row shows three.
 
 Several arrive as ONE image holding two to five aircraft. `newfleet_derive.py`
 takes `(file, index)` as a source and cuts the cell out by CONNECTED ALPHA
@@ -275,6 +275,13 @@ A livery is pinned to its body's exact SIZE, not scaled to the same height. The
 renders differ by a percent or two, and a sprite is centred on its pad, so the
 A380's midnight paint - 130 wide against a 137 body - walked the aircraft three
 pixels sideways when you changed it. Eight were off before that was fixed.
+
+How far apart a sheet measures from its own default is worth checking before
+wiring one, because it says whether the art actually matches: the ATR's three
+came in at 0.5% and the 777's at 1%, while the C-17's five run 2.7-4.9% wider
+and cost about 4px of vertical stretch once pinned. Scaled to a common height
+they are still plainly the same airframe, which is what settled it - the bounding
+box alone would not have.
 
 Both livery shops - aircraft and apron paint - are built from the building
 shop's own pieces: `board_card1` at 122.5x200, the price tag, and a real buy button reading
