@@ -363,9 +363,26 @@ placement mode bolted on because the tool was written inside the node that draws
 the things. They were called `*Editor` until the names started misleading people
 about what deleting them would do.
 
-`RotorEditor` is a genuine tool and is kept for the next aircraft with a
-propeller. The building-plot, landmark and zone-region editors were deleted once
-their data was placed; the coordinates they produced are in `game/data`.
+`RotorEditor` is a genuine tool and rigs two things now: propeller and rotor
+hubs, and **afterburner nozzles**. A nozzle and a hub want exactly the same
+things placed against a live preview - where, how big, in front or behind - so
+they share the editor and the file rather than growing a second of each. `E`
+switches lists; the exhaust list is stored under its own key, `f14:exhaust`
+beside `f14`.
+
+| | |
+|---|---|
+| `M` | cycle model |
+| `E` | rotor hubs / exhaust nozzles |
+| `1-9` | select hub |
+| click | place it |
+| `-` `+` | size |
+| `Q` `W` | rotate - **exhaust only**, a rotor disc is drawn face-on |
+| `B` | behind the fuselage / in front |
+| `Escape` | leave |
+
+The building-plot, landmark and zone-region editors were deleted once their data
+was placed; the coordinates they produced are in `game/data`.
 
 They use `_input` rather than `_unhandled_input`, because an apron's Area2D
 claims world clicks through physics picking first, and act on mouse *release*
@@ -545,6 +562,51 @@ cell with its hub on a fixed spot — the content spans differ in width
 (24/24/24/23) and `WorldAircraft` draws frames with a centered `Sprite2D`, so
 cropping each to its own bounds would re-center it and make the disc wander
 between frames. See `split_prop_strip` in `plane_derive.py`.
+
+### Afterburners
+
+Four frames, one flipbook, shared by every aircraft that has nozzles -
+`tools/afterburner.py`, ORIGINAL art. Lit for the departure only, both the
+runway path and bulk dispatch, and put out in `play_arrival`: a departure fades
+out with it still burning and the same node is reused when the aircraft returns.
+A fighter parked on its pad with the burner running would be wrong, and the pad
+is what you actually look at.
+
+**One flame whose parameters animate, not four flames.** Length breathes 25-30px,
+intensity pulses on an offset phase, and the shock diamonds travel aft so it
+shimmers rather than strobing. The first cut drew three separate plumes - a soft
+cone, one with diamonds, a short bloom - and cycling those would have jumped,
+because each had its own size and its own centre. Every frame here shares one
+canvas and one anchor at the nozzle.
+
+**No angle in the art.** It points straight back along +x and the game rotates
+it per nozzle. Baking the angle in was the first design and it was wrong: every
+airframe sits at its own slope, so it meant one plume per aircraft rather than
+one shared by all of them. How far apart they turned out to be:
+
+| | plumes | angle | scale | behind the hull |
+|---|---|---|---|---|
+| F-14 | 2 | 25 deg | 1.00 | hub 1 only |
+| F-15 | 2 | 26 deg | 0.90 | both |
+| Concorde | 2 | 27 deg | 1.15 | both |
+| X-37B | 1 | 31 deg | **2.25** | yes |
+
+Concorde has four engines and two plumes: at 155px the nacelle pairs read as one
+dark shape each, so a plume per engine would be two overlapping flames
+pretending to be one. The X-37B at 2.25x is a single rocket bell beside a
+turbofan, which is the argument for scale living on the HUB rather than the
+aircraft.
+
+**Behind the hull turned out to be the majority.** This shipped hardcoded to
+draw on top, reasoning that from this camera the exhaust exits away from the
+airframe - true of the F-14 and of nothing else. Concorde's nacelles sit under
+the delta, the X-37B's nozzle under its tail, and the F-15's tailplane crosses
+both of its. Only the F-14 keeps a plume in front.
+
+**Placement is a rig, not arithmetic.** Nozzles were seeded by measuring the
+source renders and scaling to sprite size, and every one of the four still moved
+once rigged against a live preview - the Concorde's angle by 18 degrees, off the
+flattest airframe in the set. Seeds get you the right neighbourhood.
 
 ### Altitude
 
