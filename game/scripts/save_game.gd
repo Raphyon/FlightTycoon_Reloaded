@@ -96,6 +96,7 @@ func save() -> void:
 		"fleet": Fleet.to_save(),
 		"quests": Quests.to_save(),
 		"daily_login": DailyLogin.to_save(),
+		"boosts": Boosts.to_save(),
 	}
 	var f := FileAccess.open(SAVE_PATH, FileAccess.WRITE)
 	if not f:
@@ -140,6 +141,10 @@ func _load() -> void:
 	var login_data: Variant = data.get("daily_login", null)
 	if login_data is Dictionary:
 		DailyLogin.load_save(login_data)
+
+	var boost_data: Variant = data.get("boosts", null)
+	if boost_data is Dictionary:
+		Boosts.load_save(boost_data)
 
 	var elapsed := 0.0
 	var saved_at := float(data.get("saved_at", 0.0))
@@ -199,6 +204,7 @@ func reset_to_defaults() -> void:
 	Economy.money = Economy.STARTING_MONEY
 	Coins.amount = Coins.DEFAULT_AMOUNT
 	DailyLogin.reset()
+	Boosts.reset()
 	FuelStore.amount = FuelStore.STARTING_AMOUNT
 	Progression.xp = 0
 	Progression.level = 1

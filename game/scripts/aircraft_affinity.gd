@@ -62,6 +62,12 @@ const SPEED_BONUS_PER_LEVEL := 0.01
 # A level is 5 flights (XP_PER_LEVEL / XP_PER_USE), and an early leg pays about
 # 750, so 1,000 a level is roughly a quarter on top of what those flights earn.
 const LEVEL_REWARD_CASH := 1000
+# AND A BOOST CARD AT 5 AND 10, the same shape the building upgrade milestones
+# use. Rationed by how much a model actually flies rather than by a drop roll:
+# the bot takes four models to level 10 over a 90 day run, so this is about
+# eight cards and 4% of the dose that halved the time to DarkZone. Every level
+# would be 20%, which is defensible; at max only is too thin to notice.
+const LEVEL_BOOST_CARDS := {5: "speed", 10: "autoturn_60"}
 
 const SAVE_PATH := "res://data/aircraft_affinity.json"
 
@@ -158,6 +164,12 @@ func grant_use(model_key: String) -> void:
 	if after > before:
 		var reward := LEVEL_REWARD_CASH * (after - before)
 		Economy.add_money(reward)
+		# Every level CROSSED, not just the one landed on - XP_PER_USE is a
+		# constant somebody will raise one day, and a skipped milestone would be
+		# a card the player silently never got.
+		for lv in range(before + 1, after + 1):
+			if LEVEL_BOOST_CARDS.has(lv):
+				Boosts.grant(str(LEVEL_BOOST_CARDS[lv]))
 		model_levelled.emit(model_key, after, reward)
 	affinity_changed.emit()
 

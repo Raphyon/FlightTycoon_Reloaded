@@ -20,7 +20,8 @@ actually pays in.
   collect   coins with a sweep      claims a whole airport in one press
   speed     a stopwatch             halves flight times
   cash      a note with x2          doubles flight cash
-  xp        a chevron badge with x2 doubles XP
+  fuel      a drum                  free refuelling - the commonest card, and
+                                    the least worth having, which is the point
 
 Supersampled 8x and downscaled, which is how a bevelled rounded square gets a
 clean edge out of Pillow.
@@ -116,6 +117,17 @@ def _note(d: ImageDraw.ImageDraw, n: int) -> None:
     d.ellipse([n * 0.345, n * 0.345, n * 0.475, n * 0.475], fill=FILL + (255,))
 
 
+def _drum(d: ImageDraw.ImageDraw, n: int) -> None:
+    """A fuel drum. Free refuelling is the commonest card and the least worth
+    having - fuel is 1.3% of income - which is exactly why it is common."""
+    x0, x1 = n * 0.30, n * 0.70
+    top, bot = n * 0.26, n * 0.72
+    d.rounded_rectangle([x0, top, x1, bot], radius=n * 0.06, fill=GLYPH + (255,))
+    d.ellipse([x0, top - n * 0.055, x1, top + n * 0.055], fill=GLYPH_DIM + (255,))
+    for y in (0.40, 0.55):
+        d.line([x0, n * y, x1, n * y], fill=FILL + (255,), width=int(n * 0.035))
+
+
 def _badge(d: ImageDraw.ImageDraw, n: int) -> None:
     # Two chevrons - the shape a level-up wears everywhere.
     for k, y in enumerate((0.20, 0.37)):
@@ -157,7 +169,7 @@ GLYPHS = {
     "collect": (_sweep, False),
     "speed": (_stopwatch, False),
     "cash": (_note, True),
-    "xp": (_badge, True),
+    "fuel": (_drum, False),
 }
 
 

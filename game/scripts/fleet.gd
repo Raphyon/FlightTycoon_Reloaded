@@ -643,12 +643,14 @@ func _leg_minutes(clouds: int, grade: String) -> float:
 
 func grade_for(a: FleetAircraft) -> String:
 	var base := str(ShopCatalog.stat(a.model_key, "force"))
-	if a.livery.is_empty():
-		return base
-	var i := GRADE_LADDER.find(base)
-	if i == -1 or i >= GRADE_LADDER.size() - 1:
-		return base
-	return GRADE_LADDER[i + 1]
+	if not a.livery.is_empty():
+		var i := GRADE_LADDER.find(base)
+		if i != -1 and i < GRADE_LADDER.size() - 1:
+			base = GRADE_LADDER[i + 1]
+	# A speed card lifts anything below A up to A. AFTER the livery step, so a
+	# painted aircraft keeps whatever the paint bought it, and lift_grade only
+	# ever raises - an S-class is not dragged down to A by this.
+	return Boosts.lift_grade(base)
 
 
 # Flight time for a specific aircraft, livery included. flight_seconds_to()
@@ -667,6 +669,8 @@ func passengers(model_key: String) -> int:
 # Flat per leg, like pay - it is the number on the card. map_key is accepted and
 # ignored to match payout_for.
 func fuel_cost(model_key: String, _map_key: String = "") -> int:
+	if Boosts.fuel_is_free():
+		return 0
 	return int(ShopCatalog.stat(model_key, "fuel"))
 
 
@@ -1095,7 +1099,7 @@ func reward_cash_for(a: FleetAircraft, apron_id: int) -> int:
 		return 0
 	var bonus := 1.0 + ApronSkins.bonus_percent_for(apron_id) / 100.0
 	return roundi(payout_for(a.model_key, destination_of(a)) * bonus
-		* BuildingProgress.popularity_multiplier())
+		* BuildingProgress.popularity_multiplier() * Boosts.cash_multiplier())
 
 
 func is_flying(a: FleetAircraft) -> bool:

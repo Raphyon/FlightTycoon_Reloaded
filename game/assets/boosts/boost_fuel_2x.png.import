@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dxwd3aylw171r"
-path="res://.godot/imported/boost_xp_2x.png-840a708a98fd96fb3a051db7dfcf4c13.ctex"
+uid="uid://ctxlxase3aqdb"
+path="res://.godot/imported/boost_fuel_2x.png-35501913c80efde37f6ea2518cc9b705.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/boosts/boost_xp_2x.png"
-dest_files=["res://.godot/imported/boost_xp_2x.png-840a708a98fd96fb3a051db7dfcf4c13.ctex"]
+source_file="res://assets/boosts/boost_fuel_2x.png"
+dest_files=["res://.godot/imported/boost_fuel_2x.png-35501913c80efde37f6ea2518cc9b705.ctex"]
 
 [params]
 

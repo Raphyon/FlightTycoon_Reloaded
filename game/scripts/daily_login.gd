@@ -14,7 +14,7 @@ extends Node
 signal streak_changed
 # What was actually handed over, so the panel can float it rather than the
 # numbers appearing silently in the HUD.
-signal claimed(day: int, cash: int, coins: int, fuel: int)
+signal claimed(day: int, cash: int, coins: int, fuel: int, boost: String)
 
 const DAY_SECONDS := 86400.0
 const CYCLE := 7
@@ -58,14 +58,22 @@ const FUEL_EXPONENT := 0.6
 # The SHAPE is separate and worth keeping either way: days 1-6 are small and day
 # 7 is the one you came back for. A cycle that pays evenly gives nobody a reason
 # to finish it.
+# DAYS 2 AND 6 HAND OVER A BOOST, and used to hand over fuel. Fuel is 1.3% of
+# income across a whole playthrough, so those were the two days in the cycle
+# that gave you nothing you would notice - the weakest thing in the feature.
+#
+# Two 30 minute auto-turnaround cards a week is about 26 a run and 13 h of
+# coverage, 14% of the dose measured as nearly halving the time to DarkZone.
+# Never the 12 hour card: that one is worth twenty-four of these and belongs to
+# events. See ROADMAP item 4.
 const REWARDS := [
-	{"cash": 0.5, "coins": 0, "fuel": 0.0},
-	{"cash": 0.0, "coins": 0, "fuel": 1.0},
-	{"cash": 0.8, "coins": 0, "fuel": 0.0},
-	{"cash": 0.0, "coins": 1, "fuel": 0.0},
-	{"cash": 1.0, "coins": 0, "fuel": 0.0},
-	{"cash": 0.0, "coins": 0, "fuel": 1.6},
-	{"cash": 1.2, "coins": 3, "fuel": 0.0},
+	{"cash": 0.5, "coins": 0, "fuel": 0.0, "boost": ""},
+	{"cash": 0.0, "coins": 0, "fuel": 0.0, "boost": "autoturn_30"},
+	{"cash": 0.8, "coins": 0, "fuel": 0.0, "boost": ""},
+	{"cash": 0.0, "coins": 1, "fuel": 0.0, "boost": ""},
+	{"cash": 1.0, "coins": 0, "fuel": 0.0, "boost": ""},
+	{"cash": 0.0, "coins": 0, "fuel": 0.0, "boost": "autoturn_30"},
+	{"cash": 1.2, "coins": 3, "fuel": 0.0, "boost": ""},
 ]
 
 # The day index the streak last collected on, in GameClock days. -1 is "never".
@@ -131,7 +139,11 @@ func claim() -> bool:
 		# signal fires off the assignment.
 		FuelStore.amount += fuel
 
-	claimed.emit(index, cash, coins, fuel)
+	var boost := boost_for(index)
+	if boost != "":
+		Boosts.grant(boost)
+
+	claimed.emit(index, cash, coins, fuel, boost)
 	streak_changed.emit()
 	return true
 
@@ -150,6 +162,10 @@ func fuel_for(index: int) -> int:
 		return 0
 	return NiceNumber.cash(int(FUEL_BASE
 		* pow(float(Progression.level), FUEL_EXPONENT) * mult))
+
+
+func boost_for(index: int) -> String:
+	return str(REWARDS[index].get("boost", ""))
 
 
 func coins_for(index: int) -> int:
