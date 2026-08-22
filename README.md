@@ -210,9 +210,25 @@ See `QUESTS.md`.
 
 ### Progression and economy
 
-You start with **$5,000, 15 coins, and a granted DC-3**. 35 aircraft on the
-shop ladder across levels 1-50, eight of them coin-priced and totalling 243
+You start with **$5,000, 15 coins, and a granted DC-3**. 42 aircraft on the
+shop ladder across levels 1-50, nine of them coin-priced and totalling 293
 coins.
+
+Seven of those arrived in one stretch and all were placed BY CLASS rather than
+in the empty tail, which was the other option:
+
+| | level | price | why there |
+|---|---|---|---|
+| A220-300 | 30 | $95,000 | 35.1m span, a hair over the A318 |
+| IL-62 | 33 | $112,000 | the B707's class - four rear engines, T-tail, 43m |
+| A350-900 | 43 | $580,000 | 64.75m, near enough the 747-8's band |
+| A340-300 | 44 | $650,000 | 60.3m, the top of the airliner class |
+| B777-300ER | 44 | $700,000 | 64.8m, the A340's size class four decades on |
+| Banshee | 45 | 50 coins | the coin lane's top rung, above the X-37B's 48 |
+| C-17 | 47 | $1,500,000 | a bigger A400M, 51.7m span against 42.4 |
+
+The cash ladder still climbs with level after all of them, which is the thing
+that breaks when two aircraft share a rung.
 
 **Coin aircraft obey the level gate**, same as everything else. They used to
 ignore it - the pay-to-win lane, buyable from minute one - which made every coin
@@ -244,9 +260,24 @@ It was flat five legs a level, which meant a model did all nine level-ups inside
 its first 45 legs and never moved again. Far gentler than the PLAYER curve at
 `n^4.2` - an airframe should get harder to master, not compete with levelling.
 
-Liveries are a coin purchase that makes one specific aircraft faster. Both
-livery shops - aircraft and apron paint - are built from the building shop's own
-pieces: `board_card1` at 122.5x200, the price tag, and a real buy button reading
+Liveries are a coin purchase that makes one specific aircraft faster. **29
+across 17 models**, the deepest being the A350-900 with five - the first
+aircraft whose picker has to page.
+
+Several arrive as ONE image holding two to five aircraft. `newfleet_derive.py`
+takes `(file, index)` as a source and cuts the cell out by CONNECTED ALPHA
+rather than by assuming a grid, because the cells are neither evenly spaced nor
+equally sized and a grid split clipped them. Index is reading order, top row
+left to right. That keeps `source-assets` the one place the art lives instead of
+exporting derived PNGs back into it.
+
+A livery is pinned to its body's exact SIZE, not scaled to the same height. The
+renders differ by a percent or two, and a sprite is centred on its pad, so the
+A380's midnight paint - 130 wide against a 137 body - walked the aircraft three
+pixels sideways when you changed it. Eight were off before that was fixed.
+
+Both livery shops - aircraft and apron paint - are built from the building
+shop's own pieces: `board_card1` at 122.5x200, the price tag, and a real buy button reading
 Buy / Wear / Worn. They used to be a 157x90 badge stretched to card shape with
 no button at all, the whole card being one invisible Button.
 
@@ -389,17 +420,22 @@ the ramp bites again:
 | zone | level | models arriving |
 |---|---|---|
 | Zone2 | 14 | emb120, dhc8 |
-| DarkZone | 28 | tu104, a318, balloon, a319 |
+| DarkZone | 28 | tu104, a318, balloon, a319, a220 |
 | Forest | 36 | blackh, ufo, airship, v22, a300 |
-| Desert | 42 | b787, 747, ncc1701, x37b |
-| Beach | 48 | a380-300, concorde, an-225, a400m, ark |
+| Desert | 42 | b787, 747, ncc1701, x37b, a350-900, b777-300er, a340-300 |
+| Beach | 48 | a380-300, c17, concorde, an-225, a400m, ark |
 | Snow | 53 | **nothing** |
 | Dreamland1-3, Carrier | 57-70 | **nothing** |
 
 So the tail is not only empty of aircraft, it is missing the pattern that
 carries the first 48 levels - and that tail is 62 of the 93 hours. Eight
 entries, placed on the teeth rather than spaced evenly, are specced in
-`ROADMAP.md` item 10. It is an art problem: eight shop icons.
+`ROADMAP.md` item 10.
+
+**Seven aircraft arrived and none of them changed this.** They were placed by
+CLASS, which put them all at levels 30-47 - the Desert tooth now carries seven
+models and the tail still carries none. Filling 53-70 is a separate decision
+from adding aircraft, and it is the one that moves the back half of the game.
 
 Everything here is measured, and the measuring instrument has been wrong five
 times. The bot did not claim quests, did not upgrade buildings, and rolled its
