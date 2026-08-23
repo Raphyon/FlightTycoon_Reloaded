@@ -420,12 +420,17 @@ const WORLD_SPRITES := {
 	},
 	# The Super Guppy, the one outsize freighter that IS rigged - four
 	# turboprops, where the Beluga and the Dreamlifter are plain jets.
+	#
+	# THREE HUBS FOR FOUR ENGINES. The near wing's inboard propeller is hidden
+	# behind the fuselage in this render - the bulge is the whole point of the
+	# aeroplane - so a fourth hub had nowhere to sit but the body centre, where
+	# it would spin in the middle of the hull. The rig follows the ART, the same
+	# call as the H-4 getting six hubs for the real aircraft's eight.
 	"guppy": {
 		"body": "res://assets/aircraft/guppy/body_2x.png",
 		"shadow": "res://assets/aircraft/guppy/shadow_2x.png",
 		"rotor_spin_frames": A400M_PROP,
-		# PLACEHOLDERS for RotorEditor - M to reach it, 1-4, click, -/+.
-		"rotor_offsets": [Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0)],
+		"rotor_offsets": [Vector2(0, 0), Vector2(0, 0), Vector2(0, 0)],
 		"rotor_scale": 0.78,
 	},
 	# THE TWO OUTSIZE FREIGHTERS. Plain jets - no props, no nozzles - so there
