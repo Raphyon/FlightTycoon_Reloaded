@@ -310,9 +310,21 @@ zones, this is the first place to look.**
 
 ### Progression and economy
 
-You start with **$5,000, 15 coins, and a granted DC-3**. 49 aircraft on the
-shop ladder **across levels 1-70**, nine of them coin-priced and totalling 293
+You start with **$5,000, 15 coins, and a granted DC-3**. 52 aircraft on the
+shop ladder **across levels 1-70**, nine of them coin-priced and totalling 345
 coins.
+
+**Every price is a round number** - one or two significant digits and zeros for
+cash, a multiple of five for coins. That took spreading things out rather than
+rounding them: eight aircraft sat between 108,000 and 150,000, which needs five
+thousand steps to keep distinct and nothing that fine reads as round. Letting an
+algorithm snap each to the nearest nice figure and push collisions up a rung
+cascaded - the 787 came out at $1,000,000 against its $150,000 - so the packed
+band was spread by hand instead and nothing moved more than a third.
+
+The coin lane is spaced too, and was not: four of the nine sat inside eight
+levels and three more inside four, so most of it arrived in two clumps. It steps
+4-5 levels now, 1/21/25/29/33/37/42/47/52.
 
 The ladder used to stop at 50 while the zone gates ran to 70, which left 62 of
 the game's 93 hours with nothing new to fly. Seven entries fill it, and every
@@ -382,8 +394,8 @@ It was flat five legs a level, which meant a model did all nine level-ups inside
 its first 45 legs and never moved again. Far gentler than the PLAYER curve at
 `n^4.2` - an airframe should get harder to master, not compete with levelling.
 
-Liveries are a coin purchase that makes one specific aircraft faster. **34
-across 18 models**, the deepest being the A350-900 and the C-17 with five each -
+Liveries are a coin purchase that makes one specific aircraft faster. **37
+across 19 models**, the deepest being the A350-900 and the C-17 with five each -
 the first aircraft whose pickers have to page, since the row shows three.
 
 Several arrive as ONE image holding two to five aircraft. `newfleet_derive.py`
@@ -566,26 +578,27 @@ the ramp bites again:
 | zone | level | models arriving |
 |---|---|---|
 | Zone2 | 14 | emb120, dhc8 |
-| DarkZone | 28 | tu104, a318, balloon, a319, a220 |
-| Forest | 36 | blackh, ufo, airship, v22, a300 |
-| Desert | 42 | b787, 747, ncc1701, x37b, a350-900, b777-300er, a340-300 |
-| Beach | 48 | a380-300, c17, concorde, an-225, a400m, ark |
-| Snow | 53 | an74, lc130 |
-| Dreamland1 | 57 | be200, us2 |
+| DarkZone | 28 | tu104, a318, a319, uss51, a220 |
+| Forest | 36 | blackh, airship, v22, ufo, a300 |
+| Desert | 42 | b787, 747, ncc1701, a350-900, b777-300er, a340-300 |
+| Beach | 48 | a380-300, x37b, c17, concorde, an-225, a400m, ark |
+| Snow | 53 | banshee, an74, lc130 |
+| Dreamland1 | 57 | be200, us2, f16 |
 | Dreamland2 | 62 | b314 |
-| Dreamland3 | 66 | **nothing** |
-| Carrier | 70 | e2, f14 |
+| Dreamland3 | 66 | h4, harrier |
+| Carrier | 70 | harrier, e2, f14 |
 
 So the tail is not only empty of aircraft, it is missing the pattern that
 carries the first 48 levels - and that tail is 62 of the 93 hours. Eight
 entries, placed on the teeth rather than spaced evenly, are specced in
 `ROADMAP.md` item 10.
 
-**Nine of ten now open with something.** The seven tail entries were placed by
-ZONE rather than by class, which is the difference: an aircraft that belongs to
-the gate it opens. Snow got polar aircraft, Dreamland got flying boats because
-the island is a water resort, the Carrier got the first naval aircraft in the
-game. Only Dreamland3 at 66 is still a level number and a bill.
+**All ten open with something now.** The tail entries were placed by ZONE rather
+than by class, which is the whole difference: an aircraft that belongs to the
+gate it opens. Snow got polar aircraft, Dreamland got flying boats because the
+island is a water resort, the Carrier got the first naval aircraft in the game,
+and Dreamland3 got the Hughes H-4 - the largest wingspan ever built, for the
+last gate that used to arrive as a level number and a bill.
 
 Everything here is measured, and the measuring instrument has been wrong five
 times. The bot did not claim quests, did not upgrade buildings, and rolled its
@@ -690,6 +703,12 @@ one shared by all of them. How far apart they turned out to be:
 | F-15 | 2 | 26 deg | 0.90 | both |
 | Concorde | 2 | 27 deg | 1.15 | both |
 | X-37B | 1 | 31 deg | **2.25** | yes |
+| F-16 | 1 | 32 deg | 1.32 | yes |
+
+**The Harrier has none, deliberately.** It is a fast jet and it was on the
+candidate list for exactly that reason, which is not a reason - the Pegasus is a
+NON-AFTERBURNING turbofan. It vectors thrust down through four nozzles instead,
+which is a different effect and not this one.
 
 Concorde has four engines and two plumes: at 155px the nacelle pairs read as one
 dark shape each, so a plume per engine would be two overlapping flames
@@ -704,9 +723,17 @@ the delta, the X-37B's nozzle under its tail, and the F-15's tailplane crosses
 both of its. Only the F-14 keeps a plume in front.
 
 **Placement is a rig, not arithmetic.** Nozzles were seeded by measuring the
-source renders and scaling to sprite size, and every one of the four still moved
-once rigged against a live preview - the Concorde's angle by 18 degrees, off the
-flattest airframe in the set. Seeds get you the right neighbourhood.
+source renders and scaling to sprite size, and every one of the five still moved
+once rigged against a live preview. The pattern across all of them: the seed
+gets POSITION close - the F-16's landed within 5px - and says almost nothing
+useful about angle or scale, which went 20 deg to 32 and 0.80 to 1.32 on that
+same aircraft, and 18 degrees out on the Concorde.
+
+**Resizing a sprite breaks a placed rig.** Offsets are pixels from the body
+centre, so growing an aircraft leaves its nozzles and rotor hubs behind. The
+F-16 going 80px to 88 needed its hub and scale multiplied by the same 88/80 -
+the angle does not move, being a rotation rather than a length. Rescale rather
+than re-place, or the placement work is thrown away.
 
 ### Altitude
 
@@ -723,10 +750,8 @@ the canvas edge. Do not assume a uniform trim margin in any importer.
 
 ### Design
 
-- ~~The last five zones have no aircraft~~ **MOSTLY DONE** - seven entries
-  built, and nine of the ten zones now open with something new to fly. Only
-  **Dreamland3 at 66** is still bare, wanting the Hughes H-4. `ROADMAP.md`
-  item 10.
+- ~~The last five zones have no aircraft~~ **DONE** - ten entries built, and all
+  ten zones open with something new to fly. `ROADMAP.md` item 10.
 - **Range is inert - it buys nothing measurable.** A leg pays x5 from the
   nearest destination to the furthest while taking x420 as long, so the 1-cloud
   hop is 84x better per MINUTE - but a lap is four taps whatever its length, so
