@@ -346,7 +346,13 @@ thousands near the start and counting empty LEVELS gives the wrong answer:
 62-65 was four levels and **18% of an entire run** with nothing new to buy,
 while 2-6 was five levels and 0.01% - which is why the An-2, the Ford Trimotor
 and the Ju 52 went in at 2, 4 and 6 for a different reason entirely: the shop
-looking thin in the first minutes rather than the ladder having a hole in it. The Beluga XL and the Dreamlifter went in at
+looking thin in the first minutes rather than the ladder having a hole in it.
+That opening is ordered by SIZE - 72px, 75, 79, then the Twin Otter's 84 - and
+deliberately not by date, since the granted DC-3 is 1935 and breaks any
+chronology before it starts. Two of the three also hit the sizing floor: strict
+span scaling wants 64 for the Trimotor and 49 for the An-2, both under the 70
+the Paper Plane was already raised to for reading as a speck on the pad, so they
+keep their ORDER against each other and give up the true ratio. The Beluga XL and the Dreamlifter went in at
 63 and 65 - not 63 and 64, because 63/65 splits that stretch 37/41/22 by time
 where picking by level number implies an even quarter each. The Super Guppy then
 took 62 rather than 64, the bigger of the two gaps left, because 64 sits BETWEEN
@@ -509,6 +515,17 @@ beside `f14`.
 | `Q` `W` | rotate - **exhaust only**, a rotor disc is drawn face-on |
 | `B` | behind the fuselage / in front |
 | `Escape` | leave |
+
+**21 rotor rigs and 5 exhaust rigs**, 57 hubs placed by hand between them.
+
+**The rig follows the ART, not the aircraft.** Two now carry fewer hubs than the
+real machine has engines: the H-4 gets six for its eight, and the Super Guppy
+three for its four - the near wing's inboard propeller is hidden behind the
+fuselage, the bulge being the entire point of that aeroplane, so a fourth hub
+had nowhere to sit but the body centre, where it would spin in the middle of the
+hull. When the two disagree the drawing wins, because the drawing is what the
+player is looking at. The defaults in `fleet.gd` drop to match, or a fresh save
+re-introduces a hub the placed one does not have.
 
 The building-plot, landmark and zone-region editors were deleted once their data
 was placed; the coordinates they produced are in `game/data`.

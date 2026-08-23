@@ -272,17 +272,24 @@ last one was the 727, which now flies as the Tu-154 - so each is one render
 through `newfleet_derive.py`. The sprite HEIGHT column is the airframe's real
 span judged against the fleet, which is the one input the pipeline needs.
 
+**Propellers are the one thing that is not free.** A jet is a body and a shadow
+and nothing else; a propliner needs a hub placed by hand per engine, and the
+render decides how many of those there can BE. The Super Guppy has four engines
+and three hubs, because the near wing's inboard propeller is hidden behind the
+fuselage - so when picking between two candidates that are otherwise level, the
+one whose engines are all visible from this angle is the cheaper build.
+
 **The tail, in priority order:**
 
 | level | candidates | why |
 |---|---|---|
 | ~~62-65~~ | ~~Super Guppy, Beluga XL, 747 Dreamlifter~~ **BUILT** - at 62, 63 and 65 | see below |
-| 64 | **Martin JRM Mars, Saunders-Roe Princess**, Tu-114 | all that is left of the big hole - and it should NOT be a fourth whale. Dreamland1/2 was the water tier, built round the Be-200, the US-2 and the Clipper because the island is a resort; three outsize freighters have left it one flying boat against three. A boat here pulls the tier back to what it was for. The Princess had ten engines and never entered service, which is exactly the register |
+| 64 | **Martin JRM Mars, Saunders-Roe Princess**, Tu-114 | all that is left of the big hole - and it should NOT be a fourth whale. Dreamland1/2 was the water tier, built round the Be-200, the US-2 and the Clipper because the island is a resort; three outsize freighters have left it one flying boat against three. A boat here pulls the tier back to what it was for. The Princess had ten engines and never entered service, which is exactly the register - and ten hubs to place, if the render shows all ten |
 | 67 | Stratolaunch Roc, Convair XC-99 | sits directly after the H-4. The Roc is the largest wingspan flying TODAY against the largest ever built - a bookend, and the twin fuselage is unlike anything in the fleet |
 | 60 | **Dornier Do X**, Blohm & Voss BV 238, Short Empire | the Do X was specced in item 10 and dropped because Dreamland2 already had the Clipper. 60 is the empty slot it actually belonged in |
 | 58 | CL-415 / DHC-515, Sikorsky S-42 | joins the Be-200 / US-2 amphibian cluster one tier up |
 | 54-55 | Il-76, An-12, Kawasaki C-2, Basler BT-67 | Snow tier, and the Il-76 is the workhorse that register is named after. The BT-67 is a DC-3 on skis, so the proportions are already in the repo |
-| 51 | An-22 Antei, C-5 Galaxy | the An-22 is more contra-rotating props; the C-5 sits beside the C-17 and the An-225 |
+| 51 | An-22 Antei, C-5 Galaxy | the An-22 is more contra-rotating props - eight hubs to place; the C-5 is a jet and sits beside the C-17 and the An-225 for nothing |
 
 **The early shop, worth doing but for the other reason:**
 
@@ -326,6 +333,14 @@ The Ju 52's default body also had to be swapped to the civil silver scheme
 first. The early fleet runs bright - DC-3 luminance 172, DC-6 179 - and the only
 dark default in the game is the Black Hawk at 83, a helicopter thirty levels
 later.
+
+**And the Super Guppy ended up with three hubs for four engines.** The near
+wing's inboard propeller is hidden behind the fuselage - the bulge being the
+entire point of that aeroplane - so a fourth hub had nowhere to sit but the body
+centre, where it would have spun in the middle of the hull. The rig follows the
+ART, which the H-4 already established at six hubs for the real aircraft's
+eight. Worth carrying forward as a selection rule, not just a fix: see the note
+above the candidate tables.
 
 **The Super Guppy then took 62 rather than 64, which was the bigger gap.** 64
 sits BETWEEN the other two, and three whale-bodied freighters in three
