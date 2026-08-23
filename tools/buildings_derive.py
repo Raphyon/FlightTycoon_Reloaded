@@ -68,7 +68,7 @@ def main() -> None:
     # deriving it whole would produce one 200px sprite containing eight
     # buildings.
     names = sorted(f for f in os.listdir(SRC)
-                   if f.lower().endswith(".png") and not f.lower().endswith("_sheet.png"))
+                   if f.lower().endswith(".png") and "_sheet" not in f.lower())
     for name in names:
         img = Image.open(os.path.join(SRC, name)).convert("RGBA")
         box = img.getchannel("A").getbbox()
