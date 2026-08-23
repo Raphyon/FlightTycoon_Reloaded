@@ -212,8 +212,8 @@ the screen, there only while you hold something or something is running.
 | needs | ladder respacing; the asset pipeline already handles this |
 | art | per model - most of the dump is shop-icon only |
 
-**56 aircraft across levels 1-70** today, up from 36 when this was written.
-Twenty-one arrived in one stretch, so the sentence this section used to carry -
+**58 aircraft across levels 1-70** today, up from 36 when this was written.
+Twenty-three arrived in one stretch, so the sentence this section used to carry -
 "the constraint is art, not code, and there is no slack" - stopped being true.
 
 The pipeline is one line per aircraft. `tools/newfleet_derive.py` takes ONE
@@ -250,7 +250,7 @@ gap eats.
 | 58 | 1 | 3.4% |
 | 51 | 1 | 2.3% |
 | 40 | 1 | 1.0% |
-| everything below 40 | 15 | **1.0% combined** |
+| everything below 40 | 13 | **1.0% combined** |
 
 **This table used to be led by 62-65 at 18% of a run** - four levels between the
 Clipper at 61 and the H-4 at 66, and four of the most expensive levels in the
@@ -288,8 +288,8 @@ span judged against the fleet, which is the one input the pipeline needs.
 
 | level | candidates | why |
 |---|---|---|
-| ~~2-6~~ | ~~Junkers Ju 52~~ **BUILT** - at 4 | the DC-3's contemporary and rival, near enough the same aeroplane. Broke the five empty levels into 2-3 and 5-6 |
-| 2-3, 5-6 | Cessna 208 Caravan, DHC-2 Beaver, Britten-Norman Islander, **An-2** | cheap small-span sprites where the shop is still emptiest at the moment a player is deciding about the game. The An-2 is a biplane, which nothing else in the fleet is |
+| ~~2-6~~ | ~~An-2, Ford Trimotor, Junkers Ju 52~~ **BUILT** - at 2, 4 and 6 | the whole stretch, filled every other level. See below |
+| 3, 5 | Cessna 208 Caravan, DHC-2 Beaver, Britten-Norman Islander | what is left of the opening, and it does not need much - the shop already offers something every other level here |
 | 8-12 | Beechcraft 1900D, Let L-410, Saab 340, Dornier 228 | straight commuter turboprops, next to the Twin Otter and the EMB-120 |
 | 14, 16 | Fokker 50, BAe Jetstream 31 | 14 is the Zone2 gate and currently arrives between the EMB-120 and the Dash 8 |
 | 18-19 | Embraer E175, **BAe 146 / Avro RJ85** | the 146 is a four-engined regional, which reads as odd next to the CRJ in a good way |
@@ -303,13 +303,28 @@ the first place makes its later halves bigger. Both are graded **D** against the
 E-class flying boats around them, because the tail was otherwise a straight line
 of haulers at one speed and a new aircraft has to be better at something.
 
-**The Ju 52 is the first entry placed for the OTHER reason** - the shop looking
-thin rather than the ladder having a hole in it. Levels 2-6 are 0.01% of a run,
-so nothing about pacing moves; what moves is that the first thing a player can
-buy is now a trimotor instead of five levels of silence between the granted DC-3
-and the Twin Otter at 7. Its default body had to be swapped to the civil silver
-scheme first: the early fleet runs bright (DC-3 luminance 172, DC-6 179) and the
-only dark default in the game is the Black Hawk at 83, a helicopter thirty levels
+**Levels 2-6 are the first entries placed for the OTHER reason** - the shop
+looking thin rather than the ladder having a hole in it. The stretch is 0.01% of
+a run, so nothing about pacing moves; what moves is that the opening offered
+NOTHING between the granted DC-3 and the Twin Otter at 7. Three aircraft went in
+at 2, 4 and 6, spaced so something arrives every other level rather than
+clustering and then going quiet.
+
+The ramp is by SIZE, which is what a player sees buying up the early shop - 72px,
+75, 79, then the Otter's 84 - and NOT by date. The DC-3 is 1935 and granted, so
+chronology was broken before any of these arrived; ordering by it would have
+bought nothing and cost the size ramp.
+
+Two of them hit the sizing floor. Scaled strictly off the DC-3's 78px at 28.96m,
+the Ford Trimotor's 23.72m span wants 64 and the An-2's 18.18m wants 49 - both
+under the 70 the Paper Plane was already raised to for reading as a speck on the
+pad. They keep their ORDER against each other and give up the true ratio, which
+is the same trade the Paper Plane made. The An-2 loses least by it: a biplane
+stacks two wings into one height, so it reads stubby at 72 exactly as it should.
+
+The Ju 52's default body also had to be swapped to the civil silver scheme
+first. The early fleet runs bright - DC-3 luminance 172, DC-6 179 - and the only
+dark default in the game is the Black Hawk at 83, a helicopter thirty levels
 later.
 
 **The Super Guppy then took 62 rather than 64, which was the bigger gap.** 64

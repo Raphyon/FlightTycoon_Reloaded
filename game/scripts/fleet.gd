@@ -277,9 +277,10 @@ const WORLD_SPRITES := {
 		"rotor_offsets": [Vector2(-40, 8), Vector2(-8, 26)],
 		"rotor_scale": 0.88,
 	},
-	# THREE props, and one of them is on the NOSE - every other rotor hub in the
-	# game is on a wing, so this is the first of its kind. If the nose prop
-	# disappears into the fuselage when it is placed, B puts it behind.
+	# THREE props, one of them on the NOSE. The P-51 already has a nose hub, so
+	# that part is not new - what is new is a nose hub NEXT TO wing hubs, where
+	# the fuselage can swallow it. If it disappears when placed, B puts it
+	# behind. Same shape as the Ford Trimotor below.
 	"ju52": {
 		"body": "res://assets/aircraft/ju52/body_2x.png",
 		"shadow": "res://assets/aircraft/ju52/shadow_2x.png",
@@ -287,6 +288,25 @@ const WORLD_SPRITES := {
 		# PLACEHOLDERS for RotorEditor - M to reach it, 1-3, click, -/+.
 		"rotor_offsets": [Vector2(0, 0), Vector2(0, 0), Vector2(0, 0)],
 		"rotor_scale": 0.85,
+	},
+	# ONE nose prop, like the P-51 - the smallest airframe in the game that is
+	# not a paper aeroplane.
+	"an2": {
+		"body": "res://assets/aircraft/an2/body_2x.png",
+		"shadow": "res://assets/aircraft/an2/shadow_2x.png",
+		"rotor_spin_frames": A400M_PROP,
+		# PLACEHOLDER for RotorEditor - M to reach it, 1, click, -/+.
+		"rotor_offsets": [Vector2.ZERO],
+		"rotor_scale": 0.80,
+	},
+	# THREE props with one on the nose, same as the Ju 52.
+	"trimotor": {
+		"body": "res://assets/aircraft/trimotor/body_2x.png",
+		"shadow": "res://assets/aircraft/trimotor/shadow_2x.png",
+		"rotor_spin_frames": A400M_PROP,
+		# PLACEHOLDERS for RotorEditor - M to reach it, 1-3, click, -/+.
+		"rotor_offsets": [Vector2(0, 0), Vector2(0, 0), Vector2(0, 0)],
+		"rotor_scale": 0.82,
 	},
 	"emb120": {
 		"body": "res://assets/aircraft/emb120/body_2x.png",

@@ -175,12 +175,24 @@ const ENTRIES := [
 	# game and the thinnest the catalogue ever looks. This is a first-impressions
 	# fix and not a pacing one: the whole stretch is 0.01% of a run.
 	#
-	# The DC-3's contemporary and its rival, near enough the same aeroplane at
-	# 29.25m span against 28.96m. Pays 660 a leg against the granted DC-3's 400
-	# and the Twin Otter's 900, so it is a real step up from what you were given
-	# without reaching past the next thing you can buy.
-	{"key": "ju52", "name": "Junkers Ju 52", "icon": "ju52_default.png", "price": 3200, "level": 4,
-		"force": "A", "seats": 55, "fuel": 4, "xp": 33, "ticket": 12, "range": 1, "has_world_sprite": true},
+	# THREE OF THEM, at 2, 4 and 6, so the opening offers something every other
+	# level instead of a cluster and then silence. The Ju 52 was at 4 on its own
+	# and moved to 6 for that spacing - it is the biggest of the three and now
+	# sits next to the Twin Otter it hands over to.
+	#
+	# The ramp is by SIZE, which is what a player actually sees buying up the
+	# early shop: 72px, 75, 79, then the Otter's 84. Not by date - the DC-3 is
+	# 1935 and granted, so chronology was already broken before these arrived.
+	#
+	# Pay per leg steps 520 / 650 / 770 between the granted DC-3's 400 and the
+	# Twin Otter's 900, so each is a real step up without reaching past the next
+	# thing you can buy.
+	{"key": "an2", "name": "Antonov An-2", "icon": "an2_default.png", "price": 3050, "level": 2,
+		"force": "A", "seats": 40, "fuel": 4, "xp": 31, "ticket": 13, "range": 1, "has_world_sprite": true},
+	{"key": "trimotor", "name": "Ford Trimotor", "icon": "trimotor_default.png", "price": 3200, "level": 4,
+		"force": "A", "seats": 50, "fuel": 4, "xp": 33, "ticket": 13, "range": 1, "has_world_sprite": true},
+	{"key": "ju52", "name": "Junkers Ju 52", "icon": "ju52_default.png", "price": 3350, "level": 6,
+		"force": "A", "seats": 55, "fuel": 4, "xp": 35, "ticket": 14, "range": 1, "has_world_sprite": true},
 	{"key": "dhc6", "name": "Twin Otter", "icon": "dhc6_default.png", "price": 3500, "level": 7,
 		"force": "A", "seats": 60, "fuel": 4, "xp": 36, "range": 1, "has_world_sprite": true},
 	# LIVE 5000/A/80/6/2cl. It carries the NEW badge at level 2 in the original;

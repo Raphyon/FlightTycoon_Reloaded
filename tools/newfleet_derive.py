@@ -63,6 +63,15 @@ MODELS = {
     # 29.25m span against the DC-3's 28.96m - the two are near enough the same
     # aeroplane, five years and an ocean apart - so it sits one pixel above it.
     "ju52":       (79, {"body": "junker_ju52_default.png"}),
+    # THE TWO THAT HIT THE FLOOR. Scaled strictly off the DC-3's 78 at 28.96m,
+    # the Ford Trimotor's 23.72m span wants 64 and the An-2's 18.18m wants 49 -
+    # both under the 70 the Paper Plane was raised to for reading as a speck on
+    # a 220x110 pad. Same fix, same reason: they keep their ORDER against each
+    # other and against the DC-3, and give up the true ratio to stay legible.
+    # The An-2 loses least by it - a biplane stacks two wings into the same
+    # height, so it reads stubby at 72 exactly as it should.
+    "an2":        (72, {"body": "antonov_an2_default.png"}),
+    "trimotor":   (75, {"body": "ford_trimotor_default.png"}),
     "emb120":     (84, {"body": "emb_120_default.png"}),
     "dhc8":       (88, {"body": "dhc8_qantas.png"}),
     # Twin Otter, on floats. 84 rather than the DC-3's 78 because a chunk of
