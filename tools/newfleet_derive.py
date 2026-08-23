@@ -130,6 +130,13 @@ MODELS = {
     # Boeing 314: 46.3m span, past the A400M's 42.4 - the golden-age flying
     # boat, and the largest thing in Dreamland's set.
     "b314":       (100, {"body": "boeing_314_clipper.png"}),
+    # The OLDEST of the outsize freighters and much the smallest: 47.6m span,
+    # about the Clipper's 46.3m, against the Beluga XL's 60.3 and the
+    # Dreamlifter's 64.4. Same thumb on the rule as those two - it is the
+    # deepest-bodied of the three for its span - but it must still read as
+    # clearly the littlest, because the three of them in a row are the idea
+    # getting bigger from 1965 to 2006.
+    "guppy":      (103, {"body": "aero_spacelines_super_guppy_default.png"}),
     # THE TWO OUTSIZE FREIGHTERS, and the one place the span rule needed a
     # thumb on it. Span puts the Beluga XL on the A330's 60.3m - the A340-300's
     # 104 - and the Dreamlifter on the 747-400's 64.4m, just under the 747-8's

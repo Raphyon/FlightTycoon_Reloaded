@@ -310,7 +310,7 @@ zones, this is the first place to look.**
 
 ### Progression and economy
 
-You start with **$5,000, 15 coins, and a granted DC-3**. 54 aircraft on the
+You start with **$5,000, 15 coins, and a granted DC-3**. 55 aircraft on the
 shop ladder **across levels 1-70**, nine of them coin-priced and totalling 345
 coins.
 
@@ -327,7 +327,7 @@ levels and three more inside four, so most of it arrived in two clumps. It steps
 4-5 levels now, 1/21/25/29/33/37/42/47/52.
 
 The ladder used to stop at 50 while the zone gates ran to 70, which left 62 of
-the game's 93 hours with nothing new to fly. Twelve entries fill it, and every
+the game's 93 hours with nothing new to fly. Thirteen entries fill it, and every
 one belongs to the zone it opens rather than being another airliner:
 
 | level | zone | price | |
@@ -336,7 +336,7 @@ one belongs to the zone it opens rather than being another airliner:
 | 56, 57 | Dreamland1 | $25M, $35M | Be-200, US-2 - the island is a water resort |
 | 59 | | $45M | F-16 - the first fighter past the gate |
 | 61 | Dreamland2 | $85M | Boeing 314 Clipper |
-| 63, 65 | | $120M, $180M | Beluga XL, Dreamlifter - the outsize freighters |
+| 62, 63, 65 | | $100M, $120M, $180M | Super Guppy, Beluga XL, Dreamlifter - the outsize freighters, in the order the idea was invented |
 | 66 | Dreamland3 | $250M | Hughes H-4 - the largest wingspan ever built |
 | 68, 69, 70 | Carrier | $400M, $500M, $600M | Harrier, E-2 Hawkeye, F-14 - the first naval aircraft |
 
@@ -346,8 +346,11 @@ thousands near the start and counting empty LEVELS gives the wrong answer:
 62-65 was four levels and **18% of an entire run** with nothing new to buy,
 while 2-6 is five levels and 0.01%. The Beluga XL and the Dreamlifter went in at
 63 and 65 - not 63 and 64, because 63/65 splits that stretch 37/41/22 by time
-where picking by level number implies an even quarter each. The remaining gaps
-are ranked in `ROADMAP.md` item 5.
+where picking by level number implies an even quarter each. The Super Guppy then
+took 62 rather than 64, the bigger of the two gaps left, because 64 sits BETWEEN
+the other two and three whale-bodied freighters in three consecutive levels is
+one joke told three times - at 62 the tier runs 1965, 1994, 2006 instead. The
+remaining gaps are ranked in `ROADMAP.md` item 5.
 
 **The tail is a sink, not an investment.** Every entry past 50 pays
 220,000-300,000 a leg, at or under the Ark's 300,000, so none of it adds income
@@ -596,7 +599,7 @@ the ramp bites again:
 | Beach | 48 | a380-300, x37b, c17, concorde, an-225, a400m, ark |
 | Snow | 53 | banshee, an74, lc130 |
 | Dreamland1 | 57 | be200, us2, f16 |
-| Dreamland2 | 62 | b314, beluga-xl, dreamlifter |
+| Dreamland2 | 62 | b314, guppy, beluga-xl, dreamlifter |
 | Dreamland3 | 66 | h4, harrier |
 | Carrier | 70 | harrier, e2, f14 |
 

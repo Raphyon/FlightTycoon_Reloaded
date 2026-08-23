@@ -387,6 +387,16 @@ const WORLD_SPRITES := {
 		"body": "res://assets/aircraft/a350-900/body_2x.png",
 		"shadow": "res://assets/aircraft/a350-900/shadow_2x.png",
 	},
+	# The Super Guppy, the one outsize freighter that IS rigged - four
+	# turboprops, where the Beluga and the Dreamlifter are plain jets.
+	"guppy": {
+		"body": "res://assets/aircraft/guppy/body_2x.png",
+		"shadow": "res://assets/aircraft/guppy/shadow_2x.png",
+		"rotor_spin_frames": A400M_PROP,
+		# PLACEHOLDERS for RotorEditor - M to reach it, 1-4, click, -/+.
+		"rotor_offsets": [Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0)],
+		"rotor_scale": 0.78,
+	},
 	# THE TWO OUTSIZE FREIGHTERS. Plain jets - no props, no nozzles - so there
 	# is nothing to rig on either of them.
 	"beluga-xl": {

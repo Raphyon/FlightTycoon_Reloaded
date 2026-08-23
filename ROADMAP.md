@@ -212,8 +212,8 @@ the screen, there only while you hold something or something is running.
 | needs | ladder respacing; the asset pipeline already handles this |
 | art | per model - most of the dump is shop-icon only |
 
-**54 aircraft across levels 1-70** today, up from 36 when this was written.
-Nineteen arrived in one stretch, so the sentence this section used to carry -
+**55 aircraft across levels 1-70** today, up from 36 when this was written.
+Twenty arrived in one stretch, so the sentence this section used to carry -
 "the constraint is art, not code, and there is no slack" - stopped being true.
 
 The pipeline is one line per aircraft. `tools/newfleet_derive.py` takes ONE
@@ -246,7 +246,6 @@ gap eats.
 | 54-55 | 2 | 5.6% |
 | 67 | 1 | 5.3% |
 | 64 | 1 | 4.6% |
-| 62 | 1 | 4.2% |
 | 60 | 1 | 3.8% |
 | 58 | 1 | 3.4% |
 | 51 | 1 | 2.3% |
@@ -255,9 +254,9 @@ gap eats.
 
 **This table used to be led by 62-65 at 18% of a run** - four levels between the
 Clipper at 61 and the H-4 at 66, and four of the most expensive levels in the
-curve. The Beluga XL and the Dreamlifter went in at 63 and 65 and broke it into
-the two single levels above. The tail from 40 up is still 30% across eight gaps,
-and that is where models are worth building.
+curve. Three aircraft went into it - the Super Guppy at 62, the Beluga XL at 63
+and the Dreamlifter at 65 - and **64 is all that is left of it**. The tail from
+40 up is 26% across seven gaps, and that is where models are worth building.
 
 And the reverse, which is the useful half of measuring this: **levels 2-6 are
 five consecutive levels with no aircraft and 0.01% of a run.** It is not a
@@ -277,8 +276,8 @@ span judged against the fleet, which is the one input the pipeline needs.
 
 | level | candidates | why |
 |---|---|---|
-| ~~62-65~~ | ~~Beluga XL, 747 Dreamlifter~~ **BUILT** - at 63 and 65 | see below |
-| 62, 64 | Martin JRM Mars, Saunders-Roe Princess, Super Guppy, Tu-114 | what is left of the big hole. Dreamland2 is the flying-boat and outsize-freighter tier already; the Princess had ten engines and never entered service, which is exactly the register. The Tu-114 brings contra-rotating props and the rotor rig already handles those |
+| ~~62-65~~ | ~~Super Guppy, Beluga XL, 747 Dreamlifter~~ **BUILT** - at 62, 63 and 65 | see below |
+| 64 | **Martin JRM Mars, Saunders-Roe Princess**, Tu-114 | all that is left of the big hole - and it should NOT be a fourth whale. Dreamland1/2 was the water tier, built round the Be-200, the US-2 and the Clipper because the island is a resort; three outsize freighters have left it one flying boat against three. A boat here pulls the tier back to what it was for. The Princess had ten engines and never entered service, which is exactly the register |
 | 67 | Stratolaunch Roc, Convair XC-99 | sits directly after the H-4. The Roc is the largest wingspan flying TODAY against the largest ever built - a bookend, and the twin fuselage is unlike anything in the fleet |
 | 60 | **Dornier Do X**, Blohm & Voss BV 238, Short Empire | the Do X was specced in item 10 and dropped because Dreamland2 already had the Clipper. 60 is the empty slot it actually belonged in |
 | 58 | CL-415 / DHC-515, Sikorsky S-42 | joins the Be-200 / US-2 amphibian cluster one tier up |
@@ -302,6 +301,15 @@ picking by level number implies - the same n^4.2 that makes the gap matter in
 the first place makes its later halves bigger. Both are graded **D** against the
 E-class flying boats around them, because the tail was otherwise a straight line
 of haulers at one speed and a new aircraft has to be better at something.
+
+**The Super Guppy then took 62 rather than 64, which was the bigger gap.** 64
+sits BETWEEN the other two, and three whale-bodied freighters in three
+consecutive levels is one joke told three times. 62 runs the tier in the order
+the idea was invented - Super Guppy 1965, Beluga 1994, Dreamlifter 2006 - and
+puts an aircraft on the Dreamland2 gate itself. It is sized to read as the
+eldest and much the smallest: 47.6m span against 60.3 and 64.4, so 103px against
+108 and 110. And it is **E** where they are D, being the propeller ancestor, so
+the tier has a shape inside it rather than three identical haulers.
 
 **Not proposed: more coin aircraft.** The coin lane is nine, evenly spaced 1 to
 52 at 5 to 60 coins, and it was deliberately respaced to stop them arriving in
@@ -555,11 +563,10 @@ run. Making buildings differ SIDEWAYS, or making adjacency matter, needs no
 sprites and is the cheapest real progression left on this list.
 
 **5** stays open forever by nature, and is no longer blocked in any sense: the
-pipeline is one render per aircraft and nineteen arrived in a day. It now
-carries a ranked candidate list, and the ranking is measured rather than by
-taste. The first thing it found - levels 62-65 being 18% of a run with nothing
-new to fly - has already been half filled by the Beluga XL and the Dreamlifter;
-the tail from 40 up is still 30% across eight gaps. Anything built for the early shop is worth
+pipeline is one render per aircraft and twenty arrived in a day. It now carries
+a ranked candidate list, and the ranking is measured rather than by taste. The
+first thing it found - levels 62-65 being 18% of a run with nothing new to fly -
+is down to the single level 64; the tail from 40 up is 26% across seven gaps. Anything built for the early shop is worth
 doing for how the game LOOKS in the first minutes, not for pacing: levels 2-6
 are five empty levels and one hundredth of one percent of a run.
 

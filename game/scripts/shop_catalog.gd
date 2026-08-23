@@ -352,6 +352,16 @@ const ENTRIES := [
 	#
 	# Both are D where the flying boats around them are E. That is the reason to
 	# buy one: the tail was otherwise a straight line of E-class haulers.
+	# THE ELDEST OF THE THREE, and it opens Dreamland2. Placed at 62 rather than
+	# at 64 - the marginally bigger gap - so the tier runs in the order the idea
+	# was invented: Super Guppy 1965, Beluga 1994, Dreamlifter 2006. At 64 it
+	# would have sat BETWEEN the other two, which is three whales in three
+	# levels and one joke told three times.
+	#
+	# E where they are D. It is the propeller ancestor, so the tier has a shape
+	# inside it rather than three identical haulers.
+	{"key": "guppy", "name": "Super Guppy", "icon": "guppy_default.png", "price": 100000000, "level": 62,
+		"force": "E", "seats": 590, "fuel": 66, "xp": 545, "ticket": 92, "range": 5, "has_world_sprite": true},
 	{"key": "beluga-xl", "name": "Airbus Beluga XL", "icon": "beluga-xl_default.png", "price": 120000000, "level": 63,
 		"force": "D", "seats": 620, "fuel": 68, "xp": 570, "ticket": 90, "range": 5, "has_world_sprite": true},
 	{"key": "dreamlifter", "name": "Boeing Dreamlifter", "icon": "dreamlifter_default.png", "price": 180000000, "level": 65,
