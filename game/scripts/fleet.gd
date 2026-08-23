@@ -413,9 +413,11 @@ const WORLD_SPRITES := {
 		"shadow": "res://assets/aircraft/f16/shadow_2x.png",
 		# ONE engine, one nozzle - the only single-engine aircraft with a
 		# burner. Read off f16_default.png at (725, 225), scaled by 101/898.
-		"exhaust_offsets": [Vector2(31.1, -14.7)],
-		"exhaust_angle": 20.0,
-		"exhaust_scale": 0.8,
+		# These are the seed. The placed rig overrides them, and did: position
+		# landed within 5px, but 20 degrees became 32 and 0.80 became 1.20.
+		"exhaust_offsets": [Vector2(34.2, -16.2)],
+		"exhaust_angle": 32.0,
+		"exhaust_scale": 1.2,
 	},
 	"harrier": {
 		"body": "res://assets/aircraft/harrier/body_2x.png",

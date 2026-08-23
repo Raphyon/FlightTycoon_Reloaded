@@ -108,7 +108,7 @@ MODELS = {
                          "body_forest": ("hughes_h4_liveries.png", 2)}),
     # Two fighters. 9.96m and 9.25m span, so both sit under the F-15's 76 -
     # the smallest things in the fleet after the Paper Plane.
-    "f16":        (80, {"body": "f16_default.png"}),
+    "f16":        (88, {"body": "f16_default.png"}),
     "harrier":    (76, {"body": "av8b_harrier_default.png"}),
     # THE FIRST TWO PAST LEVEL 50. Both are Snow's, and both are polar aircraft
     # rather than more airliners - see ROADMAP item 10 for why the tail entries
