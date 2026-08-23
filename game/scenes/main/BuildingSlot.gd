@@ -25,6 +25,25 @@ signal body_clicked(plot_id: int)
 # What an empty plot looks like: a construction site rather than bare ground
 # with a bubble floating over nothing. Which variant it uses is the plot's own
 # "site" field - see BuildingLayout.SITE_TEXTURES.
+# THE PLOT COORDINATE IS NOT QUITE THE BLOCK'S CORNER, so the sprite is nudged
+# to sit in its block rather than beside it.
+#
+# The road-bounded block was flood-filled straight out of the background art at
+# every one of the 42 plots - it comes out 200x100, ratio 2.00, which is what
+# TARGET_WIDTH is set against. Its bottom vertex sits a few pixels off the plot
+# every time, and always the same way: dx -3.8 +/- 1.0, dy +1.1 +/- 0.9. So a
+# building drawn at the plot lands slightly right of its block and opens a
+# sliver of tarmac along the lower-LEFT edge.
+#
+# One constant covers all 42 because the spread is under a pixel. -6 rather than
+# the measured -3.8 because that is what read best against the art; the extra
+# 2px is inside the noise and the grass edge is inset from the sprite's alpha.
+#
+# NOT a fix to the plot data - the plots are hand-placed level data and are
+# consistent with each other. This is registration between two coordinate
+# conventions, so it belongs at the draw call.
+const BLOCK_NUDGE := Vector2(-6, 1)
+
 const CALLOUT_CONE := preload("res://assets/bubbles/cone_bubble@2x.png")
 const CALLOUT_CASH := preload("res://assets/bubbles/cash_bubble@2x.png")
 # The swoop the aprons use, for the same reason: collecting rent should look
@@ -134,7 +153,7 @@ func refresh() -> void:
 	if _sprite.texture:
 		var w: float = _sprite.texture.get_width()
 		var h: float = _sprite.texture.get_height()
-		_sprite.offset = Vector2(-w * 0.5, -h)
+		_sprite.offset = Vector2(-w * 0.5, -h) + BLOCK_NUDGE
 
 	# UNDER SCAFFOLDING: no rent callout at all, a countdown instead. The
 	# building is off service until it finishes, so a cash bubble would be
