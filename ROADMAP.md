@@ -22,7 +22,7 @@ airframes and 20-odd liveries - and the two items that mattered most moved.
 | 4 boost items | no - the icons are generated | **DONE** |
 | 10 extend the ladder | 8 models | **DONE** |
 | 5 more models | yes, per model | open - gaps ranked, biggest one halved |
-| 6 more buildings | yes, per building | blocked |
+| 6 more buildings | **half of it needs none** | open - and it is a design hole, not an art one |
 | 7 events | yes, a lot | blocked |
 | 8 passenger animations | yes, none exists | blocked |
 
@@ -310,25 +310,85 @@ against a 345-coin catalogue, which is a balance job rather than an art job.
 
 ---
 
-## 6. More buildings
+## 6. More buildings - AND THE CHOICE BETWEEN THEM
 
 | | |
 |---|---|
 | touches | `building_layout.gd`, `PropShopPanel.gd` |
-| needs | more entries; the plots already exist |
+| needs | more entries; a reason to pick one over another |
 | art | per building |
 
 **Only 9 building types for 42 plots.** So the city repeats itself nearly five
 times over, and every player's airport looks the same.
 
-**Art-blocked, though.** `source-assets/buildings` holds exactly 10 PNGs - the
-9 in the shop plus the terminal - so there is nothing waiting to be added. Every
-new type is a new sprite, from the dump or from `source-assets/original`.
+### The bigger problem: there is no choice to make
 
-Once art exists this is the highest ratio of visible change to work on the list.
-The city no longer RUNS OUT - plots are gated behind zones (last one at ~38 h)
-and carry upgrade levels now - but it still repeats itself, and nine types across
-42 plots is why every airport looks the same.
+Adding a tenth building does not fix what is actually wrong here, which is that
+**picking a building is not a decision - it is a wait.**
+
+Rent per hour rises monotonically with price, and so does population, so the
+correct move on every plot is always "the most expensive thing I can afford".
+Nothing about the plot, the zone, or what is next to it changes that answer.
+
+| | level | rent/hour | people | dominated by |
+|---|---|---|---|---|
+| Coffee House | 1 | 2,400 | 200 | **Cafe** |
+| Cafe | 1 | 2,600 | 260 | |
+| Bar | 2 | 2,743 | 320 | |
+| Business Center | 10 | 8,000 | 2,000 | |
+| Grand Hotel | 12 | 9,000 | 3,000 | |
+| Garden Hotel | 13 | 9,600 | 3,500 | |
+| TV Tower | 15 | 8,769 | 2,500 | **Grand Hotel, Garden Hotel** |
+| Office | 16 | 10,125 | 4,000 | |
+| Eiffel Tower | 1 | 15,000 | 8,000 | (30 coins) |
+
+**Two of the nine can never be the right answer.** The Coffee House is beaten by
+the Cafe at the same level for $1,000 more, on rent AND on people - so the FIRST
+CARD IN THE SHOP is dead on arrival. The TV Tower is worse than the Grand Hotel
+and the Garden Hotel on both, and unlocks two levels AFTER them: a level-15
+reward that is worse than what you already had at level 12.
+
+**And the tech tree is over in about twenty-six minutes.** The last gate is the
+Office at level 16, which is **0.20% of a run** - Zone2 at level 14 is measured
+at 0.2-0.3 h, and 16 is not far past it. After that every building is available
+for the remaining 99.8% of the game and the shop never says anything new.
+
+Plots do not save it. They arrive six per zone across seven zones, so **thirty of
+the forty-two arrive at DarkZone or later** - level 28, about 4.6 h - by which
+time the whole catalogue has been unlocked for four hours. The pacing of PLOTS
+is real; the pacing of BUILDINGS ends before the second zone is paid for.
+
+The one thing genuinely holding the early game together is cash, not design: at
+level 14 a player has just spent $16,000 on Zone2 and cannot put a $35,000
+Garden Hotel on six plots, so the cheap buildings do get built - as a cash-flow
+bridge, and then demolished at the 50% refund. That is not progression, it is a
+tax on not knowing better. **NOT MEASURED: how many plots actually get a cheap
+building first, and for how long.** A bot run that logs every build and demolish
+would settle it, and should come before any fix.
+
+### What would fix it
+
+Not more entries on the same ladder - that just moves the ceiling. The options,
+roughly in order of how much they change:
+
+- **Make buildings differ sideways rather than upwards.** One pays more rent,
+  another more people, another a shorter cycle; then the answer depends on
+  whether you are short of cash or of popularity that hour.
+- **Make position matter.** A hotel next to the terminal, a business center in a
+  cluster - adjacency turns 42 identical decisions into a layout puzzle, and it
+  costs no art at all.
+- **Gate by zone rather than by level.** Zone-specific buildings would make the
+  six new plots feel like a new place rather than six more Offices.
+- **Fix the two dominated cards regardless.** The Coffee House and the TV Tower
+  are cheap to correct - a price or a cycle length - and until then they are two
+  of nine cards that a player who reads them will never buy.
+
+### Art
+
+`source-assets/buildings` holds exactly 10 PNGs - the 9 in the shop plus the
+terminal - so there is nothing waiting to be added. Every new type is a new
+sprite, from the dump or from `source-assets/original`. The sideways-stats and
+adjacency fixes above need NO art, which is what makes them the cheap half.
 
 ---
 
@@ -457,9 +517,14 @@ because it is art-heavy and wants a settled loop underneath it. It now also owns
 the only home for the 12 hour auto-turnaround card, which is the single most
 valuable thing in the boost system and is currently granted by nothing at all.
 
-**6** - more buildings - is worth more than its position suggests now that
-upgrades pay coins. The city is a real economy rather than a rent trickle, and
-it has nine buildings against fifty-two aircraft.
+**6** - more buildings - moved up, and the entry under it changed shape. The
+art half is still blocked, but the half that matters is not art at all:
+**choosing a building is not a decision, it is a wait.** Rent per hour and
+population both rise monotonically with price, so the answer is always "the
+dearest one I can afford"; two of the nine cards are strictly dominated and can
+never be right; and the whole tech tree finishes at level 16, which is 0.2% of a
+run. Making buildings differ SIDEWAYS, or making adjacency matter, needs no
+sprites and is the cheapest real progression left on this list.
 
 **5** stays open forever by nature, and is no longer blocked in any sense: the
 pipeline is one render per aircraft and nineteen arrived in a day. It now
