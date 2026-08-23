@@ -110,6 +110,60 @@ const BUILDINGS := [
 	# rent by that much - a landmark rather than a business.
 	{"key": "eifel_tower", "name": "Eiffel Tower", "price": 30, "currency": "coins", "level": 1,
 		"rent": 5000, "people": 8000, "minutes": 20},
+
+	# --- THE SIDEWAYS SET ------------------------------------------------
+	#
+	# The nine above are a LADDER: rent per hour and population both rise with
+	# price, so the correct move on every plot was always "the dearest thing I
+	# can afford", and the whole tech tree finished at level 16 - 0.2% of a run.
+	# Picking a building was a wait, not a decision. See ROADMAP item 6.
+	#
+	# These eight are not on that ladder. They have no figures recorded from the
+	# original - nothing here is, they are new buildings - so unlike the nine
+	# above there was nothing to preserve, and they are built to DIFFER SIDEWAYS
+	# instead of upwards. Three archetypes, and each is the best in the game at
+	# one thing and poor at the others:
+	#
+	#   TAP    short cycle, top rent per HOUR, few inhabitants. Pays while you
+	#          are playing and pays almost nothing while you are not - rent does
+	#          not stack, so an absent player collects ONE cycle either way.
+	#   IDLE   long cycle, huge rent per COLLECTION. The mirror: it wastes most
+	#          of its rate while you sit tapping it, and loses nothing at all
+	#          over a night away.
+	#   CROWD  little rent, most inhabitants. Pays through popularity instead -
+	#          800 people is 1% of ALL flight cash - so it needs no taps and
+	#          scales with the fleet rather than with attention.
+	#
+	# WHICH ARCHETYPE WINS CHANGES OVER A RUN, which is the point. Trading the
+	# Skypark's rate for the Concert Hall's people is worth it once flight
+	# income passes about 190,000/h; a late game running 583,000/h makes CROWD
+	# worth three times the rest, and an early one makes it worthless. The CROWD
+	# entries are gated late (23, 33, 48, 52) so the most extreme of them opens
+	# roughly when it starts being the right answer.
+	#
+	# MEASURED: the Pareto frontier over (rent/hour, people, rent per
+	# collection) among buildings a player can actually buy was ONE at every
+	# level in the game - the Eiffel Tower - and is 8 by level 52 with these in.
+	# Ignoring the Eiffel it was 1-2, and is still 8.
+	#
+	# Gates run 18 to 52, which is the other half of the fix: the tech tree used
+	# to be over at level 16 and now runs most of the game.
+	{"key": "solar_exchange", "name": "Solar Exchange", "price": 45000, "level": 18,
+		"rent": 1300, "people": 1500, "minutes": 6},
+	{"key": "harbour_towers", "name": "Harbour Towers", "price": 55000, "level": 23,
+		"rent": 2700, "people": 4800, "minutes": 25},
+	{"key": "downtown_offices", "name": "Downtown Offices", "price": 70000, "level": 28,
+		"rent": 9500, "people": 3000, "minutes": 45},
+	{"key": "spiral_gardens", "name": "Spiral Gardens", "price": 85000, "level": 33,
+		"rent": 2800, "people": 5800, "minutes": 30},
+	{"key": "skypark_resort", "name": "Skypark Resort", "price": 100000, "level": 38,
+		"rent": 1200, "people": 1200, "minutes": 4},
+	{"key": "corporate_campus", "name": "Corporate Campus", "price": 120000, "level": 43,
+		"rent": 20000, "people": 2600, "minutes": 90},
+	{"key": "terrace_apartments", "name": "Terrace Apartments", "price": 140000, "level": 48,
+		"rent": 2450, "people": 6800, "minutes": 35},
+	{"key": "concert_hall", "name": "Concert Hall", "price": 160000, "level": 52,
+		"rent": 2100, "people": 7600, "minutes": 45},
 ]
 
 

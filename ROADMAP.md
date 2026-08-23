@@ -22,7 +22,7 @@ airframes and 20-odd liveries - and the two items that mattered most moved.
 | 4 boost items | no - the icons are generated | **DONE** |
 | 10 extend the ladder | 8 models | **DONE** |
 | 5 more models | yes, per model | open - gaps ranked, biggest one halved |
-| 6 more buildings | **half of it needs none** | open - and it is a design hole, not an art one |
+| 6 more buildings | one sheet, delivered | **DONE** - 17 types, three archetypes |
 | 7 events | yes, a lot | blocked |
 | 8 passenger animations | yes, none exists | blocked |
 
@@ -358,16 +358,17 @@ against a 345-coin catalogue, which is a balance job rather than an art job.
 
 ---
 
-## 6. More buildings - AND THE CHOICE BETWEEN THEM
+## 6. More buildings - AND THE CHOICE BETWEEN THEM - DONE
 
 | | |
 |---|---|
 | touches | `building_layout.gd`, `PropShopPanel.gd` |
-| needs | more entries; a reason to pick one over another |
-| art | per building |
+| needs | ~~more entries; a reason to pick one over another~~ both shipped |
+| art | one sheet of eight, delivered |
 
-**Only 9 building types for 42 plots.** So the city repeats itself nearly five
-times over, and every player's airport looks the same.
+~~**Only 9 building types for 42 plots.**~~ **17 now**, so the city repeats
+itself 2.5 times rather than nearly five, and the eight new ones are the fix for
+the harder half of this item as well - see below.
 
 ### The bigger problem: there is no choice to make
 
@@ -377,8 +378,21 @@ Adding a tenth building does not fix what is actually wrong here, which is that
 Rent per hour rose monotonically with price and so did population, so the
 correct move on every plot was always "the most expensive thing I can afford".
 Nothing about the plot, the zone, or what is next to it changed that answer.
-Two cards have since been given a reason to exist - see below - but seven of the
-nine are still a straight ladder.
+
+**MEASURED, before and after.** The honest test is not "is any card dominated"
+- a level-1 building losing to a level-52 one is just a ladder - but *how many
+non-dominated choices does a player have at the level they are actually at*.
+The Pareto frontier over (rent/hour, people, rent per collection), among
+buildings buyable at that level:
+
+| | frontier at L16 | at L30 | at L50 |
+|---|---|---|---|
+| the nine, as shipped | **1** | **1** | **1** |
+| the nine, ignoring the Eiffel Tower | 2 | 2 | 2 |
+| with the sideways eight | 2 | 4 | **7** |
+
+One. At every level in the game, there was exactly one building not beaten
+outright on all three counts, and it was the Eiffel Tower.
 
 | | level | rent/hour | people | cycle |
 |---|---|---|---|---|
@@ -429,42 +443,102 @@ tax on not knowing better. **NOT MEASURED: how many plots actually get a cheap
 building first, and for how long.** A bot run that logs every build and demolish
 would settle it, and should come before any fix.
 
-### What would fix it
+### The fix, shipped: three archetypes
 
-Not more entries on the same ladder - that just moves the ceiling. The options,
-roughly in order of how much they change:
+Eight new buildings, and none of them on the ladder. They carry no figures from
+the original - they are new buildings, so unlike the nine there was nothing to
+preserve - and each is **the best in the game at one thing and poor at the
+others**:
 
-- **Make buildings differ sideways rather than upwards.** One pays more rent,
-  another more people, another a shorter cycle; then the answer depends on
-  whether you are short of cash or of popularity that hour.
-- **Make position matter.** A hotel next to the terminal, a business center in a
+| | | best at | poor at |
+|---|---|---|---|
+| **TAP** | Solar Exchange 18, Skypark Resort 38 | rent per HOUR - the Skypark's 18,000/h is the highest anywhere | pays one cycle to an absent player, and almost no inhabitants |
+| **IDLE** | Downtown Offices 28, Corporate Campus 43 | rent per COLLECTION - the Campus pays 20,000 a go, seven times anything else | wastes most of its rate if you sit tapping it |
+| **CROWD** | Harbour Towers 23, Spiral Gardens 33, Terrace Apartments 48, Concert Hall 52 | inhabitants - up to 7,600, and needs no taps at all | rent, badly: the Concert Hall pays back in 57 hours on rent alone |
+
+**Rent does not stack** - one cycle completes and the building waits - which is
+what makes TAP and IDLE genuine opposites rather than two labels on one number.
+A 4-minute Skypark and a 90-minute Campus both pay one cycle over a night away:
+1,200 against 20,000.
+
+**Which archetype is right changes over a run, and that is the whole point.**
+Trading the Skypark's rate for the Concert Hall's people is worth it once flight
+income passes about **190,000/h** - popularity is 800 people per 1% of all
+flight cash, so CROWD is worthless early and worth three times the rest in a
+late game running 583,000/h. The CROWD entries are gated 23, 33, 48 and 52 so
+the most extreme of them opens roughly when it starts being the right answer.
+
+Within an archetype the later entries are **more extreme, not better**. The
+CROWD line gives up rent as it climbs - 6,480/h down to 2,800 - while people go
+4,800 up to 7,600, so no CROWD building beats another outright. Same for TAP.
+
+**And the tech tree now runs most of the game.** Gates go 18, 23, 28, 33, 38,
+43, 48, 52 against the old ladder finishing at 16.
+
+### What is still open
+
+- **The Eiffel Tower.** The frontier table above is the argument: with it in the
+  pool the count is 1 at every level up to 30, because it beats all eight of the
+  cash buildings on all three counts, from level 1, for 30 coins, with no limit
+  on how many you may build. The sideways eight finally beat it on rent per hour
+  (the Skypark) and per collection (the Campus), but not on people. Either it is
+  a LANDMARK and there is one, or it is a building and it needs to lose at
+  something.
+- **The seven-of-nine ladder.** The original nine still beat each other in order
+  as their gates pass. They are recorded figures and were left alone; the choice
+  now comes from the eight beside them rather than from fixing them.
+- **NOT MEASURED: how often a cheap building gets built and then demolished.**
+  Cash, not design, is what makes anyone build a small one early - at level 14
+  you have just paid $16,000 for Zone2 - and it is then demolished at the 50%
+  refund. A bot run logging every build and demolish would settle it.
+
+### Options considered, and the two still on the table
+
+Adding eight more entries to the same ladder was the obvious move and the wrong
+one - it moves the ceiling and changes nothing. What shipped was the first of
+these; the two after it are still worth doing and still need no art:
+
+- ~~Make buildings differ sideways rather than upwards.~~ **DONE** - the three
+  archetypes above.
+- **Make position matter.** A hotel next to the terminal, a business centre in a
   cluster - adjacency turns 42 identical decisions into a layout puzzle, and it
-  costs no art at all.
+  costs no art at all. Now MORE attractive than it was: with three archetypes in
+  the pool there is something for adjacency to interact with.
 - **Gate by zone rather than by level.** Zone-specific buildings would make the
-  six new plots feel like a new place rather than six more Offices.
-- ~~Fix the two dominated cards regardless.~~ **DONE** - see the cycle change
-  above. It removes the two cards nobody should ever have bought, and it is a
-  first worked example of the sideways-stats fix: the TV Tower now has an
-  identity rather than a rank.
+  six new plots feel like a new place rather than six more Offices. The new
+  gates are 18-52 by level, so this is still unclaimed.
+- ~~Fix the two dominated cards regardless.~~ **DONE** - the Coffee House and TV
+  Tower cycle change, which was the first worked example of differing sideways.
 
-**What it does NOT fix**, and this is the part still open: every building is
-still beaten by the next one up once its gate passes. The Bar beats the Cafe,
-the Garden Hotel beats the Grand Hotel, the Office beats the Garden Hotel. Two
-cards having a reason to exist is not nine cards having one.
+### An honest note on the shop card
 
-**And the Eiffel Tower beats all eight**, on rent per hour and on people, from
-level 1, for 30 coins - with no limit on how many you may build. Nothing stops a
-coin-rich player filling every plot with them but the coin price, which is a
-soft cap rather than a design. Worth deciding on deliberately: either it is a
-LANDMARK and there is one, or it is a building and it needs to lose at
-something.
+The card already prints the three numbers this design trades on - cycle, rent
+per cycle, inhabitants - so the choice is legible without new UI. It does NOT
+print rent per HOUR, which means comparing a 4-minute Skypark with a 90-minute
+Campus is arithmetic the player has to do.
+
+Left alone deliberately, for now. Printing rent/hour would make one column the
+obvious score and pull the decision back towards a single number, which is the
+thing this item exists to get away from. Worth revisiting if playtesting says
+the trade reads as noise rather than as a choice.
 
 ### Art
 
-`source-assets/buildings` holds exactly 10 PNGs - the 9 in the shop plus the
-terminal - so there is nothing waiting to be added. Every new type is a new
-sprite, from the dump or from `source-assets/original`. The sideways-stats and
-adjacency fixes above need NO art, which is what makes them the cheap half.
+**Unblocked and spent.** `source-assets/buildings` held exactly 10 PNGs - the 9
+in the shop plus the terminal - until one contact sheet of eight arrived. It is
+kept whole as the source of record and split into per-building PNGs beside it;
+`buildings_derive.py` skips `*_sheet.png` so it does not derive all eight as one
+200px sprite.
+
+They fit, measured rather than eyeballed. The isometric ground-edge slope runs
+-0.55 to -0.66 against the existing set's -0.50 to -0.64, so they sit on the
+same ground plane; height-to-width lands inside the existing range; and at the
+delivered 200px they are measurably CRISPER (acutance 75 against 63).
+
+The one caveat is headroom. The existing nine are 1024px renders downscaling
+5.1x to 200; these are ~230px cells downscaling 1.15x, so there is nothing above
+the current target. The Eiffel Tower is already 200x329 and the terminal
+295x233, so a building wanting to be bigger than 200 wide is not hypothetical.
 
 ---
 
@@ -593,14 +667,13 @@ because it is art-heavy and wants a settled loop underneath it. It now also owns
 the only home for the 12 hour auto-turnaround card, which is the single most
 valuable thing in the boost system and is currently granted by nothing at all.
 
-**6** - more buildings - moved up, and the entry under it changed shape. The
-art half is still blocked, but the half that matters is not art at all:
-**choosing a building is not a decision, it is a wait.** Rent per hour and
-population both rise monotonically with price, so the answer is always "the
-dearest one I can afford"; two of the nine cards are strictly dominated and can
-never be right; and the whole tech tree finishes at level 16, which is 0.2% of a
-run. Making buildings differ SIDEWAYS, or making adjacency matter, needs no
-sprites and is the cheapest real progression left on this list.
+**6** - more buildings - **is done**, and it turned out to be two items in one
+coat. The art half was nine types for 42 plots; the half that mattered was that
+choosing a building was a wait rather than a decision, measured as a Pareto
+frontier of ONE at every level in the game. Both are fixed: 17 types, and eight
+of them built to differ sideways rather than upwards. What is left of it -
+adjacency, and gating by zone - still needs no art, and is more attractive now
+that there is something for adjacency to interact with.
 
 **5** stays open forever by nature, and is no longer blocked in any sense: the
 pipeline is one render per aircraft and twenty arrived in a day. It now carries

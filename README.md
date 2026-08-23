@@ -449,7 +449,38 @@ no button at all, the whole card being one invisible Button.
 
 42 plots, built from a shop, each earning rent on a cycle you tap to collect,
 with a small chance of turning up a coin. Population housed feeds the popularity
-multiplier above.
+multiplier above. **17 types.**
+
+**Nine of them are a ladder; eight are not, and that is the design.** Rent per
+hour and population both rose monotonically with price, so the correct move on
+every plot was always "the dearest thing I can afford" - picking a building was
+a wait rather than a decision, and the tech tree finished at level 16, 0.2% of a
+run. Measured as a Pareto frontier over rent/hour, inhabitants and rent per
+collection, among buildings a player could actually buy, the count was **1 at
+every level in the game**, and it was the Eiffel Tower.
+
+The eight new ones carry no figures from the original - they are new buildings,
+so unlike the nine there was nothing to preserve - and each is the best in the
+game at one thing and poor at the others:
+
+| | best at | poor at |
+|---|---|---|
+| **TAP** - Solar Exchange, Skypark Resort | rent per HOUR; the Skypark's 18,000/h is the highest anywhere | pays one cycle to an absent player, few inhabitants |
+| **IDLE** - Downtown Offices, Corporate Campus | rent per COLLECTION; the Campus pays 20,000 a go | wastes most of its rate if you sit tapping it |
+| **CROWD** - Harbour Towers, Spiral Gardens, Terrace Apartments, Concert Hall | inhabitants, to 7,600, and needs no taps at all | rent: the Concert Hall repays in 57 hours on rent alone |
+
+**Rent does not stack** - one cycle completes and the building waits - which is
+what makes TAP and IDLE opposites rather than two labels on one number. A
+4-minute Skypark and a 90-minute Campus both pay one cycle over a night away:
+1,200 against 20,000.
+
+**Which archetype wins changes over a run.** Trading the Skypark's rate for the
+Concert Hall's people is worth it once flight income passes about 190,000/h, so
+CROWD is worthless early and worth three times the rest in a late game running
+583,000/h. The CROWD gates are 23, 33, 48 and 52, so the most extreme opens
+roughly when it starts being the right answer. Within an archetype the later
+entries are more EXTREME, not better - the CROWD line gives up rent as it climbs
+- so none beats another outright. The frontier is 7 by level 50 against 1.
 
 **Plots carry a level, to 10.** Rent x1.45 each, so the cheapest building on the
 board ends up paying more than an Eiffel Tower - about $1.04M and six hours of

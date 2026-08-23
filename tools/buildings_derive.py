@@ -63,7 +63,12 @@ WIDTHS = {"terminal": 295}
 
 def main() -> None:
     os.makedirs(OUT, exist_ok=True)
-    names = sorted(f for f in os.listdir(SRC) if f.lower().endswith(".png"))
+    # *_sheet.png is a multi-building CONTACT SHEET kept as the source of
+    # record - it is split into its own per-building PNGs beside it, and
+    # deriving it whole would produce one 200px sprite containing eight
+    # buildings.
+    names = sorted(f for f in os.listdir(SRC)
+                   if f.lower().endswith(".png") and not f.lower().endswith("_sheet.png"))
     for name in names:
         img = Image.open(os.path.join(SRC, name)).convert("RGBA")
         box = img.getchannel("A").getbbox()
