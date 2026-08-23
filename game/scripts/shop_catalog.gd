@@ -344,6 +344,18 @@ const ENTRIES := [
 		"force": "S", "seats": 10, "fuel": 66, "xp": 560, "ticket": 5500, "range": 5, "has_world_sprite": true},
 	{"key": "b314", "name": "Boeing 314 Clipper", "icon": "b314_default.png", "price": 85000000, "level": 61,
 		"force": "E", "seats": 560, "fuel": 64, "xp": 530, "ticket": 95, "range": 5, "has_world_sprite": true},
+	# LEVELS 62-65 WERE THE BIGGEST HOLE IN THE GAME: four levels between the
+	# Clipper and the H-4, and 18% of a whole run, because the XP curve is n^4.2
+	# and a level up here is worth thousands near the start. Two aircraft cannot
+	# fill four levels, so they go where they split the stretch most evenly BY
+	# TIME rather than by level number - 63 and 65, which cuts it 37/41/22.
+	#
+	# Both are D where the flying boats around them are E. That is the reason to
+	# buy one: the tail was otherwise a straight line of E-class haulers.
+	{"key": "beluga-xl", "name": "Airbus Beluga XL", "icon": "beluga-xl_default.png", "price": 120000000, "level": 63,
+		"force": "D", "seats": 620, "fuel": 68, "xp": 570, "ticket": 90, "range": 5, "has_world_sprite": true},
+	{"key": "dreamlifter", "name": "Boeing Dreamlifter", "icon": "dreamlifter_default.png", "price": 180000000, "level": 65,
+		"force": "D", "seats": 660, "fuel": 72, "xp": 600, "ticket": 88, "range": 5, "has_world_sprite": true},
 	# DREAMLAND3'S, and the last gate in the game to get an aircraft. The
 	# largest wingspan ever built, so it is the largest sprite here too.
 	{"key": "h4", "name": "Hughes H-4 Hercules", "icon": "h4_default.png", "price": 250000000, "level": 66,

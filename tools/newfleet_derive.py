@@ -130,6 +130,18 @@ MODELS = {
     # Boeing 314: 46.3m span, past the A400M's 42.4 - the golden-age flying
     # boat, and the largest thing in Dreamland's set.
     "b314":       (100, {"body": "boeing_314_clipper.png"}),
+    # THE TWO OUTSIZE FREIGHTERS, and the one place the span rule needed a
+    # thumb on it. Span puts the Beluga XL on the A330's 60.3m - the A340-300's
+    # 104 - and the Dreamlifter on the 747-400's 64.4m, just under the 747-8's
+    # 112. But height is the input here, and these two are ~11% taller than the
+    # airframes they are built from, which is the entire point of them: the
+    # fuselage IS the aircraft. Sized on span, then nudged up for the bulge.
+    "beluga-xl":  (108, {"body": "airbus_beluga_xl_default.png"}),
+    "dreamlifter": (110, {"body": "boeing_dreamlifter_default.png",
+                         "body_retro": ("boeing_dreamlifter_liveries.png", 0),
+                         "body_waves": ("boeing_dreamlifter_liveries.png", 1),
+                         "body_digital": ("boeing_dreamlifter_liveries.png", 2),
+                         "body_lcf": ("boeing_dreamlifter_liveries.png", 3)}),
     # E-2 Hawkeye: 24.6m span, so above the F-14's 19.55m and below the ATR's
     # 27m. The radar disc is the whole silhouette and nothing else in the fleet
     # has that shape.

@@ -33,6 +33,18 @@ const LIVERIES := {
 		{"key": "forest", "name": "Forest",
 			"body": "res://assets/aircraft/h4/body_forest_2x.png"},
 	],
+	# Four on one sheet, cut by connected alpha like every other livery here and
+	# pinned to the stock body's 143x110.
+	"dreamlifter": [
+		{"key": "retro", "name": "Retro Cargo",
+			"body": "res://assets/aircraft/dreamlifter/body_retro_2x.png"},
+		{"key": "waves", "name": "Artistic Waves",
+			"body": "res://assets/aircraft/dreamlifter/body_waves_2x.png"},
+		{"key": "digital", "name": "D-Lift Digital",
+			"body": "res://assets/aircraft/dreamlifter/body_digital_2x.png"},
+		{"key": "lcf", "name": "Boeing LCF",
+			"body": "res://assets/aircraft/dreamlifter/body_lcf_2x.png"},
+	],
 	"c17": [
 		{"key": "house", "name": "House Blue",
 			"body": "res://assets/aircraft/c17/body_house_2x.png"},

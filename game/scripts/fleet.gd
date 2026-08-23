@@ -387,6 +387,16 @@ const WORLD_SPRITES := {
 		"body": "res://assets/aircraft/a350-900/body_2x.png",
 		"shadow": "res://assets/aircraft/a350-900/shadow_2x.png",
 	},
+	# THE TWO OUTSIZE FREIGHTERS. Plain jets - no props, no nozzles - so there
+	# is nothing to rig on either of them.
+	"beluga-xl": {
+		"body": "res://assets/aircraft/beluga-xl/body_2x.png",
+		"shadow": "res://assets/aircraft/beluga-xl/shadow_2x.png",
+	},
+	"dreamlifter": {
+		"body": "res://assets/aircraft/dreamlifter/body_2x.png",
+		"shadow": "res://assets/aircraft/dreamlifter/shadow_2x.png",
+	},
 	"be200": {
 		"body": "res://assets/aircraft/be200/body_2x.png",
 		"shadow": "res://assets/aircraft/be200/shadow_2x.png",

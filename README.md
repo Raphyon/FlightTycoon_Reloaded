@@ -310,7 +310,7 @@ zones, this is the first place to look.**
 
 ### Progression and economy
 
-You start with **$5,000, 15 coins, and a granted DC-3**. 52 aircraft on the
+You start with **$5,000, 15 coins, and a granted DC-3**. 54 aircraft on the
 shop ladder **across levels 1-70**, nine of them coin-priced and totalling 345
 coins.
 
@@ -327,15 +327,27 @@ levels and three more inside four, so most of it arrived in two clumps. It steps
 4-5 levels now, 1/21/25/29/33/37/42/47/52.
 
 The ladder used to stop at 50 while the zone gates ran to 70, which left 62 of
-the game's 93 hours with nothing new to fly. Seven entries fill it, and every
+the game's 93 hours with nothing new to fly. Twelve entries fill it, and every
 one belongs to the zone it opens rather than being another airliner:
 
 | level | zone | price | |
 |---|---|---|---|
-| 52, 53 | Snow | $12M, $14M | An-74, LC-130 on skis |
-| 56, 57 | Dreamland1 | $27M, $34M | Be-200, US-2 - the island is a water resort |
-| 61 | Dreamland2 | $84M | Boeing 314 Clipper |
-| 69, 70 | Carrier | $480M, $600M | E-2 Hawkeye, F-14 - the first naval aircraft |
+| 52, 53 | Snow | $12M, $15M | An-74, LC-130 on skis |
+| 56, 57 | Dreamland1 | $25M, $35M | Be-200, US-2 - the island is a water resort |
+| 59 | | $45M | F-16 - the first fighter past the gate |
+| 61 | Dreamland2 | $85M | Boeing 314 Clipper |
+| 63, 65 | | $120M, $180M | Beluga XL, Dreamlifter - the outsize freighters |
+| 66 | Dreamland3 | $250M | Hughes H-4 - the largest wingspan ever built |
+| 68, 69, 70 | Carrier | $400M, $500M, $600M | Harrier, E-2 Hawkeye, F-14 - the first naval aircraft |
+
+**And the gaps between them were then measured, which is a different question
+from where the zones are.** The XP curve is `n^4.2`, so a level near 70 is worth
+thousands near the start and counting empty LEVELS gives the wrong answer:
+62-65 was four levels and **18% of an entire run** with nothing new to buy,
+while 2-6 is five levels and 0.01%. The Beluga XL and the Dreamlifter went in at
+63 and 65 - not 63 and 64, because 63/65 splits that stretch 37/41/22 by time
+where picking by level number implies an even quarter each. The remaining gaps
+are ranked in `ROADMAP.md` item 5.
 
 **The tail is a sink, not an investment.** Every entry past 50 pays
 220,000-300,000 a leg, at or under the Ark's 300,000, so none of it adds income
@@ -394,8 +406,8 @@ It was flat five legs a level, which meant a model did all nine level-ups inside
 its first 45 legs and never moved again. Far gentler than the PLAYER curve at
 `n^4.2` - an airframe should get harder to master, not compete with levelling.
 
-Liveries are a coin purchase that makes one specific aircraft faster. **37
-across 19 models**, the deepest being the A350-900 and the C-17 with five each -
+Liveries are a coin purchase that makes one specific aircraft faster. **41
+across 20 models**, the deepest being the A350-900 and the C-17 with five each -
 the first aircraft whose pickers have to page, since the row shows three.
 
 Several arrive as ONE image holding two to five aircraft. `newfleet_derive.py`
@@ -584,7 +596,7 @@ the ramp bites again:
 | Beach | 48 | a380-300, x37b, c17, concorde, an-225, a400m, ark |
 | Snow | 53 | banshee, an74, lc130 |
 | Dreamland1 | 57 | be200, us2, f16 |
-| Dreamland2 | 62 | b314 |
+| Dreamland2 | 62 | b314, beluga-xl, dreamlifter |
 | Dreamland3 | 66 | h4, harrier |
 | Carrier | 70 | harrier, e2, f14 |
 
