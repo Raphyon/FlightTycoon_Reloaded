@@ -37,8 +37,21 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SRC = os.path.join(ROOT, "source-assets", "buildings")
 OUT = os.path.join(ROOT, "game", "assets", "buildings")
 
-# Against a 229x118 apron tile. Matches the three that already fit a plot.
-TARGET_WIDTH = 200
+# THE CITY BLOCK IS 256x128, and this is what a building has to fill.
+#
+# This was 200, "against a 229x118 apron tile" - and that was the wrong ruler.
+# 229x118 is the APRON tile, which is what aircraft pads sit on; the road grid
+# in the city is a different size entirely. Measured off the background by
+# autocorrelating the road markings over the tarmac at (0..1700, 1400..2250),
+# the periods are 256 in x and 128 in y, and a lattice with that period anchored
+# on any building plot runs straight down the middle of every road. All 42 plots
+# sit on it, mutually consistent to under a pixel.
+#
+# At 200 every building was 28px short of its block ON EACH SIDE, so the grass
+# stopped and a band of bare tarmac ran between it and the kerb. That gap is the
+# thing that read as the buildings not fitting - not the art, and not the plots,
+# both of which were fine. 256 puts the plate edge on the road edge.
+TARGET_WIDTH = 256
 
 # Only for buildings that should break from the common footprint.
 #
@@ -81,7 +94,7 @@ def main() -> None:
         img = img.resize((w, h), Image.LANCZOS)
         img.save(os.path.join(OUT, "%s_2x.png" % name[:-4]))
         print("  %-24s %dx%d" % (name[:-4], w, h))
-    print("\n%d buildings (apron tile is 229x118 for comparison)" % len(names))
+    print("\n%d buildings (the city block is 256x128)" % len(names))
 
 
 if __name__ == "__main__":
