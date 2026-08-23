@@ -291,7 +291,7 @@ or crowd.
 
 ---
 
-## 9. Quests, as a way to earn coins
+## 9. Quests, as a way to earn coins - DONE
 
 | | |
 |---|---|
@@ -303,29 +303,43 @@ or crowd.
 bot earned **35 coins**, on top of the 15 you start with. The coin catalogue it
 is meant to buy:
 
-| | coins |
-|---|---|
-| paperplane | 5 |
-| f15 | 25 |
-| uss51 | 28 |
-| balloon | 30 |
-| ufo | 35 |
-| ncc1701 | 45 |
-| ark | 70 |
-| **all seven** | **238** |
+| | level | coins |
+|---|---|---|
+| paperplane | 1 | 5 |
+| f15 | 21 | 25 |
+| p51 | 25 | 30 |
+| uss51 | 29 | 35 |
+| balloon | 33 | 40 |
+| ufo | 37 | 45 |
+| ncc1701 | 42 | 50 |
+| x37b | 47 | 55 |
+| banshee | 52 | 60 |
+| **all nine** | | **345** |
+
+That table is the CURRENT one, not the one this item was written against. The
+catalogue was seven aircraft costing 238 when the hole was measured; it is nine
+costing 345 now, respaced so the gaps between coin unlocks are even rather than
+arriving in two clumps.
 
 Plus liveries and apron skins on top. So a full playthrough earns barely enough
 for the paper plane and one mid-tier aircraft, and the Ark - a level 50 unlock -
 is out of reach of everything a player can earn in sixty hours.
 
-The only faucet today is a per-cycle chance of a single coin from a building.
-That is a trickle by design, because coins stand in for IAP - but a premium
-currency with no earned path makes seven aircraft, every livery and every skin
-into content that is authored, shipped and never seen.
+**What shipped: five daily tasks dealt from a pool, and the coin comes from
+finishing the SET rather than from any one task.** One coin per task is a
+trickle you collect without noticing; a coin for clearing five is a thing you
+sit down to do. Individual tasks pay cash and fuel instead.
 
-Quests are the natural faucet: they pay out for playing rather than for waiting,
-they can be tuned per goal, and unlike a daily reward they scale with how much
-the player is actually doing.
+Two coins a set, which is measured rather than picked. Three moved a playthrough
+to 32.0 h and earned 243 coins, and that is the cliff - it puts most of the
+catalogue inside one run. Two keeps the hours and reaches two thirds of the coin
+content.
+
+**And the design constraint below was resolved the other way.** Coin aircraft
+obey the level gate now (`ShopCatalog.unlocked`), so a coin buys a shortcut past
+the CASH rather than past the level, and the 60-hour Ark that could be bought at
+level 3 is not a thing that can happen. Everything under it still stands as the
+reason the gate went in.
 
 **Design constraint worth stating up front:** coin aircraft **ignore the level
 gate entirely**. That is why the starting float was cut from 100 to 15 - the old
@@ -379,7 +393,7 @@ nothing in the dump to start from.
 
 ---
 
-## 10. Extend the fleet ladder past level 50
+## 10. Extend the fleet ladder past level 50 - DONE
 
 The shop stops at level 50, which a regular player reaches at **31 hours**. The
 last two unlocks in the game are Dreamland at level 57 (47 h) and the Carrier at

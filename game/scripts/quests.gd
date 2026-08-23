@@ -3,10 +3,10 @@ extends Node
 # DAILY TASKS. FIVE dealt a day from a pool, and the coin comes from finishing
 # any THREE of them rather than from any one.
 #
-# WHY THIS EXISTS. The coin catalogue is 238 coins for the seven coin aircraft,
-# before liveries and apron skins. A sixty-hour playthrough earns 35, on top of
-# the 15 you start with. Seven aircraft and every livery are authored, shipped,
-# and unreachable. Quests are the faucet - and they pay for PLAYING, which is
+# WHY THIS EXISTS. The coin catalogue was 238 coins for seven coin aircraft when
+# this was measured - it is 345 for nine now - before liveries and apron skins.
+# A sixty-hour playthrough earned 35, on top of the 15 you start with. Seven
+# aircraft and every livery were authored, shipped, and unreachable. Quests are the faucet - and they pay for PLAYING, which is
 # what separates them from a login reward.
 #
 # THE COIN IS THE SET, NOT THE TASK. One coin per task is a trickle you collect
@@ -45,7 +45,7 @@ signal set_completed(coins: int)
 #     3 coin -> 32.0 h,                  243 coins
 #
 # 1 to 2 costs 42 minutes and doubles the faucet. 2 to 3 costs FOUR HOURS for
-# the last third of a 238-coin catalogue. The cliff is at 3, so this sits under
+# the last third of the catalogue as it stood. The cliff is at 3, so this sits under
 # it - two thirds of the coin content reachable, and the hours kept.
 const SET_COIN_REWARD := 2
 const COIN_MIN_LEVEL := 10
