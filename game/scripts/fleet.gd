@@ -408,6 +408,27 @@ const WORLD_SPRITES := {
 		"rotor_offsets": [Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0)],
 		"rotor_scale": 0.85,
 	},
+	"f16": {
+		"body": "res://assets/aircraft/f16/body_2x.png",
+		"shadow": "res://assets/aircraft/f16/shadow_2x.png",
+	},
+	"harrier": {
+		"body": "res://assets/aircraft/harrier/body_2x.png",
+		"shadow": "res://assets/aircraft/harrier/shadow_2x.png",
+		# It leaves the deck straight up, which is the whole reason it is the
+		# Carrier's third aircraft rather than another jet.
+		"vtol": true,
+	},
+	"h4": {
+		"body": "res://assets/aircraft/h4/body_2x.png",
+		"shadow": "res://assets/aircraft/h4/shadow_2x.png",
+		# SIX propellers, three a wing. The real H-4 has eight - the art has
+		# six, and the rig follows the art, or two hubs would sit in empty space.
+		"rotor_spin_frames": A400M_PROP,
+		"rotor_offsets": [Vector2(0, 0), Vector2(0, 0), Vector2(0, 0),
+			Vector2(0, 0), Vector2(0, 0), Vector2(0, 0)],
+		"rotor_scale": 0.78,
+	},
 	"e2": {
 		"body": "res://assets/aircraft/e2/body_2x.png",
 		"shadow": "res://assets/aircraft/e2/shadow_2x.png",

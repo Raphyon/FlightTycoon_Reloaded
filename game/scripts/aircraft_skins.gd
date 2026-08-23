@@ -25,6 +25,14 @@ const LIVERIES := {
 	# rather than from shop icons - cropped to their own alpha and scaled to the
 	# stock body's 114x88. Checked against it edge by edge: zero drift on all
 	# four sides, so switching paint does not shift the aircraft on its pad.
+	"h4": [
+		{"key": "gold", "name": "Goldrush",
+			"body": "res://assets/aircraft/h4/body_gold_2x.png"},
+		{"key": "navy", "name": "U.S. Navy",
+			"body": "res://assets/aircraft/h4/body_navy_2x.png"},
+		{"key": "forest", "name": "Forest",
+			"body": "res://assets/aircraft/h4/body_forest_2x.png"},
+	],
 	"c17": [
 		{"key": "house", "name": "House Blue",
 			"body": "res://assets/aircraft/c17/body_house_2x.png"},

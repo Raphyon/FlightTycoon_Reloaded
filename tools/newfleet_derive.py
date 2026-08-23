@@ -98,6 +98,18 @@ MODELS = {
     # liveries: four off a 2x2 sheet, plus SAS supplied on its own.
     # 64.8m span, the longest twinjet there is - between the A350's 108 and the
     # 747-8's 112. Three liveries off one sheet.
+    # DREAMLAND3'S, and the last gate in the game to get one. 97.5m span - the
+    # largest wingspan ever built - so it takes the biggest sprite of any
+    # fixed-wing aircraft here, above the An-225's 112. Three liveries off a
+    # sheet.
+    "h4":         (118, {"body": "hughes_h4_default.png",
+                         "body_gold": ("hughes_h4_liveries.png", 0),
+                         "body_navy": ("hughes_h4_liveries.png", 1),
+                         "body_forest": ("hughes_h4_liveries.png", 2)}),
+    # Two fighters. 9.96m and 9.25m span, so both sit under the F-15's 76 -
+    # the smallest things in the fleet after the Paper Plane.
+    "f16":        (72, {"body": "f16_default.png"}),
+    "harrier":    (76, {"body": "av8b_harrier_default.png"}),
     # THE FIRST TWO PAST LEVEL 50. Both are Snow's, and both are polar aircraft
     # rather than more airliners - see ROADMAP item 10 for why the tail entries
     # are matched to the zone they open.

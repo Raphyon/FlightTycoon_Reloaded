@@ -338,8 +338,20 @@ const ENTRIES := [
 		"force": "D", "seats": 480, "fuel": 58, "xp": 492, "ticket": 100, "range": 5, "has_world_sprite": true},
 	{"key": "us2", "name": "ShinMaywa US-2", "icon": "us2_default.png", "price": 35000000, "level": 57,
 		"force": "D", "seats": 500, "fuel": 60, "xp": 500, "ticket": 100, "range": 5, "has_world_sprite": true},
+	# A fighter in the tail. 9.96m span, so the smallest thing here after the
+	# Paper Plane, and priced as a trophy like everything past 50.
+	{"key": "f16", "name": "F-16 Fighting Falcon", "icon": "f16_default.png", "price": 45000000, "level": 59,
+		"force": "S", "seats": 10, "fuel": 66, "xp": 560, "ticket": 5500, "range": 5, "has_world_sprite": true},
 	{"key": "b314", "name": "Boeing 314 Clipper", "icon": "b314_default.png", "price": 85000000, "level": 61,
 		"force": "E", "seats": 560, "fuel": 64, "xp": 530, "ticket": 95, "range": 5, "has_world_sprite": true},
+	# DREAMLAND3'S, and the last gate in the game to get an aircraft. The
+	# largest wingspan ever built, so it is the largest sprite here too.
+	{"key": "h4", "name": "Hughes H-4 Hercules", "icon": "h4_default.png", "price": 250000000, "level": 66,
+		"force": "E", "seats": 700, "fuel": 74, "xp": 620, "ticket": 85, "range": 5, "has_world_sprite": true},
+	# The Carrier's third, and the one that earns its slot mechanically - a
+	# Harrier leaves a deck straight up, and vtol already exists.
+	{"key": "harrier", "name": "AV-8B Harrier II", "icon": "harrier_default.png", "price": 400000000, "level": 68,
+		"force": "A", "seats": 12, "fuel": 70, "xp": 640, "ticket": 4500, "range": 5, "has_world_sprite": true},
 	# The Carrier's other half. A Tomcat and a Hawkeye is the pair a deck
 	# actually runs, and it gives the Carrier two entries the way Snow and
 	# Dreamland1 have two - one zone, one aircraft was the thinnest tooth here.
