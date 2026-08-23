@@ -49,11 +49,46 @@ const SAVE_PATH := "res://data/building_layout.json"
 # cycles of its own rent - 3000/200, 4000/260, 25000/1600, 32000/2100,
 # 35000/2400 all land between 14.6 and 15.6. So price and rent are one decision
 # there, not two, and the cycle length is what actually separates a cafe from a
-# hotel. Ours rise gently with price so a bigger building still earns more per
+# hotel. Ours rose gently with price so a bigger building still earned more per
 # hour while asking you to come back less often.
+#
+# THAT RULE IS NOW BROKEN ON PURPOSE, TWICE. Rising cycles with rising price
+# meant rent per hour rose monotonically with price and so did population, which
+# made picking a building not a decision but a wait - always "the dearest thing
+# I can afford" - and left two cards that could never be the right answer at
+# all:
+#
+#   Coffee House  beaten by the Cafe at the SAME level for $1,000 more, on rent
+#                 per hour AND on people. The first card in the shop, dead on
+#                 arrival.
+#   TV Tower      worse than the Grand Hotel and the Garden Hotel on both, while
+#                 unlocking two levels AFTER them. A level-15 reward worse than
+#                 what you already had at 12.
+#
+# Both are fixed by shortening the CYCLE, which is the one figure here that is
+# ours to set - price, rent and people are read off the original's cards. Each
+# now wins its tier on rent per hour and loses it on people, so neither is
+# dominated and neither dominates: they are the tap-hungry, cash-now options
+# against the idle-friendly ones beside them.
+#
+#   Coffee House  5 -> 4 min   2,400 -> 3,000/h, against the Cafe's 2,600 and
+#                              the Bar's 2,743, on the fewest inhabitants
+#   TV Tower     13 -> 11 min  8,769 -> 10,364/h, the highest in the game, on
+#                              2,500 people against the Office's 4,000
+#
+# WHY THIS IS A REAL TRADE AND NOT A BUFF: popularity is 800 people per 1% of
+# ALL flight cash, so a plot's people are worth more than its rent by the late
+# game - at $14M a day, the Office's extra 1,500 inhabitants are worth about
+# 11,000 an hour on their own, more than any building's entire rent. The TV
+# Tower wins the hour you tap it and loses the hour you do not. Shorter cycles
+# do NOT change coin income either: drop chance is per cycle MINUTE, so
+# chance * cycles-per-hour is constant.
+#
+# The wider monotonic ladder is NOT fixed by this - every building is still
+# beaten by the next one up once its gate passes. See ROADMAP item 6.
 const BUILDINGS := [
 	{"key": "roadside_hotel", "name": "Coffee House", "price": 3000, "level": 1,
-		"rent": 200, "people": 200, "minutes": 5},
+		"rent": 200, "people": 200, "minutes": 4},
 	{"key": "cafe", "name": "Cafe", "price": 4000, "level": 1,
 		"rent": 260, "people": 260, "minutes": 6},
 	{"key": "residential_building", "name": "Bar", "price": 5000, "level": 2,
@@ -65,7 +100,7 @@ const BUILDINGS := [
 	{"key": "garden_hotel", "name": "Garden Hotel", "price": 35000, "level": 13,
 		"rent": 2400, "people": 3500, "minutes": 15},
 	{"key": "tv_tower", "name": "TV Tower", "price": 28000, "level": 15,
-		"rent": 1900, "people": 2500, "minutes": 13},
+		"rent": 1900, "people": 2500, "minutes": 11},
 	# The locked card on the level-15 page: 40,000 at level 16. Which building
 	# it is wasn't legible, so the Office takes the slot - it is the one model
 	# we have with no live figures of its own.

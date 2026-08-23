@@ -326,27 +326,42 @@ times over, and every player's airport looks the same.
 Adding a tenth building does not fix what is actually wrong here, which is that
 **picking a building is not a decision - it is a wait.**
 
-Rent per hour rises monotonically with price, and so does population, so the
-correct move on every plot is always "the most expensive thing I can afford".
-Nothing about the plot, the zone, or what is next to it changes that answer.
+Rent per hour rose monotonically with price and so did population, so the
+correct move on every plot was always "the most expensive thing I can afford".
+Nothing about the plot, the zone, or what is next to it changed that answer.
+Two cards have since been given a reason to exist - see below - but seven of the
+nine are still a straight ladder.
 
-| | level | rent/hour | people | dominated by |
+| | level | rent/hour | people | cycle |
 |---|---|---|---|---|
-| Coffee House | 1 | 2,400 | 200 | **Cafe** |
-| Cafe | 1 | 2,600 | 260 | |
-| Bar | 2 | 2,743 | 320 | |
-| Business Center | 10 | 8,000 | 2,000 | |
-| Grand Hotel | 12 | 9,000 | 3,000 | |
-| Garden Hotel | 13 | 9,600 | 3,500 | |
-| TV Tower | 15 | 8,769 | 2,500 | **Grand Hotel, Garden Hotel** |
-| Office | 16 | 10,125 | 4,000 | |
-| Eiffel Tower | 1 | 15,000 | 8,000 | (30 coins) |
+| Coffee House | 1 | 3,000 | 200 | 4 min |
+| Cafe | 1 | 2,600 | 260 | 6 min |
+| Bar | 2 | 2,743 | 320 | 7 min |
+| Business Center | 10 | 8,000 | 2,000 | 12 min |
+| Grand Hotel | 12 | 9,000 | 3,000 | 14 min |
+| Garden Hotel | 13 | 9,600 | 3,500 | 15 min |
+| TV Tower | 15 | 10,364 | 2,500 | 11 min |
+| Office | 16 | 10,125 | 4,000 | 16 min |
+| Eiffel Tower | 1 | 15,000 | 8,000 | 20 min (30 coins) |
 
-**Two of the nine can never be the right answer.** The Coffee House is beaten by
-the Cafe at the same level for $1,000 more, on rent AND on people - so the FIRST
-CARD IN THE SHOP is dead on arrival. The TV Tower is worse than the Grand Hotel
-and the Garden Hotel on both, and unlocks two levels AFTER them: a level-15
-reward that is worse than what you already had at level 12.
+**Two of the nine could never be the right answer, and both are now FIXED.** The
+Coffee House was beaten by the Cafe at the same level for $1,000 more, on rent
+AND on people - the first card in the shop, dead on arrival. The TV Tower was
+worse than the Grand Hotel and the Garden Hotel on both, while unlocking two
+levels AFTER them: a level-15 reward worse than what you had at 12.
+
+Both were fixed by shortening the CYCLE, which is the one figure in that table
+that is ours - price, rent and people are read off the original's shop cards.
+The Coffee House went 5 to 4 minutes and the TV Tower 13 to 11, so each now wins
+its tier on rent per hour and loses it on people. They are the tap-hungry,
+cash-now options against the idle-friendly ones beside them.
+
+**That is a trade, not a buff.** Popularity is 800 people per 1% of ALL flight
+cash, so by the late game a plot's inhabitants are worth more than its rent: at
+$14M a day the Office's extra 1,500 people are worth about 11,000 an hour on
+their own, more than any building's entire rent. The TV Tower wins the hour you
+tap it and loses the hour you do not. Coin income does not move either - drop
+chance is per cycle MINUTE, so chance times cycles-per-hour is constant.
 
 **And the tech tree is over in about twenty-six minutes.** The last gate is the
 Office at level 16, which is **0.20% of a run** - Zone2 at level 14 is measured
@@ -379,9 +394,22 @@ roughly in order of how much they change:
   costs no art at all.
 - **Gate by zone rather than by level.** Zone-specific buildings would make the
   six new plots feel like a new place rather than six more Offices.
-- **Fix the two dominated cards regardless.** The Coffee House and the TV Tower
-  are cheap to correct - a price or a cycle length - and until then they are two
-  of nine cards that a player who reads them will never buy.
+- ~~Fix the two dominated cards regardless.~~ **DONE** - see the cycle change
+  above. It removes the two cards nobody should ever have bought, and it is a
+  first worked example of the sideways-stats fix: the TV Tower now has an
+  identity rather than a rank.
+
+**What it does NOT fix**, and this is the part still open: every building is
+still beaten by the next one up once its gate passes. The Bar beats the Cafe,
+the Garden Hotel beats the Grand Hotel, the Office beats the Garden Hotel. Two
+cards having a reason to exist is not nine cards having one.
+
+**And the Eiffel Tower beats all eight**, on rent per hour and on people, from
+level 1, for 30 coins - with no limit on how many you may build. Nothing stops a
+coin-rich player filling every plot with them but the coin price, which is a
+soft cap rather than a design. Worth deciding on deliberately: either it is a
+LANDMARK and there is one, or it is a building and it needs to lose at
+something.
 
 ### Art
 
