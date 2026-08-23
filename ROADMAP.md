@@ -20,7 +20,7 @@ airframes and 20-odd liveries - and the two items that mattered most moved.
 | 2 level-up rewards | no | **DONE** |
 | 3 daily login | no | **DONE** |
 | 4 boost items | no - the icons are generated | **DONE** |
-| 10 extend the ladder | 8 models | **7 of 8 DONE** - Dreamland3 only |
+| 10 extend the ladder | 8 models | **DONE** |
 | 5 more models | yes, per model | open - and now unblocked in practice |
 | 6 more buildings | yes, per building | blocked |
 | 7 events | yes, a lot | blocked |
@@ -362,18 +362,17 @@ with no owner. Listed so they are not lost.
 REWRITTEN, because most of what it recommended is done. 1, 2, 3 and 9 have
 shipped, and 10 is seven-eighths there.
 
-**10's last entry** is now the cheapest thing here: one render, the Hughes H-4,
-and Dreamland3 stops being the one gate in the game that opens with a level
-number and a bill.
-
-**7 - events - is the one that has grown a reason.** It was last on this list
+**7 - events - is the one that has grown a reason, and is now next.** It was last on this list
 because it is art-heavy and wants a settled loop underneath it. It now also owns
 the only home for the 12 hour auto-turnaround card, which is the single most
 valuable thing in the boost system and is currently granted by nothing at all.
 
 **6** - more buildings - is worth more than its position suggests now that
 upgrades pay coins. The city is a real economy rather than a rent trickle, and
-it has nine buildings.
+it has nine buildings against fifty-two aircraft.
+
+**5** stays open forever by nature, and is no longer blocked in any sense: the
+pipeline is one render per aircraft and fourteen arrived in a day.
 
 8 last, unchanged: passenger animation is art-blocked outright and there is
 nothing in the dump to start from.
@@ -442,21 +441,27 @@ before the ramp bites again.
 So the tail is not just empty of aircraft - it is missing the pattern that
 carries the first 48 levels. Eight entries, placed on the teeth:
 
-| level | zone | price | aircraft | |
-|---|---|---|---|---|
-| 52 | Snow | $12M | **Antonov An-74** | BUILT |
-| 53 | Snow | $14M | **Lockheed LC-130** | BUILT |
-| 56 | Dreamland1 | $27M | **Beriev Be-200** | BUILT |
-| 57 | Dreamland1 | $34M | **ShinMaywa US-2** | BUILT |
-| 61 | Dreamland2 | $84M | **Boeing 314 Clipper** | BUILT |
-| 62 | Dreamland2 | $105M | Dornier Do X | |
-| 66 | Dreamland3 | $250M | Hughes H-4 Hercules | **the only bare zone** |
-| 69 | Carrier | $480M | **Grumman E-2 Hawkeye** | BUILT |
-| 70 | Carrier | $600M | **Grumman F-14 Tomcat** | BUILT |
+| level | zone | price | aircraft |
+|---|---|---|---|
+| 52 | Snow | $12M | Antonov An-74 |
+| 53 | Snow | $15M | Lockheed LC-130 |
+| 56 | Dreamland1 | $25M | Beriev Be-200 |
+| 57 | Dreamland1 | $35M | ShinMaywa US-2 |
+| 59 | - | $45M | F-16 Fighting Falcon |
+| 61 | Dreamland2 | $85M | Boeing 314 Clipper |
+| 66 | Dreamland3 | $250M | **Hughes H-4 Hercules** |
+| 68 | Carrier | $400M | AV-8B Harrier II |
+| 69 | Carrier | $500M | Grumman E-2 Hawkeye |
+| 70 | Carrier | $600M | Grumman F-14 Tomcat |
 
-**Seven built, and the Carrier got a pair.** A Tomcat and a Hawkeye is what a
-deck actually runs, and one zone with one aircraft was the thinnest tooth in the
-set - Snow and Dreamland1 both open with two. Nine of the ten zones now open with something new to
+Ten built against the eight specced. The Dornier Do X was dropped - Dreamland2
+already had the Clipper - and the F-16 and Harrier were added instead, the
+Harrier because it earns the Carrier slot mechanically: `vtol` already existed,
+so it leaves a deck straight up.
+
+**DONE, and every zone in the game now opens with an aircraft.** Dreamland3 was
+the last gate that arrived as a level number and a bill; the Hughes H-4 closes
+it. The Carrier ended up with three, which is what a deck actually runs. Nine of the ten zones now open with something new to
 fly; only Dreamland3 at 66 does not, so the H-4 is the one entry that still
 changes whether a gate feels like an unlock or a bill. The Do X at 62 is the
 last of the nice-to-haves - Dreamland2 already has the Clipper.
