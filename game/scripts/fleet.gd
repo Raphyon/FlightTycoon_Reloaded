@@ -411,6 +411,11 @@ const WORLD_SPRITES := {
 	"f16": {
 		"body": "res://assets/aircraft/f16/body_2x.png",
 		"shadow": "res://assets/aircraft/f16/shadow_2x.png",
+		# ONE engine, one nozzle - the only single-engine aircraft with a
+		# burner. Read off f16_default.png at (725, 225), scaled by 101/898.
+		"exhaust_offsets": [Vector2(31.1, -14.7)],
+		"exhaust_angle": 20.0,
+		"exhaust_scale": 0.8,
 	},
 	"harrier": {
 		"body": "res://assets/aircraft/harrier/body_2x.png",
@@ -418,6 +423,10 @@ const WORLD_SPRITES := {
 		# It leaves the deck straight up, which is the whole reason it is the
 		# Carrier's third aircraft rather than another jet.
 		"vtol": true,
+		# NO EXHAUST NOZZLE, deliberately. Every other fast jet here has one,
+		# but the Pegasus is a non-afterburning turbofan - a Harrier has no
+		# reheat to draw. It vectors thrust down through four cold and hot
+		# nozzles instead, which is a different effect entirely and not this one.
 	},
 	"h4": {
 		"body": "res://assets/aircraft/h4/body_2x.png",
