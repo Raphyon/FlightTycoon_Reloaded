@@ -310,7 +310,7 @@ zones, this is the first place to look.**
 
 ### Progression and economy
 
-You start with **$5,000, 15 coins, and a granted DC-3**. 55 aircraft on the
+You start with **$5,000, 15 coins, and a granted DC-3**. 56 aircraft on the
 shop ladder **across levels 1-70**, nine of them coin-priced and totalling 345
 coins.
 
@@ -344,7 +344,9 @@ one belongs to the zone it opens rather than being another airliner:
 from where the zones are.** The XP curve is `n^4.2`, so a level near 70 is worth
 thousands near the start and counting empty LEVELS gives the wrong answer:
 62-65 was four levels and **18% of an entire run** with nothing new to buy,
-while 2-6 is five levels and 0.01%. The Beluga XL and the Dreamlifter went in at
+while 2-6 was five levels and 0.01% - which is why the Ju 52 went in at 4 for a
+different reason entirely, the shop looking thin in the first minutes rather
+than the ladder having a hole in it. The Beluga XL and the Dreamlifter went in at
 63 and 65 - not 63 and 64, because 63/65 splits that stretch 37/41/22 by time
 where picking by level number implies an even quarter each. The Super Guppy then
 took 62 rather than 64, the bigger of the two gaps left, because 64 sits BETWEEN

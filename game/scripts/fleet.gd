@@ -277,6 +277,17 @@ const WORLD_SPRITES := {
 		"rotor_offsets": [Vector2(-40, 8), Vector2(-8, 26)],
 		"rotor_scale": 0.88,
 	},
+	# THREE props, and one of them is on the NOSE - every other rotor hub in the
+	# game is on a wing, so this is the first of its kind. If the nose prop
+	# disappears into the fuselage when it is placed, B puts it behind.
+	"ju52": {
+		"body": "res://assets/aircraft/ju52/body_2x.png",
+		"shadow": "res://assets/aircraft/ju52/shadow_2x.png",
+		"rotor_spin_frames": A400M_PROP,
+		# PLACEHOLDERS for RotorEditor - M to reach it, 1-3, click, -/+.
+		"rotor_offsets": [Vector2(0, 0), Vector2(0, 0), Vector2(0, 0)],
+		"rotor_scale": 0.85,
+	},
 	"emb120": {
 		"body": "res://assets/aircraft/emb120/body_2x.png",
 		"shadow": "res://assets/aircraft/emb120/shadow_2x.png",

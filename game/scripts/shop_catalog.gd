@@ -170,6 +170,17 @@ const ENTRIES := [
 	# Priced above the DC-3 because it strictly out-carries it on the same burn;
 	# a bigger cabin for the same fuel at a lower price would make the starter
 	# aircraft pointless the moment this appeared.
+	# LEVELS 2-6 WERE FIVE EMPTY LEVELS - the shop said nothing between the
+	# granted DC-3 and the Twin Otter at 7, which is the first minutes of the
+	# game and the thinnest the catalogue ever looks. This is a first-impressions
+	# fix and not a pacing one: the whole stretch is 0.01% of a run.
+	#
+	# The DC-3's contemporary and its rival, near enough the same aeroplane at
+	# 29.25m span against 28.96m. Pays 660 a leg against the granted DC-3's 400
+	# and the Twin Otter's 900, so it is a real step up from what you were given
+	# without reaching past the next thing you can buy.
+	{"key": "ju52", "name": "Junkers Ju 52", "icon": "ju52_default.png", "price": 3200, "level": 4,
+		"force": "A", "seats": 55, "fuel": 4, "xp": 33, "ticket": 12, "range": 1, "has_world_sprite": true},
 	{"key": "dhc6", "name": "Twin Otter", "icon": "dhc6_default.png", "price": 3500, "level": 7,
 		"force": "A", "seats": 60, "fuel": 4, "xp": 36, "range": 1, "has_world_sprite": true},
 	# LIVE 5000/A/80/6/2cl. It carries the NEW badge at level 2 in the original;

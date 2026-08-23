@@ -60,6 +60,9 @@ MODELS = {
     "balloon":    (132, {"body": "hot_air_ballon.png"}),
     "f15":        (76, {"body": "f15_eagle_default.png"}),
     "dc3":        (78, {"body": "dc3_default.png", "body_duggy": "dc3_duggy.png"}),
+    # 29.25m span against the DC-3's 28.96m - the two are near enough the same
+    # aeroplane, five years and an ocean apart - so it sits one pixel above it.
+    "ju52":       (79, {"body": "junker_ju52_default.png"}),
     "emb120":     (84, {"body": "emb_120_default.png"}),
     "dhc8":       (88, {"body": "dhc8_qantas.png"}),
     # Twin Otter, on floats. 84 rather than the DC-3's 78 because a chunk of
