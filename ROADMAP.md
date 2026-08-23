@@ -21,7 +21,7 @@ airframes and 20-odd liveries - and the two items that mattered most moved.
 | 3 daily login | no | **DONE** |
 | 4 boost items | no - the icons are generated | **DONE** |
 | 10 extend the ladder | 8 models | **DONE** |
-| 5 more models | yes, per model | open - and now unblocked in practice |
+| 5 more models | yes, per model | open - unblocked, and the gaps are ranked |
 | 6 more buildings | yes, per building | blocked |
 | 7 events | yes, a lot | blocked |
 | 8 passenger animations | yes, none exists | blocked |
@@ -212,8 +212,8 @@ the screen, there only while you hold something or something is running.
 | needs | ladder respacing; the asset pipeline already handles this |
 | art | per model - most of the dump is shop-icon only |
 
-**49 aircraft across levels 1-70** today, up from 36 when this was written.
-Fourteen arrived in one stretch, so the sentence this section used to carry -
+**52 aircraft across levels 1-70** today, up from 36 when this was written.
+Seventeen arrived in one stretch, so the sentence this section used to carry -
 "the constraint is art, not code, and there is no slack" - stopped being true.
 
 The pipeline is one line per aircraft. `tools/newfleet_derive.py` takes ONE
@@ -227,10 +227,76 @@ cut by connected alpha rather than by assuming a grid. Keep a sheet within ~1%
 of the default's aspect - the C-17's ran 2.7-4.9% and costs about 4px of stretch
 once pinned to the body.
 
-Placement is still a decision. **By CLASS** puts an aircraft next to its
-contemporaries and changes nothing structural; **by ZONE** puts it on a gate
-that had nothing, which is what item 10 is about. Seven placed by class did not
-move the tail at all.
+Placement is still a decision, and there are three ways to make it. **By CLASS**
+puts an aircraft next to its contemporaries and changes nothing structural. **By
+ZONE** puts it on a gate that had nothing, which is what item 10 was about and
+is now finished - every zone opens with an aircraft. **BY GAP** is the one left,
+and it is the only one worth ranking, because a gap in the ladder is a stretch
+of play with nothing new to buy.
+
+### Where the ladder is actually empty
+
+Level COUNT is the wrong unit and gives the wrong answer. The XP curve is
+`n^4.2`, so a level near 70 is worth thousands near the start: levels 1-50 are
+24% of the XP needed for 70. The honest measure is what share of a full run each
+gap eats.
+
+| gap | levels | share of a run |
+|---|---|---|
+| **62-65** | 4 | **18.0%** |
+| 54-55 | 2 | 5.6% |
+| 67 | 1 | 5.3% |
+| 60 | 1 | 3.8% |
+| 58 | 1 | 3.4% |
+| 51 | 1 | 2.3% |
+| 40 | 1 | 1.0% |
+| everything below 40 | 14 | **1.0% combined** |
+
+**62-65 is a fifth of the game with nothing new to fly.** Four levels, between
+the Clipper at 61 and the Hughes H-4 at 66, and they are four of the most
+expensive levels in the curve. The whole tail - 51 through 67 - is 38% of a run
+across six gaps. That is where models are worth building.
+
+And the reverse, which is the useful half of measuring this: **levels 2-6 are
+five consecutive levels with no aircraft and 0.01% of a run.** It is not a
+pacing hole at all. It is a first-impressions hole - the shop is thin in the
+first minutes, when a player is deciding whether this game has stuff in it - and
+that is a real reason to fill it, but not the same reason, and not with the same
+urgency.
+
+### Candidates
+
+None of these have art. There is no unused aircraft in `source-assets` - the
+last one was the 727, which now flies as the Tu-154 - so each is one render
+through `newfleet_derive.py`. The sprite HEIGHT column is the airframe's real
+span judged against the fleet, which is the one input the pipeline needs.
+
+**The tail, in priority order:**
+
+| level | candidates | why |
+|---|---|---|
+| **62-65** | Martin JRM Mars, Saunders-Roe Princess, Beluga XL, 747 Dreamlifter, Super Guppy, Tu-114 | the biggest hole in the game. Dreamland2 is the flying-boat and outsize-freighter tier already; the Princess had ten engines and never entered service, which is exactly the register. The Tu-114 brings contra-rotating props and the rotor rig already handles those |
+| 67 | Stratolaunch Roc, Convair XC-99 | sits directly after the H-4. The Roc is the largest wingspan flying TODAY against the largest ever built - a bookend, and the twin fuselage is unlike anything in the fleet |
+| 60 | **Dornier Do X**, Blohm & Voss BV 238, Short Empire | the Do X was specced in item 10 and dropped because Dreamland2 already had the Clipper. 60 is the empty slot it actually belonged in |
+| 58 | CL-415 / DHC-515, Sikorsky S-42 | joins the Be-200 / US-2 amphibian cluster one tier up |
+| 54-55 | Il-76, An-12, Kawasaki C-2, Basler BT-67 | Snow tier, and the Il-76 is the workhorse that register is named after. The BT-67 is a DC-3 on skis, so the proportions are already in the repo |
+| 51 | An-22 Antei, C-5 Galaxy | the An-22 is more contra-rotating props; the C-5 sits beside the C-17 and the An-225 |
+
+**The early shop, worth doing but for the other reason:**
+
+| level | candidates | why |
+|---|---|---|
+| 2-6 | Cessna 208 Caravan, DHC-2 Beaver, Britten-Norman Islander, **An-2** | four cheap small-span sprites where the shop is emptiest at the moment a player is deciding about the game. The An-2 is a biplane, which nothing else in the fleet is |
+| 8-12 | Beechcraft 1900D, Let L-410, Saab 340, Dornier 228 | straight commuter turboprops, next to the Twin Otter and the EMB-120 |
+| 14, 16 | Fokker 50, BAe Jetstream 31 | 14 is the Zone2 gate and currently arrives between the EMB-120 and the Dash 8 |
+| 18-19 | Embraer E175, **BAe 146 / Avro RJ85** | the 146 is a four-engined regional, which reads as odd next to the CRJ in a good way |
+| 23-26 | 737-800, Fokker 100, **Comet 4**, Tu-134 | the Comet was the first jetliner and the Tu-104 - already at 27 - was the second, so they cluster by era rather than by size |
+| 40 | 767-300, A330-300, Il-96, MD-11 | the one mid-tail gap; a plain widebody fits, no drama needed |
+
+**Not proposed: more coin aircraft.** The coin lane is nine, evenly spaced 1 to
+52 at 5 to 60 coins, and it was deliberately respaced to stop them arriving in
+clumps. Adding one means respacing the lane and re-measuring the coin economy
+against a 345-coin catalogue, which is a balance job rather than an art job.
 
 ---
 
@@ -373,8 +439,8 @@ with no owner. Listed so they are not lost.
 
 ## Suggested order
 
-REWRITTEN, because most of what it recommended is done. 1, 2, 3 and 9 have
-shipped, and 10 is seven-eighths there.
+REWRITTEN, because most of what it recommended is done. 1, 2, 3, 4, 9 and 10
+have all shipped.
 
 **7 - events - is the one that has grown a reason, and is now next.** It was last on this list
 because it is art-heavy and wants a settled loop underneath it. It now also owns
@@ -386,7 +452,12 @@ upgrades pay coins. The city is a real economy rather than a rent trickle, and
 it has nine buildings against fifty-two aircraft.
 
 **5** stays open forever by nature, and is no longer blocked in any sense: the
-pipeline is one render per aircraft and fourteen arrived in a day.
+pipeline is one render per aircraft and seventeen arrived in a day. It now
+carries a ranked candidate list, and the ranking is measured rather than by
+taste - **levels 62-65 are 18% of a run with nothing new to fly**, and the whole
+tail above 51 is 38% across six gaps. Anything built for the early shop is worth
+doing for how the game LOOKS in the first minutes, not for pacing: levels 2-6
+are five empty levels and one hundredth of one percent of a run.
 
 8 last, unchanged: passenger animation is art-blocked outright and there is
 nothing in the dump to start from.
