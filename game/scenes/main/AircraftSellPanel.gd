@@ -37,18 +37,22 @@ const TITLE_Y := 24.0
 const ACTION_CX := (CARD_X + CARD_PX.x + BOARD_SIZE.x) * 0.5
 const TAG_W := 160.0
 const TAG_Y := 104.0
-const BUTTON_W := 150.0
+# 1x NATIVE. button_red1 is 136x62 and it is @2x art, so its intended display
+# size is 68x31 - drawing it at 150 wide was 2.21x that, which is where the rest
+# of the game's buttons sit too (UpgradeConfirmPanel 1.88x, DailyLoginPanel
+# 2.21x). Both steps use the same width so the button does not change size when
+# you press it.
+const BUTTON_W := 68.0
 const BUTTON_Y := 176.0
 const NOTE_Y := 236.0
-# Side by side once the confirm step is showing.
-const CONFIRM_W := 118.0
+const CONFIRM_W := BUTTON_W
 const CONFIRM_GAP := 10.0
 
 const FONT_TITLE := 22
 const FONT_NAME := 14
 const FONT_OWNED := 12
 const FONT_TAG := 17
-const FONT_BUTTON := 16
+const FONT_BUTTON := 12
 const FONT_NOTE := 11
 const FONT_MIN := 9
 
