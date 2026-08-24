@@ -26,13 +26,6 @@ const MONEY_ICON := preload("res://assets/hud/icon_medium_money1@2x.png")
 const QUANTITIES := [50, 500, 5000, 50000]
 
 
-# "+20%" / "-10%" against the market price, or nothing at all at par.
-func _batch_note(qty: int) -> String:
-	var pct := roundi((FuelStore.multiplier_for(qty) - 1.0) * 100.0)
-	if pct == 0:
-		return ""
-	return "%+d%%" % pct
-
 @onready var _grid: GridContainer = $Frame/SafeArea/Margin/VBox/Row/Grid
 @onready var _close_button: Button = $Frame/SafeArea/Margin/VBox/CloseButton
 @onready var _option_nodes: Dictionary = {
@@ -97,5 +90,4 @@ func _refresh(_unused = null) -> void:
 		# The premium or discount, spelled out. The multiplier is invisible in a
 		# total - "600" and "500" for the same 50 units look like the market
 		# moved, not like small batches cost more.
-		_options[qty].set_note_text(_batch_note(qty))
 		_options[qty].set_affordable(Economy.money >= cost)

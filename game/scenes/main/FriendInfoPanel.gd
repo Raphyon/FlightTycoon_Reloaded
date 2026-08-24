@@ -16,8 +16,14 @@ const BOARD_SIZE := Vector2(878, 422)
 # guessed - the blue region runs x304-563, y25-320.
 const CARD_RECT := Rect2(304, 25, 260, 296)
 
-# 1x NATIVE - the art is 136x62 @2x, so this was drawing it at double size.
-const BUTTON_SIZE := Vector2(68, 31)
+# SCALED TO ITS BOARD, not to the art's pixels. Boards are not drawn at one
+# scale across the game - the changelist boards run 0.72x of their art, this one
+# 1.00x - so a fixed 68px button is a tenth of a changelist board and only a
+# thirteenth of this one. The ratio is what has to be uniform, not the pixels.
+const BUTTON_RATIO := 0.10
+const BUTTON_SIZE := Vector2(
+	BOARD_SIZE.x * BUTTON_RATIO,
+	BOARD_SIZE.x * BUTTON_RATIO * 62.0 / 136.0)
 const BUTTON_Y := 336.0
 const BUTTON_GAP := 40.0
 const BUTTON_FONT := 18

@@ -47,7 +47,6 @@ const ACTION_Y := 0.70
 # reason labels were positioned off the bottom of the 430px board entirely.
 const CLEAR_X := 0.162
 const CLEAR_Y := 0.86
-const CLEAR_SCALE := 0.62
 # Reasons go under the ACTION column only, where there is room for them.
 const REASON_Y := 0.855
 
@@ -225,9 +224,10 @@ func _aircraft_column(a: FleetAircraft) -> void:
 # Hands over to the hangar in selection mode and comes back with the answer.
 func _choose_button(empty: bool) -> void:
 	var current := Fleet.get_aircraft(_aircraft_id)
-	# 1x NATIVE - get_size() is the @2x art, which drew every action button at
-	# double the size it was made for.
-	var native := CONFIRM_TEXTURE.get_size() * 0.5
+	# Scaled to the BOARD, not to the art's pixels - this board is drawn at
+	# 1.20x of its own art, so a fixed pixel size reads small on it. See
+	# FriendInfoPanel for the measurement.
+	var native := _button_size(CONFIRM_TEXTURE)
 	var b := TextureButton.new()
 	b.ignore_texture_size = true
 	b.stretch_mode = TextureButton.STRETCH_SCALE
@@ -310,7 +310,7 @@ func _destination_column() -> void:
 # Under the destination column, matching the aircraft column's chooser exactly:
 # same art, same place, same "this is a thing you change" reading.
 func _friend_button() -> void:
-	var native := CONFIRM_TEXTURE.get_size()
+	var native := _button_size(CONFIRM_TEXTURE)
 	var b := TextureButton.new()
 	b.ignore_texture_size = true
 	b.stretch_mode = TextureButton.STRETCH_SCALE
@@ -406,7 +406,7 @@ func _time_text(secs: float) -> String:
 # a separate, deliberately distant one.
 func _action_button(a: FleetAircraft) -> void:
 	var assigned := a.assigned_apron_id == _apron_id
-	var native := CONFIRM_TEXTURE.get_size()
+	var native := _button_size(CONFIRM_TEXTURE)
 	# Says which of the two it will do, because with an aircraft in the air the
 	# destination applies from its NEXT departure rather than right now.
 	# Says there is something to save, so the button reads as the commit step
@@ -448,7 +448,7 @@ func _action_button(a: FleetAircraft) -> void:
 # under the same finger as the one you press every time is how routes get
 # deleted by accident.
 func _clear_button(a: FleetAircraft) -> void:
-	var native := CLEAR_NORMAL.get_size() * CLEAR_SCALE
+	var native := _button_size(CLEAR_NORMAL)
 	var b := TextureButton.new()
 	b.ignore_texture_size = true
 	b.stretch_mode = TextureButton.STRETCH_SCALE
@@ -654,3 +654,9 @@ func _stat(icon: Texture2D, value: String, cx: float, y: float) -> void:
 	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 	_content.add_child(l)
 
+
+# One button width for this board: a tenth of it, which is the ratio the
+# changelist panels already use. Height follows the art's own aspect.
+func _button_size(art: Texture2D) -> Vector2:
+	var w: float = BOARD_SIZE.x * 0.10
+	return Vector2(w, w * art.get_height() / float(art.get_width()))
