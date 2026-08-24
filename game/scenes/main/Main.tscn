@@ -68,6 +68,7 @@
 [ext_resource type="Texture2D" path="res://assets/ui/gear_icon.svg" id="71"]
 [ext_resource type="Script" path="res://scenes/main/BuildingInfoPanel.gd" id="72"]
 [ext_resource type="Script" path="res://scenes/main/UpgradeConfirmPanel.gd" id="80"]
+[ext_resource type="Script" path="res://scenes/main/AircraftSellPanel.gd" id="84"]
 [ext_resource type="Script" path="res://scenes/main/DailyLoginPanel.gd" id="81"]
 [ext_resource type="Script" path="res://scenes/main/BoostPanel.gd" id="82"]
 [ext_resource type="Script" path="res://scenes/main/BoostButton.gd" id="83"]
@@ -1260,6 +1261,20 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("80")
 
+
+[node name="AircraftSellPanel" type="Control" parent="UI"]
+visible = false
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -339.0
+offset_top = -162.0
+offset_right = 340.0
+offset_bottom = 163.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("84")
 
 [node name="DailyLoginPanel" type="Control" parent="UI"]
 visible = false

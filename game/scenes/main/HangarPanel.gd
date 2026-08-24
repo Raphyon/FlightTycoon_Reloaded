@@ -370,10 +370,9 @@ func _show_page(page: int) -> void:
 		# Selling and choosing are mutually exclusive: while the hangar is a
 		# chooser, a card is a thing you pick, not a thing you scrap.
 		var choosing := _on_pick.is_valid()
-		# Every tab except while picking. Selling used to be pinned to the Idle
-		# tab, which is exactly where a normal player has nothing: aircraft go
-		# on pads, and a pad-parked aircraft is not "idle". See Fleet.sell_one.
-		card.show_sell(not choosing)
+		# Tapping a card opens the sell panel, on every tab except while the
+		# hangar is being used to pick an aircraft for a route.
+		card.show_details(not choosing, _open_sell_panel)
 		card.show_choose(choosing, _on_card_picked)
 		_cards[model_key] = card
 
@@ -396,3 +395,9 @@ func _catalog_entry(model_key: String) -> Dictionary:
 		if entry["key"] == model_key:
 			return entry
 	return {}
+
+
+func _open_sell_panel(model_key: String) -> void:
+	var panel: Control = get_node_or_null("../AircraftSellPanel")
+	if panel:
+		panel.show_for_model(model_key)
