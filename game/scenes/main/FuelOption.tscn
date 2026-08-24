@@ -79,7 +79,7 @@ text = "+0 fuel"
 horizontal_alignment = 1
 
 [node name="BuyWrap" type="Control" parent="."]
-custom_minimum_size = Vector2(90, 42)
+custom_minimum_size = Vector2(68, 31)
 layout_mode = 2
 
 [node name="BuyButton" type="TextureButton" parent="BuyWrap"]

@@ -11,7 +11,8 @@ extends RefCounted
 # in its top-right corner. Which one a panel gets follows what it is.
 const NORMAL := preload("res://assets/buttons/button_esc@2x.png")
 
-const SIZE := Vector2(72, 72)
+# 1x NATIVE - button_esc is 72x72 @2x.
+const SIZE := Vector2(36, 36)
 # The X straddles the corner rather than sitting inside it, as in the
 # reference - a third of the button hangs off the board.
 const OVERHANG := 0.34

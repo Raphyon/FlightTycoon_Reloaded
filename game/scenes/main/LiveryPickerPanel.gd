@@ -58,7 +58,8 @@ const BUTTON_RECT := Rect2(0.222, 0.79, 0.556, 0.155)
 const ROW_Y := 0.29
 # The art is 20x24. Drawn at 2x for a touchable size, with the BUTTON larger
 # still - a 40px triangle is a fine thing to look at and a poor thing to hit.
-const ARROW_SCALE := 2.0
+# 1x NATIVE - the arrow art is @2x, so 1.0 draws it at its own size.
+const ARROW_SCALE := 1.0
 const ARROW_HIT_W := 0.085
 
 const FONT_TITLE := 22

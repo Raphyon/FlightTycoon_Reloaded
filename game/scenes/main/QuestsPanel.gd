@@ -30,6 +30,13 @@ const BUTTON_GO := preload("res://assets/buttons/button_orange2@2x.png")
 const BUTTON_WIDE := preload("res://assets/buttons/button_orange4@2x.png")
 const BUTTON_OFF := preload("res://assets/buttons/button_grey3@2x.png")
 
+# 1x NATIVE, and the only two button sizes in this panel. The art is @2x, so
+# half its pixels is the size it was drawn to be shown at: the pill is 136x62
+# and the wide one 192x62. These were 78x26, 54x24 and 110x32 - three different
+# scales, none of them either.
+const PILL_SIZE := Vector2(68, 31)
+const WIDE_SIZE := Vector2(96, 31)
+
 # SIZED AGAINST THE SCREEN.
 #
 # project.godot sets no viewport width or height, so the design resolution is
@@ -213,8 +220,8 @@ func _build_bonus() -> void:
 		_pips.append(pip)
 
 	# Rebuilt by _refresh_bonus, because its art changes with its state.
-	_bonus_button = _texture_button(BUTTON_WIDE, Vector2(110, 32), "", false)
-	_bonus_button.position = Vector2(_bonus.size.x - 110 - 10, 8)
+	_bonus_button = _texture_button(BUTTON_WIDE, WIDE_SIZE, "", false)
+	_bonus_button.position = Vector2(_bonus.size.x - WIDE_SIZE.x - 10, 8)
 	_bonus.add_child(_bonus_button)
 
 
@@ -292,12 +299,12 @@ func _make_row(key: String) -> Control:
 	var button_pos := Vector2(PANEL_SIZE.x - MARGIN * 2.0 - 78 - 8, 6)
 	var button: TextureButton
 	if taken:
-		button = _texture_button(BUTTON_OFF, Vector2(78, 26), "Claimed", false)
+		button = _texture_button(BUTTON_OFF, PILL_SIZE, "Claimed", false)
 	elif done:
-		button = _texture_button(BUTTON_GO, Vector2(78, 26), "Claim", true,
+		button = _texture_button(BUTTON_GO, PILL_SIZE, "Claim", true,
 			func() -> void: Quests.claim(key))
 	else:
-		button = _texture_button(BUTTON_OFF, Vector2(78, 26),
+		button = _texture_button(BUTTON_OFF, PILL_SIZE,
 			"%d to go" % (tot - cur), false)
 	button.position = button_pos
 	row.add_child(button)
@@ -305,7 +312,7 @@ func _make_row(key: String) -> Control:
 	# REROLL. Only on a row that is not finished - rerolling a completed task
 	# would be a way to bank its reward and take another run at the same slot.
 	if Quests.can_refresh(key):
-		var swap := _texture_button(BUTTON_OFF, Vector2(54, 24), "Swap", true,
+		var swap := _texture_button(BUTTON_OFF, PILL_SIZE, "Swap", true,
 			func() -> void: Quests.refresh(key))
 		swap.modulate = Color(1, 1, 1)
 		swap.tooltip_text = "Swap this task (%d left today)" % Quests.refreshes_left

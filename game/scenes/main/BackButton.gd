@@ -10,7 +10,8 @@ extends RefCounted
 const NORMAL := preload("res://assets/buttons/button_back@2x.png")
 const PRESSED := preload("res://assets/buttons/button_back2@2x.png")
 
-const SIZE := Vector2(80, 80)
+# 1x NATIVE - button_back2 is 80x80 @2x.
+const SIZE := Vector2(40, 40)
 # The bottom margin clears the cabin floor rather than hugging the screen edge:
 # bigplane2's brown interior ends at 0.766 of its height, and everything below
 # that is seat backs, so an arrow at the true bottom sits on the furniture.

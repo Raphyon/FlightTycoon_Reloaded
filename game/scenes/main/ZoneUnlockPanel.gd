@@ -33,7 +33,8 @@ func _refresh(_unused = null) -> void:
 	var req: Dictionary = ZoneProgress.requirement_for(_area_name)
 	_status.text = "Requires Level %d - $%d to unlock" % [req.level, req.cost]
 	_action_button.visible = true
-	_action_button.text = "Unlock ($%d)" % req.cost
+	# The cost is on the status line above - a button says the verb.
+	_action_button.text = "Unlock"
 	_action_button.disabled = Progression.level < req.level or Economy.money < req.cost
 
 

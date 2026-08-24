@@ -123,7 +123,10 @@ func _rebuild() -> void:
 			continue
 		held += n
 		var card: Dictionary = Boosts.CARDS[key]
-		_row(y, str(card["icon"]), str(card["name"]), str(card["detail"]), n, false, key)
+		var detail := str(card["detail"])
+		if n > 1:
+			detail += "   x%d" % n
+		_row(y, str(card["icon"]), str(card["name"]), detail, n, false, key)
 		y += ROW_H + ROW_GAP
 
 	if held == 0 and _running_rows() == 0:
@@ -186,7 +189,8 @@ func _row(y: float, icon: String, name: String, sub: String, count: int,
 	_content.add_child(b)
 
 	var caption := _label(FONT_BUTTON, Color.WHITE, HORIZONTAL_ALIGNMENT_CENTER)
-	caption.text = "Use  x%d" % count
+	# A button says what pressing it does. The count belongs on the row.
+	caption.text = "Use"
 	caption.clip_text = true
 	caption.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	caption.position = b.position

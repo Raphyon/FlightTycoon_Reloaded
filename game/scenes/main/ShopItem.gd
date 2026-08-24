@@ -161,6 +161,7 @@ func refresh() -> void:
 	_lock_overlay.visible = (not _entry.get("has_world_sprite", false)
 		or not ShopCatalog.unlocked(_entry["key"]))
 	var balance: int = Coins.amount if coins else Economy.money
+	_set_lock_level("")
 	if not _entry.get("has_world_sprite", false):
 		_buy_button.disabled = true
 		_state_label.text = "No art yet"
@@ -168,7 +169,8 @@ func refresh() -> void:
 		# Locked by level, which no amount of money fixes - so say which level
 		# rather than "Can't afford".
 		_buy_button.disabled = true
-		_state_label.text = "Lv.%d" % ShopCatalog.level_for(_entry["key"])
+		_state_label.text = "Locked"
+		_set_lock_level("Lv.%d" % ShopCatalog.level_for(_entry["key"]))
 	elif balance < int(_entry["price"]):
 		_buy_button.disabled = true
 		_state_label.text = "Can't afford"
@@ -176,3 +178,23 @@ func refresh() -> void:
 		_buy_button.disabled = false
 		_state_label.text = "Buy"
 	_buy_button.modulate = DISABLED_MODULATE if _buy_button.disabled else Color.WHITE
+
+# The required level, over the padlock rather than on the button. A button says
+# what pressing it does; "Lv.42" is neither an instruction nor something the
+# player can act on by pressing it.
+func _set_lock_level(text: String) -> void:
+	var l: Label = _lock_overlay.get_node_or_null("LockLevel")
+	if l == null:
+		l = Label.new()
+		l.name = "LockLevel"
+		l.add_theme_font_size_override("font_size", 13)
+		l.add_theme_color_override("font_color", Color(1, 0.94, 0.82))
+		l.add_theme_color_override("font_outline_color", Color(0.16, 0.09, 0.03, 1))
+		l.add_theme_constant_override("outline_size", 5)
+		l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		l.vertical_alignment = VERTICAL_ALIGNMENT_BOTTOM
+		l.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		l.set_anchors_preset(Control.PRESET_FULL_RECT)
+		_lock_overlay.add_child(l)
+	l.text = text
+	l.visible = text != ""

@@ -66,7 +66,9 @@ const ROW_FONT := 15
 const DEPART_ALL_LEVEL := 15
 const LOCKED_TEXTURE := preload("res://assets/buttons/button_grey3@2x.png")
 
-const RUN_ALL_SIZE := Vector2(138, 45)
+# 1x NATIVE. Was 138x45 - double width, and an aspect of 3.07 against art drawn
+# at 2.19, so it was stretched as well as oversized.
+const RUN_ALL_SIZE := Vector2(68, 31)
 const RUN_ALL_FONT := 15
 const RESULT_FONT := 15
 const RESULT_HOLD := 3.0
@@ -304,13 +306,14 @@ func _refresh_run_all() -> void:
 		_run_all.disabled = true
 		_run_all.texture_normal = LOCKED_TEXTURE
 		_run_all.modulate = Color(0.85, 0.85, 0.85, 1.0)
-		_run_all_label.text = "Level %d" % DEPART_ALL_LEVEL
+		_run_all_label.text = "Locked"
 		return
 	_run_all.texture_normal = WIDE_ACTION_TEXTURE
 	var pending := Fleet.pending_count()
 	_run_all.disabled = pending == 0
 	_run_all.modulate = Color.WHITE if pending > 0 else Color(0.55, 0.55, 0.55, 1.0)
-	_run_all_label.text = "Depart all (%d)" % pending if pending > 0 else "Nothing waiting"
+	# The count is on the panel's own "In service / Ready" line.
+	_run_all_label.text = "Depart all"
 
 
 # What the press actually did. Aircraft can refuse - no fuel, no free pad at

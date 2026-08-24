@@ -114,7 +114,8 @@ func _build_tab_strip() -> void:
 	for entry in TABS:
 		var normal_texture: Texture2D = load("res://assets/buttons/%s" % entry["normal"])
 		var lit_texture: Texture2D = load("res://assets/buttons/%s" % entry["lit"])
-		var art_size := normal_texture.get_size()
+		# 1x NATIVE - get_size() is the @2x art, so the tabs were double size.
+		var art_size := normal_texture.get_size() * 0.5
 		widest = maxf(widest, art_size.x)
 		total_height += art_size.y + TAB_LABEL_HEIGHT
 

@@ -151,9 +151,11 @@ func refresh() -> void:
 	# locked out. Same rule the aircraft card uses.
 	var unlocked := BuildingProgress.is_unlocked(_key)
 	_lock_overlay.visible = not unlocked
+	_set_lock_level("")
 	if not unlocked:
 		_buy_button.disabled = true
-		_state_label.text = "Lv.%d" % BuildingLayout.level_of(_key)
+		_state_label.text = "Locked"
+		_set_lock_level("Lv.%d" % BuildingLayout.level_of(_key))
 	elif not BuildingProgress.can_afford(_key):
 		_buy_button.disabled = true
 		_state_label.text = "Can't afford"
@@ -161,3 +163,23 @@ func refresh() -> void:
 		_buy_button.disabled = false
 		_state_label.text = "Build"
 	_buy_button.modulate = DISABLED_MODULATE if _buy_button.disabled else Color.WHITE
+
+# The required level, over the padlock rather than on the button. A button says
+# what pressing it does; "Lv.42" is neither an instruction nor something the
+# player can act on by pressing it.
+func _set_lock_level(text: String) -> void:
+	var l: Label = _lock_overlay.get_node_or_null("LockLevel")
+	if l == null:
+		l = Label.new()
+		l.name = "LockLevel"
+		l.add_theme_font_size_override("font_size", 13)
+		l.add_theme_color_override("font_color", Color(1, 0.94, 0.82))
+		l.add_theme_color_override("font_outline_color", Color(0.16, 0.09, 0.03, 1))
+		l.add_theme_constant_override("outline_size", 5)
+		l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		l.vertical_alignment = VERTICAL_ALIGNMENT_BOTTOM
+		l.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		l.set_anchors_preset(Control.PRESET_FULL_RECT)
+		_lock_overlay.add_child(l)
+	l.text = text
+	l.visible = text != ""

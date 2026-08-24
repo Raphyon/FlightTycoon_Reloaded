@@ -48,7 +48,8 @@ const NAME_H := 0.17
 const NAME_PAD := 10.0
 const BUTTON_RECT := Rect2(0.222, 0.79, 0.556, 0.155)
 const ROW_Y := 0.29
-const ARROW_SCALE := 2.0
+# 1x NATIVE - the arrow art is @2x, so 1.0 draws it at its own size.
+const ARROW_SCALE := 1.0
 const ARROW_HIT_W := 0.10
 
 const FONT_TITLE := 22

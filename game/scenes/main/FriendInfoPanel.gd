@@ -16,7 +16,8 @@ const BOARD_SIZE := Vector2(878, 422)
 # guessed - the blue region runs x304-563, y25-320.
 const CARD_RECT := Rect2(304, 25, 260, 296)
 
-const BUTTON_SIZE := Vector2(136, 62)
+# 1x NATIVE - the art is 136x62 @2x, so this was drawing it at double size.
+const BUTTON_SIZE := Vector2(68, 31)
 const BUTTON_Y := 336.0
 const BUTTON_GAP := 40.0
 const BUTTON_FONT := 18

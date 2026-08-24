@@ -225,7 +225,9 @@ func _aircraft_column(a: FleetAircraft) -> void:
 # Hands over to the hangar in selection mode and comes back with the answer.
 func _choose_button(empty: bool) -> void:
 	var current := Fleet.get_aircraft(_aircraft_id)
-	var native := CONFIRM_TEXTURE.get_size()
+	# 1x NATIVE - get_size() is the @2x art, which drew every action button at
+	# double the size it was made for.
+	var native := CONFIRM_TEXTURE.get_size() * 0.5
 	var b := TextureButton.new()
 	b.ignore_texture_size = true
 	b.stretch_mode = TextureButton.STRETCH_SCALE

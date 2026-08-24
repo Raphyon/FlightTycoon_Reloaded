@@ -63,11 +63,11 @@ func refresh() -> void:
 		var req: Dictionary = ZoneProgress.requirement_for(key)
 		if Progression.level < req.level:
 			_unlock_button.disabled = true
-			_state_label.text = "Need Lvl %d" % req.level
+			_state_label.text = "Locked"
 		elif Economy.money < req.cost:
 			_unlock_button.disabled = true
 			_state_label.text = "Can't afford"
 		else:
 			_unlock_button.disabled = false
-			_state_label.text = "Unlock ($%d)" % req.cost
+			_state_label.text = "Unlock"
 	_unlock_button.modulate = DISABLED_MODULATE if _unlock_button.disabled else Color.WHITE
