@@ -588,10 +588,11 @@ Three things to decide first:
 - **Coin aircraft cannot be sold at all**, deliberately - it would launder
   premium currency into cash. So the trade-in has to refuse them gracefully
   rather than appear broken.
-- **An aircraft that has just landed is not PARKED**, it is AWAITING_HOME_CLAIM,
-  so `can_sell` refuses it. `RoutePickerPanel._settle()` already solves this by
-  claiming and refuelling first; the trade-in wants the same treatment or it
-  will fail silently on the most common case.
+- ~~An aircraft that has just landed is not PARKED~~ **DONE** - `can_sell` now
+  accepts all three home states, so a just-landed aircraft is sellable. Selling
+  one that has not been tapped FORFEITS its flight reward rather than quietly
+  settling it, and the panel says so behind a Confirm. Genuinely airborne and
+  at-the-destination aircraft are still refused, with the reason on the board.
 
 **And the bigger version, which is the user's own suggestion:** make aircraft
 unlocks the progression axis outright. Each new model starts its affinity ramp

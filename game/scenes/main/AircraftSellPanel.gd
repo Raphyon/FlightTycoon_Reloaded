@@ -18,6 +18,7 @@ const CARD_ART := preload("res://assets/board/board_card1@2x.png")
 const TAG_ART := preload("res://assets/board/board_price@2x.png")
 const BUTTON_ART := preload("res://assets/buttons/button_red1@2x.png")
 const BUTTON_OFF_ART := preload("res://assets/buttons/button_grey3@2x.png")
+const CANCEL_ART := preload("res://assets/buttons/button_orange2@2x.png")
 const CASH_ICON := preload("res://assets/hud/icon_medium_money1@2x.png")
 
 const BOARD_SIZE := Vector2(679, 325)
@@ -39,6 +40,9 @@ const TAG_Y := 104.0
 const BUTTON_W := 150.0
 const BUTTON_Y := 176.0
 const NOTE_Y := 236.0
+# Side by side once the confirm step is showing.
+const CONFIRM_W := 118.0
+const CONFIRM_GAP := 10.0
 
 const FONT_TITLE := 22
 const FONT_NAME := 14
@@ -53,6 +57,7 @@ const COLOR_SUB := Color(0.92, 0.84, 0.70)
 const COLOR_WARN := Color(1.0, 0.78, 0.62)
 
 var _model_key := ""
+var _confirming := false
 var _content: Control
 
 
@@ -83,6 +88,7 @@ func show_for_model(model_key: String) -> void:
 	# reason RoutePickerPanel and UpgradeConfirmPanel both do it.
 	move_to_front()
 	_model_key = model_key
+	_confirming = false
 	visible = true
 	_rebuild()
 
@@ -189,26 +195,38 @@ func _price_tag() -> void:
 
 func _button() -> void:
 	var can := Fleet.sellable_count(_model_key) > 0
-	# Height from the art's own proportions, never the other way round.
-	var h: float = BUTTON_W * BUTTON_ART.get_height() / float(BUTTON_ART.get_width())
+	if not _confirming:
+		_art_button(BUTTON_ART if can else BUTTON_OFF_ART, "Sell",
+			ACTION_CX - BUTTON_W * 0.5, BUTTON_W, can, _on_sell_pressed)
+		return
+	# Confirm step: the destructive one keeps the red, the way out is beside it.
+	var x := ACTION_CX - (CONFIRM_W * 2.0 + CONFIRM_GAP) * 0.5
+	_art_button(BUTTON_ART, "Confirm", x, CONFIRM_W, true, _on_confirm)
+	_art_button(CANCEL_ART, "Cancel", x + CONFIRM_W + CONFIRM_GAP, CONFIRM_W,
+		true, _on_cancel)
+
+
+# One art button, sized from the art's own proportions rather than the box.
+func _art_button(art: Texture2D, caption_text: String, x: float, w: float,
+		enabled: bool, on_press: Callable) -> void:
+	var h: float = w * art.get_height() / float(art.get_width())
 	var b := TextureButton.new()
 	b.focus_mode = Control.FOCUS_NONE
 	# Before the size - the art's 136x62 would otherwise be the minimum.
 	b.ignore_texture_size = true
 	b.stretch_mode = TextureButton.STRETCH_SCALE
-	b.texture_normal = BUTTON_ART if can else BUTTON_OFF_ART
+	b.texture_normal = art
 	b.custom_minimum_size = Vector2.ZERO
-	b.size = Vector2(BUTTON_W, h)
-	b.position = Vector2(ACTION_CX - BUTTON_W * 0.5, BUTTON_Y)
-	b.disabled = not can
-	if can:
-		b.pressed.connect(_on_sell)
+	b.size = Vector2(w, h)
+	b.position = Vector2(x, BUTTON_Y)
+	b.disabled = not enabled
+	if enabled:
+		b.pressed.connect(on_press)
 	_content.add_child(b)
 
 	var caption := _label(FONT_BUTTON,
-		Color.WHITE if can else Color(0.78, 0.75, 0.72), HORIZONTAL_ALIGNMENT_CENTER)
-	# One word. The value, the count and the warning all live on the board.
-	caption.text = "Sell"
+		Color.WHITE if enabled else Color(0.78, 0.75, 0.72), HORIZONTAL_ALIGNMENT_CENTER)
+	caption.text = caption_text
 	caption.clip_text = true
 	caption.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	caption.position = b.position
@@ -219,25 +237,51 @@ func _note() -> void:
 	var note := _label(FONT_NOTE, COLOR_SUB, HORIZONTAL_ALIGNMENT_CENTER)
 	note.autowrap_mode = TextServer.AUTOWRAP_WORD
 	note.position = Vector2(CARD_X + CARD_PX.x + 20.0, NOTE_Y)
-	note.size = Vector2(BOARD_SIZE.x - CARD_X - CARD_PX.x - 40.0, 40.0)
+	note.size = Vector2(BOARD_SIZE.x - CARD_X - CARD_PX.x - 40.0, 46.0)
 
 	if Fleet.sellable_count(_model_key) <= 0:
-		note.text = "Every one of these is flying or waiting to be claimed. Bring one home first."
+		note.text = "Every one of these is flying or waiting at the destination. Bring one home first."
 		note.add_theme_color_override("font_color", COLOR_WARN)
 		return
 
-	# The thing the hangar card could never say. Level 10 is 405 legs and the
-	# resale is a flat half of the catalogue price either way.
-	var level := AircraftAffinity.level_for(_model_key)
-	if level > 1:
-		note.text = "Half the purchase price. Level %d on this airframe is not refunded." % level
+	if _confirming:
+		note.text = _disclaimer()
 		note.add_theme_color_override("font_color", COLOR_WARN)
-	else:
-		note.text = "Half the purchase price. Sells one that is parked or spare."
+		return
+
+	note.text = "Half the purchase price. Sells one that is home."
 
 
-func _on_sell() -> void:
+# EVERYTHING SELLING THROWS AWAY, said before it happens rather than after.
+# Affinity is 405 legs at level 10 and the resale is a flat half of the
+# catalogue price whatever the level, and an aircraft that has landed but not
+# been tapped is still holding its flight money.
+func _disclaimer() -> String:
+	var lost: Array[String] = []
+	var level: int = AircraftAffinity.level_for(_model_key)
+	if level > 1:
+		lost.append("level %d on this airframe" % level)
+	if Fleet.unclaimed_count(_model_key) > 0 and Fleet.sellable_count(_model_key) <= Fleet.unclaimed_count(_model_key):
+		lost.append("the reward it has not been tapped for")
+	if lost.is_empty():
+		return "Sell one for $%s? This cannot be undone." % FloatingText.grouped(Fleet.sell_value(_model_key))
+	return "You will lose %s. This cannot be undone." % " and ".join(lost)
+
+
+func _on_sell_pressed() -> void:
+	_confirming = true
+	_rebuild()
+
+
+func _on_cancel() -> void:
+	_confirming = false
+	_rebuild()
+
+
+func _on_confirm() -> void:
+	_confirming = false
 	if not Fleet.sell_one(_model_key):
+		_rebuild()
 		return
 	FloatingText.spawn(self, Vector2(ACTION_CX, TAG_Y),
 		"+$%s" % FloatingText.grouped(Fleet.sell_value(_model_key)),

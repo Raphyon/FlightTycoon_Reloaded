@@ -999,13 +999,42 @@ func can_sell(a: FleetAircraft) -> bool:
 		return false
 	if ShopCatalog.currency_of(ShopCatalog.entry_for(a.model_key)) == ShopCatalog.COINS:
 		return false
-	return a.state == FleetAircraft.State.PARKED or a.is_idle()
+	return a.is_idle() or a.state in HOME_STATES
+
+
+# Standing on your own apron, whatever it is waiting to be tapped for. All three
+# are the same thing to a seller - the aircraft is home and it is yours - and
+# refusing the two unclaimed ones meant the commonest case in the game, an
+# aircraft that has just landed, could not be sold and said nothing about why.
+const HOME_STATES := [
+	FleetAircraft.State.PARKED,
+	FleetAircraft.State.AWAITING_HOME_CLAIM,
+	FleetAircraft.State.AWAITING_HOME_REFUEL,
+]
+
+
+# Is this one holding a reward that selling would throw away? The panel asks
+# before it does.
+func has_unclaimed_reward(a: FleetAircraft) -> bool:
+	return a != null and a.state == FleetAircraft.State.AWAITING_HOME_CLAIM
+
+
+# How many of this model would lose an unclaimed flight reward if sold now.
+func unclaimed_count(model_key: String) -> int:
+	var n := 0
+	for a in aircraft:
+		if a.model_key == model_key and can_sell(a) and has_unclaimed_reward(a):
+			n += 1
+	return n
 
 
 func sell(aircraft_id: int) -> bool:
 	var a := get_aircraft(aircraft_id)
 	if not can_sell(a):
 		return false
+	# An unclaimed reward is FORFEIT, not settled - the panel warns and asks
+	# before it gets here. Scrapping an aircraft with money still on it is the
+	# player's call to make knowingly, not something to quietly tidy up.
 	Economy.add_money(sell_value(a.model_key))
 	aircraft.erase(a)
 	_emit_changed()
@@ -1028,6 +1057,12 @@ func sell(aircraft_id: int) -> bool:
 func sell_one(model_key: String) -> bool:
 	for a in aircraft:
 		if a.model_key == model_key and a.is_idle() and can_sell(a):
+			return sell(a.id)
+	# Then a parked one, and only then one still holding an unclaimed reward -
+	# selling that last is what keeps the money in the player's hands whichever
+	# order they press things in.
+	for a in aircraft:
+		if a.model_key == model_key and a.state == FleetAircraft.State.PARKED and can_sell(a):
 			return sell(a.id)
 	for a in aircraft:
 		if a.model_key == model_key and can_sell(a):
