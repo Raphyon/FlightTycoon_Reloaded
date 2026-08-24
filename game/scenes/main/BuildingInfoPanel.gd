@@ -126,8 +126,9 @@ func _build() -> void:
 
 	# Drawn at the art's own aspect - see ApronInfoPanel._button for why every
 	# button in this project derives its width rather than being given one.
-	var h: float = BOARD_SIZE.y * 0.24
-	var w: float = h * DEMOLISH_NORMAL.get_width() / float(DEMOLISH_NORMAL.get_height())
+	# 1x NATIVE: the button art is @2x, so half its pixels is its intended size.
+	var h: float = DEMOLISH_NORMAL.get_height() * 0.5
+	var w: float = DEMOLISH_NORMAL.get_width() * 0.5
 	_button = TextureButton.new()
 	_button.ignore_texture_size = true
 	_button.stretch_mode = TextureButton.STRETCH_SCALE

@@ -28,7 +28,8 @@ const TILE_GAP := 12.0
 const TILES_Y := 78.0
 
 const TITLE_Y := 20.0
-const BUTTON_W := 150.0
+# 1x NATIVE - button_orange2 is 136x62 @2x, so 68 is its intended width.
+const BUTTON_W := 68.0
 const BUTTON_Y := 228.0
 const NOTE_Y := 288.0
 

@@ -31,7 +31,10 @@ const ROW_GAP := 4.0
 const ROW_X := 40.0
 const ROW_W := BOARD_SIZE.x - ROW_X * 2.0
 const ICON := 28.0
-const USE_W := 92.0
+# 1x NATIVE, and no longer stretched - it was 92x25 against art that is
+# 136x62, an aspect of 3.68 against the art's own 2.19.
+const USE_W := 68.0
+const USE_H := 31.0
 
 const FONT_TITLE := 22
 const FONT_NAME := 14
@@ -170,7 +173,7 @@ func _row(y: float, icon: String, name: String, sub: String, count: int,
 	if running:
 		return
 
-	var h := 25.0
+	var h := USE_H
 	var b := TextureButton.new()
 	b.focus_mode = Control.FOCUS_NONE
 	b.ignore_texture_size = true

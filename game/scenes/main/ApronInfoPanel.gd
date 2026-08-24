@@ -51,7 +51,6 @@ const PLANE_X := 0.305
 const SLOT_W := 0.20
 const BUTTON_Y := 0.64
 # Height only - each button's width follows its own art, see _button.
-const BUTTON_H := 0.24
 # The route preview occupies the right third: two avatar tiles with the status
 # between them - "a timer inbetween, or a message saying arrived".
 const AVATAR_FROM_X := 0.555
@@ -211,8 +210,9 @@ func _preview(fx: float, inset: float) -> TextureRect:
 # parented to _content, which is added before the buttons are, so every button
 # drew its art straight over its own label - three blank orange pills.
 func _button(fx: float, fy: float, texture: Texture2D) -> Array:
-	var h: float = BOARD_SIZE.y * BUTTON_H
-	var w: float = h * texture.get_width() / float(texture.get_height())
+	# 1x NATIVE: the button art is @2x, so half its pixels is its intended size.
+	var h: float = texture.get_height() * 0.5
+	var w: float = texture.get_width() * 0.5
 	var b := TextureButton.new()
 	b.ignore_texture_size = true
 	b.stretch_mode = TextureButton.STRETCH_SCALE

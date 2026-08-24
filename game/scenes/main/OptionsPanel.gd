@@ -24,7 +24,6 @@ const ROW_X := 0.09
 const ROW_W := 0.82
 const FIRST_ROW_Y := 0.24
 const ROW_STEP := 0.17
-const BUTTON_H := 0.155
 
 const FONT_TITLE := 26
 const FONT_ROW := 17
@@ -93,15 +92,19 @@ func _build() -> void:
 func _add_row(index: int, text: String, caption: String, action: Callable,
 		texture: Texture2D = BUTTON_TEXTURE) -> Array:
 	var y := FIRST_ROW_Y + ROW_STEP * index
-	var l := _label(text, _fs(FONT_ROW), HORIZONTAL_ALIGNMENT_LEFT)
-	l.position = _px(ROW_X, y)
-	l.size = _px(ROW_W * 0.55, BUTTON_H)
-	l.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 
 	# Drawn at the texture's own aspect - see ApronInfoPanel._button for why
 	# every button in this project computes width rather than being given one.
-	var h: float = BOARD_SIZE.y * BUTTON_H
-	var w: float = h * texture.get_width() / float(texture.get_height())
+	# 1x NATIVE: the button art is @2x, so half its pixels is its intended size.
+	var h: float = texture.get_height() * 0.5
+	var w: float = texture.get_width() * 0.5
+
+	# The row label matches the BUTTON's height, not a board fraction, or the
+	# two stop sharing a centre line the moment the button size changes.
+	var l := _label(text, _fs(FONT_ROW), HORIZONTAL_ALIGNMENT_LEFT)
+	l.position = _px(ROW_X, y)
+	l.size = Vector2(BOARD_SIZE.x * ROW_W * 0.55, h)
+	l.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	var b := TextureButton.new()
 	b.ignore_texture_size = true
 	b.stretch_mode = TextureButton.STRETCH_SCALE

@@ -54,7 +54,8 @@ const ACTION_CX := (CARDS_X + CARDS_W + BOARD_SIZE.x) * 0.5
 const TAG_W := 150.0
 const TAG_Y := 120.0
 const TAG_GAP := 5.0
-const BUTTON_W := 128.0
+# 1x NATIVE - button_orange2 is 136x62 @2x, so 68 is its intended width.
+const BUTTON_W := 68.0
 const BUTTON_Y := 162.0
 const NOTE_Y := 232.0
 
