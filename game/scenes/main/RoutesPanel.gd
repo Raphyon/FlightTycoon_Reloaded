@@ -68,7 +68,10 @@ const LOCKED_TEXTURE := preload("res://assets/buttons/button_grey3@2x.png")
 
 # 1x NATIVE. Was 138x45 - double width, and an aspect of 3.07 against art drawn
 # at 2.19, so it was stretched as well as oversized.
-const RUN_ALL_SIZE := Vector2(68, 31)
+# THE WIDE ART'S 1x. button_orange4 is 192x62 @2x, so 96x31 - not the pill's
+# 68x31, which is what this was and it cropped "Depart all". The wide button is
+# what a caption too long for the pill is for.
+const RUN_ALL_SIZE := Vector2(96, 31)
 const RUN_ALL_FONT := 15
 const RESULT_FONT := 15
 const RESULT_HOLD := 3.0

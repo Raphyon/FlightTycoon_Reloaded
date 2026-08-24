@@ -55,7 +55,7 @@ func refresh() -> void:
 	var key: String = _entry["key"]
 	if not _entry["implemented"]:
 		_unlock_button.disabled = true
-		_state_label.text = "Coming Soon"
+		_state_label.text = "Soon"
 	elif ZoneProgress.is_unlocked(key):
 		_unlock_button.disabled = true
 		_state_label.text = "Unlocked"

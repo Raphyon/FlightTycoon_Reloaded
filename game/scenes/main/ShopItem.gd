@@ -173,7 +173,7 @@ func refresh() -> void:
 		_set_lock_level("Lv.%d" % ShopCatalog.level_for(_entry["key"]))
 	elif balance < int(_entry["price"]):
 		_buy_button.disabled = true
-		_state_label.text = "Can't afford"
+		_state_label.text = "Buy"
 	else:
 		_buy_button.disabled = false
 		_state_label.text = "Buy"

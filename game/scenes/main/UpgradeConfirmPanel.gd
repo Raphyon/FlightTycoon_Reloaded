@@ -321,7 +321,9 @@ func _confirm_button(affordable: bool) -> void:
 
 	var caption := _label(FONT_BUTTON,
 		Color.WHITE if affordable else Color(0.78, 0.75, 0.72))
-	caption.text = "Upgrade" if affordable else "Not enough"
+	# The price is on the tag above; the button says the verb either way and
+	# goes grey when it cannot be pressed.
+	caption.text = "Upgrade"
 	caption.clip_text = true
 	caption.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	caption.position = b.position

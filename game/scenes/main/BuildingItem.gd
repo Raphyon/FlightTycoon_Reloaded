@@ -158,7 +158,7 @@ func refresh() -> void:
 		_set_lock_level("Lv.%d" % BuildingLayout.level_of(_key))
 	elif not BuildingProgress.can_afford(_key):
 		_buy_button.disabled = true
-		_state_label.text = "Can't afford"
+		_state_label.text = "Build"
 	else:
 		_buy_button.disabled = false
 		_state_label.text = "Build"
