@@ -298,6 +298,26 @@ const ENTRIES := [
 	# between them rather than papering over that.
 	{"key": "banshee", "name": "Banshee", "icon": "banshee_default.png", "price": 60, "currency": COINS, "level": 52,
 		"force": "A", "seats": 12, "fuel": 95, "xp": 300, "ticket": 1200, "range": 5, "has_world_sprite": true},
+	# THE TOP OF THE COIN LANE, and the first entry added to it since it was
+	# respaced. APPENDED rather than inserted: the other nine step 4-5 levels and
+	# 5 coins, and inserting would have shifted every one of them. 57 and 65
+	# continues both steps exactly.
+	#
+	# It earns the lane's way - few seats, an enormous ticket - because a seat on
+	# the aeroplane that crossed the Atlantic alone is not an airline fare. Pays
+	# 18,000 a leg against the Banshee's 14,400, five levels below it.
+	#
+	# B, not A. It is a 1927 monoplane that cruised at 100mph, and the lane has
+	# never been ordered by grade anyway - the UFO is S at 45 coins and the
+	# Banshee A at 60. The ticket is what makes it worth owning.
+	#
+	# READ THIS BEFORE ADDING ANOTHER: at 65 coins the coin catalogue goes from
+	# 345 to 410, against a run that earns about 400. Owning every coin aircraft
+	# in one playthrough was deliberate - see the note in daily_login.gd - and
+	# this ends it. That is the point of a trophy at the top of the lane, but it
+	# IS a reversal, and it was made on purpose rather than by drift.
+	{"key": "spirit", "name": "Spirit of St. Louis", "icon": "spirit_default.png", "price": 65, "currency": COINS, "level": 57,
+		"force": "B", "seats": 6, "fuel": 70, "xp": 320, "ticket": 3000, "range": 5, "has_world_sprite": true},
 	# 60.3m span, four engines - the top of the airliner class, under the 747s
 	# it shares a level band with. Slots into the empty rung at 44.
 	# 64.75m span, near enough the 747-8's - a modern widebody, so it lands

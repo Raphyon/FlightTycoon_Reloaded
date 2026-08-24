@@ -310,7 +310,7 @@ zones, this is the first place to look.**
 
 ### Progression and economy
 
-You start with **$5,000, 15 coins, and a granted DC-3**. 58 aircraft on the
+You start with **$5,000, 15 coins, and a granted DC-3**. 59 aircraft on the
 shop ladder **across levels 1-70**, nine of them coin-priced and totalling 345
 coins.
 
@@ -324,7 +324,14 @@ band was spread by hand instead and nothing moved more than a third.
 
 The coin lane is spaced too, and was not: four of the nine sat inside eight
 levels and three more inside four, so most of it arrived in two clumps. It steps
-4-5 levels now, 1/21/25/29/33/37/42/47/52.
+4-5 levels now, 1/21/25/29/33/37/42/47/52, with the Spirit of St. Louis appended
+at 57 to continue the step rather than disturb it.
+
+**That tenth entry ends something deliberate**, and it is worth knowing which:
+at 65 coins the catalogue reaches 410 against a run earning about 400, so owning
+every coin aircraft in one playthrough is no longer possible. It used to be, on
+purpose. A trophy at the top of the lane is a fair reason to change it - a
+second one would not be.
 
 The ladder used to stop at 50 while the zone gates ran to 70, which left 62 of
 the game's 93 hours with nothing new to fly. Thirteen entries fill it, and every

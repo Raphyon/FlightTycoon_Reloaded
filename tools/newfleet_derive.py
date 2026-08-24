@@ -59,6 +59,12 @@ MODELS = {
     # and squashing it to airliner height would read as a beach ball.
     "balloon":    (132, {"body": "hot_air_ballon.png"}),
     "f15":        (76, {"body": "f15_eagle_default.png"}),
+    # 14.02m span - just past the F-15's 13.05m, so it shares its 76 and is the
+    # smallest real aeroplane in the game after the Paper Plane. The wing is
+    # long for the airframe (46ft span on a 27ft fuselage), so the width that
+    # falls out is 138 against the F-15's 118: a big wing on a tiny aircraft,
+    # which is the whole shape of the thing.
+    "spirit":     (76, {"body": "spirit_of_stlouis.png"}),
     "dc3":        (78, {"body": "dc3_default.png", "body_duggy": "dc3_duggy.png"}),
     # 29.25m span against the DC-3's 28.96m - the two are near enough the same
     # aeroplane, five years and an ocean apart - so it sits one pixel above it.

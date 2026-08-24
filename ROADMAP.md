@@ -351,10 +351,18 @@ eldest and much the smallest: 47.6m span against 60.3 and 64.4, so 103px against
 108 and 110. And it is **E** where they are D, being the propeller ancestor, so
 the tier has a shape inside it rather than three identical haulers.
 
-**Not proposed: more coin aircraft.** The coin lane is nine, evenly spaced 1 to
-52 at 5 to 60 coins, and it was deliberately respaced to stop them arriving in
-clumps. Adding one means respacing the lane and re-measuring the coin economy
-against a 345-coin catalogue, which is a balance job rather than an art job.
+**The coin lane is now ten.** It was nine, evenly spaced 1 to 52 at 5 to 60
+coins, and the note here used to say adding one meant respacing the lane and
+re-measuring the coin economy. The Spirit of St. Louis was APPENDED instead - 57
+and 65 coins continues both steps exactly, so none of the other nine moved.
+
+What it did cost is the thing that note warned about. The coin catalogue goes
+345 to 410 against a run earning about 400, so **owning every coin aircraft in
+one playthrough is no longer possible** - which was a deliberate decision the
+other way (see `daily_login.gd`). A trophy at the top of the lane is a fair
+reason to reverse it, but the next one has no such excuse: at 70 coins the
+catalogue would be 480 against 400, and the lane stops being a ladder and
+becomes a wall.
 
 ---
 

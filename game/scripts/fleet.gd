@@ -308,6 +308,16 @@ const WORLD_SPRITES := {
 		"rotor_offsets": [Vector2(0, 0), Vector2(0, 0), Vector2(0, 0)],
 		"rotor_scale": 0.82,
 	},
+	# ONE nose prop, like the P-51 and the An-2, but on the only aircraft in the
+	# game bought with coins that has a propeller at all.
+	"spirit": {
+		"body": "res://assets/aircraft/spirit/body_2x.png",
+		"shadow": "res://assets/aircraft/spirit/shadow_2x.png",
+		"rotor_spin_frames": A400M_PROP,
+		# PLACEHOLDER for RotorEditor - M to reach it, 1, click, -/+.
+		"rotor_offsets": [Vector2.ZERO],
+		"rotor_scale": 0.78,
+	},
 	"emb120": {
 		"body": "res://assets/aircraft/emb120/body_2x.png",
 		"shadow": "res://assets/aircraft/emb120/shadow_2x.png",
