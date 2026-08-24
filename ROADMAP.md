@@ -25,6 +25,7 @@ airframes and 20-odd liveries - and the two items that mattered most moved.
 | 6 more buildings | one sheet, delivered | **DONE** - 17 types, three archetypes |
 | 7 events | yes, a lot | blocked |
 | 8 passenger animations | yes, none exists | blocked |
+| 11 trade-in | no - shop art covers it | open - the sell bug is fixed |
 
 Building upgrades were on this list as a Known Issue rather than a numbered item
 and are DONE - see UPGRADES.md. They were also nearly worthless when first
@@ -547,6 +548,59 @@ The one caveat is headroom. The existing nine are 1024px renders downscaling
 5.1x to 200; these are ~230px cells downscaling 1.15x, so there is nothing above
 the current target. The Eiffel Tower is already 200x329 and the terminal
 295x233, so a building wanting to be bigger than 200 wide is not hypothetical.
+
+---
+
+## 11. Trade-in: replacing a fleet as the thing you do
+
+| | |
+|---|---|
+| touches | `HangarPanel`, `RoutePickerPanel`, `ShopItem`, `Fleet.sell_one` |
+| needs | one gesture that swaps an aircraft for a better one |
+| art | none - the shop's button set already covers it |
+
+**Selling exists and nobody can find it.** `Fleet.sell_one` works and pays 50%,
+but the only ways to get an aircraft off a pad are *Clear route* and displacing
+it by assigning a different aircraft to that pad. Neither is called "sell", and
+neither is anywhere near the shop. The Sell button being greyed out was a
+separate bug and is fixed - it tested `idle_count`, which means "assigned to no
+pad", so a player who had put every aircraft on a pad could never sell anything.
+
+**Why this is worth its own item.** Measured with a `--buying prestige` bot -
+buy the dearest thing affordable, which is what a player actually does - the
+fleet ladder is fully exercised: **21-25 models flown against the optimiser's
+4**, level 70 arrives 40% sooner, and cash oscillates between half a million and
+$180M instead of flatlining. Players already replace their fleet. The game just
+makes them do it through a route-clearing screen that never mentions it.
+
+**What it should be:** a trade-in on the shop card. You are looking at a Boeing
+747; the card offers it at full price, or at full price minus 50% of the A320
+you would retire for it, and takes both actions in one tap. That turns the
+replacement players are already performing into a decision the game acknowledges.
+
+Three things to decide first:
+
+- **Affinity is lost on sale, silently.** A model levelled to 10 is 405 legs of
+  investment and the resale is a flat 50% of catalogue price either way. Under a
+  design where replacing the fleet IS the progression, throwing that away is
+  exactly what makes replacement feel bad. Either the trade-in carries some
+  affinity across, or the price reflects it.
+- **Coin aircraft cannot be sold at all**, deliberately - it would launder
+  premium currency into cash. So the trade-in has to refuse them gracefully
+  rather than appear broken.
+- **An aircraft that has just landed is not PARKED**, it is AWAITING_HOME_CLAIM,
+  so `can_sell` refuses it. `RoutePickerPanel._settle()` already solves this by
+  claiming and refuelling first; the trade-in wants the same treatment or it
+  will fail silently on the most common case.
+
+**And the bigger version, which is the user's own suggestion:** make aircraft
+unlocks the progression axis outright. Each new model starts its affinity ramp
+at the cheap end - the sawtooth already works this way, see
+`aircraft_affinity.gd` - so replacing the fleet would drive progress, and
+keeping a varied fleet would trade speed for breadth. The machinery exists; what
+is missing is weight. Affinity currently pays **1% flight time per level, capped
+at 10%**, which is far too small to carry a progression system. That number is
+the first thing to solve if this is taken up.
 
 ---
 

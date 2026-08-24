@@ -1012,13 +1012,43 @@ func sell(aircraft_id: int) -> bool:
 	return true
 
 
-# Sells one idle aircraft of this model - what the hangar offers, since it
-# groups by type rather than listing individuals.
-func sell_one_idle(model_key: String) -> bool:
+# Sells one aircraft of this model - what the hangar offers, since it groups by
+# type rather than listing individuals.
+#
+# IDLE FIRST, THEN PARKED. is_idle() means "assigned to no pad", NOT "parked and
+# doing nothing", so the old version - which required is_idle() - could only
+# ever sell an aircraft sitting spare in the hangar. A player who had put every
+# aircraft on a pad, which is the normal thing to do, found the Sell button
+# greyed out forever with nothing saying why. can_sell() was already the looser
+# rule; sell_one_idle was stricter than the rule it was meant to enforce.
+#
+# Preferring the unassigned one matters: with a spare in the hangar and one out
+# on a pad, selling the deployed one and leaving the pad empty is never what was
+# meant.
+func sell_one(model_key: String) -> bool:
 	for a in aircraft:
 		if a.model_key == model_key and a.is_idle() and can_sell(a):
 			return sell(a.id)
+	for a in aircraft:
+		if a.model_key == model_key and can_sell(a):
+			return sell(a.id)
 	return false
+
+
+# Kept as the old name so nothing that calls it changes behaviour.
+func sell_one_idle(model_key: String) -> bool:
+	return sell_one(model_key)
+
+
+# How many of this model could be sold right now. Drives the hangar button, so
+# it has to agree with sell_one exactly - the two disagreeing is what made the
+# button lie in the first place.
+func sellable_count(model_key: String) -> int:
+	var n := 0
+	for a in aircraft:
+		if a.model_key == model_key and can_sell(a):
+			n += 1
+	return n
 
 
 func idle_count(model_key: String) -> int:
