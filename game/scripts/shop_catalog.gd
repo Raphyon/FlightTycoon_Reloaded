@@ -152,17 +152,8 @@ const ENTRIES := [
 	# its one coin purchase and then has to earn the next.
 	{"key": "paperplane", "name": "Paper Plane", "icon": "paperplane_default.png", "price": 5, "currency": COINS, "level": 1,
 		"force": "A", "seats": 10, "fuel": 0, "xp": 150, "range": 3, "has_world_sprite": true},
-	# LIVE stats: A / 100 seats / 20 fuel / 15 fare / 1 cloud. The PRICE is not
-	# live - the original charges 40,000 for it, which against 1,500 a leg is a
-	# 27-leg payback when every other building and aircraft it sells is about
-	# 15. Importing that would have put a strictly-worse aircraft above the
-	# EMB-120 in both level and price, which is the one thing this ladder
-	# promises never happens. Priced on its own income instead.
-	{"key": "atr72", "name": "ATR 72", "icon": "atr72_default.png", "price": 4000, "level": 10,
-		"force": "A", "seats": 100, "fuel": 20, "xp": 42, "range": 1, "has_world_sprite": true},
 	# NO LIVE DATA - the original doesn't sell a Twin Otter, so every number
-	# here is ours. It is the FIRST thing you can buy, two levels ahead of the
-	# ATR-72, because the two are a CHOICE rather than a step: the ATR carries
+	# here is ours. It is three levels ahead of the ATR-72, because the two are a CHOICE rather than a step: the ATR carries
 	# 100 for 20 fuel, this carries 60 for 4. Per
 	# leg the ATR nets more; per unit of fuel this is five times better, and
 	# fuel is what actually grounds a new player - see tools/econ_sim.py, where
@@ -195,6 +186,14 @@ const ENTRIES := [
 		"force": "A", "seats": 55, "fuel": 4, "xp": 35, "ticket": 14, "range": 1, "has_world_sprite": true},
 	{"key": "dhc6", "name": "Twin Otter", "icon": "dhc6_default.png", "price": 3500, "level": 7,
 		"force": "A", "seats": 60, "fuel": 4, "xp": 36, "range": 1, "has_world_sprite": true},
+	# LIVE stats: A / 100 seats / 20 fuel / 15 fare / 1 cloud. The PRICE is not
+	# live - the original charges 40,000 for it, which against 1,500 a leg is a
+	# 27-leg payback when every other building and aircraft it sells is about
+	# 15. Importing that would have put a strictly-worse aircraft above the
+	# EMB-120 in both level and price, which is the one thing this ladder
+	# promises never happens. Priced on its own income instead.
+	{"key": "atr72", "name": "ATR 72", "icon": "atr72_default.png", "price": 4000, "level": 10,
+		"force": "A", "seats": 100, "fuel": 20, "xp": 42, "range": 1, "has_world_sprite": true},
 	# LIVE 5000/A/80/6/2cl. It carries the NEW badge at level 2 in the original;
 	# ours sits behind the ATR-72, which goes in ahead of it on income.
 	{"key": "emb120", "name": "EMB-120", "icon": "emb120_default.png", "price": 5000, "level": 13,
