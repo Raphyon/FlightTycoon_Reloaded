@@ -77,18 +77,27 @@ func _build() -> void:
 
 func _button(normal: Texture2D, pressed: Texture2D, pos: Vector2) -> TextureButton:
 	var b := TextureButton.new()
+	# ORDER MATTERS AND IT WAS WRONG. Assigning texture_normal makes the art's
+	# 136x62 the minimum size, so the b.size below was silently clamped up to
+	# it - and setting ignore_texture_size afterwards drops the minimum without
+	# re-applying the size. The buttons drew at the full @2x art no matter what
+	# BUTTON_SIZE said. This is the trap CloseButton documents; it just was not
+	# obeyed here.
+	b.ignore_texture_size = true
+	b.custom_minimum_size = Vector2.ZERO
+	b.stretch_mode = TextureButton.STRETCH_KEEP_ASPECT_CENTERED
 	b.texture_normal = normal
 	b.texture_pressed = pressed
 	b.texture_hover = pressed
 	b.position = pos
 	b.size = BUTTON_SIZE
-	b.ignore_texture_size = true
-	b.stretch_mode = TextureButton.STRETCH_KEEP_ASPECT_CENTERED
 	return b
 
 
 func _button_label(text: String) -> Label:
 	var l := Label.new()
+	# Same trap in the other direction: a Label's minimum is its own string.
+	l.custom_minimum_size = Vector2.ZERO
 	l.text = text
 	l.size = BUTTON_SIZE
 	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER

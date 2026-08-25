@@ -34,21 +34,25 @@ const ART_Y := 0.30
 const ART_H := 0.26
 const NAME_Y := 0.545
 const SUB_Y := 0.610
-const STAT_Y := 0.665
+# The two stat rows, pulled up to make room for the action button below them.
+const STAT_Y := 0.620
 const DETAIL_Y := 0.30
 const DETAIL_STEP := 0.078
 # Buttons sit lower and the type above them sits higher - the two were both at
 # 0.72 and the column read as one crowded block. See _clear_button for where
 # the destructive one went.
-const ACTION_Y := 0.70
+# BELOW the stats, not through them. At 0.70 this button spanned y 301-340 and
+# the second stat row sits at 318 - it was drawn straight over the fuel and XP.
+const ACTION_Y := 0.780
 # Delete sits BELOW the action row and smaller, under the aircraft column. It
 # was at the bottom-left corner at full size, where it overlapped "Change
 # aircraft" by 120px and, being added later, swallowed its clicks - and both
 # reason labels were positioned off the bottom of the 430px board entirely.
 const CLEAR_X := 0.162
-const CLEAR_Y := 0.86
+const CLEAR_Y := 0.885
 # Reasons go under the ACTION column only, where there is room for them.
-const REASON_Y := 0.855
+# Under the action button, which moved down - at 0.855 it now collided with it.
+const REASON_Y := 0.900
 
 const CLOUD_SIZE := Vector2(16, 11)
 # Native type sizes - _fs() scales them with the board.
