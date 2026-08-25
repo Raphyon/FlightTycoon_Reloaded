@@ -3,6 +3,11 @@ extends Node2D
 
 func _ready() -> void:
 	print("ft-proto booted")
+	# The shop shows ENTRIES in array order, so an entry in the wrong slot is a
+	# silent bug - see ShopCatalog.order_problems. Shouted at boot rather than
+	# left for somebody to spot the prices going backwards.
+	for problem in ShopCatalog.order_problems():
+		push_warning("shop order: %s" % problem)
 	# Aprons and world aircraft (including the starting plane) are all
 	# spawned by ApronLayer.gd, driven by Fleet's assignment data - see
 	# AreaOrigins for the markers and data/apron_layout.json for the cells.

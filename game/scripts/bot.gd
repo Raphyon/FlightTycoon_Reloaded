@@ -115,6 +115,9 @@ var _last_money := -1
 # hours between sessions are free - so which one binds depends on the size of
 # the fleet, and may well flip as it grows.
 var _routing := "match"
+# rate     = best payout per minute of flight (an optimiser)
+# prestige = the dearest thing on the shelf you can afford (an actual player)
+var _buying := "prestige"
 # Whether the imaginary player bothers with the daily tasks. OFF is the baseline
 # the quest faucet has to be measured against - and a bot that does not claim
 # would report "quests changed nothing", which is a statement about the bot.
@@ -152,6 +155,7 @@ func _ready() -> void:
 		match args[i]:
 			"--days": _days = int(args[i + 1])
 			"--routing": _routing = args[i + 1]
+			"--buying": _buying = args[i + 1]
 			"--quests": _do_quests = args[i + 1] != "off"
 			"--trace": _trace = true
 			"--latency": _latency = maxf(0.0, float(args[i + 1]))
@@ -610,6 +614,10 @@ func _buy_aircraft() -> bool:
 	var best := ""
 	var best_rate := 0.0
 	var coin_best := ""
+	var coin_score := -1.0
+	var owned := {}
+	for a in Fleet.aircraft:
+		owned[a.model_key] = true
 	for e in ShopCatalog.ENTRIES:
 		var key := str(e["key"])
 		if not ShopCatalog.unlocked(key):
@@ -617,14 +625,27 @@ func _buy_aircraft() -> bool:
 		var dest := Fleet.best_destination_for(key)
 		var mins := Fleet.flight_seconds_to(dest, key) / 60.0
 		var rate := Fleet.payout_for(key, dest) / maxf(mins, 0.01)
+		# PRESTIGE scores by sticker price - the dearest thing affordable, which
+		# is what a player actually buys. RATE is the optimiser: best payout per
+		# minute of flight. They do not pick the same fleet, and which one you
+		# model changes nearly every conclusion - see BALANCE.md.
+		var score := float(e["price"]) if _buying == "prestige" else rate
 		if str(e.get("currency", ShopCatalog.CASH)) == ShopCatalog.COINS:
-			if Coins.amount >= int(e["price"]) and coin_best == "":
+			# THE DEAREST AFFORDABLE ONE YOU DO NOT ALREADY OWN, not the first
+			# in catalogue order. First-affordable meant the Paper Plane at 5
+			# coins, forever - the bot re-bought it every time it held five
+			# coins and never saved for anything, which is why paperplane
+			# appeared in the top four models of every run ever measured.
+			if Coins.amount < int(e["price"]) or owned.has(key):
+				continue
+			if float(e["price"]) > coin_score:
+				coin_score = float(e["price"])
 				coin_best = key
 			continue
 		if int(e["price"]) > _spendable():
 			continue
-		if rate > best_rate:
-			best_rate = rate
+		if score > best_rate:
+			best_rate = score
 			best = key
 	# Coins first while any are affordable - they ignore the level gate, so they
 	# are the strongest thing a new account can do.
@@ -724,10 +745,20 @@ func _check_milestones() -> void:
 		home_total += 1
 		if ZoneProgress.is_unlocked(area_name):
 			home_done += 1
+	# ALL PADS WAS PRINTED BUT NEVER COMPUTED. _summary loops over four names
+	# and this dictionary only ever held three, so "all pads" reported "not
+	# reached" unconditionally - on every run, at every setting, whatever the
+	# player did. It was quoted in BALANCE.md as a measurement.
+	var pads_total := 0
+	for map_key in _owned_maps():
+		var data := ApronLayout.effective_area_data(map_key)
+		for area_name in Maps.areas_for(map_key):
+			pads_total += (data.get(area_name, []) as Array).size()
 	var done := {
 		"fleet ladder": Progression.level >= top,
 		"home zones": home_total > 0 and home_done >= home_total,
 		"all plots": BuildingProgress.built_count() >= BuildingLayout.load_data().size(),
+		"all pads": pads_total > 0 and _total_pads() >= pads_total,
 	}
 	for name in done:
 		if done[name] and not _milestones.has(name):
@@ -788,7 +819,7 @@ func _summary() -> void:
 				maxed += 1
 	print("  city: %d building levels across the plots, %d of them maxed"
 		% [levels, maxed])
-	print("  routing policy: %s   daily tasks: %s" % [_routing, "on" if _do_quests else "off"])
+	print("  routing policy: %s   buying: %s   daily tasks: %s" % [_routing, _buying, "on" if _do_quests else "off"])
 	print("  quests: %d sets completed, %d coins earned" % [_sets_done, _quest_coins])
 	print("  building coin drops: %d" % _building_coins)
 	if _autoturn_hours > 0.0:

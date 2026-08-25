@@ -434,6 +434,34 @@ const FALLBACK := {"force": "C", "seats": 50, "fuel": 10, "xp": 30, "range": 1,
 	"price": 0, "currency": CASH, "level": 1}
 
 
+# THE ARRAY IS THE SHOP ORDER. ShopPanel walks ENTRIES and never sorts, so a
+# card that sits in the wrong slot is shown in the wrong slot - and nothing
+# errors, so it survives until somebody notices the prices going backwards.
+#
+# That is exactly what happened: the ATR 72 (level 10) sat at index 2, between
+# the Paper Plane and the An-2, so the shop read 3,000 / 4,000 / 3,050 / 3,200 /
+# 3,350 - three price drops in a row. It had been wrong since before the level
+# 2-6 aircraft went in; adding three entries behind it turned one wrong step
+# into four.
+#
+# Cash entries must ascend by level. Coin aircraft are exempt: they are a second
+# lane threaded through the same list and their levels interleave by design.
+static func order_problems() -> Array[String]:
+	var out: Array[String] = []
+	var prev_level := 0
+	var prev_name := ""
+	for e in ENTRIES:
+		if str(e.get("currency", CASH)) == COINS:
+			continue
+		var level := int(e.get("level", 1))
+		if level < prev_level:
+			out.append("%s (level %d) is listed after %s (level %d)"
+				% [str(e.get("name", e["key"])), level, prev_name, prev_level])
+		prev_level = level
+		prev_name = str(e.get("name", e["key"]))
+	return out
+
+
 static func entry_for(key: String) -> Dictionary:
 	for e in ENTRIES:
 		if e["key"] == key:
