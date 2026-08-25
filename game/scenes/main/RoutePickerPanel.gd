@@ -43,16 +43,21 @@ const DETAIL_STEP := 0.078
 # the destructive one went.
 # BELOW the stats, not through them. At 0.70 this button spanned y 301-340 and
 # the second stat row sits at 318 - it was drawn straight over the fuel and XP.
-const ACTION_Y := 0.780
+#
+# THE BOARD IS SHORTER THAN IT LOOKS. board_openairline's blue area ends at
+# 0.958 of the art - y=412 of the 430 it is drawn at - and the white frame runs
+# below that. Everything has to finish above 412, which is why the stack is
+# tight rather than evenly spread.
+const ACTION_Y := 0.775
 # Delete sits BELOW the action row and smaller, under the aircraft column. It
 # was at the bottom-left corner at full size, where it overlapped "Change
 # aircraft" by 120px and, being added later, swallowed its clicks - and both
 # reason labels were positioned off the bottom of the 430px board entirely.
 const CLEAR_X := 0.162
-const CLEAR_Y := 0.885
+const CLEAR_Y := 0.850
 # Reasons go under the ACTION column only, where there is room for them.
-# Under the action button, which moved down - at 0.855 it now collided with it.
-const REASON_Y := 0.900
+# Under the action button, and above the frame at 0.958.
+const REASON_Y := 0.850
 
 const CLOUD_SIZE := Vector2(16, 11)
 # Native type sizes - _fs() scales them with the board.
