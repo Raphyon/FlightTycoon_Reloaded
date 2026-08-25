@@ -242,7 +242,9 @@ func _choose_button(empty: bool) -> void:
 	if current and not _can_change_aircraft(current):
 		b.disabled = true
 		b.modulate = DISABLED_MODULATE
-	var text := "Choose aircraft" if empty else "Change aircraft"
+	# Short enough for the button. "Change aircraft" is 75px at the minimum
+	# font in 66px of usable width - it never fitted, at any size.
+	var text := "Choose" if empty else "Change"
 	var l := _label(text, _fitted_font(text, native.x - ACTION_PADDING), true)
 	l.size = native
 	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -299,7 +301,7 @@ func _destination_column() -> void:
 	# reads as "you cannot change the destination", which is what it amounts to.
 	var a := Fleet.get_aircraft(_aircraft_id)
 	if a and a.assigned_apron_id == _apron_id and _destination != Fleet.destination_of(a):
-		var warn := _label("unsaved - press Update route", _fs(FONT_SUB))
+		var warn := _label("unsaved - press Update", _fs(FONT_SUB))
 		warn.position = Vector2(BOARD_SIZE.x * (COL_X[1] - 0.15), BOARD_SIZE.y * STAT_Y)
 		warn.size = Vector2(BOARD_SIZE.x * 0.30, BOARD_SIZE.y * 0.09)
 		warn.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -325,7 +327,8 @@ func _friend_button() -> void:
 	# screen it opens has a single card on it and that needs to read as a gate
 	# rather than as a broken list.
 	var n := Friends.list().size()
-	var text := "Choose friend (%d)" % n if n > 1 else "Choose friend"
+	# The count is on the board, not the button.
+	var text := "Choose"
 	var l := _label(text, _fitted_font(text, native.x - ACTION_PADDING), true)
 	l.size = native
 	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -411,10 +414,9 @@ func _action_button(a: FleetAircraft) -> void:
 	# destination applies from its NEXT departure rather than right now.
 	# Says there is something to save, so the button reads as the commit step
 	# rather than as a no-op you can skip.
-	var pending := assigned and _destination != Fleet.destination_of(a)
-	var text := "Set route"
-	if assigned:
-		text = "Update route *" if pending else "Update route"
+	# One word each, so the caption fits at the full font instead of being
+	# shrunk to 11 and still overflowing.
+	var text := "Update" if assigned else "Set"
 
 	var b := TextureButton.new()
 	b.ignore_texture_size = true

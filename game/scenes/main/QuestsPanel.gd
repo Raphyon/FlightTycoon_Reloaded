@@ -35,6 +35,9 @@ const BUTTON_OFF := preload("res://assets/buttons/button_grey3@2x.png")
 # and the wide one 192x62. These were 78x26, 54x24 and 110x32 - three different
 # scales, none of them either.
 const PILL_SIZE := Vector2(68, 31)
+const ROW_W := PANEL_SIZE.x - MARGIN * 2.0
+const BUTTON_EDGE := 8.0
+const BUTTON_SPACING := 12.0
 const WIDE_SIZE := Vector2(96, 31)
 
 # SIZED AGAINST THE SCREEN.
@@ -296,7 +299,9 @@ func _make_row(key: String) -> Control:
 	row.add_child(reward)
 
 	# One button, three states - claimable, taken, still going.
-	var button_pos := Vector2(PANEL_SIZE.x - MARGIN * 2.0 - 78 - 8, 6)
+	# Laid out from the row's right edge off PILL_SIZE, not the old 78/54 widths
+	# they used to be - those left Swap overlapping Claim by 8px.
+	var button_pos := Vector2(ROW_W - PILL_SIZE.x - BUTTON_EDGE, 6)
 	var button: TextureButton
 	if taken:
 		button = _texture_button(BUTTON_OFF, PILL_SIZE, "Claimed", false)
@@ -316,7 +321,7 @@ func _make_row(key: String) -> Control:
 			func() -> void: Quests.refresh(key))
 		swap.modulate = Color(1, 1, 1)
 		swap.tooltip_text = "Swap this task (%d left today)" % Quests.refreshes_left
-		swap.position = Vector2(PANEL_SIZE.x - MARGIN * 2.0 - 78 - 68, 7)
+		swap.position = Vector2(ROW_W - PILL_SIZE.x * 2.0 - BUTTON_EDGE - BUTTON_SPACING, 7)
 		row.add_child(swap)
 	return row
 

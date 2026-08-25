@@ -57,6 +57,8 @@ func _build() -> void:
 	_contents.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_contents)
 
+	CloseButton.add_to(self, BOARD_SIZE, hide)
+
 	var total := BUTTON_SIZE.x * 2.0 + BUTTON_GAP
 	var left := (BOARD_SIZE.x - total) * 0.5
 
@@ -111,7 +113,9 @@ func show_friend(map_key: String) -> void:
 	var removable := Friends.can_remove(map_key)
 	_remove_button.disabled = not removable
 	_remove_button.modulate = Color.WHITE if removable else DISABLED_MODULATE
-	_remove_label.text = "Remove" if removable else "Can't remove"
+	# Always the verb - "Can't remove" is 106px in an 88px button, and it is a
+	# state, not an instruction. The greyed art says it cannot be pressed.
+	_remove_label.text = "Remove"
 	visible = true
 
 

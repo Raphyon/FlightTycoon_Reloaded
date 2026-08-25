@@ -66,7 +66,8 @@ const FONT_TITLE := 22
 const FONT_LEVEL := 13
 const FONT_RENT := 15
 const FONT_TAG := 15
-const FONT_BUTTON := 15
+# Matches BuildingInfoPanel's upgrade button - same action, same board.
+const FONT_BUTTON := 13
 const FONT_NOTE := 11
 const FONT_MIN := 9
 

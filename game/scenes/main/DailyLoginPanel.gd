@@ -10,7 +10,8 @@ extends Control
 
 const BOARD := preload("res://assets/board/board_changelist@ipad.png")
 const TILE_ART := preload("res://assets/board/board_card1@2x.png")
-const BUTTON_ART := preload("res://assets/buttons/button_orange2@2x.png")
+# The WIDE art: "Collected" does not fit the pill.
+const BUTTON_ART := preload("res://assets/buttons/button_orange4@2x.png")
 const BUTTON_OFF_ART := preload("res://assets/buttons/button_grey3@2x.png")
 const ICON_CASH := preload("res://assets/hud/icon_medium_money1@2x.png")
 const ICON_COIN := preload("res://assets/hud/icon_medium_coin@2x.png")
@@ -29,7 +30,8 @@ const TILES_Y := 78.0
 
 const TITLE_Y := 20.0
 # 1x NATIVE - button_orange2 is 136x62 @2x, so 68 is its intended width.
-const BUTTON_W := 68.0
+# button_orange4 is 192x62 @2x -> 96x31.
+const BUTTON_W := 96.0
 const BUTTON_Y := 228.0
 const NOTE_Y := 288.0
 
