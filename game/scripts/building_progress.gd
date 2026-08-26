@@ -494,12 +494,35 @@ func collect_rent(plot_id: int, map_key: String = "") -> int:
 	var key := building_at(plot_id, map_key)
 	var amount := rent_at(plot_id, map_key)
 	Economy.add_money(amount)
-	if randf() < coin_chance_at(plot_id, map_key):
-		Coins.add(COIN_DROP_AMOUNT)
-		coin_found.emit(plot_id, COIN_DROP_AMOUNT)
 	var mk := map_key if map_key != "" else Maps.current
 	var m := _map(mk)
 	var existing: Dictionary = m.get(str(plot_id), {})
+
+	# A PITY COUNTER, NOT A COIN FLIP. This used to be randf() < chance, which
+	# at 1% a collection means a quarter of players wait three times the average
+	# for their first coin and some wait ten. The drought is the whole
+	# experience of a 1% roll; the mean is not.
+	#
+	# So the chance is ADDED UP instead. Each collection adds exactly what it
+	# would have been worth as a probability, and crossing 1.0 pays a coin and
+	# takes 1.0 back off - keeping the remainder, so nothing is rounded away.
+	#
+	# THE LONG-RUN MEAN IS IDENTICAL BY CONSTRUCTION. Expected coins per
+	# collection was the chance and still is; only the variance is gone. That
+	# matters because the coin economy is measured and balanced - 654 earned a
+	# run against a 410 catalogue, see BALANCE.md - and a fix that quietly moved
+	# the rate would invalidate the lot.
+	#
+	# It lives on the PLOT, in the record that already persists, so it survives a
+	# session and each building keeps its own progress. Held in memory it would
+	# reset on every load and silently eat up to a coin each time.
+	var pity := float(existing.get("pity", 0.0)) + coin_chance_at(plot_id, map_key)
+	if pity >= 1.0:
+		pity -= 1.0
+		Coins.add(COIN_DROP_AMOUNT)
+		coin_found.emit(plot_id, COIN_DROP_AMOUNT)
+	existing["pity"] = pity
+
 	existing["key"] = key
 	existing["since"] = GameClock.now()
 	m[str(plot_id)] = existing
