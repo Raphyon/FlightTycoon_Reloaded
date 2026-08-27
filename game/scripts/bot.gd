@@ -138,6 +138,13 @@ var _buying := "prestige"
 # buys a zone after the first four and measures a player nobody is. Read the
 # result as "curating instead of accumulating", pads included, not as a figure
 # for fleet quality alone.
+# WHICH CAPSTONE THE PLAYER TAKES when a model tops out its mastery, or "off"
+# for a player who never opens the panel - which is the baseline every capstone
+# has to be measured against.
+#
+#     godot --headless --path game -- --bot --who regular --capstone reach
+var _capstone := "off"
+var _capstones_taken := 0
 var _fleet_cap := 0
 var _retired := 0
 # Whether the imaginary player bothers with the daily tasks. OFF is the baseline
@@ -179,6 +186,7 @@ func _ready() -> void:
 			"--routing": _routing = args[i + 1]
 			"--buying": _buying = args[i + 1]
 			"--fleet-cap": _fleet_cap = maxi(0, int(args[i + 1]))
+			"--capstone": _capstone = args[i + 1]
 			"--quests": _do_quests = args[i + 1] != "off"
 			"--trace": _trace = true
 			"--latency": _latency = maxf(0.0, float(args[i + 1]))
@@ -381,6 +389,7 @@ func _collect() -> void:
 		# takes idle and parked aircraft ahead of unclaimed ones, so it only
 		# happens when nothing cleaner is available.
 		_replace_pass()
+		_choose_capstones()
 		_collect_bulk()
 		return
 	for a in Fleet.aircraft.duplicate():
@@ -398,6 +407,7 @@ func _collect() -> void:
 	# refuses - which is exactly what the first version of this did, 758 times
 	# in a 30 day run, reporting nothing retired.
 	_replace_pass()
+	_choose_capstones()
 	for a in Fleet.aircraft.duplicate():
 		match a.state:
 			FleetAircraft.State.AWAITING_DEST_REFUEL:
@@ -689,6 +699,28 @@ func _worst_owned() -> String:
 	return worst
 
 
+# Take the capstone on anything that has just topped out. Costs a tap, like
+# every other decision the bot makes - it is a panel the player has to open.
+#
+# Falls back to the first option the model actually offers: reach is withheld
+# from anything already built for five clouds, which is most of the top of the
+# ladder, and a bot that asked for it anyway would silently take nothing and
+# report a capstone run that never chose one.
+func _choose_capstones() -> void:
+	if _capstone == "off":
+		return
+	for a in Fleet.aircraft:
+		if not AircraftAffinity.can_choose_capstone(a.model_key):
+			continue
+		var opts: Array = AircraftAffinity.options_for(a.model_key)
+		if opts.is_empty():
+			continue
+		var pick: String = _capstone if opts.has(_capstone) else str(opts[0])
+		_taps += 1
+		if AircraftAffinity.choose_capstone(a.model_key, pick):
+			_capstones_taken += 1
+
+
 # Retire and replace until nothing more is worth doing this pass. Eight is a
 # stop, not a budget - the loop ends on its own as soon as the board holds
 # nothing worse than what the money can reach.
@@ -955,6 +987,8 @@ func _summary() -> void:
 	if _fleet_cap > 0:
 		print("  FLEET CAP %d: %d aircraft retired and replaced over the run"
 			% [_fleet_cap, _retired])
+	if _capstone != "off":
+		print("  CAPSTONE %s: taken on %d models" % [_capstone, _capstones_taken])
 	print("  routing policy: %s   buying: %s   daily tasks: %s" % [_routing, _buying, "on" if _do_quests else "off"])
 	print("  quests: %d sets completed, %d coins earned" % [_sets_done, _quest_coins])
 	print("  building coin drops: %d" % _building_coins)

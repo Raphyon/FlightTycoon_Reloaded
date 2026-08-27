@@ -777,9 +777,13 @@ func flight_seconds_for(a: FleetAircraft, map_key: String) -> float:
 		* AircraftAffinity.speed_multiplier(a.model_key))
 
 
-# How many passengers a leg carries: all of them.
+# How many passengers a leg carries: all of them, plus whatever the CABIN
+# capstone added. Applied here rather than inside payout_for so it reaches the
+# money through the seat count the shop card already shows, instead of becoming
+# a fourth invisible multiplier on the pay formula.
 func passengers(model_key: String) -> int:
-	return int(ShopCatalog.stat(model_key, "seats"))
+	return int(round(float(ShopCatalog.stat(model_key, "seats"))
+		* AircraftAffinity.cabin_multiplier(model_key)))
 
 
 # Flat per leg, like pay - it is the number on the card. map_key is accepted and
@@ -820,8 +824,27 @@ func payout_for(model_key: String, map_key: String = "") -> int:
 # Falls back to the furthest it can reach when the exact match is still locked,
 # and to the nearest when nothing is. Used to pick a sensible default rather
 # than leaving every new route pointed at the tutorial hop.
+# The clouds this model can actually reach - its catalogue range plus whatever
+# the REACH capstone earned it. Every range QUESTION goes through here.
+#
+# Note what deliberately does NOT: xp_for_claim divides by the CATALOGUE range,
+# so an aircraft that earns a cloud earns proportionally more XP for flying
+# further rather than having the gain normalised away. Wiring that denominator
+# to this function would cancel the capstone out exactly.
+# The top of the ladder: CLOUD_BASE_MINUTES has five rungs and Maps has one
+# destination per rung. It cannot be written as CLOUD_BASE_MINUTES.size() -
+# GDScript will not take that as a constant expression - so if a sixth cloud is
+# ever added, this is the second place to change.
+const MAX_CLOUDS := 5
+
+
+func effective_range(model_key: String) -> int:
+	return mini(int(ShopCatalog.stat(model_key, "range"))
+		+ AircraftAffinity.bonus_clouds(model_key), MAX_CLOUDS)
+
+
 func best_destination_for(model_key: String) -> String:
-	var reach := int(ShopCatalog.stat(model_key, "range"))
+	var reach := effective_range(model_key)
 	var best := Maps.ROBOT_MAP
 	var best_d := 0
 	for key in Maps.visitable_maps():
@@ -835,7 +858,7 @@ func best_destination_for(model_key: String) -> String:
 
 
 func in_range(model_key: String, map_key: String) -> bool:
-	return int(ShopCatalog.stat(model_key, "range")) >= distance_to(map_key)
+	return effective_range(model_key) >= distance_to(map_key)
 
 
 

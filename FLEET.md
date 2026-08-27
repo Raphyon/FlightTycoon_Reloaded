@@ -173,62 +173,51 @@ Kept here rather than deleted because the reasoning is the useful part, and
 because a later pass that finds a genuine need for a fleet-size cost should know
 this was measured rather than skipped.
 
-### 2. Mastery worth committing to
+### 2. Mastery worth committing to - BUILT, and measured
 
-Today: 1% flight time per level, capped at 10% at level 10, 405 legs to max.
-ROADMAP already calls this far too small to carry a progression system, and it
-is: 10% off a leg is invisible next to a 750x spread in what a lap pays.
+The mastery ramp is unchanged: 1% flight time a level to 10% at level 10, 405
+legs end to end. **The weight went into a capstone at the top instead**, chosen
+once per model and not changeable afterwards - a capstone you can re-pick at
+will is a settings screen, not a decision.
 
-The proposal is that mastery pays in FOUR currencies, and that the last level is
-a CHOICE between them rather than a stack of all four.
+**THREE OPTIONS, NOT FOUR.** The design listed speed, payout, seats and range.
+Payout and seats are THE SAME LEVER: a leg pays `passengers x ticket x clouds`,
+so +50% seats and +50% payout are the identical multiplication, and offering
+both would have been a choice between two spellings of one option. What is left
+is three genuinely different axes:
 
-ILLUSTRATIVE doses, for the arithmetic only:
-
-| | at mastery 10 |
-|---|---|
-| speed | -40% leg time |
-| payout | +50% per leg |
-| seats | +50% cabin |
-| range | **+1 cloud, and +1 is the maximum** |
-
-They do not stack into one number, which is the interesting part. Range pulls
-against the other three:
-
-| mastery 10 | $/tap | $/hour |
+| | what it does | who it is for |
 |---|---|---|
-| speed + payout + seats, no cloud | x2.25 | **x3.75** |
-| ...+1 cloud, from range 1 | **x4.50** | x1.50 |
-| ...+1 cloud, from range 4 | x2.81 | x1.04 |
-| *(+2 clouds, rejected - see below)* | *x6.8* | *x0.56* |
+| **cabin** | +50% seats, so +50% a leg | more money, same tempo |
+| **turnaround** | a further 30% off the leg | more legs an hour |
+| **reach** | +1 cloud, the maximum | more per TAP, far longer legs |
 
-So mastery does not make a model better in one direction. It makes it better for
-a KIND OF PLAYER: the cloud is a per-tap upgrade for someone who is away between
-sessions, and the other three are a per-hour upgrade for someone who is present.
-BALANCE.md observes that the fleet already has this axis by accident and does
-not label it. This labels it and hands it to the player.
+Reach is withheld from anything already built for five clouds - `Maps` has five
+destinations and `Fleet._leg_minutes` clamps there, so a sixth would be a reward
+that does nothing. That is 34 of 59 aircraft, and most of the top of the ladder;
+they choose between cabin and turnaround.
 
-**Range is capped at +1 cloud, at the final level only.** At +2 the branch was a
-per-hour LOSS - you paid real income to buy taps - and x6.8 per tap on every
-model is the same order as the `CLOUD_PAY` experiment BALANCE.md warns about,
-which inflated late income about 30x and halved pacing. At +1 both branches land
-above x1.0 on both axes: neither choice is a punishment, they differ in
-emphasis.
+Measured over 140 days, regular, with `--capstone`:
 
-Two consequences fall out of the arithmetic rather than out of taste:
+| | home zones | gross income | taps | level |
+|---|---|---|---|---|
+| none | 24.0 h | $1.60bn | 192,742 | 80 |
+| cabin | 24.0 h | **$2.10bn** (+31%) | 193,871 | 81 |
+| turnaround | **22.7 h** | $1.62bn (+1%) | 211,523 | **82** |
+| reach | 24.0 h | $1.79bn (+12%) | 193,059 | 80 |
 
-**A cloud is inherently a short-haul reward.** It is worth x2.00 per tap at
-range 1 and x1.25 at range 4 - the gain shrinks as range rises while the time
-cost stays flat. So it lands hardest on exactly the cheap early aircraft the
-game currently abandons. An ATR 72 flown four hundred times doubling its pay per
-leg is a real answer to "why keep flying the type I committed to".
+**They are genuinely different, and that is the good news.** Cabin is the money
+option. Turnaround is the only one that touches PACING - it buys legs, legs are
+XP, and XP is progress - and it is the only one that costs more taps, which is
+the same fact seen from the other side. Reach sits between them, buying money
+without buying time.
 
-**58% of the roster cannot take it at all.** 34 of 59 aircraft are already at
-range 5, including 17 of the level-50-and-up ladder, and `Maps` has exactly five
-destinations - a sixth cloud has nothing to fly to, and `Fleet._leg_minutes`
-clamps at 5 regardless. So range is one option among several and never the sole
-capstone. The top of the ladder has to be offered a different one, which is
-arguably the point: the capstone means something different depending on where
-the aircraft sits.
+**The bad news is the magnitudes, and it is the same bad news as everywhere
+else.** +31% on money is not a progression axis while money has no sink; the
+only capstone that moves progress moves it by two levels. **Do not tune these
+doses yet.** Until the trade-in exists to give cash somewhere to go, a
+money-flavoured reward is being measured in a currency the game does not spend,
+and a bigger number would only be a bigger number.
 
 ### 3. Trade-in that carries the investment - AND IS THE SINK
 
