@@ -370,6 +370,17 @@ func _note_fleet() -> void:
 func _collect() -> void:
 	_note_fleet()
 	if _bulk:
+		# BEFORE advance_all, which is the only gap the bulk path has. It claims
+		# and departs in one call, so there is no moment afterwards when
+		# anything is standing on a pad - a replacement attempted after it
+		# retires nothing at all, and --fleet-cap under --bulk silently measured
+		# a board FROZEN at N rather than a curated one.
+		#
+		# The cost is that a retirement here forfeits whatever the aircraft was
+		# holding, since it has landed and not been claimed. Fleet.sell_one
+		# takes idle and parked aircraft ahead of unclaimed ones, so it only
+		# happens when nothing cleaner is available.
+		_replace_pass()
 		_collect_bulk()
 		return
 	for a in Fleet.aircraft.duplicate():
@@ -386,10 +397,7 @@ func _collect() -> void:
 	# it finds an empty apron and a board of airborne aircraft that can_sell
 	# refuses - which is exactly what the first version of this did, 758 times
 	# in a 30 day run, reporting nothing retired.
-	if _fleet_cap > 0:
-		for _r in range(8):
-			if not _replace_worst():
-				break
+	_replace_pass()
 	for a in Fleet.aircraft.duplicate():
 		match a.state:
 			FleetAircraft.State.AWAITING_DEST_REFUEL:
@@ -679,6 +687,17 @@ func _worst_owned() -> String:
 			worst_value = v
 			worst = a.model_key
 	return worst
+
+
+# Retire and replace until nothing more is worth doing this pass. Eight is a
+# stop, not a budget - the loop ends on its own as soon as the board holds
+# nothing worse than what the money can reach.
+func _replace_pass() -> void:
+	if _fleet_cap <= 0:
+		return
+	for _r in range(8):
+		if not _replace_worst():
+			return
 
 
 # At the cap, buying is REPLACING: scrap the worst lap on the board and put the
