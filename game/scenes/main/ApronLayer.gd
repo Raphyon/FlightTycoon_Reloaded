@@ -130,6 +130,20 @@ func reload_for_map() -> void:
 	for node in _world_aircraft.values():
 		node.queue_free()
 	_world_aircraft.clear()
+	# AND THE ONES ALREADY OFF THE BOOKS. A departing aircraft is erased from
+	# _world_aircraft the moment its animation starts - see the departure branch
+	# in _sync_world_aircraft - so it can free itself when the roll finishes and
+	# a quick reassignment can spawn a fresh node without fighting it. That
+	# leaves it parented to WorldAircraft and untracked, so the loop above never
+	# saw it: dispatch an aircraft, travel immediately, and its takeoff carried
+	# on over the airport you had just arrived at.
+	#
+	# Travelling cuts the animation. Sweeping the container catches whatever is
+	# mid-flight as well as whatever is parked.
+	var hangar := get_node_or_null("../WorldAircraft")
+	if hangar:
+		for node in hangar.get_children():
+			node.queue_free()
 	# THE FIRST SYNC AFTER A LOAD OR A TRAVEL PARKS EVERYTHING.
 	#
 	# The arrival animation is for an aircraft that just came home while you were

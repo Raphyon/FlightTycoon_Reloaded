@@ -46,10 +46,12 @@ func _on_map_changed(_map_key: String) -> void:
 	$ApronLayer.call_deferred("reload_for_map")
 	$CloudLayer.call_deferred("reload_for_map")
 	$PathLayer.call_deferred("reload_for_map")
-	# Nothing is guaranteed to be occupied on a map you've never built on, so
-	# fall back to the middle of the new world rather than leaving the camera
-	# parked over wherever the last airport's aircraft was.
-	call_deferred("_recentre_camera")
+	# THE VIEW CARRIES OVER. Travelling used to recentre, which meant sending an
+	# aircraft to a friend and then having to find the same corner of the map
+	# again by hand - and the robot airports borrow homeland's apron layout, so
+	# the coordinates line up and the pad you were looking at is in the same
+	# place on the other side.
+	call_deferred("_carry_camera_over", $Camera2D.position)
 
 
 func _apply_map() -> void:
@@ -64,9 +66,16 @@ func _apply_map() -> void:
 	camera.limit_bottom = size.y
 
 
-func _recentre_camera() -> void:
-	var occupied: Vector2 = $ApronLayer.get_occupied_position()
-	$Camera2D.position = occupied if occupied != Vector2.ZERO else Vector2(Maps.size_for()) * 0.5
+# Keeps the view where it was, pulled inside the new world's bounds. A map that
+# is smaller than the one just left would otherwise leave the camera parked off
+# the edge of it.
+func _carry_camera_over(previous: Vector2) -> void:
+	var size := Vector2(Maps.size_for())
+	var camera: Camera2D = $Camera2D
+	var half := camera.get_viewport_rect().size * 0.5 / maxf(camera.zoom.x, 0.001)
+	camera.position = Vector2(
+		clampf(previous.x, minf(half.x, size.x * 0.5), maxf(size.x - half.x, size.x * 0.5)),
+		clampf(previous.y, minf(half.y, size.y * 0.5), maxf(size.y - half.y, size.y * 0.5)))
 
 
 # Someone else's airport is a place you visit, not one you run: there's no
