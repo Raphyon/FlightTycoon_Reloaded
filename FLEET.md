@@ -73,12 +73,32 @@ are the sink that competes with the fleet.
 35 taps a minute sustained across 93 hours is not a person - it is what the
 current shape quietly demands of one. A curated board runs at 4-9.
 
-### There is an optimum, so there is a decision
+### With Depart All in use, curating still wins - and still loses
 
-Cap 20 is a real handicap: too few legs, too little XP, six home zones at 53.3 h
-against 23.3. Cap 80 beats both 40 and infinity. **A curve with a peak in it is
-exactly the decision the game does not currently offer**, because pads only go
-up and keeping is free.
+Every figure above is the MANUAL turnaround. Depart All collapses a whole
+fleet's turnaround into two taps and is unlocked at level 15, so it is what a
+real player past the first hour actually uses. Re-measured with `--bulk on`:
+
+| | accumulate (181) | curate (80) |
+|---|---|---|
+| gross income | $1.66bn | **$5.86bn** |
+| taps | 139,932 | **10,183** |
+| taps per minute | 25 | 2 |
+| six home zones | **21.3 h** | 24.0 h |
+| fleet ladder | **51.3 h** | 57.3 h |
+| level at day 140 | 82 | 82 |
+| cash at the end | $59.6M | **$5.35bn** |
+
+Curating still wins enormously on both money and taps - the bulk button does not
+rescue a bloated board. **But accumulating finishes the zones sooner, finishes
+the ladder sooner, and ends on the same level**, while the curated player sits
+on five billion dollars with nothing to buy.
+
+**That is the real reason nobody retires an aircraft, and it is not that keeping
+is free. It is that money is worthless.** Curation buys money and taps;
+accumulation buys progress; progress gates every zone and aircraft in the game.
+A player optimising for what the game actually rewards should hoard, and would
+be right to.
 
 ### XP is linear in headcount, and quality very nearly pays for it
 
@@ -119,25 +139,39 @@ figure for fleet quality alone.
 
 ## The design
 
-Four parts. 1 and 3 are load-bearing: they are what turns a collection into a
-portfolio. 2 and 4 are what give the portfolio a shape.
+Four parts were proposed. **Part 1 was measured and dropped**, and part 3 turned
+out to be doing its job from the other direction. What is left is a design with
+no punitive mechanic in it: 3 is the sink that makes curating pay, 2 is what
+makes the fleet you keep worth keeping, and 4 is still open.
 
-### 1. Keeping costs something
+### 1. Keeping costs something - CONSIDERED AND DROPPED
 
-An operating cost per aircraft, anchored to the CURRENT top of the ladder rather
-than to a fixed figure - roughly `k x the pay of the best aircraft you can buy
-today`. An aircraft goes net-negative around the time it stops mattering, so the
-bottom of the fleet falls off as you climb and you feel the tap bill you are
-paying for it.
+The original first part of this design was upkeep: a running cost per aircraft,
+anchored to the best aircraft you could currently buy, so the bottom of the
+fleet went net-negative as you climbed and retiring became the obvious move.
 
-Anchoring rather than fixing is the whole trick. A flat number is a wall at
-level 5 and invisible at level 60; a percentage of the aircraft's own income
-never bites, because a DC-3 paying 80% of 400 is still positive. Anchored to the
-ladder it cannot produce a figure the player cannot pay, and it is the
-percentage-shaped late-game sink the readme's Known issues asks for.
+**It was aimed at a problem that is not there.** The measurement above says the
+incentive to curate is already enormous - 3.5x the income at a fourteenth of the
+taps - and no player is failing to retire aircraft because the pull is too weak.
+They are failing to retire them because the reward for curating is money, and
+money buys nothing once the map is finished.
 
-Charge it on pads only - an aircraft in the hangar is stored, not operated - and
-say plainly on the card when a model is losing money.
+Upkeep would have attacked that by making hoarding hurt. Three objections, in
+rising order of weight:
+
+- It is a PUSH. The player is billed for owning the things the game spent forty
+  hours persuading them to buy.
+- Its anchor inherits BALANCE.md's finding 2. `best available lap` is not a
+  smooth curve - it is flat through the mid-game and jumps 11x at level 50 where
+  the ticket override lands. At 2% it retires nothing at all at level 30, eleven
+  models at level 50, and then stops moving.
+- **It solves the symptom.** Hoarding is rational because cash has no sink. Fix
+  the sink and hoarding stops being rational on its own, with nothing punitive
+  anywhere in the design.
+
+Kept here rather than deleted because the reasoning is the useful part, and
+because a later pass that finds a genuine need for a fleet-size cost should know
+this was measured rather than skipped.
 
 ### 2. Mastery worth committing to
 
@@ -196,11 +230,17 @@ capstone. The top of the ladder has to be offered a different one, which is
 arguably the point: the capstone means something different depending on where
 the aircraft sits.
 
-### 3. Trade-in that carries the investment
+### 3. Trade-in that carries the investment - AND IS THE SINK
 
 On the shop card: full price, or full price minus 50% of the model you retire,
 in one tap - and a fraction of the retired model's mastery XP carried into the
 new one.
+
+**This is what part 1 was reaching for, from the other side.** Cash buys fleet
+quality; fleet quality buys income and taps; and the loop closes instead of
+dead-ending in a bank balance. A curated player's 3.5x income advantage becomes
+3.5x of something they want, at which point curating is simply the better play
+and nobody had to be billed for anything.
 
 The carry is the part that matters. ROADMAP names the blocker exactly: a model
 at mastery 10 is 405 legs of investment and the resale is a flat 50% of
@@ -212,14 +252,19 @@ is already fixed. What is missing is the gesture and the carry.
 Coin aircraft still refuse to be sold, and the trade-in has to say so rather
 than appear broken.
 
-### 4. Breadth costs something
+### 4. Breadth costs something - OPEN, and suspect for the same reason
 
 Operating N distinct types costs progressively more - a type rating, paid once
 per model, priced off how many types you already run. Without it mastery
-dilutes, the answer is "own everything", and part 2 buys nothing.
+dilutes, the answer is "own everything", and part 2 buys nothing. With it,
+fifteen mastered types beat forty dabbled ones, and the capstone choice in part
+2 is what gives your fifteen a character.
 
-With it, fifteen mastered types beat forty dabbled ones, and the capstone choice
-in part 2 is what gives your fifteen a character. That is the portfolio.
+**But it is another PUSH, and part 1 died of exactly that.** Before building it,
+check whether mastery alone already answers it: if a mastered type is worth
+enough, spreading thin costs you the mastery you would otherwise have had, and
+breadth is self-limiting with nothing charged for it. Measure that before
+charging for type ratings.
 
 ---
 
@@ -366,12 +411,12 @@ that earns ten million, so it changes the first quarter hour and nothing else.
   the ladder.
 - **Whether the trade-in carries mastery XP or discounts the price by it.**
   Carrying is more interesting and much easier to make illegible.
-- **Whether upkeep applies to coin aircraft**, which cannot be sold to escape
-  it.
+- **Whether breadth needs charging for at all** - see part 4.
 
 ## How to measure the next version
 
     godot --headless --path game -- --bot --who regular --fleet-cap 80
+    godot --headless --path game -- --bot --who regular --fleet-cap 80 --bulk on
 
 `--fleet-cap` is in the bot now and is instrument only - it drives `Fleet`,
 `Economy` and `ApronProgress` through the same calls a player would. Back up
@@ -383,13 +428,23 @@ to it. Attempted after the dispatch loop it found an empty apron and a board of
 airborne aircraft every time - 758 refusals in a 30 day run, reporting nothing
 retired. Worth knowing before moving it.
 
+**`--bulk on` needs its own call and nearly cost a wrong conclusion.**
+`_collect_bulk` claims and departs in one `advance_all`, so it leaves no gap at
+all - the pass never ran, `--fleet-cap` under `--bulk` silently measured a board
+FROZEN at N rather than a curated one, and it reported "0 aircraft retired" as
+though that were a result. It now runs before `advance_all` and reports 734. The
+cost of that position is that a retirement there forfeits an unclaimed reward,
+which `Fleet.sell_one` avoids where it can by taking idle and parked aircraft
+first.
+
 ## Risks
 
 - **Four multipliers on one number.** BALANCE.md's `If one thing changes`
   section is about exactly this failure. The +1 cloud cap is one guard; the
   doses above are the other, and they are unswept.
-- **Upkeep reads as punishment** if the game does not say clearly which aircraft
-  are costing money. The whole design turns on retirement feeling like an
-  upgrade rather than a loss.
+- **The sink has to be big enough to matter.** The whole design now rests on
+  cash having somewhere to go; if the trade-in is the only sink and it is
+  cheap, a curated player is back to sitting on billions and hoarding is
+  rational again. This is the thing to measure first.
 - **It makes the early ladder matter more, which is where the art is thinnest.**
   That is a content bill, not a balance one, but it is real.
