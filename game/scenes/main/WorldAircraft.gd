@@ -95,6 +95,9 @@ var _is_vtol := false
 var _ground_effect: Sprite2D
 var _home_position := Vector2.ZERO
 var _animating := false
+# Specifically an APPROACH, as opposed to a departure - only the approach is
+# worth abandoning when the aircraft turns out to be parked already.
+var _arriving := false
 # WHICH ANIMATION IS THE LIVE ONE.
 #
 # Both play_arrival and play_departure await RunwayControl, and the layer can
@@ -394,7 +397,34 @@ func sync_position(screen_pos: Vector2) -> void:
 		position = screen_pos
 
 
+# THE APPROACH IS MOOT ONCE THE AIRCRAFT IS SETTLED, and abandoning it is the
+# only thing that gets it off the runway.
+#
+# _play_runway_arrival TELEPORTS TO THE RUNWAY THRESHOLD AND THEN QUEUES: it
+# sets position to the first point of the approach and only then awaits the
+# strip. So a queued arrival is an aircraft parked visibly on the runway, doing
+# nothing, for as long as the queue is busy.
+#
+# Meanwhile sync_position refuses to move anything while _animating, and nothing
+# bumps _anim_token when the player claims and refuels underneath it. Complete
+# the turnaround before the approach has played and the aircraft is stranded on
+# the strip - settled in the model, sitting on the runway on screen, and never
+# travelling to its pad.
+#
+# So the layer tells it to give up: cancel the animation, hand back the strip if
+# it got it, and drop onto the pad where the aircraft already is.
+func abandon_arrival() -> void:
+	if not _arriving:
+		return
+	_arriving = false
+	# Supersedes the queued coroutine - it releases and returns on the token
+	# check rather than flying an approach for an aircraft already parked.
+	_anim_token += 1
+	_settle_at_home()
+
+
 func play_arrival() -> void:
+	_arriving = true
 	# Out on arrival. A departure fades the aircraft out with the burner still
 	# lit, so nothing else turns it off - and the same node is reused when it
 	# comes back, which would land it on the pad still burning.
@@ -512,6 +542,7 @@ func _begin_animation() -> int:
 # Parked state - everything back to the neutral pose the apron expects.
 func _settle_at_home() -> void:
 	_animating = false
+	_arriving = false
 	# A landing holds the strip right through touchdown (no-op for VTOLs,
 	# which never took it).
 	_release_runway()

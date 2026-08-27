@@ -395,6 +395,12 @@ func _sync_world_aircraft() -> void:
 		else:
 			# Not setup() - that adds a fresh set of child sprites every
 			# call, so re-running it each rebuild stacked duplicates.
+			# A settled aircraft has no approach left to fly. Claiming and
+			# refuelling while it is still queued for the strip used to leave it
+			# stranded there - see WorldAircraft.abandon_arrival.
+			if a.state == FleetAircraft.State.PARKED \
+					or a.state == FleetAircraft.State.AWAITING_HOME_REFUEL:
+				_world_aircraft[a.id].abandon_arrival()
 			_world_aircraft[a.id].sync_position(slot.position)
 			# A livery bought or switched while the aircraft is already parked
 			# has to repaint the node that exists, because setup() is never
