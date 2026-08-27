@@ -80,13 +80,28 @@ against 23.3. Cap 80 beats both 40 and infinity. **A curve with a peak in it is
 exactly the decision the game does not currently offer**, because pads only go
 up and keeping is free.
 
-### Curation is punished on the one axis that gates everything
+### XP is linear in headcount, and quality very nearly pays for it
 
-XP is per leg, so it scales with fleet SIZE: cap 20 ends at level 62 against the
-uncapped 81. Level gates zones, aircraft and Depart All, so today the game
-rewards curation on income and taps and punishes it on progress. **If the fleet
-becomes the axis, XP cannot stay a pure count of legs flown** - breadth would
-win by default whatever mastery pays.
+Converted to XP earned rather than levels reached:
+
+| | aircraft | level | total XP | XP per aircraft |
+|---|---|---|---|---|
+| no cap | 180 | 81 | 10.4M | **57,592** |
+| cap 20 | 20 | 62 | 3.4M | 168,661 |
+| cap 40 | 40 | 73 | 6.7M | 167,454 |
+| cap 80 | 80 | 85 | 12.7M | 158,661 |
+
+XP is almost exactly linear in fleet size - 20/40/80 earn 1:2:4 - but a CURATED
+aircraft earns **2.9x** the XP of an accumulated one, and the two effects very
+nearly cancel. A curated 80 out-levels an accumulated 180; break-even is around
+65 aircraft.
+
+**So curation is not punished on the level axis** - it is punished only below
+about 65 aircraft. An earlier version of this document said otherwise, on levels
+alone rather than on XP, and was wrong. Fleet size having a straight payoff in
+levels is a counterweight against taps and upkeep, not a fault to design out.
+
+The real asymmetry is elsewhere, and it lands on the capstone: see below.
 
 ### What this measurement does NOT separate
 
@@ -208,11 +223,145 @@ in part 2 is what gives your fifteen a character. That is the portfolio.
 
 ---
 
+## The XP question, solved
+
+MEASURED, and the fix is in `Fleet.xp_for_claim`.
+
+**Cash scales with the route's clouds; XP does not.** `payout_for` multiplies by
+`distance_to(map_key)`; `xp_for_claim` takes the map key and ignores it. So the
+two economies disagree about what a route is worth, and the disagreement lands
+on the capstone:
+
+| taking +1 cloud | $/tap | $/hour | XP/tap | XP/hour |
+|---|---|---|---|---|
+| range 1 -> 2 | x2.00 | x0.40 | x1.00 | **x0.20** |
+| range 4 -> 5 | x1.25 | x0.28 | x1.00 | **x0.22** |
+
+Cash treats the capstone as a trade. XP treats it as a straight loss - an idle
+player who takes the range branch levels four to five times slower, and levels
+gate every zone and aircraft in the game.
+
+**Two obvious fixes were measured and both failed.** Weighting XP by clouds,
+`xp x (1 + w(clouds - 1))`, cannot win the race: leg time is geometric in clouds
+at x4.5 each, while a linear weight buys at most x2. Even at full cash parity
+the capstone still costs 60% of the model's XP rate, and it costs 2.5x the
+pacing to get there:
+
+| | home zones | fleet ladder | level at end | total XP |
+|---|---|---|---|---|
+| flat (today) | 23.3 h | 54.0 h | 81 | x1.00 |
+| w = 0.25 | 16.7 h | 35.3 h | 91 | x1.63 |
+| w = 0.5 | 13.3 h | 27.3 h | 99 | x2.32 |
+| w = 1.0 | 9.3 h | 18.7 h | 110 | x3.62 |
+
+Renormalising that with one divisor works on pacing and breaks the opening.
+`stat x clouds / 2.42` lands home zones at 23.3 h exactly - but early aircraft
+fly 1-cloud routes, so they eat the divisor with no cloud to pay for it, and
+level 10 slips from 9 minutes to 30.
+
+**The fix is to normalise on the aircraft's own catalogue range:**
+
+    xp = stat x distance_to(route) / catalogue range
+
+A model flying the route it was built for earns exactly what it earns today, so
+today's pacing, today's opening and the live DC-3 and Paper Plane figures all
+survive untouched. Only DEPARTURES from that route move the number - and they
+move it by the same factor cash already moves by. Flying a 5-cloud aircraft on a
+1-cloud hop pays a fifth of the XP, which is a fifth of the cash. Gaining a
+cloud pays x(r+1)/r, which is what the cash pays.
+
+Measured over 140 days, regular, against the same run without it:
+
+| | baseline | range-normalised |
+|---|---|---|
+| Zone2 / DarkZone / Forest | 0.3 / 3.3 / 7.8 h | 0.5 / 3.7 / 8.2 h |
+| Desert / Beach / Snow | 11.8 / 17.2 / 22.7 h | 12.3 / 17.8 / 23.5 h |
+| all pads | 24.0 h | 24.7 h |
+| all plots | 23.3 h | 24.0 h |
+| fleet ladder | 54.0 h | 55.3 h |
+| level at day 140 | 81 | 80 |
+| taps | 195,367 | 194,092 |
+
+Within 3% on every milestone. The residual is aircraft flying below their
+matched route while the far destinations are still locked, which is the new rule
+working rather than drift.
+
+**The denominator must be the CATALOGUE range, not the current one.** If mastery
+raises an aircraft's range and the denominator follows it, the bonus cancels
+itself out exactly and the whole change buys nothing.
+
+It also gives the readme's "range is inert" issue its first real push: routing
+near against far now differs in XP as well as in cash, where before the XP was
+identical either way.
+
+### And one round trip took you to level 4
+
+Separate fault, same system. The curve is degenerate at the bottom - level 2
+costs **1 XP**, level 3 costs 10, level 4 costs 33 - while the granted DC-3 pays
+30 a claim and a round trip is two claims. So **one full trip with a single
+plane landed the player at level 4**, and the third claim at level 5, with the
+bar never visibly moving.
+
+Three levels for one flight is not a fast opening, it is no opening. Nothing was
+earned, so nothing registered.
+
+This is faithful to the original, whose own saves put a character at level 4 on
+58 XP. The divergence is deliberate.
+
+`Progression` now puts a floor under the early levels, sized in ROUND TRIPS of
+the starter aircraft because that is the only thing a new player owns, and
+solved from two anchors rather than picked:
+
+    level 2 at TWO trips        -> 120 XP, the coefficient
+    level 3 at FOUR AND A HALF  -> 270 XP, which fixes the exponent at 1.17
+
+    floor(n) = 120 * (n - 1) ^ 1.17
+
+| level | curve | floor | trips to reach | trips for this level |
+|---|---|---|---|---|
+| 2 | 1 | **120** | 2.0 | 2.0 |
+| 3 | 10 | **270** | 4.5 | 2.5 |
+| 4 | 33 | **433** | 7.2 | 2.7 |
+| 6 | 185 | **788** | 13.1 | 3.0 |
+| 8 | 620 | **1169** | 19.5 | 3.2 |
+| 10 | **1584** | 1568 | 26.4 | 3.6 |
+
+Applied with `maxi`, so there is no seam to tune and no second curve to keep in
+step - and **it hands off at level 10 on its own**, the floor passing under the
+real curve at 1568 against 1584. Level 10 therefore costs exactly what it costs
+today. Only the eight levels below it are re-spaced.
+
+What a new player now sees, one aircraft, one trip at a time:
+
+| | today | with the floor |
+|---|---|---|
+| trip 1 | **level 4** | level 1, bar half full |
+| trip 2 | level 5 | level 2 |
+| trip 5 | level 5 | **level 3** |
+
+**The opening stays easy.** Nothing is gated harder and no reward shrank; the
+first trip still visibly fills half a bar. What changes is that levels arrive
+two to three trips apart instead of three in a single tap. Level 10 slips from
+about 13 minutes to about 20 - not from its threshold, which is unchanged, but
+because a lower level buys fewer aircraft for the first few minutes.
+
+### Both changes measured together
+
+| | baseline | both changes |
+|---|---|---|
+| Zone2 / DarkZone / Forest | 0.3 / 3.3 / 7.8 h | 0.5 / 3.7 / 8.2 h |
+| Desert / Beach / Snow | 11.8 / 17.2 / 22.7 h | 12.3 / 17.8 / 23.3 h |
+| all pads / all plots | 24.0 / 23.3 h | 24.7 / 24.0 h |
+| fleet ladder | 54.0 h | 55.3 h |
+| level at day 140 | 81 | 80 |
+
+Within 3% everywhere downstream. The floor is worth about 700 XP against a run
+that earns ten million, so it changes the first quarter hour and nothing else.
+
+---
+
 ## What has to be decided before any of this is built
 
-- **What XP does.** It scales with fleet size today, which makes curation cost
-  levels. Either XP stops being a pure leg count, or breadth wins whatever else
-  changes. This is the first thing to solve, not the last.
 - **Where the capstone lives for range-5 aircraft**, which is most of the top of
   the ladder.
 - **Whether the trade-in carries mastery XP or discounts the price by it.**

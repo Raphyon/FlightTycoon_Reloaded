@@ -668,10 +668,28 @@ const DESTINATION_NAME := "Robot"
 # own, which is the pacing target it was invented to hit.
 
 
-# map_key is accepted and ignored, matching payout_for - XP is the aircraft's
-# own stat and the route's distance does not enter it.
-func xp_for_claim(model_key: String, _map_key: String = "") -> int:
-	return maxi(1, int(ShopCatalog.stat(model_key, "xp")))
+# XP RESPONDS TO THE ROUTE THE WAY CASH DOES, normalised on the aircraft's OWN
+# catalogue range - so a model flying the route it was built for earns
+# exactly what it always earned, and only DEPARTURES from that route move the
+# number.
+#
+# It used to accept map_key and ignore it, which made XP the one reward in the
+# game that did not know where the aircraft had been: payout_for multiplies by
+# distance_to(map_key) and this did not. The two economies therefore disagreed
+# about what a route was worth, and the disagreement fell hardest on a long-haul
+# aircraft flown short - full XP for a fifth of the money. It now pays a fifth
+# of the XP too, and an aircraft that GAINS a cloud earns proportionally more of
+# both.
+#
+# The denominator is the CATALOGUE range, not the current one - if mastery
+# raises an aircraft's range, the denominator must not follow it or the bonus
+# cancels itself out exactly.
+func xp_for_claim(model_key: String, map_key: String = "") -> int:
+	var base := float(maxi(1, int(ShopCatalog.stat(model_key, "xp"))))
+	if map_key == "":
+		return int(base)
+	var built_for := maxf(1.0, float(int(ShopCatalog.stat(model_key, "range"))))
+	return maxi(1, int(round(base * float(distance_to(map_key)) / built_for)))
 
 # The flat fare for anything with a normal cabin. 15, which is the LIVE game's
 # own value, read straight off its shop cards - every airliner on every page
