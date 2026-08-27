@@ -118,6 +118,7 @@ script = ExtResource("6")
 [node name="ApronLayer" type="Node2D" parent="." unique_id=1040825060]
 script = ExtResource("7")
 
+[node name="WorldAircraft" type="Node2D" parent="." unique_id=1232857671]
 [node name="Landmarks" type="Node2D" parent="."]
 y_sort_enabled = true
 script = ExtResource("75")
@@ -130,8 +131,6 @@ script = ExtResource("67")
 
 [node name="CloudLayer" type="Node2D" parent="." unique_id=2115948767]
 script = ExtResource("14")
-
-[node name="WorldAircraft" type="Node2D" parent="." unique_id=1232857671]
 
 [node name="PathLayer" type="Node2D" parent="." unique_id=3320458812]
 script = ExtResource("32")
