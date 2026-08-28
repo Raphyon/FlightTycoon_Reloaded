@@ -493,6 +493,16 @@ const FUEL_SPEND_SHARE := 0.34
 
 # The destination this policy wants, clamped to what the aircraft can actually
 # reach and what is actually unlocked.
+# What every coin aircraft in the shop costs together - the size of the sink
+# the coin economy has to fill.
+func _coin_catalogue() -> int:
+	var n := 0
+	for e in ShopCatalog.ENTRIES:
+		if str(e.get("currency", "")) == ShopCatalog.COINS:
+			n += int(e.get("price", 0))
+	return n
+
+
 func _coin_models() -> int:
 	var n := 0
 	for e in ShopCatalog.ENTRIES:
@@ -1013,8 +1023,13 @@ func _summary() -> void:
 			print("    %2d aircraft  at level %-3d  %5.1f h of play   saves %d taps"
 				% [mark, v[0], v[1], v[2]])
 	print("  milestone coins: %d" % _milestone_coins)
-	print("  coins: %d earned over the run (started with %d), against %d coin aircraft in the shop"
-		% [Coins.amount - Coins.DEFAULT_AMOUNT, Coins.DEFAULT_AMOUNT, _coin_models()])
+	# LEFT, not earned - it is the closing balance less the float, and it was
+	# labelled "earned" while the four source lines above it added to ten times
+	# the figure. Reading it as earnings is what made the first balance pass
+	# call the coin economy comfortable when it was being drained.
+	var earned: int = _quest_coins + _building_coins + _login_coins + _milestone_coins
+	print("  coins: %d earned, %d left over, against a %d-coin shop of %d aircraft"
+		% [earned, Coins.amount - Coins.DEFAULT_AMOUNT, _coin_catalogue(), _coin_models()])
 	print("\n  fuel: spent $%s against $%s earned = %.1f%% of income"
 		% [_thousands(_fuel_spend), _thousands(_earned),
 			100.0 * _fuel_spend / maxf(1.0, _earned)])

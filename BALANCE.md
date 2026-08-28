@@ -1,51 +1,65 @@
 # Balance
 
-A full pass over the economy, start to finish. Re-measured 2026-08-24 against 59
-aircraft, 17 buildings and 10 zones.
+Re-measured 2026-08-28, after the shop, the zones and the pads were all rebuilt
+on figures read off the original game. **Every number in the previous version is
+superseded**, and the reason is at the bottom under *What the second pass got
+wrong* - it is one arithmetic error that had been doubling the fare since the
+day it was written.
 
-**This document replaces an earlier version that was wrong in four places.** The
-faults were all in the measuring instrument rather than the game, and they are
-listed at the bottom under *What the first pass got wrong* - worth reading
-before trusting any number here, because it is the same class of mistake that
-would make this pass wrong too.
-
-Everything below is either read out of the live tables or measured by `--bot`,
+Everything here is either read out of the live tables or measured by `--bot`,
 which drives `Fleet`, `Economy`, `Progression`, `ApronProgress`, `ZoneProgress`
 and `BuildingProgress` directly. There is no second copy of the rules.
 
-    godot --headless --path game -- --bot --who casual
-    godot --headless --path game -- --bot --who regular
-    godot --headless --path game -- --bot --who heavy
+    godot --headless --path game -- --bot --who regular --buying prestige
 
 **Back up `game/data` first and restore it after.** A bot run is guarded by
 `SaveGame.is_bot_run()`, but the guard has been wrong before.
 
 ---
 
-## The buy policy decides most of the answers
+## What the shop cards actually say
 
-The bot has two, and they do not play the same game:
+The card is a 2x2 under the name: **grade, payout, fuel, XP**. It does not print
+a seat count and it does not print a fare. The figure beside the money icon is
+what a leg pays.
 
-    --buying prestige   the dearest thing on the shelf you can afford  (default)
-    --buying rate       the best payout per minute of flight
+That was read as a fare of 15 for a long time. Three airliners whose cabins we
+already had settle it - Tu-104 200 seats against a 1500 card, Tu-154 300/2250,
+B787 400/3000 - and all three come out at **7.5 a head**, exactly half.
 
-Prestige is what a player does. Rate is an optimiser. Measured on the same
-regular profile:
+    fare           7.5, and per-aircraft where a cabin is tiny
+    payout         seats x fare x the ROUTE's clouds
+    leg minutes    CLOUD_BASE[clouds] + GRADE_STEP x CLASS_STEP[clouds]
 
-| | prestige | rate |
-|---|---|---|
-| distinct models flown | **22** | 9 |
-| level 70 | 50.0 h | **never reached** |
-| final cash | $132M | $1.0M |
-| pads | 181 / 181 | 152 |
+    CLOUD_BASE  = [  1,  5, 20,  93, 420 ]   minutes
+    CLASS_STEP  = [  1,  3,  8,  22,  60 ]
+    GRADE_STEP  = S:0  A:1  B:2  C:3  D:4  E:5
 
-**The optimiser never finishes the game.** It fills its board with whatever pays
-best per minute, which is a level-10 turboprop, and stops levelling. The player
-who just buys the biggest thing available reaches the cap at 50 hours with 22
-models flown and a hundred-odd million in the bank.
+---
 
-Any statement about this economy has to name which player it is about. The rest
-of this document is the **prestige** player unless it says otherwise.
+## The three ladders
+
+**Aircraft, cash.** 46 of them, $3,000 to $210,000,000, levels 1 to 70. Fifteen
+carry live prices; the rest are interpolated between them. The top half of the
+curve comes from the LOCKED shop pages, which print a level and a price without
+naming the aircraft - a price ladder with no models attached, which is exactly
+what was needed to place ours.
+
+    L1 $3,000   L15 $40,000   L25 $70,000   L34 $150,000   L45 $15,000,000
+    L53 $24,000,000   L58 $80,000,000   L70 $210,000,000
+
+**Aircraft, coin.** 13 of them, 5 to 400 coins, **1,625 coins for the set**. It
+was 410 before today, with nothing above 65.
+
+**Zones.** Ten to unlock, and each has TWO prices - the original sells roughly
+every other one for coins, and both columns were photographed.
+
+    Zone2 $50,000/20c      DarkZone $100,000/30c   Forest $500,000/40c
+    Desert $1,000,000/50c  Beach $5,000,000/60c    Snow $10,000,000/70c
+    Dreamland $50M/100c, $100M/100c, $200M/150c    Carrier $300,000,000/200c
+
+**Pads** cost a flat tenth of their zone, with no curve: $500 in Zone1 up to
+$30,000,000 on the carrier.
 
 ---
 
@@ -53,172 +67,111 @@ of this document is the **prestige** player unless it says otherwise.
 
 | | casual 15 min/day | regular 40 min/day | heavy 120 min/day |
 |---|---|---|---|
-| all six home zones | 15.0 h (day 60) | 21.3 h (day 32) | 30.0 h (day 15) |
-| all 42 city plots | 15.2 h (day 61) | 21.3 h (day 32) | 30.0 h (day 15) |
-| **every pad bought** | **15.2 h (day 61)** | **22.0 h (day 33)** | **32.0 h (day 16)** |
-| level 70 | 31.8 h (day 127) | 50.0 h (day 75) | 80.0 h (day 40) |
-| distinct models flown | 22 | 22 | 24 |
-| coins left at the end | 328 | 244 | 229 |
-| taps | 51/min | 40/min | 34/min |
+| all six home zones | 6.5 h (day 26) | 11.3 h (day 17) | 24.0 h (day 12) |
+| **every pad bought** | **11.5 h (day 46)** | **18.7 h (day 28)** | **42.0 h (day 21)** |
+| level at the end | 90 (day 220) | 98 (day 140) | 95 (day 70) |
+| distinct models flown | 24 | 26 | 24 |
+| zones owned | 8 of 10 | 8 of 10 | 8 of 10 |
+| cash left at the end | $9.0M | $15.6M | $8.8M |
+| gross | $861M | $1.02bn | $709M |
+| taps | 64/min | 47/min | 33/min |
 
-**The map is finished in the first third and the levels take the rest.** Zones,
-plots and pads are all done between 15 and 32 hours; level 70 arrives at 32 to
-80. From that point on there is nothing left to buy but aircraft.
-
-**Playing more costs efficiency.** The cap takes 31.8 h of play for the casual
-profile and 80 for the heavy - two and a half times the hours for the same
-finish. That is the idle shape working as designed, since long absences do the
-flying, but it is steep.
-
----
-
-## The shape of the income curve
-
-One relationship drives the fleet's economics.
-
-    fare per leg   = seats × ticket × clouds
-    leg minutes    = CLOUD_BASE[clouds] + GRADE_STEP × CLASS_STEP[clouds]
-
-    CLOUD_BASE  = [  1,  5, 20,  93, 420 ]   minutes
-    CLASS_STEP  = [  1,  3,  8,  22,  60 ]
-    GRADE_STEP  = S:0  A:1  B:2  C:3  D:4  E:5
-
-Leg time spans **360×** across the ladder - 2 minutes to 720. Fares over the
-same span move **200×**. So income per MINUTE falls as the ladder climbs, and
-the level-10 ATR 72 has the best rate in the game at 22,500/h. Nothing beats it.
-
-**That is only decisive for a player who is present continuously.** Rewards do
-not stack: an aircraft that lands while you are away waits to be tapped, so an
-absent player collects one leg per aircraft however long it took. On that
-measure the ladder inverts completely - 750 per tap for the ATR 72 against
-150,000 for an Ark or an F-14, a spread of 200×.
-
-Both numbers are correct. They describe different players, and **nothing in the
-game tells a player which one they are.** The buildings now name this axis
-explicitly (tap-hungry, idle-friendly, population-only); the fleet has the same
-axis by accident and does not label it.
+**Playing more still costs efficiency** - 11.5 h of play to finish the board
+casually against 42.0 h heavily, the idle shape working as designed.
 
 ---
 
 ## Findings
 
-### 1. One aircraft is strictly dominated
+### 1. Levels outrun the shelf
 
-| | level | price | $/hour |
-|---|---|---|---|
-| Airbus A300 | 38 | $160,000 | 1,000 |
-| **Concorde** | **48** | **$2,000,000** | **938** |
+Every profile ends between 90 and 98. The shop's last aircraft is at **84**, and
+its last cash aircraft at 70. So the top ten to twenty-eight levels buy nothing
+at all.
 
-Twelve and a half times the price of an aircraft ten levels below it, for less
-income. Grade C at 5 clouds is a 600-minute leg carrying 250 seats at the
-default 15 fare. It is not priced as a trophy; it sits mid-ladder. This reads as
-a wrong number rather than a decision.
+This is the same shape as the old "nothing left to spend on", moved from money
+to levels. The original's own ladder runs to at least 92 with a shop that goes
+with it - its locked pages show aircraft at 73, 74, 76, 76, 80, 84, 84 and 92.
+Ours stops early because seven of the models on those pages have no art.
 
-### 2. A 4x fare cliff at level 50
+### 2. Two zones are never reached
 
-Aircraft from level 22 to 49 use the default ticket of 15. From 50 up the ticket
-is overridden to 85-105.
+Every profile buys 8 of 10. Dreamland3 at $200M and the Carrier at $300M sit
+past the end of a 140-day run. That is a real gate rather than a broken one -
+but nothing else is competing for that money, so it is a gate on time, not on
+choice.
 
-| | level | fare per leg |
+### 3. The premium short-haul aircraft is also the best money in the game
+
+The CRJ-700 - the original's C400, 1 cloud, A grade, bought for XP - turns out
+to pay **$45,000/h**, the highest rate on the ladder, ahead of the F-14's
+$42,857/h at seven hundred times the price. A 2-minute leg with a full fare and
+no cloud penalty is simply the best throughput available.
+
+It was flagged as a risk when it went in and the measurement confirms it. It
+only bites a player who is present continuously, which is the same tap-versus-
+idle split the buildings label and the fleet still does not.
+
+### 4. The buy policy still decides the game
+
+| | prestige | rate |
 |---|---|---|
-| An-225 | 49 | 67,500 |
-| **A400M** | **50** | **250,000** |
+| distinct models flown | **26** | 11 |
+| level at day 140 | **98** | 86 |
+| every pad bought | **18.7 h** | 31.3 h |
+| gross | **$1.02bn** | $507M |
 
-A 3.7× step in one level, and it is a step in the pricing RULE rather than in
-the aircraft. Below the seam the ladder is paced by seats and distance; above
-it, by an override.
-
-### 3. The city out-earns the fleet
-
-Rent alone, buildings at max level, tapped every cycle:
-
-| | $/hour each | × 42 plots |
-|---|---|---|
-| Skypark Resort | 510,017 | **21,420,708** |
-| Eiffel Tower | 425,014 | 17,850,590 |
-| Office | 286,884 | 12,049,148 |
-
-The regular run grossed **$1.61bn over 93 hours - 17.3M/h** across the whole
-fleet. A maxed city is more than that in rent alone, before the popularity
-multiplier, which adds up to **+420%** on all flight income at full occupancy.
-
-Rent needs tapping, so it competes for the same constrained resource - but 42
-plots against 181 pads wins that contest comfortably.
-
-### 4. The late game has nothing left to spend on
-
-Zones, plots and pads are all finished by hour 32 at the latest. After that the
-only sink is aircraft, and the cash curve stops being a curve and starts being a
-sawtooth: $136k on day 50, $104M on day 70, $41M on day 120, $219M on day 130,
-$132M on day 140. Each spike is money accumulating with nothing to buy; each
-drop is one aircraft.
-
-That is not broken - purchases reading as events is the intent - but it means
-**the total sink in the game is finite**, and once the board is full, income
-above the price of the next aircraft has nowhere to go.
+The optimiser now finishes the board, which it could not do this morning, but
+it flies eleven models to twenty-six and earns half as much.
 
 ---
 
 ## What holds up
 
-- **The coin economy.** Sources measured on the regular run: quests 238,
-  building drops 252, daily login 80, milestones 84 - **654 earned**, against a
-  410-coin aircraft catalogue, ending 244 clear having bought the lane.
-- **Fuel** is 0.4% of income with zero departures blocked on an empty tank.
-  Comfortable to the point of being inert - it costs nothing and decides
-  nothing.
-- **The early ladder**, levels 1-22: paybacks of 2-8 legs, prices rising
-  smoothly, something new to buy every other level from 1 to 7.
-- **The building archetypes.** Non-dominated choices at a given level went from
-  1 to 7 when the sideways set went in.
-- **Model variety.** 22-24 distinct aircraft flown across a run. The ladder is
-  used.
+- **The coin economy, now that it is measured properly.** 682 earned across a
+  run - quests 240, building drops 278, login 80, milestones 84 - against a
+  1,625-coin shop, ending 77 clear. Earned, spent and available are finally the
+  same order of magnitude.
+- **The cash sink.** Runs end on $9M to $16M against $818M before the zone and
+  pad rebuild. Money is spent as fast as it arrives.
+- **Model variety.** 24 to 26 distinct aircraft flown, up from 22.
+- **The early ladder** and **the building archetypes**, both untouched today.
+
+## What does not
+
+- **Fuel is still inert.** 0.2% to 0.6% of income, **zero** departures blocked
+  on an empty tank, in every profile. It costs nothing and decides nothing, and
+  a cap on an instantly-refillable stock is a tax rather than a constraint.
+- **XP above the last anchor is extrapolated, not measured.** Sixteen aircraft
+  carry live XP; the other 43 are interpolated on price, and past $5,000,000
+  the curve is a slope fitted to points below it. The F-14's 190,000 is the
+  least trustworthy number in this document.
 
 ---
 
-## What the first pass got wrong
+## What the second pass got wrong
 
-Four claims in the previous version did not survive. All four came from trusting
-bot output without checking what the bot actually computed, which is worth
-stating plainly because it is the failure mode most likely to repeat.
+**The fare was 15.** It is 7.5, and every default-ticket aircraft in the game
+had been paying double since the comment claiming otherwise was written. The
+comment said "every airliner on every page shows a 15 beside the money icon";
+the cards show a payout there, and no fare at all.
 
-**"Every pad is unreachable."** `_summary` printed four milestones and the
-dictionary that filled them held three. `all pads` was never computed, so it
-printed "not reached" unconditionally, on every run, at every setting. It is a
-real check now and every profile finishes the board between 15 and 32 hours.
+**The bot called the coin balance "earned".** It printed the closing balance
+less the starting float - coins LEFT - while the four source lines directly
+above it added to ten times the figure. That is what made the previous pass
+call the coin economy comfortable at "654 earned, 244 clear" when the real
+question was whether there was anything to spend it on. Fixed; it now prints
+earned, left, and the size of the shop.
 
-**"$80M for a full pad board."** That assumed 16 pads per zone. The real figure
-is about **$2.58bn**, almost entirely the Carrier's 32-pad ramp at 1.35
-compounding - the last pad alone is near $658M. Still finished by hour 32,
-because income by then is far larger than the earlier pass measured.
+**The pad curve.** 1.35 compounding put the carrier's ramp at $2.58bn on its
+own and, once the fare was corrected, stopped the board being finishable at
+all. A pad is a flat tenth of its zone now.
 
-**"594 coins against a 410 catalogue, ending 139 clear having bought the lane."**
-It never bought the lane. `_buy_aircraft` took the first affordable coin
-aircraft in catalogue order, which is the Paper Plane at 5 coins, so the bot
-re-bought it every time it held five coins and never saved. That is also why
-`paperplane` appeared in the top four models of every run ever measured.
-
-**"Zero of 59 aircraft beat a level-10 turboprop", presented as the headline.**
-True, and about a player who does not exist. The bot bought on payout-per-minute
-because that was its only policy; a player buying the dearest affordable
-aircraft flies 22 models and finishes the game. The finding survives as a
-statement about *rate*, not as a statement about the ladder being decorative.
+**Zone prices and levels.** Ours ran to $1.9M at level 70; the live ones run to
+$300M at level 50. The old note on that table said levels pace the game and
+costs do not. At $300M the cost is the gate and the level is barely one.
 
 ---
-
-## If one thing changes
-
-The **cloud and grade time curve**. It produces findings 1 and 2 on its own and
-both halves of the rate-versus-tap split. A 5-cloud leg is seven hours before
-the grade penalty and the slowest grade doubles it.
-
-Be careful with it. A previous attempt to fix this by making the cloud
-multiplier a table - `CLOUD_PAY = [1, 5, 14, 60, 150]` - was simulated and does
-work on its own terms: the ATR 72 drops from first to 52nd and model variety
-doubles. But late income inflates about 30×, every profile ends with tens of
-billions it cannot spend, and pacing halves. Solving the table more gently
-(`[1, 4, 13, 39, 114]`) barely moved either, because the runaway is in the
-per-aircraft ticket overrides rather than in the band multiplier.
 
 Anything here is worth re-measuring rather than reasoned about. Numbers quoted
 to three figures are measurements of one build on one day.
