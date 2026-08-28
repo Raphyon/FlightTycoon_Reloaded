@@ -12,15 +12,22 @@ const CLOUD_SIZE := Vector2(17, 12)
 const CLOUD_GAP := 1.0
 const CLOUD_Y := 38.0
 
-# force / seats / fuel, in that order, in one row under the name - exactly the
-# three the reference's late-game shop page shows. Fare is deliberately not
-# among them, even though most aircraft now carry their own: it's a number you
-# weigh against a route, not against another aircraft on the shelf.
+# A 2x2 under the name - grade and PAYOUT on top, fuel and XP beneath. That is
+# the reference card's own layout, and photographs of it settled a question we
+# had answered wrong: the figure beside its money icon is what a leg PAYS, not
+# a fare and not a seat count.
+#
+# Seats came off the card with it. A cabin size is an input to the payout and
+# the payout is now shown directly, so printing both was printing the same
+# fact twice - and the two numbers a player actually chooses between, money and
+# XP, were the two that were missing.
 const FORCE_ICON := preload("res://assets/hud/stat_force@2x.png")
-const SEAT_ICON := preload("res://assets/hud/stat_seat@2x.png")
+const CASH_ICON := preload("res://assets/hud/icon_medium_money1@2x.png")
 const FUEL_ICON := preload("res://assets/bubbles/drum_icon@2x.png")
-const STAT_Y := 154.0
-const STAT_HEIGHT := 18.0
+const XP_ICON := preload("res://assets/hud/icon_medium_xp@2x.png")
+const STAT_Y := 152.0
+const STAT_ROW_GAP := 17.0
+const STAT_HEIGHT := 16.0
 const STAT_ICON_W := 13.0
 const STAT_FONT := 11
 
@@ -103,12 +110,32 @@ func _add_clouds(range_units: int) -> void:
 
 func _add_stats(entry: Dictionary) -> void:
 	var key: String = entry["key"]
-	var cells := [
-		[FORCE_ICON, str(ShopCatalog.stat(key, "force"))],
-		[SEAT_ICON, str(ShopCatalog.stat(key, "seats"))],
-		[FUEL_ICON, str(ShopCatalog.stat(key, "fuel"))],
+	# What a leg pays at the aircraft's OWN cloud rating, through Fleet's
+	# formula rather than a second copy of it - the clouds are drawn above, so
+	# the card is showing the route it was built for.
+	var pay := int(round(float(Fleet.passengers(key)) * Fleet.ticket_price(key)
+		* float(ShopCatalog.stat(key, "range"))))
+	var rows := [
+		[[FORCE_ICON, str(ShopCatalog.stat(key, "force"))], [CASH_ICON, _compact(pay)]],
+		[[FUEL_ICON, str(ShopCatalog.stat(key, "fuel"))],
+			[XP_ICON, _compact(Fleet.xp_for_claim(key))]],
 	]
-	var row := _row(STAT_Y, STAT_HEIGHT)
+	for i in rows.size():
+		_stat_row(STAT_Y + float(i) * STAT_ROW_GAP, rows[i])
+
+
+# Four-and-five-figure payouts do not fit a 122px card at eleven point, and the
+# top of the ladder is six.
+func _compact(n: int) -> String:
+	if n < 10000:
+		return str(n)
+	if n < 1000000:
+		return "%.1fk" % (float(n) / 1000.0)
+	return "%.1fM" % (float(n) / 1000000.0)
+
+
+func _stat_row(y: float, cells: Array) -> void:
+	var row := _row(y, STAT_HEIGHT)
 	row.add_theme_constant_override("separation", 0)
 	for cell in cells:
 		# One expanding cell per stat, so the three split the card evenly
