@@ -192,14 +192,14 @@ const ENTRIES := [
 	# 15. Importing that would have put a strictly-worse aircraft above the
 	# EMB-120 in both level and price, which is the one thing this ladder
 	# promises never happens. Priced on its own income instead.
-	{"key": "atr72", "name": "ATR 72", "icon": "atr72_default.png", "price": 4000, "level": 10,
+	{"key": "atr72", "name": "ATR 72", "icon": "atr72_default.png", "price": 40000, "level": 15,
 		"force": "A", "seats": 100, "fuel": 20, "xp": 42, "range": 1, "has_world_sprite": true},
 	# LIVE 5000/A/80/6/2cl. It carries the NEW badge at level 2 in the original;
 	# ours sits behind the ATR-72, which goes in ahead of it on income.
 	{"key": "emb120", "name": "EMB-120", "icon": "emb120_default.png", "price": 5000, "level": 10,
 		"force": "A", "seats": 80, "fuel": 6, "xp": 76, "range": 2, "has_world_sprite": true},
 # ---- 4-10 . feeder and regional -----------------------------------
-	{"key": "dhc8", "name": "Dash 8", "icon": "dhc8_default.png", "price": 12000, "level": 13,
+	{"key": "dhc8", "name": "Dash 8", "icon": "dhc8_default.png", "price": 12000, "level": 10,
 		"force": "A", "seats": 120, "fuel": 8, "xp": 93, "range": 2, "has_world_sprite": true},
 	# Sits between the Dash 8 and the 328 Jet: a bigger cabin than the turboprop
 	# without the jet's third cloud, so it is a capacity step rather than a
@@ -209,11 +209,11 @@ const ENTRIES := [
 	# LIVE stats: C / 150 seats / 25 fuel / 15 fare / 2 clouds. Price is ours
 	# again - the original's 50,000 would have leapfrogged the 328 Jet, which
 	# out-earns it.
-	{"key": "an140", "name": "An-140", "icon": "an140_default.png", "price": 20000, "level": 15,
+	{"key": "an140", "name": "An-140", "icon": "an140_default.png", "price": 50000, "level": 20,
 		"force": "C", "seats": 150, "fuel": 25, "xp": 104, "range": 2, "has_world_sprite": true},
 	# First rating-3 airframe, which is worth more than its cabin: 3x on
 	# every leg.
-	{"key": "328jet", "name": "328 Jet", "icon": "328jet_blue.png", "price": 25000, "level": 20,
+	{"key": "328jet", "name": "328 Jet", "icon": "328jet_blue.png", "price": 25000, "level": 13,
 		"force": "S", "seats": 110, "fuel": 10, "xp": 133, "range": 3, "has_world_sprite": true},
 	# Two seats, so it earns on fare - the same trick the original uses on
 	# its F-15.
@@ -228,7 +228,7 @@ const ENTRIES := [
 	{"key": "a318", "name": "Airbus A318", "icon": "a318_default.png", "price": 80000, "level": 27,
 		"force": "C", "seats": 235, "fuel": 30, "xp": 195, "range": 3, "has_world_sprite": true},
 	# LIVE 25c/B/2/20/2000 fare/4cl - two seats at a 2000 fare, verbatim.
-	{"key": "f15", "name": "F-15 Eagle", "icon": "f15_default.png", "price": 25, "currency": COINS, "level": 29,
+	{"key": "f15", "name": "F-15 Eagle", "icon": "f15_default.png", "price": 25, "currency": COINS, "level": 31,
 		"force": "B", "seats": 2, "fuel": 20, "xp": 500, "ticket": 1875, "range": 5, "has_world_sprite": true},
 	{"key": "a319", "name": "Airbus A319", "icon": "a319_default.png", "price": 90000, "level": 28,
 		"force": "C", "seats": 280, "fuel": 32, "xp": 213, "range": 3, "has_world_sprite": true},
@@ -252,12 +252,12 @@ const ENTRIES := [
 		"force": "C", "seats": 400, "fuel": 100, "xp": 1500, "range": 3, "has_world_sprite": true},
 	# LIVE stats: C / 100 seats / 30 fuel / 80 fare / 5 clouds. A saucer, and
 	# the coin lane's middle rung - 40,000 a leg against the F-15's 16,000.
-	{"key": "uss51", "name": "USS 51", "icon": "uss51_default.png", "price": 35, "currency": COINS, "level": 31,
+	{"key": "uss51", "name": "USS 51", "icon": "uss51_default.png", "price": 20, "currency": COINS, "level": 29,
 		"force": "C", "seats": 100, "fuel": 30, "xp": 212, "ticket": 80, "range": 5, "has_world_sprite": true},
 	# LIVE stats (20c/D/50/10/200 fare/5cl); level and coin price are ours,
 	# moved up the coin lane so it doesn't outclass everything cash at level
 	# 12.
-	{"key": "balloon", "name": "Hot Air Balloon", "icon": "balloon_default.png", "price": 40, "currency": COINS, "level": 33,
+	{"key": "balloon", "name": "Hot Air Balloon", "icon": "balloon_default.png", "price": 20, "currency": COINS, "level": 29,
 		"force": "D", "seats": 50, "fuel": 10, "xp": 150, "ticket": 200, "range": 5, "has_world_sprite": true},
 	{"key": "blackh", "name": "Black Hawk", "icon": "blackh_green.png", "price": 180, "currency": COINS, "level": 48,
 		"force": "B", "seats": 340, "fuel": 40, "xp": 313, "range": 4, "has_world_sprite": true},
@@ -295,7 +295,7 @@ const ENTRIES := [
 	# NOTE the lane it joins is not internally ordered: the NCC-1701 costs 45
 	# coins and pays 150,000, the X-37B costs 48 and pays 40,000. This sits
 	# between them rather than papering over that.
-	{"key": "banshee", "name": "Banshee", "icon": "banshee_default.png", "price": 30, "currency": COINS, "level": 29,
+	{"key": "banshee", "name": "Banshee", "icon": "banshee_default.png", "price": 30, "currency": COINS, "level": 33,
 		"force": "B", "seats": 12, "fuel": 70, "xp": 1500, "ticket": 333.33, "range": 5, "has_world_sprite": true},
 	# THE TOP OF THE COIN LANE, and the first entry added to it since it was
 	# respaced. APPENDED rather than inserted: the other nine step 4-5 levels and
