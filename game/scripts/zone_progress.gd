@@ -27,18 +27,29 @@ const SAVE_PATH := "res://data/zone_progress.json"
 # COSTS are unchanged and were set against what you can actually afford when the
 # gate opens, which is not the same as what a zone is worth.
 const ZONE_REQUIREMENTS := {
-	"Zone2": {"level": 14, "cost": 16000},
-	"DarkZone": {"level": 28, "cost": 24000},
-	"Forest": {"level": 36, "cost": 60000},
-	"Desert": {"level": 42, "cost": 150000},
-	"Beach": {"level": 48, "cost": 260000},
-	"Snow": {"level": 53, "cost": 420000},
-	# Dreamland and the carrier - PLACEHOLDER level/cost, not from the user,
-	# continuing the homeland curve past Snow.
-	"Dreamland1": {"level": 57, "cost": 600000},
-	"Dreamland2": {"level": 62, "cost": 900000},
-	"Dreamland3": {"level": 66, "cost": 1300000},
-	"Carrier": {"level": 70, "cost": 1900000},
+	# LIVE. The original's zone pages were photographed end to end: a level, a
+	# price, and roughly every other one priced in COINS instead of cash. Ten
+	# coin prices came off those pages - 20, 30, 40, 50, 60, 70, 100, 100, 150,
+	# 200 - which is exactly the number of zones we have to unlock, so they are
+	# used in order rather than fitted.
+	#
+	# The cash column is theirs too, and it is enormous next to what was here:
+	# the last zone went from $1.9M to $300M. Its own gap is Beach, whose card
+	# fell between two screenshots; $5M continues the run either side of it.
+	#
+	# THE LEVELS DROP HARD - the carrier was level 70 and is now 50. This
+	# reverses what the old note here said, that levels pace the game and costs
+	# do not. At these prices the cost is the gate, and the level is barely one.
+	"Zone2": {"level": 5, "cost": 50000, "coins": 20},
+	"DarkZone": {"level": 10, "cost": 100000, "coins": 30},
+	"Forest": {"level": 15, "cost": 500000, "coins": 40},
+	"Desert": {"level": 20, "cost": 1000000, "coins": 50},
+	"Beach": {"level": 25, "cost": 5000000, "coins": 60},
+	"Snow": {"level": 30, "cost": 10000000, "coins": 70},
+	"Dreamland1": {"level": 35, "cost": 50000000, "coins": 100},
+	"Dreamland2": {"level": 40, "cost": 100000000, "coins": 100},
+	"Dreamland3": {"level": 45, "cost": 200000000, "coins": 150},
+	"Carrier": {"level": 50, "cost": 300000000, "coins": 200},
 }
 
 var unlocked_zones: Dictionary = {}  # area_name -> true, persisted
@@ -96,7 +107,11 @@ func requirement_for(area_name: String) -> Dictionary:
 	return ZONE_REQUIREMENTS.get(area_name, {})
 
 
-func unlock(area_name: String) -> bool:
+# EITHER CURRENCY OPENS A ZONE. The original prices every zone twice, and the
+# coin figure is small enough - 20 to 200 against a cash price up to $300M -
+# that it is the way through for a player who has been saving them rather than
+# spending them on aircraft. The level gate applies to both.
+func unlock(area_name: String, with_coins: bool = false) -> bool:
 	if is_unlocked(area_name):
 		return false
 	var req: Dictionary = requirement_for(area_name)
@@ -104,7 +119,10 @@ func unlock(area_name: String) -> bool:
 		return false
 	if Progression.level < req.level:
 		return false
-	if not Economy.spend_money(req.cost):
+	if with_coins:
+		if not Coins.spend(int(req.get("coins", 0))):
+			return false
+	elif not Economy.spend_money(req.cost):
 		return false
 	unlocked_zones[area_name] = true
 	_save()
