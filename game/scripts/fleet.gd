@@ -691,25 +691,33 @@ func xp_for_claim(model_key: String, map_key: String = "") -> int:
 	var built_for := maxf(1.0, float(int(ShopCatalog.stat(model_key, "range"))))
 	return maxi(1, int(round(base * float(distance_to(map_key)) / built_for)))
 
-# The flat fare for anything with a normal cabin. 15, which is the LIVE game's
-# own value, read straight off its shop cards - every airliner on every page
-# shows a 15 beside the money icon.
+# The flat fare for anything with a normal cabin. 7.5 - HALF what this said
+# yesterday, and the correction matters more than any other number here.
 #
-# This was 8, from a belief that the original charged 4 and that we needed to
-# double it to fill Zone1 in fifteen minutes. Both halves of that were wrong:
-# the fare is 15, and at 15 the DC-3 earns 750 a leg against its own 3,000
-# price - two round trips to pay for itself, which is the fifteen-minute
-# opening we were trying to buy by doubling. Every price in ShopCatalog had
-# been halved to compensate for the mistake; they are the live prices now.
+# The claim was that "every airliner on every page shows a 15 beside the money
+# icon". It does not. The shop card's 2x2 is GRADE, PAYOUT, FUEL, XP - the
+# figure beside the money icon is what the leg pays, and the card never prints
+# a ticket or a seat count at all. Screenshots of three airliners whose cabins
+# we already had settle it by arithmetic:
+#
+#     Tu-104   200 seats, card 1500   ->  7.5 a head
+#     Tu-154   300 seats, card 2250   ->  7.5 a head
+#     B787     400 seats, card 3000   ->  7.5 a head
+#
+# Three for three, exact. Every default-ticket aircraft in the game has been
+# paying double since the day that comment was written.
+#
+# It is a FLOAT because 7.5 is not an integer and truncating it loses 3% of
+# every fare in the game; payout_for rounds once, at the end.
 #
 # Aircraft that carry almost nobody override it (ShopCatalog "ticket"), which
 # is the only way a 2-seat P-51 can be worth owning - and the original does the
-# same, charging 2000 a head on its F-15 and 200 on its balloon.
-const TICKET_PRICE := 15
+# same, charging 1875 a head on its F-15 and 22500 on its Mustang.
+const TICKET_PRICE := 7.5
 
 
-func ticket_price(model_key: String) -> int:
-	return int(ShopCatalog.entry_for(model_key).get("ticket", TICKET_PRICE))
+func ticket_price(model_key: String) -> float:
+	return float(ShopCatalog.entry_for(model_key).get("ticket", TICKET_PRICE))
 
 # HOW LONG A LEG TAKES.
 #
@@ -814,7 +822,8 @@ func fuel_cost(model_key: String, _map_key: String = "") -> int:
 # Confirmed against the A400M: 100 a head, 500 seats, at its full 5 clouds is
 # the 250,000 a leg the game shows.
 func payout_for(model_key: String, map_key: String = "") -> int:
-	return passengers(model_key) * ticket_price(model_key) * distance_to(map_key)
+	return int(round(float(passengers(model_key)) * ticket_price(model_key)
+		* float(distance_to(map_key))))
 
 
 # The destination that MATCHES this aircraft's cloud rating - the one it was

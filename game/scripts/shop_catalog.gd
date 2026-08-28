@@ -196,41 +196,41 @@ const ENTRIES := [
 		"force": "A", "seats": 100, "fuel": 20, "xp": 42, "range": 1, "has_world_sprite": true},
 	# LIVE 5000/A/80/6/2cl. It carries the NEW badge at level 2 in the original;
 	# ours sits behind the ATR-72, which goes in ahead of it on income.
-	{"key": "emb120", "name": "EMB-120", "icon": "emb120_default.png", "price": 5000, "level": 13,
+	{"key": "emb120", "name": "EMB-120", "icon": "emb120_default.png", "price": 5000, "level": 10,
 		"force": "A", "seats": 80, "fuel": 6, "xp": 76, "range": 2, "has_world_sprite": true},
 # ---- 4-10 . feeder and regional -----------------------------------
-	{"key": "dhc8", "name": "Dash 8", "icon": "dhc8_default.png", "price": 12000, "level": 15,
+	{"key": "dhc8", "name": "Dash 8", "icon": "dhc8_default.png", "price": 12000, "level": 13,
 		"force": "A", "seats": 120, "fuel": 8, "xp": 93, "range": 2, "has_world_sprite": true},
 	# Sits between the Dash 8 and the 328 Jet: a bigger cabin than the turboprop
 	# without the jet's third cloud, so it is a capacity step rather than a
 	# reach one.
-	{"key": "crj700", "name": "CRJ-700", "icon": "crj700_default.png", "price": 18000, "level": 17,
-		"force": "A", "seats": 140, "fuel": 9, "xp": 100, "range": 2, "has_world_sprite": true},
+	{"key": "crj700", "name": "CRJ-700", "icon": "crj700_default.png", "price": 300000, "level": 36,
+		"force": "A", "seats": 200, "fuel": 50, "xp": 1250, "range": 1, "has_world_sprite": true},
 	# LIVE stats: C / 150 seats / 25 fuel / 15 fare / 2 clouds. Price is ours
 	# again - the original's 50,000 would have leapfrogged the 328 Jet, which
 	# out-earns it.
-	{"key": "an140", "name": "An-140", "icon": "an140_default.png", "price": 20000, "level": 20,
+	{"key": "an140", "name": "An-140", "icon": "an140_default.png", "price": 20000, "level": 15,
 		"force": "C", "seats": 150, "fuel": 25, "xp": 104, "range": 2, "has_world_sprite": true},
 	# First rating-3 airframe, which is worth more than its cabin: 3x on
 	# every leg.
-	{"key": "328jet", "name": "328 Jet", "icon": "328jet_blue.png", "price": 25000, "level": 22,
+	{"key": "328jet", "name": "328 Jet", "icon": "328jet_blue.png", "price": 25000, "level": 20,
 		"force": "S", "seats": 110, "fuel": 10, "xp": 133, "range": 3, "has_world_sprite": true},
 	# Two seats, so it earns on fare - the same trick the original uses on
 	# its F-15.
-	{"key": "p51", "name": "P-51 Mustang", "icon": "p51_white.png", "price": 30, "currency": COINS, "level": 25,
-		"force": "B", "seats": 2, "fuel": 12, "xp": 18, "ticket": 1100, "range": 3, "has_world_sprite": true},
-	{"key": "dc6", "name": "Douglas DC-6", "icon": "dc6_default.png", "price": 55000, "level": 25,
+	{"key": "p51", "name": "P-51 Mustang", "icon": "p51_white.png", "price": 125, "currency": COINS, "level": 45,
+		"force": "E", "seats": 2, "fuel": 500, "xp": 40000, "ticket": 22500, "range": 5, "has_world_sprite": true},
+	{"key": "dc6", "name": "Douglas DC-6", "icon": "dc6_default.png", "price": 55000, "level": 22,
 		"force": "C", "seats": 175, "fuel": 25, "xp": 168, "range": 3, "has_world_sprite": true},
 	# ---- 11-25 . narrow-body ------------------------------------------
 	# LIVE 70000/D/200/30/3cl.
-	{"key": "tu104", "name": "Tupolev Tu-104", "icon": "tu104_default.png", "price": 70000, "level": 27,
-		"force": "D", "seats": 200, "fuel": 30, "xp": 180, "range": 3, "has_world_sprite": true},
-	{"key": "a318", "name": "Airbus A318", "icon": "a318_default.png", "price": 80000, "level": 28,
+	{"key": "tu104", "name": "Tupolev Tu-104", "icon": "tu104_default.png", "price": 70000, "level": 25,
+		"force": "D", "seats": 200, "fuel": 45, "xp": 250, "range": 3, "has_world_sprite": true},
+	{"key": "a318", "name": "Airbus A318", "icon": "a318_default.png", "price": 80000, "level": 27,
 		"force": "C", "seats": 235, "fuel": 30, "xp": 195, "range": 3, "has_world_sprite": true},
 	# LIVE 25c/B/2/20/2000 fare/4cl - two seats at a 2000 fare, verbatim.
-	{"key": "f15", "name": "F-15 Eagle", "icon": "f15_default.png", "price": 25, "currency": COINS, "level": 21,
-		"force": "B", "seats": 2, "fuel": 20, "xp": 24, "ticket": 2000, "range": 4, "has_world_sprite": true},
-	{"key": "a319", "name": "Airbus A319", "icon": "a319_default.png", "price": 90000, "level": 29,
+	{"key": "f15", "name": "F-15 Eagle", "icon": "f15_default.png", "price": 25, "currency": COINS, "level": 29,
+		"force": "B", "seats": 2, "fuel": 20, "xp": 500, "ticket": 1875, "range": 5, "has_world_sprite": true},
+	{"key": "a319", "name": "Airbus A319", "icon": "a319_default.png", "price": 90000, "level": 28,
 		"force": "C", "seats": 280, "fuel": 32, "xp": 213, "range": 3, "has_world_sprite": true},
 	# LIVE 100000/300 seats/4 clouds/35 fuel. The KEY stays "b727" because that
 	# is what the art folder and the shop icon are called; the aircraft it
@@ -238,55 +238,55 @@ const ENTRIES := [
 	# Same split the P-51 already has (shop "p51", sprites "p-51mustang").
 	# 35.1m span, a hair over the A318 - the small end of the airliner class, so
 	# it sits just above the A319 it shares a cabin size with.
-	{"key": "a220", "name": "Airbus A220-300", "icon": "a220_default.png", "price": 95000, "level": 30,
+	{"key": "a220", "name": "Airbus A220-300", "icon": "a220_default.png", "price": 95000, "level": 29,
 		"force": "C", "seats": 290, "fuel": 33, "xp": 250, "range": 4, "has_world_sprite": true},
-	{"key": "b727", "name": "Tupolev Tu-154", "icon": "b727_default.png", "price": 100000, "level": 31,
-		"force": "E", "seats": 300, "fuel": 35, "xp": 294, "range": 4, "has_world_sprite": true},
+	{"key": "b727", "name": "Tupolev Tu-154", "icon": "b727_default.png", "price": 100000, "level": 30,
+		"force": "E", "seats": 300, "fuel": 60, "xp": 300, "range": 5, "has_world_sprite": true},
 	# The rating-4 threshold.
-	{"key": "b707", "name": "Boeing 707", "icon": "b707_default.png", "price": 110000, "level": 32,
+	{"key": "b707", "name": "Boeing 707", "icon": "b707_default.png", "price": 110000, "level": 31,
 		"force": "D", "seats": 320, "fuel": 38, "xp": 304, "range": 4, "has_world_sprite": true},
 	# Sits with its contemporaries rather than in the tail: four rear-mounted
 	# engines, T-tail, 43m span, 900 km/h - a Boeing 707's exact class, so it
 	# takes the 707's grade and the rung above it.
-	{"key": "il62", "name": "Ilyushin IL-62", "icon": "il62_default.png", "price": 120000, "level": 33,
-		"force": "D", "seats": 330, "fuel": 39, "xp": 308, "range": 4, "has_world_sprite": true},
+	{"key": "il62", "name": "Ilyushin IL-62", "icon": "il62_default.png", "price": 400000, "level": 38,
+		"force": "C", "seats": 400, "fuel": 100, "xp": 1500, "range": 3, "has_world_sprite": true},
 	# LIVE stats: C / 100 seats / 30 fuel / 80 fare / 5 clouds. A saucer, and
 	# the coin lane's middle rung - 40,000 a leg against the F-15's 16,000.
-	{"key": "uss51", "name": "USS 51", "icon": "uss51_default.png", "price": 35, "currency": COINS, "level": 29,
+	{"key": "uss51", "name": "USS 51", "icon": "uss51_default.png", "price": 35, "currency": COINS, "level": 31,
 		"force": "C", "seats": 100, "fuel": 30, "xp": 212, "ticket": 80, "range": 5, "has_world_sprite": true},
 	# LIVE stats (20c/D/50/10/200 fare/5cl); level and coin price are ours,
 	# moved up the coin lane so it doesn't outclass everything cash at level
 	# 12.
 	{"key": "balloon", "name": "Hot Air Balloon", "icon": "balloon_default.png", "price": 40, "currency": COINS, "level": 33,
 		"force": "D", "seats": 50, "fuel": 10, "xp": 150, "ticket": 200, "range": 5, "has_world_sprite": true},
-	{"key": "blackh", "name": "Black Hawk", "icon": "blackh_green.png", "price": 130000, "level": 34,
+	{"key": "blackh", "name": "Black Hawk", "icon": "blackh_green.png", "price": 180, "currency": COINS, "level": 48,
 		"force": "B", "seats": 340, "fuel": 40, "xp": 313, "range": 4, "has_world_sprite": true},
-	{"key": "airship", "name": "Airship", "icon": "airship_default.png", "price": 140000, "level": 35,
-		"force": "E", "seats": 360, "fuel": 45, "xp": 322, "range": 4, "has_world_sprite": true},
-	{"key": "ufo", "name": "UFO", "icon": "ufo_blue.png", "price": 45, "currency": COINS, "level": 37,
-		"force": "S", "seats": 300, "fuel": 50, "xp": 367, "ticket": 60, "range": 5, "has_world_sprite": true},
-	{"key": "v22", "name": "V-22", "icon": "v22_green.png", "price": 150000, "level": 36,
+	{"key": "airship", "name": "Airship", "icon": "airship_default.png", "price": 4000000, "level": 49,
+		"force": "E", "seats": 1500, "fuel": 100, "xp": 7500, "range": 5, "has_world_sprite": true},
+	{"key": "ufo", "name": "UFO", "icon": "ufo_blue.png", "price": 120, "currency": COINS, "level": 37,
+		"force": "D", "seats": 300, "fuel": 0, "xp": 13000, "ticket": 65, "range": 5, "has_world_sprite": true},
+	{"key": "v22", "name": "V-22", "icon": "v22_green.png", "price": 150000, "level": 33,
 		"force": "B", "seats": 390, "fuel": 48, "xp": 335, "range": 4, "has_world_sprite": true},
 	# ---- 26-36 . wide-body and flagship -------------------------------
 	# Rating 5 from here on, which is what really makes this a tier.
-	{"key": "a300", "name": "Airbus A300", "icon": "a300_default.png", "price": 160000, "level": 38,
-		"force": "E", "seats": 320, "fuel": 55, "xp": 379, "range": 5, "has_world_sprite": true},
-	{"key": "dc10", "name": "Douglas DC-10", "icon": "dc10_default.png", "price": 180000, "level": 39,
-		"force": "E", "seats": 355, "fuel": 60, "xp": 400, "range": 5, "has_world_sprite": true},
+	{"key": "a300", "name": "Airbus A300", "icon": "a300_default.png", "price": 450000, "level": 39,
+		"force": "D", "seats": 500, "fuel": 150, "xp": 2000, "ticket": 8, "range": 4, "has_world_sprite": true},
+	{"key": "dc10", "name": "Douglas DC-10", "icon": "dc10_default.png", "price": 180000, "level": 35,
+		"force": "E", "seats": 250, "fuel": 25, "xp": 450, "ticket": 8, "range": 5, "has_world_sprite": true},
 	# LIVE 150000/E/400/40/5cl. Burns less than the A300 two tiers below it.
-	{"key": "b787", "name": "Boeing 787", "icon": "b787_default.png", "price": 200000, "level": 41,
-		"force": "E", "seats": 400, "fuel": 40, "xp": 424, "range": 5, "has_world_sprite": true},
+	{"key": "b787", "name": "Boeing 787", "icon": "b787_default.png", "price": 150000, "level": 34,
+		"force": "E", "seats": 400, "fuel": 80, "xp": 300, "range": 5, "has_world_sprite": true},
 	# LIVE 500000/E/500/70/5cl. The 150k -> 500k jump is the original's own.
-	{"key": "747", "name": "Boeing 747", "icon": "747_default.png", "price": 500000, "level": 42,
+	{"key": "747", "name": "Boeing 747", "icon": "747_default.png", "price": 500000, "level": 41,
 		"force": "E", "seats": 500, "fuel": 70, "xp": 474, "range": 5, "has_world_sprite": true},
 	# LIVE 200 seats / 100 fuel / 5cl; the fare wasn't legible, so 150 is
 	# ours.
-	{"key": "ncc1701", "name": "NCC-1701", "icon": "ncc1701_default.png", "price": 50, "currency": COINS, "level": 42,
-		"force": "A", "seats": 200, "fuel": 100, "xp": 300, "ticket": 150, "range": 5, "has_world_sprite": true},
+	{"key": "ncc1701", "name": "NCC-1701", "icon": "ncc1701_default.png", "price": 40, "currency": COINS, "level": 33,
+		"force": "D", "seats": 200, "fuel": 100, "xp": 5000, "ticket": 50, "range": 5, "has_world_sprite": true},
 	# An unmanned spaceplane: it carries almost nothing, so like the P-51 and
 	# the F-15 it earns on fare rather than capacity. Four "seats" at 2000 is
 	# the payload, not passengers.
-	{"key": "x37b", "name": "X-37B", "icon": "x37b_default.png", "price": 55, "currency": COINS, "level": 47,
+	{"key": "x37b", "name": "X-37B", "icon": "x37b_default.png", "price": 200, "currency": COINS, "level": 50,
 		"force": "S", "seats": 4, "fuel": 90, "xp": 42, "ticket": 2000, "range": 5, "has_world_sprite": true},
 	# The coin lane's top rung, above the X-37B's 48. A gunship rather than an
 	# airliner, so it earns the coin lane's way - few seats, a large ticket -
@@ -295,8 +295,8 @@ const ENTRIES := [
 	# NOTE the lane it joins is not internally ordered: the NCC-1701 costs 45
 	# coins and pays 150,000, the X-37B costs 48 and pays 40,000. This sits
 	# between them rather than papering over that.
-	{"key": "banshee", "name": "Banshee", "icon": "banshee_default.png", "price": 60, "currency": COINS, "level": 52,
-		"force": "A", "seats": 12, "fuel": 95, "xp": 300, "ticket": 1200, "range": 5, "has_world_sprite": true},
+	{"key": "banshee", "name": "Banshee", "icon": "banshee_default.png", "price": 30, "currency": COINS, "level": 29,
+		"force": "B", "seats": 12, "fuel": 70, "xp": 1500, "ticket": 333.33, "range": 5, "has_world_sprite": true},
 	# THE TOP OF THE COIN LANE, and the first entry added to it since it was
 	# respaced. APPENDED rather than inserted: the other nine step 4-5 levels and
 	# 5 coins, and inserting would have shifted every one of them. 57 and 65
@@ -315,24 +315,24 @@ const ENTRIES := [
 	# in one playthrough was deliberate - see the note in daily_login.gd - and
 	# this ends it. That is the point of a trophy at the top of the lane, but it
 	# IS a reversal, and it was made on purpose rather than by drift.
-	{"key": "spirit", "name": "Spirit of St. Louis", "icon": "spirit_default.png", "price": 65, "currency": COINS, "level": 57,
+	{"key": "spirit", "name": "Spirit of St. Louis", "icon": "spirit_default.png", "price": 240, "currency": COINS, "level": 58,
 		"force": "B", "seats": 6, "fuel": 70, "xp": 320, "ticket": 3000, "range": 5, "has_world_sprite": true},
 	# 60.3m span, four engines - the top of the airliner class, under the 747s
 	# it shares a level band with. Slots into the empty rung at 44.
 	# 64.75m span, near enough the 747-8's - a modern widebody, so it lands
 	# between the 747 below it and the A340 above.
-	{"key": "a350-900", "name": "Airbus A350-900", "icon": "a350-900_default.png", "price": 600000, "level": 43,
+	{"key": "a350-900", "name": "Airbus A350-900", "icon": "a350-900_default.png", "price": 600000, "level": 42,
 		"force": "E", "seats": 530, "fuel": 64, "xp": 490, "range": 5, "has_world_sprite": true},
 	# 64.8m span and the longest twinjet there is, so it shares the A340's rung -
 	# the same size class, four decades apart - and slots just above it on price.
 	{"key": "b777-300er", "name": "Boeing 777-300ER", "icon": "b777-300er_default.png", "price": 800000, "level": 44,
 		"force": "E", "seats": 590, "fuel": 68, "xp": 512, "range": 5, "has_world_sprite": true},
-	{"key": "a340-300", "name": "Airbus A340-300", "icon": "a340-300_default.png", "price": 700000, "level": 44,
+	{"key": "a340-300", "name": "Airbus A340-300", "icon": "a340-300_default.png", "price": 700000, "level": 43,
 		"force": "E", "seats": 560, "fuel": 66, "xp": 505, "range": 5, "has_world_sprite": true},
-	{"key": "b747", "name": "Boeing 747-8", "icon": "b747_default.png", "price": 900000, "level": 45,
+	{"key": "b747", "name": "Boeing 747-8", "icon": "b747_default.png", "price": 900000, "level": 44,
 		"force": "E", "seats": 600, "fuel": 72, "xp": 520, "range": 5, "has_world_sprite": true},
 	# LIVE 1000000/E/700/70/5cl.
-	{"key": "a380-300", "name": "Airbus A380", "icon": "a380-300_default.png", "price": 1000000, "level": 46,
+	{"key": "a380-300", "name": "Airbus A380", "icon": "a380-300_default.png", "price": 400, "currency": COINS, "level": 84,
 		"force": "E", "seats": 700, "fuel": 70, "xp": 561, "range": 5, "has_world_sprite": true},
 	# LIVE 2000000/C/250/75/5cl - and THE ONE DELIBERATE BREAK in the
 	# ladder. Twice the A380's price for a third of its income: 107 legs to
@@ -340,16 +340,16 @@ const ENTRIES := [
 	# it is theirs - kept as priced rather than 'fixed'.
 	# A bigger A400M - 51.7m span against 42.4 - so it sits above it, and takes
 	# the A400M's grade because a heavy lifter is what it is.
-	{"key": "c17", "name": "C-17 Globemaster III", "icon": "c17_default.png", "price": 1500000, "level": 47,
+	{"key": "c17", "name": "C-17 Globemaster III", "icon": "c17_default.png", "price": 220, "currency": COINS, "level": 53,
 		"force": "D", "seats": 620, "fuel": 70, "xp": 580, "range": 5, "has_world_sprite": true},
-	{"key": "concorde", "name": "Concorde", "icon": "concorde_default.png", "price": 2000000, "level": 48,
+	{"key": "concorde", "name": "Concorde", "icon": "concorde_default.png", "price": 2000000, "level": 45,
 		"force": "C", "seats": 250, "fuel": 75, "xp": 335, "range": 5, "has_world_sprite": true},
-	{"key": "an-225", "name": "An-225", "icon": "an-225_default.png", "price": 2500000, "level": 49,
-		"force": "E", "seats": 900, "fuel": 80, "xp": 636, "range": 5, "has_world_sprite": true},
+	{"key": "an-225", "name": "An-225", "icon": "an-225_default.png", "price": 5000000, "level": 50,
+		"force": "E", "seats": 2000, "fuel": 300, "xp": 10000, "range": 5, "has_world_sprite": true},
 	# LIVE: 100 a head, 500 seats, rating 5 - 250,000 a leg, the biggest
 	# earner in the game. A 100 fare on a military transport is why ticket
 	# is a per-aircraft stat and not a constant.
-	{"key": "a400m", "name": "A400M", "icon": "a400m_white.png", "price": 3500000, "level": 50,
+	{"key": "a400m", "name": "A400M", "icon": "a400m_white.png", "price": 3500000, "level": 48,
 		"force": "D", "seats": 500, "fuel": 100, "xp": 474, "ticket": 100, "range": 5, "has_world_sprite": true},
 	{"key": "ark", "name": "Ark", "icon": "ark_default.png", "price": 7000000, "level": 50,
 		"force": "A", "seats": 1000, "fuel": 90, "xp": 671, "ticket": 60, "range": 5, "has_world_sprite": true},

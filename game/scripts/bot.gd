@@ -218,7 +218,7 @@ func _run() -> void:
 
 	print("  BOT [%s] - %d sessions/day x %.0f min = %.0f min/day, over %d days"
 		% [_who, _sessions, _minutes, _sessions * _minutes, _days])
-	print("  fare %d - the game's own ShopCatalog, Fleet and Progression, not a copy\n"
+	print("  fare %.1f - the game's own ShopCatalog, Fleet and Progression, not a copy\n"
 		% Fleet.TICKET_PRICE)
 	print("  %6s %6s %12s %6s %5s %5s %6s" %
 		["day", "level", "cash", "fleet", "pads", "zones", "bldgs"])
