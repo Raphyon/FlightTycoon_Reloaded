@@ -12,6 +12,7 @@ func _ready() -> void:
 	# spawned by ApronLayer.gd, driven by Fleet's assignment data - see
 	# AreaOrigins for the markers and data/apron_layout.json for the cells.
 	Maps.map_changed.connect(_on_map_changed)
+	DebugState.flags_changed.connect(_apply_ui_visibility)
 	_apply_map()
 	_apply_visiting_ui()
 	$Camera2D.position = $ApronLayer.get_occupied_position()
@@ -108,3 +109,36 @@ func _apply_visiting_ui() -> void:
 		var node: CanvasItem = $UI.get_node_or_null(node_name)
 		if node:
 			node.visible = false
+
+
+# DebugState.hide_ui - everything on the UI layer goes except the debug menu,
+# which is the only way to turn it back on. Hiding the CanvasLayer itself would
+# take the menu with it and leave no route out but restarting.
+#
+# MODULATE, NOT visible. Panels open and close themselves constantly, so their
+# visible flag is theirs - overwriting it would reopen every closed panel the
+# moment the toggle came back off. Alpha takes them off the screen without
+# touching what they think they are doing.
+#
+# Input has to go with the pixels, or an invisible toolbar still swallows clicks
+# meant for the airport behind it. The previous mouse_filter is kept per node
+# rather than assumed, because they are not all the same.
+var _ui_mouse_filters := {}
+
+
+func _apply_ui_visibility() -> void:
+	var hide: bool = DebugState.hide_ui
+	for child in $UI.get_children():
+		if child.name == "DebugMenu" or not child is CanvasItem:
+			continue
+		(child as CanvasItem).modulate.a = 0.0 if hide else 1.0
+		if not child is Control:
+			continue
+		var control := child as Control
+		if hide:
+			if not _ui_mouse_filters.has(control):
+				_ui_mouse_filters[control] = control.mouse_filter
+			control.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		elif _ui_mouse_filters.has(control):
+			control.mouse_filter = _ui_mouse_filters[control]
+			_ui_mouse_filters.erase(control)

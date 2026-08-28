@@ -21,6 +21,7 @@ const MARGIN := 16.0
 # The overlay flags on DebugState, as checkbox rows.
 const FLAGS := [
 	{"flag": &"show_grid", "label": "Isometric grid", "key": ""},
+	{"flag": &"hide_ui", "label": "Hide all UI (this menu stays)", "key": ""},
 	{"flag": &"show_apron_ids", "label": "Apron ID numbers", "key": ""},
 	{"flag": &"show_apron_tints", "label": "Apron free/occupied tints", "key": ""},
 	{"flag": &"show_apron_costs", "label": "Apron build costs", "key": ""},
@@ -64,6 +65,11 @@ const GIVE_ROWS := [
 
 func _ready() -> void:
 	visible = false
+	# It sits mid-list among UI's children, so twenty-odd panels declared after
+	# it would otherwise draw straight over the top. Debug furniture is always
+	# the frontmost thing on the screen - including over a panel that is itself
+	# only visible because this menu made it so.
+	z_index = RenderingServer.CANVAS_ITEM_Z_MAX
 	_build()
 	DebugState.flags_changed.connect(_refresh)
 

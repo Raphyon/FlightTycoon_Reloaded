@@ -17,6 +17,10 @@ var show_apron_ids := false      # the number drawn on each built apron
 var show_apron_tints := false    # green/orange free-vs-occupied diamonds
 var show_apron_costs := false    # the "$1000" on unbuilt aprons
 var show_grid := false           # the isometric reference lattice
+# EVERY HUD AND PANEL AWAY, so the airport can be looked at as a picture. The
+# debug menu itself stays - it is the only way back - and so does anything the
+# camera needs, since this hides the UI layer's children rather than the world.
+var hide_ui := false
 
 
 func set_flag(flag: StringName, value: bool) -> void:
