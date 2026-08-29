@@ -286,6 +286,18 @@ const ENTRIES := [
 	# LIVE 500000/E/500/70/5cl. The 150k -> 500k jump is the original's own.
 	{"key": "747", "name": "Boeing 747", "icon": "747_default.png", "price": 500000, "level": 41,
 		"force": "E", "seats": 500, "fuel": 70, "xp": 2100, "range": 5, "has_world_sprite": true},
+	# LIVE 1000000/E/700/70/5cl.
+		# LIVE, given directly rather than read off a card: $1,000,000, class 3,
+	# 200 fuel, 4000 XP, 8750 fare, 5 clouds, sitting above the 747.
+	#
+	# 8750 does not divide by the default 7.5, so this one carries its own
+	# ticket. 875 seats at 10 a head is exact and lands within a few dozen of
+	# the real airframe's cabin, which none of the other solutions do.
+	#
+	# NOT the second-last unlock - that is the A380-800, a separate aircraft
+	# with its own art, which is why this came back down off level 84.
+	{"key": "a380-300", "name": "Airbus A380", "icon": "a380-300_default.png", "price": 1000000, "level": 42,
+		"force": "C", "seats": 875, "fuel": 200, "xp": 4000, "ticket": 10, "range": 5, "has_world_sprite": true},
 	{"key": "airship", "name": "Airship", "icon": "airship_default.png", "price": 4000000, "level": 42,
 		"force": "E", "seats": 1500, "fuel": 100, "xp": 7500, "range": 5, "has_world_sprite": true},
 	# 60.3m span, four engines - the top of the airliner class, under the 747s
@@ -427,19 +439,6 @@ const ENTRIES := [
 	# and a Tomcat with 900 seats in it would read as a joke.
 	{"key": "f14", "name": "Grumman F-14 Tomcat", "icon": "f14_default.png", "price": 210000000, "level": 70,
 		"force": "S", "seats": 20, "fuel": 70, "xp": 190000, "ticket": 3000, "range": 5, "has_world_sprite": true},
-	# ---- levels 81-90 ------------------------------------------------
-	# LIVE 1000000/E/700/70/5cl.
-		# LIVE, given directly rather than read off a card: $1,000,000, class 3,
-	# 200 fuel, 4000 XP, 8750 fare, 5 clouds, sitting above the 747.
-	#
-	# 8750 does not divide by the default 7.5, so this one carries its own
-	# ticket. 875 seats at 10 a head is exact and lands within a few dozen of
-	# the real airframe's cabin, which none of the other solutions do.
-	#
-	# NOT the second-last unlock - that is the A380-800, a separate aircraft
-	# with its own art, which is why this came back down off level 84.
-	{"key": "a380-300", "name": "Airbus A380", "icon": "a380-300_default.png", "price": 1000000, "level": 42,
-		"force": "C", "seats": 875, "fuel": 200, "xp": 4000, "ticket": 10, "range": 5, "has_world_sprite": true},
 ]
 
 # Anything asking for a model we don't have an entry for still gets a flyable
