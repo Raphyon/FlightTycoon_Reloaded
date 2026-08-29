@@ -288,8 +288,13 @@ const ENTRIES := [
 	{"key": "a300", "name": "Airbus A300", "icon": "a300_default.png", "price": 450000, "level": 39,
 		"force": "D", "seats": 500, "fuel": 150, "xp": 2000, "ticket": 8, "range": 4, "has_world_sprite": true},
 	# ---- levels 41-50 ------------------------------------------------
-	# LIVE 500000/E/500/70/5cl. The 150k -> 500k jump is the original's own.
-	{"key": "747", "name": "Boeing 747", "icon": "747_default.png", "price": 500000, "level": 41,
+		# LIVE: $500,000 / E / 5,000 fare / 150 fuel / 2,500 XP / 5 clouds.
+	#
+	# These figures arrived on a card labelled B747 and were first applied to a
+	# SECOND 747 entry that sat beside this one - the catalogue carried two,
+	# one per sprite. Only this one's art fits the fleet's look, so it takes
+	# the live numbers and the other is gone.
+	{"key": "b747", "name": "Boeing 747", "icon": "b747_default.png", "price": 500000, "level": 41,
 		"force": "E", "seats": 500, "fuel": 150, "xp": 2500, "ticket": 10, "range": 5, "has_world_sprite": true},
 	# LIVE 1000000/E/700/70/5cl.
 		# LIVE, given directly rather than read off a card: $1,000,000, class 3,
@@ -319,8 +324,6 @@ const ENTRIES := [
 	# the same size class, four decades apart - and slots just above it on price.
 	{"key": "b777-300er", "name": "Boeing 777-300ER", "icon": "b777-300er_default.png", "price": 7200000, "level": 45,
 		"force": "E", "seats": 590, "fuel": 68, "xp": 13000, "range": 5, "has_world_sprite": true},
-	{"key": "b747", "name": "Boeing 747-8", "icon": "b747_default.png", "price": 10000000, "level": 45,
-		"force": "E", "seats": 600, "fuel": 72, "xp": 17000, "range": 5, "has_world_sprite": true},
 	# Two seats, so it earns on fare - the same trick the original uses on
 	# its F-15.
 	{"key": "p51", "name": "P-51 Mustang", "icon": "p51_white.png", "price": 125, "currency": COINS, "level": 45,

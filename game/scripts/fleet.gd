@@ -154,10 +154,6 @@ const WORLD_SPRITES := {
 	# Re-run the tool to regenerate; delete a folder + its entry here +
 	# flip has_world_sprite in ShopCatalog to drop one.
 	# ------------------------------------------------------------------
-	"747": {
-		"body": "res://assets/aircraft/747/body_2x.png",
-		"shadow": "res://assets/aircraft/747/shadow_2x.png",
-	},
 	"a300": {
 		"body": "res://assets/aircraft/a300/body_2x.png",
 		"shadow": "res://assets/aircraft/a300/shadow_2x.png",
@@ -621,7 +617,6 @@ const WORLD_SPRITES := {
 		"body": "res://assets/aircraft/b787/body_2x.png",
 		"shadow": "res://assets/aircraft/b787/shadow_2x.png",
 	},
-	# A distinct airframe from "747" above, not a repaint of it.
 	# 152px of hull on a 200px pad, and it overhangs. Scaled onto the
 	# A350's 140px footprint - same class, and that one sits right.
 	"b747": {
