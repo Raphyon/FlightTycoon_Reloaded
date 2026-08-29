@@ -550,13 +550,19 @@ const WORLD_SPRITES := {
 		"rotor_offsets": [Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0)],
 		"rotor_scale": 0.78,
 	},
+	# 159px of hull on a 200px pad, and it overhangs. Scaled onto the
+	# A350's 140px footprint - same class, and that one sits right.
 	"b777-300er": {
 		"body": "res://assets/aircraft/b777-300er/body_2x.png",
 		"shadow": "res://assets/aircraft/b777-300er/shadow_2x.png",
+		"sprite_scale": 0.88,
 	},
+	# 152px of hull on a 200px pad, and it overhangs. Scaled onto the
+	# A350's 140px footprint - same class, and that one sits right.
 	"a340-300": {
 		"body": "res://assets/aircraft/a340-300/body_2x.png",
 		"shadow": "res://assets/aircraft/a340-300/shadow_2x.png",
+		"sprite_scale": 0.92,
 	},
 	"c17": {
 		"body": "res://assets/aircraft/c17/body_2x.png",
@@ -616,9 +622,12 @@ const WORLD_SPRITES := {
 		"shadow": "res://assets/aircraft/b787/shadow_2x.png",
 	},
 	# A distinct airframe from "747" above, not a repaint of it.
+	# 152px of hull on a 200px pad, and it overhangs. Scaled onto the
+	# A350's 140px footprint - same class, and that one sits right.
 	"b747": {
 		"body": "res://assets/aircraft/b747/body_2x.png",
 		"shadow": "res://assets/aircraft/b747/shadow_2x.png",
+		"sprite_scale": 0.92,
 	},
 	# NOT vtol - it has wings and it lands on a runway, so it queues like the
 	# rest of the fleet. (It was briefly vtol on the reasoning that a space
