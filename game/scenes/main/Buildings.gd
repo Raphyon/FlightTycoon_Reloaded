@@ -21,6 +21,7 @@ var _tick := 0.0
 func _ready() -> void:
 	BuildingProgress.built_changed.connect(_refresh_all)
 	BuildingProgress.rent_changed.connect(_refresh_all)
+	BuildingProgress.lights_changed.connect(func(_id: int) -> void: _refresh_all())
 	# Plots appear with Zone2 - see BuildingProgress.buildings_unlocked.
 	ZoneProgress.unlocked_changed.connect(rebuild)
 	# TRAVELLING IS A REBUILD. Without this the slots from the airport you left

@@ -90,7 +90,8 @@ func _migrate_bare_strings() -> void:
 			continue
 		for plot_key in (m as Dictionary):
 			if (m as Dictionary)[plot_key] is String:
-				(m as Dictionary)[plot_key] = {"key": (m as Dictionary)[plot_key], "since": now}
+				(m as Dictionary)[plot_key] = {"key": (m as Dictionary)[plot_key],
+					"since": now, "lit_since": now}
 				touched = true
 	if touched:
 		_save()
@@ -425,6 +426,32 @@ func is_rent_ready(plot_id: int, map_key: String = "") -> bool:
 # tools/econ_sim.py --coins.
 const COIN_CHANCE_PER_CYCLE_MINUTE := 0.00083
 const COIN_DROP_AMOUNT := 1
+
+
+# THE LIGHTS GO OUT. A building that has been standing lit for LIT_SECONDS goes
+# dark, puts a bulb over itself, and waits to be switched back on for cash and
+# XP.
+#
+# It is a SECOND TAP LOOP on the city side, deliberately offset from rent. Rent
+# is the city's income and it already out-earns the fleet (see BALANCE.md); the
+# point of this is not more money, it is another reason to walk the map, in a
+# game where 42 plots compete with 150-odd pads for the same taps.
+#
+# Measured from the last relight rather than from the last rent collection, so
+# the two loops drift apart instead of arriving together and collapsing into
+# one tap.
+const LIT_SECONDS := 3600.0
+
+# What relighting pays, as a share of one rent cycle. A quarter - enough to be
+# worth crossing the map for, not enough to make the lights the real income and
+# rent the sideshow.
+const LIGHTS_CASH_SHARE := 0.25
+
+# XP is FLAT PER LEVEL, not a share of the cash. Rent runs away with building
+# level - RENT_PER_LEVEL is 1.45 compounding - and XP tied to it would hand a
+# maxed city more experience than the entire aircraft ladder. This pays a
+# maxed building ten times a new one, not four hundred times.
+const LIGHTS_XP_PER_LEVEL := 6
 # AND THE LEVEL RAISES IT. Before this an upgrade produced exactly one thing -
 # more cash - and cash is not what paces this game: a mid-game level pays for
 # itself in 20 to 40 hours of collecting every single cycle, and buys a currency
@@ -480,6 +507,7 @@ func coin_chance_at(plot_id: int, map_key: String = "") -> float:
 # So a drop can be shown. Without it the only feedback is the HUD counter
 # ticking up, which nobody is looking at while tapping a building.
 signal coin_found(plot_id: int, amount: int)
+signal lights_changed(plot_id: int)
 
 # Milestones get their OWN signal rather than borrowing coin_found. They can
 # fire from inside a rent collection - collect_rent reads rent_at, which reads
@@ -531,6 +559,75 @@ func collect_rent(plot_id: int, map_key: String = "") -> int:
 	rent_changed.emit()
 	rent_collected.emit(plot_id, amount)
 	return amount
+
+
+# When this building's lights were last on.
+#
+# A record from before the lights existed has no lit_since. It must NOT fall
+# back to "since": that is the rent clock, reset on every collection, so a
+# building collected more often than hourly would never go dark at all. It
+# starts its life lit instead, from the moment it is first asked about, which
+# costs one cycle on an old save and nothing after that.
+func lit_since(plot_id: int, map_key: String = "") -> float:
+	var mk := map_key if map_key != "" else Maps.current
+	var m := _map(mk)
+	var rec: Dictionary = m.get(str(plot_id), {})
+	if rec.is_empty():
+		return GameClock.now()
+	if not rec.has("lit_since"):
+		rec["lit_since"] = GameClock.now()
+		m[str(plot_id)] = rec
+		built[mk] = m
+	return float(rec["lit_since"])
+
+
+func seconds_until_dark(plot_id: int, map_key: String = "") -> float:
+	return maxf(0.0, lit_since(plot_id, map_key) + LIT_SECONDS - GameClock.now())
+
+
+# Scaffolding wins: a building being rebuilt is not sitting there with its
+# lights off, it is a building site, and it already has its own callout.
+func is_dark(plot_id: int, map_key: String = "") -> bool:
+	return building_at(plot_id, map_key) != "" \
+		and not is_upgrading(plot_id, map_key) \
+		and seconds_until_dark(plot_id, map_key) <= 0.0
+
+
+func lights_reward(plot_id: int, map_key: String = "") -> int:
+	return int(round(float(rent_at(plot_id, map_key)) * LIGHTS_CASH_SHARE))
+
+
+func lights_xp(plot_id: int, map_key: String = "") -> int:
+	return LIGHTS_XP_PER_LEVEL * level_at(plot_id, map_key)
+
+
+# Switch them back on. Pays cash and XP, and restarts the lit clock - it does
+# NOT touch "since", so relighting neither grants nor delays a rent cycle.
+func relight(plot_id: int, map_key: String = "") -> int:
+	if not is_dark(plot_id, map_key):
+		return 0
+	var amount := lights_reward(plot_id, map_key)
+	Economy.add_money(amount)
+	Progression.add_xp(lights_xp(plot_id, map_key))
+	var mk := map_key if map_key != "" else Maps.current
+	var m := _map(mk)
+	var rec: Dictionary = m.get(str(plot_id), {})
+	rec["lit_since"] = GameClock.now()
+	m[str(plot_id)] = rec
+	built[mk] = m
+	_save()
+	lights_changed.emit(plot_id)
+	return amount
+
+
+func dark_plots(map_key: String = "") -> Array:
+	var out: Array = []
+	for id_str in _map(map_key):
+		var id := int(id_str)
+		if is_dark(id, map_key):
+			out.append(id)
+	out.sort()
+	return out
 
 
 # Everything waiting to be collected here, for a "collect all" and for the HUD.
@@ -647,7 +744,12 @@ func build(plot_id: int, building_key: String, map_key: String = "") -> bool:
 	var m := _map(key)
 	# The cycle starts the moment it's built, so a new building is not
 	# immediately collectable - you pay, then you wait, like every other timer.
-	m[str(plot_id)] = {"key": building_key, "since": GameClock.now()}
+	# lit_since is written HERE and not left to fall back on "since". They look
+	# interchangeable on a new building and are not: "since" is reset by every
+	# rent collection, so a lights clock reading it can never expire on a
+	# building that is being collected regularly - which is every building.
+	m[str(plot_id)] = {"key": building_key, "since": GameClock.now(),
+		"lit_since": GameClock.now()}
 	built[key] = m
 	_save()
 	built_changed.emit()

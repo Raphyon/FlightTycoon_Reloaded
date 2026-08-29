@@ -156,6 +156,8 @@ var _quest_coins := 0
 # sources can be sized against each other - the whole question of whether a
 # building upgrade is worth anything turns on which one dominates.
 var _building_coins := 0
+var _lights_cash := 0
+var _lights_relit := 0
 # Milestone payouts, apart from drops - they are a different lever with a
 # different cap and sizing one against the other is the whole point.
 var _milestone_coins := 0
@@ -357,6 +359,16 @@ func _collect_bulk() -> void:
 	BuildingProgress.collect_all()
 	_building_coins += (Coins.amount - coins_before) \
 		- (_milestone_coins - milestones_before)
+	_relight_all()
+
+
+# The lights loop, counted separately from rent so its contribution can be
+# read on its own rather than hiding inside the city's total.
+func _relight_all() -> void:
+	for id in BuildingProgress.dark_plots():
+		_taps += 1
+		_lights_cash += BuildingProgress.relight(id)
+		_lights_relit += 1
 
 
 func _next_landing() -> float:
@@ -432,6 +444,7 @@ func _collect() -> void:
 	BuildingProgress.collect_all()
 	_building_coins += (Coins.amount - coins_before) \
 		- (_milestone_coins - milestones_before)
+	_relight_all()
 
 
 # EVERY AIRCRAFT NEEDS A PAD BEFORE IT CAN DO ANYTHING. Fleet.buy only adds it
@@ -1002,6 +1015,9 @@ func _summary() -> void:
 	print("  routing policy: %s   buying: %s   daily tasks: %s" % [_routing, _buying, "on" if _do_quests else "off"])
 	print("  quests: %d sets completed, %d coins earned" % [_sets_done, _quest_coins])
 	print("  building coin drops: %d" % _building_coins)
+	print("  lights: %d relit for $%s = %.1f%% of income"
+		% [_lights_relit, _thousands(_lights_cash),
+			100.0 * float(_lights_cash) / maxf(1.0, _earned)])
 	if _autoturn_hours > 0.0:
 		print("  AUTOTURN %.1f h/day: %d skips, %.0f h covered" % [_autoturn_hours, _autoturn_calls, _autoturn_covered / 3600.0])
 	print("  daily login: %d days collected, %d coins" % [_login_days, _login_coins])
