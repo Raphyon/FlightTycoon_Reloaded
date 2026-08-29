@@ -638,10 +638,16 @@ const WORLD_SPRITES := {
 		"vtol": true,
 	},
 	# Leaves the pad straight up, same as the UFO and the Ark.
+	# It reads as SITTING ON its shadow rather than hovering over it. The body
+	# is 135x88 against a 135x70 shadow, so centring the two leaves only nine
+	# pixels of daylight top and bottom - not enough gap for a saucer that is
+	# supposed to be floating. Lifted eight, which roughly doubles it without
+	# detaching the two.
 	"ncc1701": {
 		"body": "res://assets/aircraft/ncc1701/body_2x.png",
 		"shadow": "res://assets/aircraft/ncc1701/shadow_2x.png",
 		"vtol": true,
+		"body_offset": Vector2(0, -8),
 	},
 }
 
