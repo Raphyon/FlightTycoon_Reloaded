@@ -200,11 +200,11 @@ const ENTRIES := [
 	{"key": "dc4", "name": "Douglas DC-4", "icon": "dc4_default.png", "price": 8000, "level": 10,
 		"force": "C", "seats": 200, "fuel": 25, "xp": 150, "ticket": 2.5, "range": 3, "has_world_sprite": true},
 	# ---- levels 11-20 ------------------------------------------------
-	{"key": "dhc8", "name": "Dash 8", "icon": "dhc8_default.png", "price": 10000, "level": 11,
+	{"key": "dhc8", "name": "Dash 8", "icon": "dhc8_default.png", "price": 14000, "level": 11,
 		"force": "A", "seats": 120, "fuel": 8, "xp": 67, "range": 2, "has_world_sprite": true},
 	# First rating-3 airframe, which is worth more than its cabin: 3x on
 	# every leg.
-	{"key": "328jet", "name": "328 Jet", "icon": "328jet_blue.png", "price": 20000, "level": 13,
+	{"key": "328jet", "name": "328 Jet", "icon": "328jet_blue.png", "price": 23000, "level": 13,
 		"force": "S", "seats": 110, "fuel": 10, "xp": 110, "range": 3, "has_world_sprite": true},
 	# LIVE stats: A / 100 seats / 20 fuel / 15 fare / 1 cloud. The PRICE is not
 	# live - the original charges 40,000 for it, which against 1,500 a leg is a
@@ -355,7 +355,7 @@ const ENTRIES := [
 		"force": "E", "seats": 2000, "fuel": 300, "xp": 10000, "range": 5, "has_world_sprite": true},
 	# 64.8m span and the longest twinjet there is, so it shares the A340's rung -
 	# the same size class, four decades apart - and slots just above it on price.
-	{"key": "b777-300er", "name": "Boeing 777-300ER", "icon": "b777-300er_default.png", "price": 7200000, "level": 45,
+	{"key": "b777-300er", "name": "Boeing 777-300ER", "icon": "b777-300er_default.png", "price": 8700000, "level": 45,
 		"force": "E", "seats": 590, "fuel": 68, "xp": 13000, "range": 5, "has_world_sprite": true},
 	# Two seats, so it earns on fare - the same trick the original uses on
 	# its F-15.
@@ -368,9 +368,9 @@ const ENTRIES := [
 	# LIVE: 100 a head, 500 seats, rating 5 - 250,000 a leg, the biggest
 	# earner in the game. A 100 fare on a military transport is why ticket
 	# is a per-aircraft stat and not a constant.
-	{"key": "a400m", "name": "A400M", "icon": "a400m_white.png", "price": 21000000, "level": 50,
+	{"key": "a400m", "name": "A400M", "icon": "a400m_white.png", "price": 18000000, "level": 50,
 		"force": "D", "seats": 500, "fuel": 100, "xp": 31000, "ticket": 100, "range": 5, "has_world_sprite": true},
-	{"key": "ark", "name": "Ark", "icon": "ark_default.png", "price": 25000000, "level": 50,
+	{"key": "ark", "name": "Ark", "icon": "ark_default.png", "price": 22000000, "level": 50,
 		"force": "A", "seats": 1000, "fuel": 90, "xp": 35000, "ticket": 60, "range": 5, "has_world_sprite": true},
 	# An unmanned spaceplane: it carries almost nothing, so like the P-51 and
 	# the F-15 it earns on fare rather than capacity. Four "seats" at 2000 is
@@ -395,9 +395,9 @@ const ENTRIES := [
 	# tail adds no income the pacing has not already seen. PRICE is the ladder
 	# here, not payout - these are sinks for a late game that measures $14M a
 	# day with nothing to spend it on.
-	{"key": "an74", "name": "Antonov An-74", "icon": "an74_default.png", "price": 29000000, "level": 52,
+	{"key": "an74", "name": "Antonov An-74", "icon": "an74_default.png", "price": 26000000, "level": 52,
 		"force": "D", "seats": 420, "fuel": 55, "xp": 40000, "ticket": 105, "range": 5, "has_world_sprite": true},
-	{"key": "lc130", "name": "Lockheed LC-130", "icon": "lc130_default.png", "price": 34000000, "level": 53,
+	{"key": "lc130", "name": "Lockheed LC-130", "icon": "lc130_default.png", "price": 31000000, "level": 53,
 		"force": "D", "seats": 470, "fuel": 60, "xp": 45000, "ticket": 100, "range": 5, "has_world_sprite": true},
 	# LIVE 2000000/C/250/75/5cl - and THE ONE DELIBERATE BREAK in the
 	# ladder. Twice the A380's price for a third of its income: 107 legs to
@@ -409,10 +409,16 @@ const ENTRIES := [
 		"force": "D", "seats": 620, "fuel": 70, "xp": 62000, "range": 5, "has_world_sprite": true},
 	# Dreamland's boats. The island is a water resort and the fleet had no
 	# flying boat or amphibian in it - see ROADMAP item 10.
-	{"key": "be200", "name": "Beriev Be-200", "icon": "be200_default.png", "price": 40000000, "level": 56,
+	{"key": "be200", "name": "Beriev Be-200", "icon": "be200_default.png", "price": 37000000, "level": 56,
 		"force": "D", "seats": 480, "fuel": 58, "xp": 51000, "ticket": 100, "range": 5, "has_world_sprite": true},
-	{"key": "us2", "name": "ShinMaywa US-2", "icon": "us2_default.png", "price": 48000000, "level": 57,
+	{"key": "us2", "name": "ShinMaywa US-2", "icon": "us2_default.png", "price": 44000000, "level": 56,
 		"force": "D", "seats": 500, "fuel": 60, "xp": 59000, "ticket": 100, "range": 5, "has_world_sprite": true},
+	# A fighter in the tail. 9.96m span, so the smallest thing here after the
+	# Paper Plane, and priced as a trophy like everything past 50.
+	{"key": "f16", "name": "F-16 Fighting Falcon", "icon": "f16_default.png", "price": 53000000, "level": 57,
+		"force": "S", "seats": 10, "fuel": 66, "xp": 66000, "ticket": 5500, "range": 5, "has_world_sprite": true},
+	{"key": "b314", "name": "Boeing 314 Clipper", "icon": "b314_default.png", "price": 64000000, "level": 57,
+		"force": "E", "seats": 560, "fuel": 64, "xp": 75000, "ticket": 95, "range": 5, "has_world_sprite": true},
 	# THE TOP OF THE COIN LANE, and the first entry added to it since it was
 	# respaced. APPENDED rather than inserted: the other nine step 4-5 levels and
 	# 5 coins, and inserting would have shifted every one of them. 57 and 65
@@ -433,13 +439,6 @@ const ENTRIES := [
 	# IS a reversal, and it was made on purpose rather than by drift.
 	{"key": "spirit", "name": "Spirit of St. Louis", "icon": "spirit_default.png", "price": 240, "currency": COINS, "level": 58,
 		"force": "B", "seats": 6, "fuel": 70, "xp": 67000, "ticket": 3000, "range": 5, "has_world_sprite": true},
-	# A fighter in the tail. 9.96m span, so the smallest thing here after the
-	# Paper Plane, and priced as a trophy like everything past 50.
-	{"key": "f16", "name": "F-16 Fighting Falcon", "icon": "f16_default.png", "price": 56000000, "level": 59,
-		"force": "S", "seats": 10, "fuel": 66, "xp": 66000, "ticket": 5500, "range": 5, "has_world_sprite": true},
-	# ---- levels 61-70 ------------------------------------------------
-	{"key": "b314", "name": "Boeing 314 Clipper", "icon": "b314_default.png", "price": 66000000, "level": 61,
-		"force": "E", "seats": 560, "fuel": 64, "xp": 75000, "ticket": 95, "range": 5, "has_world_sprite": true},
 	# LEVELS 62-65 WERE THE BIGGEST HOLE IN THE GAME: four levels between the
 	# Clipper and the H-4, and 18% of a whole run, because the XP curve is n^4.2
 	# and a level up here is worth thousands near the start. Two aircraft cannot
@@ -456,19 +455,26 @@ const ENTRIES := [
 	#
 	# E where they are D. It is the propeller ancestor, so the tier has a shape
 	# inside it rather than three identical haulers.
-	{"key": "guppy", "name": "Super Guppy", "icon": "guppy_default.png", "price": 78000000, "level": 62,
+	{"key": "guppy", "name": "Super Guppy", "icon": "guppy_default.png", "price": 77000000, "level": 59,
 		"force": "E", "seats": 590, "fuel": 66, "xp": 86000, "ticket": 92, "range": 5, "has_world_sprite": true},
-	{"key": "beluga-xl", "name": "Airbus Beluga XL", "icon": "beluga-xl_default.png", "price": 92000000, "level": 63,
+	{"key": "beluga-xl", "name": "Airbus Beluga XL", "icon": "beluga-xl_default.png", "price": 92000000, "level": 60,
 		"force": "D", "seats": 620, "fuel": 68, "xp": 98000, "ticket": 90, "range": 5, "has_world_sprite": true},
-	{"key": "dreamlifter", "name": "Boeing Dreamlifter", "icon": "dreamlifter_default.png", "price": 110000000, "level": 65,
+	# ---- levels 61-70 ------------------------------------------------
+	# LIVE: level 61, $110,000,000, off a locked card. Nothing else about it is
+	# known, so grade, clouds, fuel, cabin and XP are all interpolated from the
+	# aircraft either side of it in the band and want replacing if a card for
+	# it ever turns up.
+	{"key": "b737", "name": "Boeing 737", "icon": "b737_default.png", "price": 110000000, "level": 61,
+		"force": "D", "seats": 600, "fuel": 72, "xp": 110000, "ticket": 96, "range": 5, "has_world_sprite": true},
+	{"key": "dreamlifter", "name": "Boeing Dreamlifter", "icon": "dreamlifter_default.png", "price": 130000000, "level": 65,
 		"force": "D", "seats": 660, "fuel": 72, "xp": 110000, "ticket": 88, "range": 5, "has_world_sprite": true},
 	# DREAMLAND3'S, and the last gate in the game to get an aircraft. The
 	# largest wingspan ever built, so it is the largest sprite here too.
-	{"key": "h4", "name": "Hughes H-4 Hercules", "icon": "h4_default.png", "price": 130000000, "level": 66,
+	{"key": "h4", "name": "Hughes H-4 Hercules", "icon": "h4_default.png", "price": 140000000, "level": 66,
 		"force": "E", "seats": 700, "fuel": 74, "xp": 130000, "ticket": 85, "range": 5, "has_world_sprite": true},
 	# The Carrier's third, and the one that earns its slot mechanically - a
 	# Harrier leaves a deck straight up, and vtol already exists.
-	{"key": "harrier", "name": "AV-8B Harrier II", "icon": "harrier_default.png", "price": 150000000, "level": 68,
+	{"key": "harrier", "name": "AV-8B Harrier II", "icon": "harrier_default.png", "price": 160000000, "level": 68,
 		"force": "A", "seats": 12, "fuel": 70, "xp": 140000, "ticket": 4500, "range": 5, "has_world_sprite": true},
 	# The Carrier's other half. A Tomcat and a Hawkeye is the pair a deck
 	# actually runs, and it gives the Carrier two entries the way Snow and
