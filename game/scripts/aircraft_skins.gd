@@ -251,6 +251,8 @@ const LIVERIES := {
 	"p51": [
 		{"key": "crimson", "name": "Crimson",
 			"body": "res://assets/aircraft/p51/body_crimson_2x.png"},
+		{"key": "silver", "name": "Silver",
+			"body": "res://assets/aircraft/p51/body_silver_2x.png"},
 	],
 	"skylink": [
 		{"key": "aurora", "name": "Aurora",

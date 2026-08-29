@@ -155,7 +155,17 @@ def shadow_of(group, cells):
     """
     own = os.path.join(SRC, "aircraft_%s_s@2x.png" % group)
     supplied = Image.open(own).convert("RGBA") if os.path.exists(own) else None
-    if len(cells) < 2:
+
+    # ONLY A SHEET CAN HAVE ITS SHADOW AMONG THE CELLS. A pre-cut group's
+    # cells are ALL paint - its shadow is the separate _s file - so running
+    # the flat-tone test over them deletes a scheme. That is how the P-51 lost
+    # its third: a near-monochrome livery reads as flat, and there was no
+    # sheet for it to have been the shadow of.
+    #
+    # This guard existed, and the flat-tone rewrite replaced the whole
+    # function and dropped it. Second time the same mistake has cost aircraft.
+    if not os.path.exists(os.path.join(SRC, "aircraft_%s@2x.png" % group)) \
+            or len(cells) < 2:
         return supplied, cells
 
     # A SHADOW IS ONE FLAT TONE AT VARYING ALPHA. Paint is many colours, and

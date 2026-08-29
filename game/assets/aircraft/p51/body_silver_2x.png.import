@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dodl7gjxmu60n"
-path="res://.godot/imported/body_amber2_2x.png-49854dd136185bac9f13f3907a1b827e.ctex"
+uid="uid://c605b3j4wryjy"
+path="res://.godot/imported/body_silver_2x.png-885327c4257811eb29b9cd0b9acc149c.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/aircraft/a380-800/body_amber2_2x.png"
-dest_files=["res://.godot/imported/body_amber2_2x.png-49854dd136185bac9f13f3907a1b827e.ctex"]
+source_file="res://assets/aircraft/p51/body_silver_2x.png"
+dest_files=["res://.godot/imported/body_silver_2x.png-885327c4257811eb29b9cd0b9acc149c.ctex"]
 
 [params]
 
