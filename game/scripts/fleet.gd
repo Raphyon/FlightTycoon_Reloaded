@@ -617,12 +617,12 @@ const WORLD_SPRITES := {
 		"body": "res://assets/aircraft/b787/body_2x.png",
 		"shadow": "res://assets/aircraft/b787/shadow_2x.png",
 	},
-	# 152px of hull on a 200px pad, and it overhangs. Scaled onto the
-	# A350's 140px footprint - same class, and that one sits right.
+	# The 0.92 that was here brought a 152px hull onto the A350's 140. That
+	# hull is replaced - the sheet art is 167 and drawn for the pad - so the
+	# same reasoning that removed the A340's scale removes this one.
 	"b747": {
 		"body": "res://assets/aircraft/b747/body_2x.png",
 		"shadow": "res://assets/aircraft/b747/shadow_2x.png",
-		"sprite_scale": 0.92,
 	},
 	# NOT vtol - it has wings and it lands on a runway, so it queues like the
 	# rest of the fleet. (It was briefly vtol on the reasoning that a space

@@ -43,6 +43,11 @@ SHOP = os.path.join(ROOT, "game", "assets", "shop")
 # Anything smaller than this on a sheet is a stray pixel, not a cell.
 MIN_CELL_PIXELS = 400
 
+# How much colour spread a cell may have and still be a silhouette rather than
+# a paint scheme. Measured: shadows come out near 0, the flattest real livery
+# well above 20.
+FLAT_TONE_STD = 6
+
 # The shop card scales its icon into a fixed box, so this only sets sharpness.
 # Same figure newfleet_derive.py uses, so the shelf stays consistent.
 SHOP_ICON_SCALE = 1.2
@@ -72,6 +77,7 @@ DEFAULTS = {
     "a319": (1, {}),
     "a340": (1, {}),
     "a380": (3, {}),
+    "b747": (1, {}),
     "a380_800": (1, {}),
     "airship": (3, {}),
     "b737": (1, {}),
@@ -121,30 +127,34 @@ def shadow_of(group, cells):
     is the aircraft.
     """
     own = os.path.join(SRC, "aircraft_%s_s@2x.png" % group)
-    shadow = Image.open(own).convert("RGBA") if os.path.exists(own) else None
-    is_sheet = os.path.exists(os.path.join(SRC, "aircraft_%s@2x.png" % group))
+    supplied = Image.open(own).convert("RGBA") if os.path.exists(own) else None
+    if len(cells) < 2:
+        return supplied, cells
 
-    # ONLY A SHEET HAS ITS SHADOW AMONG THE CELLS. A pre-cut group's cells are
-    # all paint schemes and its shadow is the separate _s file, so removing a
-    # cell there throws away a scheme - which is what happened to the A319 and
-    # the A340, both of which came out with one.
+    # A SHADOW IS ONE FLAT TONE AT VARYING ALPHA. Paint is many colours, and
+    # that is the only test that holds up.
     #
-    # A group can have both a sheet and an _s. The cell still has to come out
-    # of the scheme list either way; the _s only wins on which image is used.
-    if not is_sheet or len(cells) < 2:
-        return shadow, cells
-
-    def flatness(im):
+    # Two others were tried and both threw away aircraft. "Least saturated"
+    # deleted the B747's cow-print livery, which is black and white. "Darkest"
+    # deleted the dark blue A380 and the black C-17. A silhouette has no
+    # SPREAD of colour at all, whatever its hue or brightness, so the standard
+    # deviation across its pixels is what separates it - and that resolves 21
+    # of the 23 sheets to exactly one cell.
+    flat = []
+    for i, (_, im) in enumerate(cells):
         px = np.array(im).astype(int)
-        op = px[:, :, 3] > 30
-        rgb = px[:, :, :3]
-        return (rgb.max(axis=2) - rgb.min(axis=2))[op].mean() * 2 \
-            + rgb.mean(axis=2)[op].mean() / 8
+        rgb = px[:, :, :3][px[:, :, 3] > 40]
+        if len(rgb) and rgb.std(axis=0).mean() < FLAT_TONE_STD:
+            flat.append(i)
 
-    scores = [flatness(im) for _, im in cells]
-    i = scores.index(min(scores))
-    rest = [c for j, c in enumerate(cells) if j != i]
-    return (shadow if shadow is not None else cells[i][1]), rest
+    if not flat:
+        return supplied, cells
+    # The Black Hawk ships several - a helicopter needs one shadow with the
+    # rotor stopped and one with it blurred - and the C-17 two. Biggest wins as
+    # the ground shadow; the rest are dropped rather than sold as paint.
+    i = max(flat, key=lambda j: cells[j][1].width * cells[j][1].height)
+    rest = [c for j, c in enumerate(cells) if j not in flat]
+    return (supplied if supplied is not None else cells[i][1]), rest
 
 
 def install(group, default_n, names):
