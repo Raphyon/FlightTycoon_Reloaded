@@ -616,6 +616,10 @@ const WORLD_SPRITES := {
 		"body": "res://assets/aircraft/dc10/body_2x.png",
 		"shadow": "res://assets/aircraft/dc10/shadow_2x.png",
 	},
+	"md11": {
+		"body": "res://assets/aircraft/md11/body_2x.png",
+		"shadow": "res://assets/aircraft/md11/shadow_2x.png",
+	},
 	"dc4": {
 		"body": "res://assets/aircraft/dc4/body_2x.png",
 		"shadow": "res://assets/aircraft/dc4/shadow_2x.png",
@@ -676,11 +680,14 @@ const WORLD_SPRITES := {
 		"vtol": true,
 	},
 	# Leaves the pad straight up, same as the UFO and the Ark.
-	# It reads as SITTING ON its shadow rather than hovering over it. The body
-	# is 135x88 against a 135x70 shadow, so centring the two leaves only nine
-	# pixels of daylight top and bottom - not enough gap for a saucer that is
-	# supposed to be floating. Lifted eight, which roughly doubles it without
-	# detaching the two.
+	# It reads as SITTING ON its shadow rather than hovering over it, so it is
+	# lifted eight. That was measured against the old 135x88 hull and its
+	# 135x70 shadow; the sheet art is 177x115 over 167x100, a near-identical
+	# relationship, so the figure still holds.
+	#
+	# KEPT rather than dropped with the sprite_scales, because this one is not
+	# correcting art that was the wrong size - it is a deliberate look, asked
+	# for, and the new art wants it just as much.
 	"ncc1701": {
 		"body": "res://assets/aircraft/ncc1701/body_2x.png",
 		"shadow": "res://assets/aircraft/ncc1701/shadow_2x.png",

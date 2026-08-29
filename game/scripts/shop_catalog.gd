@@ -290,6 +290,10 @@ const ENTRIES := [
 	# LIVE 150000/E/400/40/5cl. Burns less than the A300 two tiers below it.
 	{"key": "b787", "name": "Boeing 787", "icon": "b787_default.png", "price": 150000, "level": 34,
 		"force": "E", "seats": 400, "fuel": 80, "xp": 300, "range": 5, "has_world_sprite": true},
+	# LIVE stats, factory cash as the price - the last of the four the original
+	# produces rather than sells. 625 seats at 8 is the exact fare.
+	{"key": "md11", "name": "McDonnell Douglas MD-11", "icon": "md11_default.png", "price": 150000, "level": 34,
+		"force": "E", "seats": 625, "fuel": 55, "xp": 600, "ticket": 8, "range": 5, "has_world_sprite": true},
 	{"key": "dc10", "name": "Douglas DC-10", "icon": "dc10_default.png", "price": 210000, "level": 35,
 		"force": "E", "seats": 250, "fuel": 25, "xp": 450, "ticket": 8, "range": 5, "has_world_sprite": true},
 	# Sits between the Dash 8 and the 328 Jet: a bigger cabin than the turboprop
