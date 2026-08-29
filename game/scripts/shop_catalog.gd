@@ -461,8 +461,8 @@ const ENTRIES := [
 	# has_world_sprite is FALSE until sheetfleet_derive.py installs its art -
 	# the card shows "No art yet" and cannot be bought, which is the existing
 	# way to have an aircraft in the catalogue before it can fly.
-	{"key": "a380-800", "name": "Airbus A380-800", "icon": "a380-300_default.png", "price": 400, "currency": COINS, "level": 84,
-		"force": "E", "seats": 1400, "fuel": 500, "xp": 99000, "ticket": 80, "range": 5, "has_world_sprite": false},
+	{"key": "a380-800", "name": "Airbus A380-800", "icon": "a380-800_default.png", "price": 400, "currency": COINS, "level": 84,
+		"force": "E", "seats": 1400, "fuel": 500, "xp": 99000, "ticket": 80, "range": 5, "has_world_sprite": true},
 ]
 
 # Anything asking for a model we don't have an entry for still gets a flyable

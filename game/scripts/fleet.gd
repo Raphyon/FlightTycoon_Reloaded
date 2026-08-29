@@ -170,6 +170,17 @@ const WORLD_SPRITES := {
 		"body": "res://assets/aircraft/a380-300/body_2x.png",
 		"shadow": "res://assets/aircraft/a380-300/shadow_2x.png",
 	},
+	# Its own airframe, not a repaint of the A380 above - the second-last
+	# unlock in the shop.
+	"a380-800": {
+		"body": "res://assets/aircraft/a380-800/body_2x.png",
+		"shadow": "res://assets/aircraft/a380-800/shadow_2x.png",
+	},
+	# Art installed; no catalogue entry yet, so nothing can buy one.
+	"b737": {
+		"body": "res://assets/aircraft/b737/body_2x.png",
+		"shadow": "res://assets/aircraft/b737/shadow_2x.png",
+	},
 	"an-225": {
 		"body": "res://assets/aircraft/an-225/body_2x.png",
 		"shadow": "res://assets/aircraft/an-225/shadow_2x.png",
