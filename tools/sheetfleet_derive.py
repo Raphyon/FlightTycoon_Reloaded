@@ -63,7 +63,19 @@ KEYS = {
 # becomes body_<name>_2x.png and wants an entry in AircraftSkins.LIVERIES.
 # Schemes left unnamed are still written, as body_alt<N>_2x.png.
 DEFAULTS = {
-    # "a300": (3, {1: "skylink", 2: "stripes", 4: "camo", 5: "stars"}),
+    "a300": (1, {}),
+    "a319": (1, {}),
+    "a340": (1, {}),
+    "a380": (3, {}),
+    "a380_800": (1, {}),
+    "airship": (3, {}),
+    "b737": (1, {}),
+}
+
+# LOOKED AT AND REJECTED - not the same as "not decided yet", which is what an
+# absence from DEFAULTS means. These keep the art they already have.
+SKIP = {
+    "atr72",
 }
 
 
@@ -176,12 +188,21 @@ def main():
         for g in groups:
             cells = cells_of(g)
             shadow, schemes = shadow_of(g, cells)
-            print("  %-14s %-12s %d schemes%s"
-                  % (g, KEYS.get(g, g), len(schemes),
+            if g in SKIP:
+                state = "SKIPPED"
+            elif g in DEFAULTS:
+                state = "default %d" % DEFAULTS[g][0]
+            else:
+                state = "-"
+            print("  %-14s %-12s %d schemes  %-10s%s"
+                  % (g, KEYS.get(g, g), len(schemes), state,
                      "" if shadow is not None else "  (no shadow)"))
         return
     for group, (default_n, names) in sorted(DEFAULTS.items()):
         if wanted and group not in wanted:
+            continue
+        if group in SKIP:
+            print("  %-14s skipped - keeping its existing art" % group)
             continue
         install(group, default_n, names)
 

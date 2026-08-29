@@ -553,12 +553,12 @@ const WORLD_SPRITES := {
 		"shadow": "res://assets/aircraft/b777-300er/shadow_2x.png",
 		"sprite_scale": 0.88,
 	},
-	# 152px of hull on a 200px pad, and it overhangs. Scaled onto the
-	# A350's 140px footprint - same class, and that one sits right.
+	# The 0.92 that was here brought a 152px hull down to the A350's 140. That
+	# hull is gone - the sheet art is 144 and drawn for the pad - so the scale
+	# would now be shrinking an aircraft that already fits.
 	"a340-300": {
 		"body": "res://assets/aircraft/a340-300/body_2x.png",
 		"shadow": "res://assets/aircraft/a340-300/shadow_2x.png",
-		"sprite_scale": 0.92,
 	},
 	"c17": {
 		"body": "res://assets/aircraft/c17/body_2x.png",
