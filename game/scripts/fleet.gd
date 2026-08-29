@@ -557,12 +557,12 @@ const WORLD_SPRITES := {
 		"rotor_offsets": [Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0)],
 		"rotor_scale": 0.78,
 	},
-	# 159px of hull on a 200px pad, and it overhangs. Scaled onto the
-	# A350's 140px footprint - same class, and that one sits right.
+	# Third and last of the scales that pulled an oversized hull onto the
+	# A350's 140. The sheet art is 137 and drawn for the pad, so 0.88 would
+	# have taken it down to 121 - smaller than the A319.
 	"b777-300er": {
 		"body": "res://assets/aircraft/b777-300er/body_2x.png",
 		"shadow": "res://assets/aircraft/b777-300er/shadow_2x.png",
-		"sprite_scale": 0.88,
 	},
 	# The 0.92 that was here brought a 152px hull down to the A350's 140. That
 	# hull is gone - the sheet art is 144 and drawn for the pad - so the scale
