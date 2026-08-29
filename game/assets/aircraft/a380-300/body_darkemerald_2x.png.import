@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dx8fma61hyqo4"
-path="res://.godot/imported/body_azure_2x.png-c6b245cdfeb3534556ae963059d3fca4.ctex"
+uid="uid://dq22p6unnng8q"
+path="res://.godot/imported/body_darkemerald_2x.png-6ffbc37f8274b99b19fe84df8ef3a51b.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/aircraft/a380-300/body_azure_2x.png"
-dest_files=["res://.godot/imported/body_azure_2x.png-c6b245cdfeb3534556ae963059d3fca4.ctex"]
+source_file="res://assets/aircraft/a380-300/body_darkemerald_2x.png"
+dest_files=["res://.godot/imported/body_darkemerald_2x.png-6ffbc37f8274b99b19fe84df8ef3a51b.ctex"]
 
 [params]
 
