@@ -28,7 +28,14 @@ const CALLOUT_DRUM_TEXTURE := preload("res://assets/bubbles/fuel_bubble@2x.png")
 # bar and the plane are all baked in (tools/arrived_label.py). Shown on a home
 # apron whose aircraft is waiting at the robot airport; clicking it travels
 # there.
-const CALLOUT_ARRIVED_TEXTURE := preload("res://assets/bubbles/arrived_bubble@2x.png")
+# Two arrived bubbles, and which one shows follows the same BLUE/GREEN rule as
+# the flight tag: blue at your own airport, green the moment a friend is
+# involved. The green one reads as "your aircraft is home" while you are away
+# visiting, which is the only time you can be looking at a pad that is not
+# yours. Both have the plane baked in - they are composed sprites, not a bubble
+# plus an icon.
+const CALLOUT_ARRIVED_TEXTURE := preload("res://assets/bubbles/arrived_bubble_new@2x.png")
+const CALLOUT_ARRIVED_HOME_TEXTURE := preload("res://assets/bubbles/arrived_home_new@2x.png")
 # The swoop family - one 96x58 oval per kind of work, icon baked in, the rest of
 # the oval left empty for the line of text and the bar (see ProgressBubble).
 const SWOOP_EARNING_TEXTURE := preload("res://assets/bubbles/earning_bubble@2x.png")
@@ -49,11 +56,12 @@ const TAG_MINE_TEXTURE := preload("res://assets/bubbles/arrived_away_bubble@2x.p
 const TAG_FRIEND_TEXTURE := preload("res://assets/bubbles/arrived_home_bubble@2x.png")
 # Native art size - drawn 1:1, so it stays crisp.
 const CALLOUT_BUBBLE_SIZE := Vector2(42, 49)
-const CALLOUT_ARRIVED_SIZE := Vector2(109, 58)
-# Where the arrived bubble's tail sits horizontally. Not half its width: the
-# plane icon overhangs the bubble's left edge, so the tail is off-centre at
-# ~34%, and centring the sprite would leave it pointing wide of the apron.
-const CALLOUT_ARRIVED_TAIL_X := 37.0
+const CALLOUT_ARRIVED_SIZE := Vector2(42, 50)
+# The arrived bubble used to be 109 wide with its plane hanging off the left
+# edge, which put the tail off-centre at ~34% and needed its own figure. The
+# replacement art is the same 42-wide callout as the cone, symmetric, with its
+# tail tip measured at x 20.6 - so this is simply half the width again.
+const CALLOUT_ARRIVED_TAIL_X := 21.0
 # Where the bubble's tail tip lands, relative to the apron's center (0,0) -
 # negative is above center. A little above center, not up at the top vertex.
 const CALLOUT_TAIL_Y := -20.0
@@ -226,7 +234,8 @@ func _set_callout_icon(texture: Texture2D, action: Callable = Callable()) -> voi
 func _set_callout_arrived(action: Callable) -> void:
 	# No swoop: this is "take me there", not a job being done.
 	_swoop_texture = null
-	_callout_bubble.texture = CALLOUT_ARRIVED_TEXTURE
+	_callout_bubble.texture = CALLOUT_ARRIVED_HOME_TEXTURE if Maps.is_robot_map() \
+		else CALLOUT_ARRIVED_TEXTURE
 	_callout_bubble.size = CALLOUT_ARRIVED_SIZE
 	_callout.size = CALLOUT_ARRIVED_SIZE
 	_callout.position = Vector2(-CALLOUT_ARRIVED_TAIL_X, CALLOUT_TAIL_Y - CALLOUT_ARRIVED_SIZE.y)
