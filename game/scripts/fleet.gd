@@ -608,6 +608,10 @@ const WORLD_SPRITES := {
 		"body": "res://assets/aircraft/dc10/body_2x.png",
 		"shadow": "res://assets/aircraft/dc10/shadow_2x.png",
 	},
+	"dc4": {
+		"body": "res://assets/aircraft/dc4/body_2x.png",
+		"shadow": "res://assets/aircraft/dc4/shadow_2x.png",
+	},
 	"concorde": {
 		"body": "res://assets/aircraft/concorde/body_2x.png",
 		"shadow": "res://assets/aircraft/concorde/shadow_2x.png",
