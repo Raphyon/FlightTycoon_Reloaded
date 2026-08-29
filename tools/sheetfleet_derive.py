@@ -19,8 +19,13 @@ not the same position on every sheet, and picking wrong repaints the fleet. So
 DEFAULTS below is filled in by hand and the script refuses to touch an airframe
 that is not listed.
 
-    python3 tools/sheetfleet_derive.py            # everything in DEFAULTS
-    python3 tools/sheetfleet_derive.py a300 b747  # just these
+    python3 tools/sheetfleet_derive.py --list      # what is here, what is decided
+    python3 tools/sheetfleet_derive.py            # install everything in DEFAULTS
+    python3 tools/sheetfleet_derive.py a300 b747  # install just these
+
+--list is a flag rather than "whatever happens when DEFAULTS is empty",
+because that made the safe reading command turn into the destructive one the
+moment the table got its first row.
 """
 import os
 import re
@@ -179,9 +184,8 @@ def install(group, default_n, names):
 
 
 def main():
-    wanted = sys.argv[1:]
-    if not DEFAULTS:
-        print("DEFAULTS is empty - nothing to install.\n")
+    wanted = [a for a in sys.argv[1:] if not a.startswith("-")]
+    if "--list" in sys.argv[1:] or not DEFAULTS:
         print("Every group, with how many paint schemes it has:")
         groups = sorted({re.sub(r"^aircraft_|_(s|\d+)@2x\.png$|@2x\.png$", "", f)
                          for f in os.listdir(SRC)})
