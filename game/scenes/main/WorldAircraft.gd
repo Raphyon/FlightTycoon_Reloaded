@@ -167,9 +167,15 @@ func setup(model_key: String, screen_pos: Vector2, livery: String = "") -> void:
 			sprites["body_spin"] = entry["body_spin"]
 	_is_vtol = sprites.get("vtol", false)
 	_body_base = BODY_BASE_OFFSET + (sprites.get("body_offset", Vector2.ZERO) as Vector2)
+	# Shrinks the whole aircraft, hull and shadow together, for art that is
+	# simply drawn too large for the pad it stands on. Scaling the two as a pair
+	# is the point - a hull that shrinks off its own shadow looks worse than one
+	# that is too big.
+	var art_scale: float = float(sprites.get("sprite_scale", 1.0))
 	if sprites.has("shadow"):
 		_shadow = Sprite2D.new()
 		_shadow.texture = load(sprites["shadow"])
+		_shadow.scale = Vector2(art_scale, art_scale)
 		add_child(_shadow)
 		# Helicopters ship two shadows: one casting the static rotor blades and
 		# one without them, for when the rotor has blurred into a disc. Keeping
@@ -181,6 +187,7 @@ func setup(model_key: String, screen_pos: Vector2, livery: String = "") -> void:
 	if sprites.has("body"):
 		_body = Sprite2D.new()
 		_body.texture = load(sprites["body"])
+		_body.scale = Vector2(art_scale, art_scale)
 		_body.position = _body_base
 		add_child(_body)
 		# A model whose whole hull changes on takeoff rather than just a rotor -

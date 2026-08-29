@@ -190,10 +190,13 @@ const WORLD_SPRITES := {
 	# a skin system. The default matches the shop icon, which is the livery
 	# carrying the original developer's brand name on the hull - the one to
 	# replace first if this ever goes public.
+	# Drawn too big for a pad - it read as parked ON the apron rather than in a
+	# bay of it. Ten percent off, hull and shadow together.
 	"airship": {
 		"body": "res://assets/aircraft/airship/body_2x.png",
 		"shadow": "res://assets/aircraft/airship/shadow_2x.png",
 		"vtol": true,
+		"sprite_scale": 0.9,
 	},
 	# Real sheet art. The sheet is body-only, so the ground shadow is
 	# synthesised from its silhouette, and it keeps the V-22's downwash rings
