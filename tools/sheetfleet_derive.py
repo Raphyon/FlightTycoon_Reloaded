@@ -44,8 +44,11 @@ SHOP_ICON_SCALE = 1.2
 
 # sheet group -> our ShopCatalog key. Most match; these do not.
 KEYS = {
+    # a380 and a380_800 are TWO AIRCRAFT, not one with two livery sets. The
+    # -800 is the second-last unlock in the shop; the plain A380 sits well
+    # below it.
     "A400M": "a400m", "a340": "a340-300", "a380": "a380-300",
-    "a380_800": "a380-300", "b777": "b777-300er", "c400": "crj700",
+    "a380_800": "a380-800", "b777": "b777-300er", "c400": "crj700",
     "dash8": "dhc8", "dc-3": "dc3", "dc-6": "dc6", "emb-120": "emb120",
     "f-15-eagle": "f15", "ncc-1701": "ncc1701", "p-51mustang": "p51",
     "tu-104": "tu104", "tu-154": "b727",
