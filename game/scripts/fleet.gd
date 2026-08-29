@@ -624,6 +624,14 @@ const WORLD_SPRITES := {
 		"exhaust_angle": 9.0,
 		"exhaust_scale": 0.85,
 	},
+	"camel": {
+		"body": "res://assets/aircraft/camel/body_2x.png",
+		"shadow": "res://assets/aircraft/camel/shadow_2x.png",
+	},
+	"c800": {
+		"body": "res://assets/aircraft/c800/body_2x.png",
+		"shadow": "res://assets/aircraft/c800/shadow_2x.png",
+	},
 	"b787": {
 		"body": "res://assets/aircraft/b787/body_2x.png",
 		"shadow": "res://assets/aircraft/b787/shadow_2x.png",

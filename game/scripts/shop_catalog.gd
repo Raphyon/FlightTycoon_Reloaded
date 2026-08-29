@@ -266,7 +266,7 @@ const ENTRIES := [
 	# with a five-cloud range and a 9,000 fare, which is exactly the sort of
 	# thing the coin lane is for.
 	{"key": "camel", "name": "Sopwith Camel", "icon": "camel_default.png", "price": 80, "currency": COINS, "level": 33,
-		"force": "C", "seats": 2, "fuel": 50, "xp": 5000, "ticket": 4500, "range": 5, "has_world_sprite": false},
+		"force": "C", "seats": 2, "fuel": 50, "xp": 5000, "ticket": 4500, "range": 5, "has_world_sprite": true},
 	# LIVE 150000/E/400/40/5cl. Burns less than the A300 two tiers below it.
 	{"key": "b787", "name": "Boeing 787", "icon": "b787_default.png", "price": 150000, "level": 34,
 		"force": "E", "seats": 400, "fuel": 80, "xp": 300, "range": 5, "has_world_sprite": true},
@@ -277,6 +277,13 @@ const ENTRIES := [
 	# reach one.
 	{"key": "crj700", "name": "CRJ-700", "icon": "crj700_default.png", "price": 300000, "level": 36,
 		"force": "A", "seats": 200, "fuel": 50, "xp": 1250, "range": 1, "has_world_sprite": true},
+	# LIVE: $350,000, 2 clouds, B, 2,000 fare, 60 fuel, 1,250 XP. One of the
+	# premium short-haul aircraft - it costs more than the B787 and flies a
+	# fraction of the distance, and the XP is the whole reason to own one.
+	# 2,000 divides by the default 7.5 as 266.67, so it carries a ticket: 250
+	# seats at 8 is exact, the same solve the A300 and DC-10 needed.
+	{"key": "c800", "name": "C800", "icon": "c800_default.png", "price": 350000, "level": 37,
+		"force": "B", "seats": 250, "fuel": 60, "xp": 1250, "ticket": 8, "range": 2, "has_world_sprite": true},
 	{"key": "ufo", "name": "UFO", "icon": "ufo_blue.png", "price": 120, "currency": COINS, "level": 37,
 		"force": "D", "seats": 300, "fuel": 0, "xp": 13000, "ticket": 65, "range": 5, "has_world_sprite": true},
 	# Sits with its contemporaries rather than in the tail: four rear-mounted
