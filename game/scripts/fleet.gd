@@ -461,11 +461,9 @@ const WORLD_SPRITES := {
 		"rotor_offsets": [Vector2(0, 0), Vector2(0, 0), Vector2(0, 0)],
 		"rotor_scale": 0.78,
 	},
-	# THE TWO OUTSIZE FREIGHTERS. Plain jets - no props, no nozzles - so there
-	# is nothing to rig on either of them.
-	"beluga-xl": {
-		"body": "res://assets/aircraft/beluga-xl/body_2x.png",
-		"shadow": "res://assets/aircraft/beluga-xl/shadow_2x.png",
+	"skylink": {
+		"body": "res://assets/aircraft/skylink/body_2x.png",
+		"shadow": "res://assets/aircraft/skylink/shadow_2x.png",
 	},
 	"dreamlifter": {
 		"body": "res://assets/aircraft/dreamlifter/body_2x.png",

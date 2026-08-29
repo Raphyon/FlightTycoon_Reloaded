@@ -457,7 +457,14 @@ const ENTRIES := [
 	# inside it rather than three identical haulers.
 	{"key": "guppy", "name": "Super Guppy", "icon": "guppy_default.png", "price": 77000000, "level": 59,
 		"force": "E", "seats": 590, "fuel": 66, "xp": 86000, "ticket": 92, "range": 5, "has_world_sprite": true},
-	{"key": "beluga-xl", "name": "Airbus Beluga XL", "icon": "beluga-xl_default.png", "price": 92000000, "level": 60,
+	# The Airbus Skylink takes the Beluga XL's slot - same outsize-transport
+	# job, and it is the aircraft the art was drawn for. Level, price and stats
+	# are the Beluga's, which were interpolated and remain so.
+	#
+	# Its art came in as aircraft_a300_1/_2/_s, which is why it was nearly
+	# installed as A300 paint: a group can carry a SHEET of one aircraft's
+	# liveries AND separate cuts of a different aircraft entirely.
+	{"key": "skylink", "name": "Airbus Skylink", "icon": "skylink_default.png", "price": 92000000, "level": 60,
 		"force": "D", "seats": 620, "fuel": 68, "xp": 98000, "ticket": 90, "range": 5, "has_world_sprite": true},
 	# ---- levels 61-70 ------------------------------------------------
 	# LIVE: level 61, $110,000,000, off a locked card. Nothing else about it is

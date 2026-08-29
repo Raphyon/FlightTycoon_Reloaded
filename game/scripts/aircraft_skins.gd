@@ -48,6 +48,10 @@ const LIVERIES := {
 		{"key": "darkcrimson", "name": "Dark Crimson",
 			"body": "res://assets/aircraft/a340-300/body_darkcrimson_2x.png"},
 	],
+	"a400m": [
+		{"key": "atlas", "name": "Atlas",
+			"body": "res://assets/aircraft/a400m/body_atlas_2x.png"},
+	],
 	"a380-300": [
 		{"key": "darkcrimson", "name": "Dark Crimson",
 			"body": "res://assets/aircraft/a380-300/body_darkcrimson_2x.png"},
@@ -247,6 +251,10 @@ const LIVERIES := {
 	"p51": [
 		{"key": "crimson", "name": "Crimson",
 			"body": "res://assets/aircraft/p51/body_crimson_2x.png"},
+	],
+	"skylink": [
+		{"key": "aurora", "name": "Aurora",
+			"body": "res://assets/aircraft/skylink/body_aurora_2x.png"},
 	],
 	"tu104": [
 		{"key": "darkamber", "name": "Dark Amber",
