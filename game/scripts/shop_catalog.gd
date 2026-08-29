@@ -429,8 +429,17 @@ const ENTRIES := [
 		"force": "S", "seats": 20, "fuel": 70, "xp": 190000, "ticket": 3000, "range": 5, "has_world_sprite": true},
 	# ---- levels 81-90 ------------------------------------------------
 	# LIVE 1000000/E/700/70/5cl.
-	{"key": "a380-300", "name": "Airbus A380", "icon": "a380-300_default.png", "price": 400, "currency": COINS, "level": 84,
-		"force": "E", "seats": 700, "fuel": 70, "xp": 99000, "range": 5, "has_world_sprite": true},
+		# LIVE, given directly rather than read off a card: $1,000,000, class 3,
+	# 200 fuel, 4000 XP, 8750 fare, 5 clouds, sitting above the 747.
+	#
+	# 8750 does not divide by the default 7.5, so this one carries its own
+	# ticket. 875 seats at 10 a head is exact and lands within a few dozen of
+	# the real airframe's cabin, which none of the other solutions do.
+	#
+	# NOT the second-last unlock - that is the A380-800, a separate aircraft
+	# with its own art, which is why this came back down off level 84.
+	{"key": "a380-300", "name": "Airbus A380", "icon": "a380-300_default.png", "price": 1000000, "level": 42,
+		"force": "C", "seats": 875, "fuel": 200, "xp": 4000, "ticket": 10, "range": 5, "has_world_sprite": true},
 ]
 
 # Anything asking for a model we don't have an entry for still gets a flyable
