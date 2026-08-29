@@ -71,7 +71,9 @@ KEYS = {
 # The numbers are the ones printed by --list, which are the same ones on the
 # contact sheet. The default becomes body_2x.png; every other listed scheme
 # becomes body_<name>_2x.png and wants an entry in AircraftSkins.LIVERIES.
-# Schemes left unnamed are still written, as body_alt<N>_2x.png.
+# Schemes left unnamed are still written, as body_alt<N>_2x.png. Mapping one to
+# None DROPS it - for a cell that is neither paint nor shadow, like the Black
+# Hawk's loose rotor, which the game already has art for.
 DEFAULTS = {
     "a300": (1, {}),
     "a319": (1, {}),
@@ -98,6 +100,11 @@ DEFAULTS = {
     "ncc-1701": (1, {}),
     "p-51mustang": (1, {}),
     "tu-104": (1, {}),
+    "tu-154": (1, {}),
+    "c17": (1, {}),
+    # 3 is the loose rotor, which the game already carries as rotor art - not
+    # a paint scheme, so it is dropped rather than written as one.
+    "blackh": (1, {3: None}),
     "a380_800": (1, {}),
     "airship": (3, {}),
     "b737": (1, {}),
@@ -199,6 +206,8 @@ def install(group, default_n, names):
 
     for i, (_, im) in enumerate(schemes, start=1):
         if i == default_n:
+            continue
+        if i in names and names[i] is None:
             continue
         name = names.get(i, "alt%d" % i)
         im.save(os.path.join(folder, "body_%s_2x.png" % name))
