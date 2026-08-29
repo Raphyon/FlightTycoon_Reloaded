@@ -225,6 +225,16 @@ const ENTRIES := [
 	# LIVE 70000/D/200/30/3cl.
 	{"key": "tu104", "name": "Tupolev Tu-104", "icon": "tu104_default.png", "price": 70000, "level": 25,
 		"force": "D", "seats": 200, "fuel": 45, "xp": 250, "range": 3, "has_world_sprite": true},
+	# LIVE stats, factory cash as the price - same treatment as the DC-4, and
+	# for the same reason: the original produces these rather than selling
+	# them, so $70,000 and $350,000 are real figures from a different
+	# acquisition path rather than solves.
+	#
+	# The ERJ-170 is the densest XP in the game outside the coin lane: 2,500 on
+	# a three-cloud leg, against the B787's 300 on five. It is the same premium
+	# short-haul shape as the CRJ and the C800 and wants watching in a run.
+	{"key": "erj145", "name": "Embraer ERJ-145", "icon": "erj145_default.png", "price": 70000, "level": 25,
+		"force": "C", "seats": 200, "fuel": 50, "xp": 500, "ticket": 7.5, "range": 2, "has_world_sprite": true},
 	{"key": "a318", "name": "Airbus A318", "icon": "a318_default.png", "price": 77000, "level": 27,
 		"force": "C", "seats": 235, "fuel": 30, "xp": 260, "range": 3, "has_world_sprite": true},
 	{"key": "a319", "name": "Airbus A319", "icon": "a319_default.png", "price": 84000, "level": 28,
@@ -287,6 +297,8 @@ const ENTRIES := [
 	# reach one.
 	{"key": "crj700", "name": "CRJ-700", "icon": "crj700_default.png", "price": 300000, "level": 36,
 		"force": "A", "seats": 200, "fuel": 50, "xp": 1250, "range": 1, "has_world_sprite": true},
+	{"key": "erj170", "name": "Embraer ERJ-170", "icon": "erj170_default.png", "price": 350000, "level": 37,
+		"force": "C", "seats": 500, "fuel": 40, "xp": 2500, "ticket": 8, "range": 3, "has_world_sprite": true},
 	# LIVE: $350,000, 2 clouds, B, 2,000 fare, 60 fuel, 1,250 XP. One of the
 	# premium short-haul aircraft - it costs more than the B787 and flies a
 	# fraction of the distance, and the XP is the whole reason to own one.

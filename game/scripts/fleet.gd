@@ -335,6 +335,14 @@ const WORLD_SPRITES := {
 		"rotor_offsets": [Vector2(-32, 6), Vector2(-4, 22)],
 		"rotor_scale": 0.71,
 	},
+	"erj145": {
+		"body": "res://assets/aircraft/erj145/body_2x.png",
+		"shadow": "res://assets/aircraft/erj145/shadow_2x.png",
+	},
+	"erj170": {
+		"body": "res://assets/aircraft/erj170/body_2x.png",
+		"shadow": "res://assets/aircraft/erj170/shadow_2x.png",
+	},
 	# A regional JET, so no props - it just queues for the runway.
 	"crj700": {
 		"body": "res://assets/aircraft/crj700/body_2x.png",
