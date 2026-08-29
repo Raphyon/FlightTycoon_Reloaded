@@ -104,10 +104,18 @@ def shadow_of(group, cells):
     is the aircraft.
     """
     own = os.path.join(SRC, "aircraft_%s_s@2x.png" % group)
-    if os.path.exists(own):
-        return Image.open(own).convert("RGBA"), cells
-    if len(cells) < 2:
-        return None, cells
+    shadow = Image.open(own).convert("RGBA") if os.path.exists(own) else None
+    is_sheet = os.path.exists(os.path.join(SRC, "aircraft_%s@2x.png" % group))
+
+    # ONLY A SHEET HAS ITS SHADOW AMONG THE CELLS. A pre-cut group's cells are
+    # all paint schemes and its shadow is the separate _s file, so removing a
+    # cell there throws away a scheme - which is what happened to the A319 and
+    # the A340, both of which came out with one.
+    #
+    # A group can have both a sheet and an _s. The cell still has to come out
+    # of the scheme list either way; the _s only wins on which image is used.
+    if not is_sheet or len(cells) < 2:
+        return shadow, cells
 
     def flatness(im):
         px = np.array(im).astype(int)
@@ -118,7 +126,8 @@ def shadow_of(group, cells):
 
     scores = [flatness(im) for _, im in cells]
     i = scores.index(min(scores))
-    return cells[i][1], [c for j, c in enumerate(cells) if j != i]
+    rest = [c for j, c in enumerate(cells) if j != i]
+    return (shadow if shadow is not None else cells[i][1]), rest
 
 
 def install(group, default_n, names):
