@@ -189,9 +189,6 @@ const ENTRIES := [
 	# ours sits behind the ATR-72, which goes in ahead of it on income.
 	{"key": "emb120", "name": "EMB-120", "icon": "emb120_default.png", "price": 5000, "level": 10,
 		"force": "A", "seats": 80, "fuel": 6, "xp": 42, "range": 2, "has_world_sprite": true},
-	{"key": "dhc8", "name": "Dash 8", "icon": "dhc8_default.png", "price": 10000, "level": 10,
-		"force": "A", "seats": 120, "fuel": 8, "xp": 67, "range": 2, "has_world_sprite": true},
-	# ---- levels 11-20 ------------------------------------------------
 	# LIVE stats, but NOT a live shop price - the original does not sell the
 	# DC-4, it PRODUCES it, for $8,000 plus 10 of the factory material. We have
 	# no factory, so that cash figure is used as the shop price: it is a real
@@ -200,8 +197,11 @@ const ENTRIES := [
 	# Worth re-checking once measured. At 150 XP it sits where the curve wants
 	# roughly $33,000, so $8,000 makes it the best XP per dollar in the early
 	# game by some way.
-	{"key": "dc4", "name": "Douglas DC-4", "icon": "dc4_default.png", "price": 8000, "level": 11,
+	{"key": "dc4", "name": "Douglas DC-4", "icon": "dc4_default.png", "price": 8000, "level": 10,
 		"force": "C", "seats": 200, "fuel": 25, "xp": 150, "ticket": 2.5, "range": 3, "has_world_sprite": true},
+	# ---- levels 11-20 ------------------------------------------------
+	{"key": "dhc8", "name": "Dash 8", "icon": "dhc8_default.png", "price": 10000, "level": 11,
+		"force": "A", "seats": 120, "fuel": 8, "xp": 67, "range": 2, "has_world_sprite": true},
 	# First rating-3 airframe, which is worth more than its cabin: 3x on
 	# every leg.
 	{"key": "328jet", "name": "328 Jet", "icon": "328jet_blue.png", "price": 20000, "level": 13,
