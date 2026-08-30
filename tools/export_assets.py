@@ -86,8 +86,11 @@ def project_authored_sources():
     # UI furniture DRAWN by tools/ui_derive.py rather than cut from the dump.
     # Read out of its RECIPES table for the same reason as the two fleet tools.
     ui = open(os.path.join(ROOT, "tools", "ui_derive.py")).read()
-    drawn = set(re.findall(r'\n    "([\w.-]+)":\s*\("',
-                           re.search(r"RECIPES = \{(.*?)\n\}", ui, re.S).group(1)))
+    drawn = set()
+    for table in ("RECIPES", "GLYPHS"):
+        m = re.search(r"%s = \{(.*?)\n\}" % table, ui, re.S)
+        if m:
+            drawn.update(re.findall(r'\n    "([\w.-]+)":\s*\("', m.group(1)))
 
     # Installed from the sheet source by hand rather than through DEFAULTS -
     # the Skylink came in as aircraft_a300_1/_2/_s, which is a different

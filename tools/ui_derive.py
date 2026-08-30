@@ -61,6 +61,19 @@ PALETTES = {
                     "rim": (175, 60, 74), "line": (62, 1, 11)},
 }
 
+# A left-pointing arrow and an X in a disc are generic UI glyphs, so these are
+# drawn from proportions rather than traced off the art being replaced - which
+# would be deriving from it, and the whole point is not to.
+GLYPHS = {
+    "button_back":       ("arrow", (212, 157, 60), (150, 104, 30)),
+    "button_back2":      ("arrow", (243, 205, 96), (176, 133, 44)),
+    # The paging arrows are solid TRIANGLES, not arrows with tails - at 20x24
+    # there is no room for a tail and the shape reads as a caret.
+    "button_arrow_left":  ("tri", (236, 236, 236), (120, 120, 120)),
+    "button_arrow_right": ("tri_r", (236, 236, 236), (120, 120, 120)),
+    "button_esc":        ("cross", (206, 206, 206), (150, 150, 150)),
+}
+
 # file stem -> (palette, corner radius or None for a pill)
 RECIPES = {
     "button_orange2": ("orange", None),
@@ -192,6 +205,43 @@ def button(width, height, palette_name, radius=None):
     return canvas.resize((width, height), Image.LANCZOS)
 
 
+def glyph(width, height, kind, fill, edge):
+    """An arrow or a cross, drawn big and reduced."""
+    s = SUPERSAMPLE
+    w, h = width * s, height * s
+    im = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+
+    if kind.startswith("tri"):
+        pts = [(w * 0.06, h * 0.5), (w * 0.94, h * 0.04), (w * 0.94, h * 0.96)]
+        if kind == "tri_r":
+            pts = [(w - 1 - x, y) for x, y in pts]
+        d.polygon(pts, fill=fill + (255,))
+    elif kind.startswith("arrow"):
+        # Chunky head, short tail - the shape of every back arrow there is.
+        head = w * 0.52
+        tail_top, tail_bot = h * 0.30, h * 0.70
+        pts = [(0, h * 0.5), (head, 0), (head, tail_top),
+               (w - 1, tail_top), (w - 1, tail_bot), (head, tail_bot), (head, h - 1)]
+        if kind == "arrow_r":
+            pts = [(w - 1 - x, y) for x, y in pts]
+        d.polygon(pts, fill=fill + (255,), outline=edge + (255,))
+    else:
+        pad = w * 0.04
+        d.ellipse((pad, pad, w - 1 - pad, h - 1 - pad), fill=fill + (255,))
+        # The bar is drawn twice, rotated, rather than as one polygon - a
+        # rotated rectangle keeps its corners square, which a diagonal
+        # polygon through the middle does not.
+        bar = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+        bd = ImageDraw.Draw(bar)
+        bd.rounded_rectangle((w * 0.28, h * 0.44, w * 0.72, h * 0.56),
+                             radius=int(h * 0.06), fill=(255, 255, 255, 255))
+        im.alpha_composite(bar.rotate(45, resample=Image.BICUBIC))
+        im.alpha_composite(bar.rotate(-45, resample=Image.BICUBIC))
+
+    return im.resize((width, height), Image.LANCZOS)
+
+
 def main():
     args = [a for a in sys.argv[1:] if not a.startswith("-")]
     if "--list" in sys.argv[1:]:
@@ -217,6 +267,17 @@ def main():
         w, h = png_size(path)
         button(w, h, pal, radius).save(path)
         print("  %-18s %dx%d  %s" % (stem, w, h, pal))
+
+    for stem, (kind, fill, edge) in sorted(GLYPHS.items()):
+        if args and not any(a in stem for a in args):
+            continue
+        path = os.path.join(OUT, stem + "@2x.png")
+        if not os.path.exists(path):
+            print("  %-18s no file to match - skipped" % stem)
+            continue
+        w, h = png_size(path)
+        glyph(w, h, kind, fill, edge).save(path)
+        print("  %-18s %dx%d  %s" % (stem, w, h, kind))
 
 
 if __name__ == "__main__":
