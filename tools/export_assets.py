@@ -83,10 +83,17 @@ def project_authored_sources():
         if g not in skipped:
             keys.add(remap.get(g, g))
 
+    # UI furniture DRAWN by tools/ui_derive.py rather than cut from the dump.
+    # Read out of its RECIPES table for the same reason as the two fleet tools.
+    ui = open(os.path.join(ROOT, "tools", "ui_derive.py")).read()
+    drawn = set(re.findall(r'\n    "([\w.-]+)":\s*\("',
+                           re.search(r"RECIPES = \{(.*?)\n\}", ui, re.S).group(1)))
+
     # Installed from the sheet source by hand rather than through DEFAULTS -
     # the Skylink came in as aircraft_a300_1/_2/_s, which is a different
     # aircraft from the A300 whose sheet those files sit beside.
     keys.update(HAND_INSTALLED_FROM_SHEET)
+    keys.update(drawn)
     return names, keys
 
 
@@ -113,6 +120,9 @@ def classify(rel_path, mine_sources, mine_keys):
     category = parts[2] if len(parts) > 2 else ""
     if category == "aircraft" and len(parts) > 3 and parts[3] in mine_keys:
         return "mine", "derived from own art (%s)" % parts[3]
+    # Drawn UI keeps its filename, so the stem is the key.
+    if category == "buttons" and base.rsplit("@", 1)[0] in mine_keys:
+        return "mine", "drawn by ui_derive.py"
     if category == "shop" and base.endswith("_default.png"):
         key = base[: -len("_default.png")]
         if key in mine_keys:
