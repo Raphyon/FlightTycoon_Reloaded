@@ -144,9 +144,12 @@ but it flies twelve models to thirty-two and earns a third less.
 - **Fuel is inert.** 0.2% to 0.5% of income, **zero** departures blocked on an
   empty tank, every profile. A cap on an instantly-refillable stock is a tax
   rather than a constraint.
-- **The A380-800 is the best money in the game** at $46,667/h, just ahead of the
-  CRJ-700's $45,000/h - and its stats are DERIVED, not read. Only its level and
-  price are known. The best rate in the fleet should not be an interpolation.
+- **The A380-800's margin is an accident, not a decision.** It tops the rate
+  ladder at $46,667/h, which is right - it is the last unlock in the game. But
+  it leads the CRJ-700 by four percent, and its grade, cabin, fuel and XP are
+  all interpolated: only its level and price are known. The ORDER is intended;
+  the size of the gap is a by-product of the interpolation, so retuning the
+  CRJ could flip it without anybody deciding to.
 - **XP above the last anchor is extrapolated.** Sixteen aircraft carry measured
   XP; the rest are interpolated on price, and past $5,000,000 the curve is a
   slope fitted to points below it.
