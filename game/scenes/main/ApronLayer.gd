@@ -339,11 +339,13 @@ func _rebuild(area_name: String, start_id: int) -> void:
 
 	var points: Array = data.get(area_name, [])
 	for apron in ApronLayout.build_area_aprons(points, start_id, area_name):
-		# A robot pad is occupied by whoever landed on it, not by anything with
-		# this as its home apron - the two id spaces don't overlap, so asking
-		# both is safe and covers either airport.
+		# HELD, not landed on - the same question _refresh_slots asks, and it
+		# has to be the same question or a pad changes its mind about being
+		# occupied between a map load and the next fleet change. The two id
+		# spaces don't overlap, so asking both is safe and covers either
+		# airport.
 		apron.occupied = (Fleet.get_aircraft_at_apron(apron.id) != null
-			or Fleet.get_aircraft_at_robot_apron(apron.id) != null)
+			or Fleet.get_aircraft_holding_robot_apron(apron.id) != null)
 		var slot: Area2D = APRON_SLOT_SCENE.instantiate()
 		get_node("../Aprons").add_child(slot)
 		slot.setup(apron)

@@ -1594,14 +1594,22 @@ func get_aircraft_at_robot_apron(apron_id: int) -> FleetAircraft:
 
 
 
-# WHATEVER HOLDS THIS DESTINATION PAD, at any point in its route - inbound, on
-# the ground, or already back home. get_aircraft_at_robot_apron answers the
-# narrower question of what is physically standing there; this one answers what
-# the pad is FOR, which is what a pad has to know to show a countdown before
-# the aircraft lands or an arrived tag after it has gone.
+# WHATEVER HOLDS THIS DESTINATION PAD, at any point in its route - waiting at
+# home, inbound, on the ground, or already flown back.
+#
+# DERIVED FROM THE ROUTE, not read from robot_apron_id. The pads mirror 1:1, so
+# a route reserves its destination pad by arithmetic the moment the aircraft
+# has a home pad and somewhere to go - robot_apron_for is that arithmetic.
+# Reading the stored field instead meant the pad only knew about the aircraft
+# between take-off and landing, so a parked aircraft with a route showed
+# nothing at the far end, and every aircraft already home in an existing save
+# showed nothing for good.
+#
+# get_aircraft_at_robot_apron answers the narrower question of what is
+# physically standing there, which is what the claim and refuel bubbles need.
 func get_aircraft_holding_robot_apron(apron_id: int) -> FleetAircraft:
 	for a in aircraft:
-		if a.robot_apron_id == apron_id:
+		if a.assigned_apron_id > 0 and robot_apron_for(a) == apron_id:
 			return a
 	return null
 
