@@ -60,16 +60,17 @@ const UPGRADE_TIME_EXPONENT := 1.8
 #
 # Ids are strings here because JSON keys always are; helpers below take ints so
 # callers don't have to think about it.
-const SAVE_PATH := "res://data/building_progress.json"
+# Progress, so it lives in user:// - see SavePaths.
+const SAVE_FILE := "building_progress.json"
 
 
 var built: Dictionary = {}  # map_key -> {plot_id_string: building_key}
 
 
 func _ready() -> void:
-	if not FileAccess.file_exists(SAVE_PATH):
+	if not SavePaths.read_path(SAVE_FILE) != "":
 		return
-	var f := FileAccess.open(SAVE_PATH, FileAccess.READ)
+	var f := FileAccess.open(SavePaths.read_path(SAVE_FILE), FileAccess.READ)
 	var parsed: Variant = JSON.parse_string(f.get_as_text())
 	f.close()
 	if parsed is Dictionary:
@@ -760,7 +761,6 @@ func _save() -> void:
 	# Never over a real playthrough - see SaveGame.save().
 	if OS.get_cmdline_user_args().has("--bot"):
 		return
-	DirAccess.make_dir_recursive_absolute("res://data")
-	var f := FileAccess.open(SAVE_PATH, FileAccess.WRITE)
+	var f := FileAccess.open(SavePaths.write_path(SAVE_FILE), FileAccess.WRITE)
 	f.store_string(JSON.stringify(built, "\t"))
 	f.close()

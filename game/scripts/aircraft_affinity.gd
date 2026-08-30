@@ -113,7 +113,8 @@ const CAPSTONE_TURNAROUND_BONUS := 0.30
 # all to the 34 of 59 aircraft already built for five (see options_for).
 const CAPSTONE_REACH_CLOUDS := 1
 
-const SAVE_PATH := "res://data/aircraft_affinity.json"
+# Progress, so it lives in user:// - see SavePaths.
+const SAVE_FILE := "aircraft_affinity.json"
 
 var _xp: Dictionary = {}        # model_key -> xp, persisted
 var _capstone: Dictionary = {}  # model_key -> one of CAPSTONES, persisted
@@ -122,9 +123,9 @@ signal capstone_chosen(model_key: String, capstone: String)
 
 
 func _ready() -> void:
-	if not FileAccess.file_exists(SAVE_PATH):
+	if not SavePaths.read_path(SAVE_FILE) != "":
 		return
-	var f := FileAccess.open(SAVE_PATH, FileAccess.READ)
+	var f := FileAccess.open(SavePaths.read_path(SAVE_FILE), FileAccess.READ)
 	var parsed: Variant = JSON.parse_string(f.get_as_text())
 	f.close()
 	if parsed is Dictionary:
@@ -299,9 +300,9 @@ func grant_use(model_key: String) -> void:
 
 
 func _load() -> Dictionary:
-	if not FileAccess.file_exists(SAVE_PATH):
+	if not SavePaths.read_path(SAVE_FILE) != "":
 		return {}
-	var f := FileAccess.open(SAVE_PATH, FileAccess.READ)
+	var f := FileAccess.open(SavePaths.read_path(SAVE_FILE), FileAccess.READ)
 	var parsed: Variant = JSON.parse_string(f.get_as_text())
 	f.close()
 	return parsed if parsed is Dictionary else {}
@@ -311,7 +312,6 @@ func _save() -> void:
 	# Never over a real playthrough - see SaveGame.save().
 	if OS.get_cmdline_user_args().has("--bot"):
 		return
-	DirAccess.make_dir_recursive_absolute("res://data")
-	var f := FileAccess.open(SAVE_PATH, FileAccess.WRITE)
+	var f := FileAccess.open(SavePaths.write_path(SAVE_FILE), FileAccess.WRITE)
 	f.store_string(JSON.stringify({"xp": _xp, "capstone": _capstone}, "\t"))
 	f.close()

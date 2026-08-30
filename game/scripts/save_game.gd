@@ -18,7 +18,8 @@ extends Node
 # read-only in an exported game, so these only persist when running from the
 # editor. Fine for the prototype; moving all five to user:// is a job in
 # itself and shouldn't happen piecemeal.
-const SAVE_PATH := "res://data/player.json"
+# Progress, so it lives in user:// - see SavePaths.
+const SAVE_FILE := "player.json"
 
 # Writes are debounced rather than done on every signal - claiming a reward
 # alone fires money, XP and fleet changes together.
@@ -98,7 +99,7 @@ func save() -> void:
 		"daily_login": DailyLogin.to_save(),
 		"boosts": Boosts.to_save(),
 	}
-	var f := FileAccess.open(SAVE_PATH, FileAccess.WRITE)
+	var f := FileAccess.open(SavePaths.write_path(SAVE_FILE), FileAccess.WRITE)
 	if not f:
 		return
 	f.store_string(JSON.stringify(data, "\t"))
@@ -107,7 +108,7 @@ func save() -> void:
 
 func _load() -> void:
 	_loaded = true
-	if not FileAccess.file_exists(SAVE_PATH):
+	if not SavePaths.read_path(SAVE_FILE) != "":
 		# No save at all, so this is a brand-new game: hand over the starter
 		# DC-3. Done here rather than in Fleet._ready because this autoload
 		# comes up last and is the only one that knows a fresh game from a
@@ -117,7 +118,7 @@ func _load() -> void:
 		# now has rather than to whatever the last save owned.
 		Quests.reset()
 		return
-	var f := FileAccess.open(SAVE_PATH, FileAccess.READ)
+	var f := FileAccess.open(SavePaths.read_path(SAVE_FILE), FileAccess.READ)
 	if not f:
 		return
 	var parsed: Variant = JSON.parse_string(f.get_as_text())
@@ -161,8 +162,17 @@ func wipe() -> void:
 	# delete the player's files.
 	if _is_headless_bot():
 		return
-	if FileAccess.file_exists(SAVE_PATH):
-		DirAccess.remove_absolute(ProjectSettings.globalize_path(SAVE_PATH))
+	_remove(SAVE_FILE)
+
+
+# Both copies. user:// is where it lives now; the res://data one is what an
+# existing playthrough is still being read from until its first save, and
+# leaving it behind would resurrect the world the next time the game started.
+static func _remove(file_name: String) -> void:
+	for path in [SavePaths.write_path(file_name),
+			"%s/%s" % [SavePaths.LEGACY_DIR, file_name]]:
+		if FileAccess.file_exists(path):
+			DirAccess.remove_absolute(ProjectSettings.globalize_path(path))
 
 
 # Every file the player's progress lives in - NOT the authored level data.
@@ -171,12 +181,15 @@ func wipe() -> void:
 # paths and aircraft_rig are hand-placed level design that ships with the game;
 # wiping those would destroy work no player could recreate. These five are
 # somebody's playthrough.
+# Names, not paths - _remove takes both copies of each.
 const PROGRESS_FILES := [
-	"res://data/apron_progress.json",
-	"res://data/zone_progress.json",
-	"res://data/apron_skins_owned.json",
-	"res://data/aircraft_affinity.json",
-	"res://data/building_progress.json",
+	"apron_progress.json",
+	"zone_progress.json",
+	"apron_skins.json",
+	"apron_skins_owned.json",
+	"aircraft_affinity.json",
+	"building_progress.json",
+	"friends.json",
 ]
 
 
@@ -194,9 +207,8 @@ func reset_to_defaults() -> void:
 	# this loop reached past them straight to the filesystem. A bot resets its
 	# own in-memory state; the files on disk are the player's.
 	if not _is_headless_bot():
-		for path in PROGRESS_FILES:
-			if FileAccess.file_exists(path):
-				DirAccess.remove_absolute(ProjectSettings.globalize_path(path))
+		for file_name in PROGRESS_FILES:
+			_remove(file_name)
 
 	# Back to real time too - a reset that kept a 300x scale running would look
 	# like the fresh game was broken.

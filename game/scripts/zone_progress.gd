@@ -2,7 +2,8 @@ extends Node
 
 signal unlocked_changed
 
-const SAVE_PATH := "res://data/zone_progress.json"
+# Progress, so it lives in user:// - see SavePaths.
+const SAVE_FILE := "zone_progress.json"
 
 # Level + one-time money cost to unlock each zone (separate from the per-apron
 # build costs in ApronProgress). Zone1 is free - it's where you start.
@@ -56,9 +57,9 @@ var unlocked_zones: Dictionary = {}  # area_name -> true, persisted
 
 
 func _ready() -> void:
-	if not FileAccess.file_exists(SAVE_PATH):
+	if not SavePaths.read_path(SAVE_FILE) != "":
 		return
-	var f := FileAccess.open(SAVE_PATH, FileAccess.READ)
+	var f := FileAccess.open(SavePaths.read_path(SAVE_FILE), FileAccess.READ)
 	var parsed: Variant = JSON.parse_string(f.get_as_text())
 	f.close()
 	if parsed is Dictionary:
@@ -134,7 +135,6 @@ func _save() -> void:
 	# Never over a real playthrough - see SaveGame.save().
 	if OS.get_cmdline_user_args().has("--bot"):
 		return
-	DirAccess.make_dir_recursive_absolute("res://data")
-	var f := FileAccess.open(SAVE_PATH, FileAccess.WRITE)
+	var f := FileAccess.open(SavePaths.write_path(SAVE_FILE), FileAccess.WRITE)
 	f.store_string(JSON.stringify(unlocked_zones, "\t"))
 	f.close()
