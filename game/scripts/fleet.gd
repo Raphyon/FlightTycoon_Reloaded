@@ -1126,17 +1126,6 @@ const HOME_STATES := [
 
 # Is this one holding a reward that selling would throw away? The panel asks
 # before it does.
-# How many aircraft have landed at home and are waiting to be tapped. Used by
-# the toolbar to raise an arrived bubble while you are somewhere else - the
-# aprons carry that news at home, and there are no aprons of yours to carry it
-# from a friend's airport.
-func home_arrivals() -> int:
-	var n := 0
-	for a in aircraft:
-		if a.state == FleetAircraft.State.AWAITING_HOME_CLAIM:
-			n += 1
-	return n
-
 
 func has_unclaimed_reward(a: FleetAircraft) -> bool:
 	return a != null and a.state == FleetAircraft.State.AWAITING_HOME_CLAIM
