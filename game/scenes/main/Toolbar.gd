@@ -5,8 +5,16 @@ extends Control
 # size; the art is 109x102 and reads as a physical object resting on a
 # ledge, so it lives down here instead.
 
+# The same bubble the aprons raise over a landed aircraft. At home the apron
+# says it; from a friend's airport there is no apron of yours on screen, so the
+# Routes button carries it instead.
+const ARRIVED_BUBBLE := preload("res://assets/bubbles/arrived_home_new@2x.png")
+const BADGE_SIZE := Vector2(34, 34)
+
 @onready var _shop_button: TextureButton = $Buttons/ShopButton
 @onready var _hangar_button: TextureButton = $Buttons/HangarButton
+
+var _arrived_badge: TextureRect
 
 
 func _ready() -> void:
@@ -46,8 +54,21 @@ func _ready() -> void:
 	# Shop and Hangar are things you do at your own airport; visiting someone
 	# else's leaves just the way home on the shelf. The Home button hides
 	# itself the other way round - see HomeButton.gd.
+	_arrived_badge = TextureRect.new()
+	_arrived_badge.texture = ARRIVED_BUBBLE
+	_arrived_badge.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_arrived_badge.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	_arrived_badge.custom_minimum_size = Vector2.ZERO
+	_arrived_badge.size = BADGE_SIZE
+	_arrived_badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_arrived_badge.z_index = 1
+	_arrived_badge.visible = false
+	routes_button.add_child(_arrived_badge)
+
 	Maps.map_changed.connect(func(_k: String) -> void: _apply_map())
+	Fleet.fleet_changed.connect(_refresh_arrivals)
 	_apply_map()
+	_refresh_arrivals()
 
 	# Keeps each button's pressed texture in sync even when its panel is
 	# closed some other way (the panel's own Close button), not just by
@@ -65,4 +86,18 @@ func _apply_map() -> void:
 	_shop_button.visible = not visiting
 	_hangar_button.visible = not visiting
 	get_node("Buttons/FriendsButton").visible = not visiting
-	get_node("Buttons/RoutesButton").visible = not visiting
+	# ROUTES STAYS. It is the one panel worth reaching from someone else's
+	# airport: the fleet keeps flying while you are here, and without it a
+	# landing at home is invisible until you travel back.
+	get_node("Buttons/RoutesButton").visible = true
+
+
+func _refresh_arrivals() -> void:
+	if not is_instance_valid(_arrived_badge):
+		return
+	var button: TextureButton = get_node("Buttons/RoutesButton")
+	_arrived_badge.visible = Fleet.home_arrivals() > 0
+	# Top-right of the button, overhanging it slightly, which is where the
+	# reference game hangs its counts.
+	_arrived_badge.position = Vector2(button.size.x - BADGE_SIZE.x * 0.72,
+		-BADGE_SIZE.y * 0.28)

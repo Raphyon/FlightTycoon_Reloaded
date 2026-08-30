@@ -91,7 +91,11 @@ func _carry_camera_over(previous: Vector2) -> void:
 # see Toolbar._apply_map.
 const VISITING_HIDDEN := ["TopBarRight", "TopBarLeft", "TopBar", "MapTab"]
 # Panels that must not be left open behind us when we arrive.
-const VISITING_CLOSED := ["WorldMapPanel", "ShopHubPanel", "HangarPanel", "FriendsPanel", "FriendInfoPanel", "RoutesPanel", "ShopPanel",
+# RoutesPanel is NOT in here. Your routes keep running while you are away, so
+# being unable to look at them was the one thing you might genuinely want from
+# someone else's airport - and its actions are fleet-level rather than
+# map-level, so collecting a landed aircraft from here works as it does at home.
+const VISITING_CLOSED := ["WorldMapPanel", "ShopHubPanel", "HangarPanel", "FriendsPanel", "FriendInfoPanel", "ShopPanel",
 	"FuelPanel", "ExpansionShopPanel", "ApronInfoPanel", "SkinPickerPanel",
 	"AssignPickerPanel", "BuildingInfoPanel", "UpgradeConfirmPanel",
 	"DailyLoginPanel", "BoostPanel"]
