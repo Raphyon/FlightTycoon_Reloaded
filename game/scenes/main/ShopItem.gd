@@ -110,11 +110,18 @@ func _add_clouds(range_units: int) -> void:
 
 func _add_stats(entry: Dictionary) -> void:
 	var key: String = entry["key"]
-	# What a leg pays at the aircraft's OWN cloud rating, through Fleet's
-	# formula rather than a second copy of it - the clouds are drawn above, so
-	# the card is showing the route it was built for.
-	var pay := int(round(float(Fleet.passengers(key)) * Fleet.ticket_price(key)
-		* float(ShopCatalog.stat(key, "range"))))
+	# SEATS x TICKET, and NOT multiplied by the cloud rating.
+	#
+	# It was multiplied, on the reasoning that the clouds are drawn right above
+	# so the card may as well show what the aircraft actually earns on the route
+	# it was built for. That is defensible and it is not what the reference
+	# does: its B747 card reads 5,000, and 5,000 is 500 seats at 10 a head. The
+	# clouds are a separate number on the card because the player is meant to
+	# multiply them in.
+	#
+	# Showing the product made every figure five times the one the live cards
+	# use, which is the unit every price and fare in ShopCatalog was set in.
+	var pay := int(round(float(Fleet.passengers(key)) * Fleet.ticket_price(key)))
 	var rows := [
 		[[FORCE_ICON, str(ShopCatalog.stat(key, "force"))], [CASH_ICON, _compact(pay)]],
 		[[FUEL_ICON, str(ShopCatalog.stat(key, "fuel"))],
