@@ -84,8 +84,31 @@ const DAY_SECONDS := 86400.0
 # cut was worth nothing: 34.0 h against 33.3 h to all six zones, inside the
 # noise. Cash is not the lever here, the coin is (see SET_COIN_REWARD), so the
 # reward that makes a task feel worth doing stays at full strength.
-const CASH_BASE := 4000.0
-const CASH_EXPONENT := 1.1
+# RE-ANCHORED. 4000 x level^1.1 was anchored to nothing at all, and it paid the
+# opening's bills: measured against a --quests off run, the daily tasks were
+# buying HALF THE EARLY FLEET - nine aircraft against four at ten minutes,
+# forty-four against twenty-two at an hour.
+#
+# The clearest way to see it is against the zone gates, which are what money is
+# actually for:
+#
+#     level  5   a set of three paid $70,477   Zone2 costs $50,000
+#     level 10   a set of three paid $151,071  DarkZone costs $100,000
+#
+# A single day of tasks bought the gate outright, with change. At level 3-4 a
+# task alone paid 50-60k against a starter aircraft that earns 750 a lap.
+#
+# The shape was wrong in both directions. level^1.1 is nearly flat while a
+# player's income grows superlinearly - fleet size times a better ladder - so
+# the same curve was overwhelming at the bottom and irrelevant at the top, where
+# one task pays less than a single Ark lap.
+#
+# 125 x level^2 is solved from the two ends rather than picked: a task worth a
+# couple of starter laps at level 4, and about half an Ark lap at level 50. It
+# crosses the old curve around level 50 and pays MORE above it, which is where
+# quests had stopped being worth the tap.
+const CASH_BASE := 125.0
+const CASH_EXPONENT := 2.0
 const FUEL_BASE := 120.0
 const FUEL_EXPONENT := 0.6
 
