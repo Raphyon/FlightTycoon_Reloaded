@@ -429,23 +429,32 @@ const COIN_CHANCE_PER_CYCLE_MINUTE := 0.00083
 const COIN_DROP_AMOUNT := 1
 
 
-# THE LIGHTS GO OUT. A building that has been standing lit for LIT_SECONDS goes
-# dark, puts a bulb over itself, and waits to be switched back on for cash and
-# XP.
+# THE LIGHTS GO OUT. A building that has been standing lit for its own interval
+# goes dark, dims, and puts a bulb over itself, waiting to be switched back on
+# for cash and XP.
 #
 # It is a SECOND TAP LOOP on the city side, deliberately offset from rent. Rent
 # is the city's income and it already out-earns the fleet (see BALANCE.md); the
 # point of this is not more money, it is another reason to walk the map, in a
 # game where 42 plots compete with 150-odd pads for the same taps.
 #
-# Measured from the last relight rather than from the last rent collection, so
-# the two loops drift apart instead of arriving together and collapsing into
-# one tap.
-const LIT_SECONDS := 3600.0
+# EACH BUILDING ROLLS ITS OWN INTERVAL, anywhere from a minute to half an hour,
+# rather than every one of them running on the same clock. On a fixed hour the
+# whole city went dark together and came back together, which reads as a
+# scheduled event rather than as forty-two buildings each doing their own
+# thing - and it made the tour of the map one rhythm instead of a scatter.
+#
+# NO PITY COUNTER HERE, unlike the coin drops. That exists because a 1% roll
+# has no floor and a quarter of players wait three times the average; this roll
+# is BOUNDED at both ends, so the worst case is thirty minutes and there is no
+# drought to protect anybody from.
+#
+# The interval is rolled when the building is lit and STORED, not rolled on
+# each check - a fresh roll every frame would either never expire or expire
+# instantly depending on the draw.
+const LIT_SECONDS_MIN := 60.0
+const LIT_SECONDS_MAX := 1800.0
 
-# What relighting pays, as a share of one rent cycle. A quarter - enough to be
-# worth crossing the map for, not enough to make the lights the real income and
-# rent the sideshow.
 const LIGHTS_CASH_SHARE := 0.25
 
 # XP is FLAT PER LEVEL, not a share of the cash. Rent runs away with building
@@ -582,8 +591,24 @@ func lit_since(plot_id: int, map_key: String = "") -> float:
 	return float(rec["lit_since"])
 
 
+# How long THIS building stays lit. Rolled once and kept, so a record written
+# before the interval existed gets one now rather than inheriting a constant.
+func lit_seconds(plot_id: int, map_key: String = "") -> float:
+	var mk := map_key if map_key != "" else Maps.current
+	var m := _map(mk)
+	var rec: Dictionary = m.get(str(plot_id), {})
+	if rec.is_empty():
+		return LIT_SECONDS_MAX
+	if not rec.has("lit_for"):
+		rec["lit_for"] = randf_range(LIT_SECONDS_MIN, LIT_SECONDS_MAX)
+		m[str(plot_id)] = rec
+		built[mk] = m
+	return float(rec["lit_for"])
+
+
 func seconds_until_dark(plot_id: int, map_key: String = "") -> float:
-	return maxf(0.0, lit_since(plot_id, map_key) + LIT_SECONDS - GameClock.now())
+	return maxf(0.0, lit_since(plot_id, map_key)
+		+ lit_seconds(plot_id, map_key) - GameClock.now())
 
 
 # Scaffolding wins: a building being rebuilt is not sitting there with its
@@ -614,6 +639,10 @@ func relight(plot_id: int, map_key: String = "") -> int:
 	var m := _map(mk)
 	var rec: Dictionary = m.get(str(plot_id), {})
 	rec["lit_since"] = GameClock.now()
+	# A NEW INTERVAL EVERY TIME. Keeping the first roll would give each
+	# building a fixed personal rhythm, which is the same problem as one shared
+	# clock only harder to notice.
+	rec["lit_for"] = randf_range(LIT_SECONDS_MIN, LIT_SECONDS_MAX)
 	m[str(plot_id)] = rec
 	built[mk] = m
 	_save()
@@ -750,7 +779,8 @@ func build(plot_id: int, building_key: String, map_key: String = "") -> bool:
 	# rent collection, so a lights clock reading it can never expire on a
 	# building that is being collected regularly - which is every building.
 	m[str(plot_id)] = {"key": building_key, "since": GameClock.now(),
-		"lit_since": GameClock.now()}
+		"lit_since": GameClock.now(),
+		"lit_for": randf_range(LIT_SECONDS_MIN, LIT_SECONDS_MAX)}
 	built[key] = m
 	_save()
 	built_changed.emit()
