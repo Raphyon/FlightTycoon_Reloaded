@@ -296,6 +296,15 @@ const ENTRIES := [
 		"force": "E", "seats": 625, "fuel": 55, "xp": 600, "ticket": 8, "range": 5, "has_world_sprite": true},
 	{"key": "dc10", "name": "Douglas DC-10", "icon": "dc10_default.png", "price": 210000, "level": 35,
 		"force": "E", "seats": 250, "fuel": 25, "xp": 450, "ticket": 8, "range": 5, "has_world_sprite": true},
+	# Its own airframe, not a repaint of the A340-300 that sits eleven levels
+	# above it. Four engines and a widebody hull, placed in the B787's class.
+	#
+	# LEVEL AND PRICE ARE MINE, not live - it is the only aircraft here without
+	# a card or a given figure behind it. $250,000 puts it directly above the
+	# B787/MD-11/DC-10 cluster and below the premium short-haul trio, which is
+	# what "closer to the 787" and "early" together suggest. Move it freely.
+	{"key": "a340-early", "name": "Airbus A340", "icon": "a340-early_default.png", "price": 250000, "level": 36,
+		"force": "E", "seats": 550, "fuel": 90, "xp": 700, "ticket": 7.5, "range": 5, "has_world_sprite": true},
 	# Sits between the Dash 8 and the 328 Jet: a bigger cabin than the turboprop
 	# without the jet's third cloud, so it is a capacity step rather than a
 	# reach one.

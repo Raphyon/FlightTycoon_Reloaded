@@ -100,6 +100,11 @@ MODELS = {
     # turboprop regional, and the shop puts it at level 50 for $18,000,000,
     # which says nothing about how big it is.
     "il114":      (89, {"body": "il114_default.png"}),
+    # An earlier A340 and its own airframe, not a repaint of the -300. Four
+    # engines and a widebody hull, in the B787's class rather than the
+    # regionals' - so it takes the 108 the A350 has, that entry's note being
+    # that 60.3m of span is near enough the B787's 60.1 to share its height.
+    "a340-early": (108, {"body": "a340_early_default.png"}),
     # 28.91m span, under the Il-114, but a 34.4m fuselage - the longest of the
     # regional jets here, and length is what the isometric view shows most of.
     "an158":      (90, {"body": "an158_default.png"}),
