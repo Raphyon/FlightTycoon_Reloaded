@@ -147,11 +147,9 @@ def cells_of(group):
 def shadow_of(group, cells):
     """The shadow, and the cells that are not it.
 
-    A pre-cut group keeps its shadow in its own _s file. On a sheet the shadow
-    is one of the cells, and it is picked RELATIVE to its siblings - flattest
-    and darkest - because "grey" is a different number on a slate saucer than
-    on a white airliner. A one-cell sheet has no shadow in it at all; that cell
-    is the aircraft.
+    A pre-cut group keeps its shadow in its own _s file and every cell it has
+    is paint. Only a SHEET can carry its shadow among the cells, and it is
+    found by being one flat tone rather than by being grey or dark - see below.
     """
     own = os.path.join(SRC, "aircraft_%s_s@2x.png" % group)
     supplied = Image.open(own).convert("RGBA") if os.path.exists(own) else None
