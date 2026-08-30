@@ -18,6 +18,12 @@ var assigned_apron_id: int = -1  # -1 = idle/in hangar, otherwise the apron it's
 # from dispatch until it heads home again, so it doubles as the capacity lock -
 # see Fleet.claim_robot_apron. -1 = not out on a trip.
 var robot_apron_id: int = -1
+# The friend pad it MOST RECENTLY flew home from, kept after robot_apron_id is
+# released. The pad itself is freed the moment the aircraft leaves - holding it
+# for the return leg would halve a friend's usable capacity - but the pad still
+# has something to say once the aircraft is down at home, and this is how it
+# knows which pad. Cleared when the reward is claimed.
+var last_robot_apron_id: int = -1
 # Liveries are bought per aircraft, not per model (see AircraftSkins), so both
 # what this one wears and what it has paid for live here rather than in a
 # central table keyed by model.

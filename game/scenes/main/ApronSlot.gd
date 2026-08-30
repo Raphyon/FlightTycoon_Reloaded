@@ -334,6 +334,15 @@ func _draw() -> void:
 			_arm(CALLOUT_DRUM_TEXTURE, Fleet.refuel_at_destination.bind(visitor.id),
 				SWOOP_FUELING_TEXTURE, SWOOP_FUEL_TEXT, true)
 		_callout.visible = true
+	elif Maps.is_robot_map() \
+			and Fleet.get_aircraft_home_from_robot_apron(apron.id) != null:
+		# YOUR AIRCRAFT MADE IT HOME, and this is the pad it left from. The pad
+		# is free again - it was released at take-off - but it is the only
+		# thing here that knows the flight ended, so it says so and offers the
+		# way back. The green bubble is the one for this: see the BLUE/GREEN
+		# note above.
+		_set_callout_arrived(Maps.travel_to.bind(Maps.DEFAULT_MAP))
+		_callout.visible = true
 	elif not apron.occupied:
 		# The free-pad plane bubble means "assign one here", which you can't do
 		# at the robot airport - its empty pads are just unused landing slots,
