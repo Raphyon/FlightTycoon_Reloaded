@@ -1589,6 +1589,18 @@ func get_aircraft_at_robot_apron(apron_id: int) -> FleetAircraft:
 	return null
 
 
+# The same pad including whatever is still on its way to it. The pad is held
+# from the moment of dispatch (robot_apron_id is set in depart), so an inbound
+# aircraft has a place at a friend's airport the whole time it is in the air -
+# which is what the apron panel needs to be able to show a countdown there, the
+# way the home apron shows one for a flight on its way back.
+func get_aircraft_bound_for_robot_apron(apron_id: int) -> FleetAircraft:
+	for a in aircraft:
+		if a.robot_apron_id == apron_id and (a.is_at_robot() or a.is_in_transit()):
+			return a
+	return null
+
+
 # Every pad at one destination, across all seven mirrored areas, in id order.
 # Defaults to the nearest, which is where a save with no destination goes.
 func robot_apron_ids(map_key: String = "") -> Array:

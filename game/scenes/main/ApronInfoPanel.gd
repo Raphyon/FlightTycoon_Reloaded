@@ -364,7 +364,16 @@ func _refresh(_unused = null) -> void:
 	if not at_robot:
 		_refresh_skin_slot()
 
-	var a := Fleet.get_aircraft_at_apron(_apron_id)
+	# WHICH PAD THIS IS DECIDES WHICH FIELD TO ASK ABOUT. get_aircraft_at_apron
+	# matches on assigned_apron_id, which is the aircraft's pad at YOUR
+	# airport; at a friend's it stands on robot_apron_id and that lookup found
+	# nothing, so every pad over there read as empty however full it was.
+	#
+	# The bound-for variant is used rather than the at-robot one so the pad
+	# shows its inbound flight and counts it down, exactly as a home pad does
+	# for an aircraft on its way back.
+	var a := (Fleet.get_aircraft_bound_for_robot_apron(_apron_id) if at_robot
+		else Fleet.get_aircraft_at_apron(_apron_id))
 	_refresh_plane_slot(a)
 	_refresh_route_preview(a)
 
@@ -473,7 +482,8 @@ func _on_skin_button_pressed() -> void:
 # The plane slot's button paints the aircraft standing on this pad: liveries
 # are bought per aircraft and buy a speed grade (see AircraftSkins).
 func _on_plane_button_pressed() -> void:
-	var a := Fleet.get_aircraft_at_apron(_apron_id)
+	var a := (Fleet.get_aircraft_at_robot_apron(_apron_id) if Maps.is_robot_map()
+		else Fleet.get_aircraft_at_apron(_apron_id))
 	if a:
 		get_node("../LiveryPickerPanel").show_for_aircraft(a.id)
 
