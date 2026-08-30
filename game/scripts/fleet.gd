@@ -1035,8 +1035,7 @@ func to_save() -> Dictionary:
 	for a in aircraft:
 		out.append({
 			"id": a.id, "model": a.model_key, "apron": a.assigned_apron_id,
-			"robot_apron": a.robot_apron_id,
-			"last_robot_apron": a.last_robot_apron_id, "state": a.state,
+			"robot_apron": a.robot_apron_id, "state": a.state,
 			"left": a.flight_time_left, "total": a.flight_time_total,
 			"livery": a.livery, "owned_liveries": a.owned_liveries.keys(),
 			"destination": a.destination,
@@ -1055,7 +1054,6 @@ func load_save(data: Dictionary, elapsed: float) -> void:
 		var a := FleetAircraft.new(int(d.get("id", 0)), str(d.get("model", STARTER_MODEL)))
 		a.assigned_apron_id = int(d.get("apron", -1))
 		a.robot_apron_id = int(d.get("robot_apron", -1))
-		a.last_robot_apron_id = int(d.get("last_robot_apron", -1))
 		a.state = int(d.get("state", FleetAircraft.State.PARKED))
 		a.flight_time_left = float(d.get("left", 0.0))
 		# Saves written before the countdown existed have no total; the leg it is
@@ -1244,7 +1242,10 @@ func unassign(aircraft_id: int) -> void:
 	# mid-route would just vanish from the apron it's supposedly flying
 	# to/from.
 	if a and a.state == FleetAircraft.State.PARKED:
+		# Both ends at once. Deleting the route is the only thing that frees
+		# either pad, so leaving the destination's held would strand it.
 		a.assigned_apron_id = -1
+		a.robot_apron_id = -1
 		_emit_changed()
 
 
@@ -1336,11 +1337,11 @@ func refuel_at_destination(aircraft_id: int) -> void:
 	# Free, per the loop - the destination supplies fuel for the return leg.
 	var a := get_aircraft(aircraft_id)
 	if a and a.state == FleetAircraft.State.AWAITING_DEST_REFUEL:
-		# Releasing the pad here, not on touchdown at home: the aircraft has
-		# physically left the robot airport, so holding its slot for the whole
-		# return leg would halve the airport's usable capacity.
-		a.last_robot_apron_id = a.robot_apron_id
-		a.robot_apron_id = -1
+		# THE PAD IS NOT RELEASED HERE. It used to be, on the grounds that the
+		# aircraft had physically left - but a route holds a pad at each end
+		# until the route is deleted, the same way the home pad is held while
+		# the aircraft is away. Freeing it here left the destination with no
+		# idea the flight had happened.
 		a.state = FleetAircraft.State.FLYING_BACK
 		a.flight_time_left = flight_seconds_for(a, destination_of(a))
 		a.flight_time_total = a.flight_time_left
@@ -1349,9 +1350,6 @@ func refuel_at_destination(aircraft_id: int) -> void:
 
 func claim_home_reward(aircraft_id: int) -> void:
 	var a := get_aircraft(aircraft_id)
-	# The friend pad has nothing left to announce once this is collected.
-	if a:
-		a.last_robot_apron_id = -1
 	if a and a.state == FleetAircraft.State.AWAITING_HOME_CLAIM:
 		_grant_reward(a, a.assigned_apron_id)
 		AircraftAffinity.grant_use(a.model_key)
@@ -1595,26 +1593,15 @@ func get_aircraft_at_robot_apron(apron_id: int) -> FleetAircraft:
 	return null
 
 
-# An aircraft that has landed at home and flew there from THIS friend pad. The
-# pad is not holding it any more, but it is the only thing at a friend's
-# airport that knows the flight ended - so it is what raises the "your aircraft
-# is home" bubble there.
-func get_aircraft_home_from_robot_apron(apron_id: int) -> FleetAircraft:
-	for a in aircraft:
-		if a.last_robot_apron_id == apron_id \
-				and a.state == FleetAircraft.State.AWAITING_HOME_CLAIM:
-			return a
-	return null
 
-
-# The same pad including whatever is still on its way to it. The pad is held
-# from the moment of dispatch (robot_apron_id is set in depart), so an inbound
-# aircraft has a place at a friend's airport the whole time it is in the air -
-# which is what the apron panel needs to be able to show a countdown there, the
-# way the home apron shows one for a flight on its way back.
-func get_aircraft_bound_for_robot_apron(apron_id: int) -> FleetAircraft:
+# WHATEVER HOLDS THIS DESTINATION PAD, at any point in its route - inbound, on
+# the ground, or already back home. get_aircraft_at_robot_apron answers the
+# narrower question of what is physically standing there; this one answers what
+# the pad is FOR, which is what a pad has to know to show a countdown before
+# the aircraft lands or an arrived tag after it has gone.
+func get_aircraft_holding_robot_apron(apron_id: int) -> FleetAircraft:
 	for a in aircraft:
-		if a.robot_apron_id == apron_id and (a.is_at_robot() or a.is_in_transit()):
+		if a.robot_apron_id == apron_id:
 			return a
 	return null
 

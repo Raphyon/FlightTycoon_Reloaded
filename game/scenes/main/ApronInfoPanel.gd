@@ -369,10 +369,10 @@ func _refresh(_unused = null) -> void:
 	# airport; at a friend's it stands on robot_apron_id and that lookup found
 	# nothing, so every pad over there read as empty however full it was.
 	#
-	# The bound-for variant is used rather than the at-robot one so the pad
-	# shows its inbound flight and counts it down, exactly as a home pad does
-	# for an aircraft on its way back.
-	var a := (Fleet.get_aircraft_bound_for_robot_apron(_apron_id) if at_robot
+	# The HOLDER is asked for rather than what is physically standing there, so
+	# the pad shows its aircraft through the whole route - counting down on the
+	# way in, and still its pad on the way back - exactly as the home pad does.
+	var a := (Fleet.get_aircraft_holding_robot_apron(_apron_id) if at_robot
 		else Fleet.get_aircraft_at_apron(_apron_id))
 	_refresh_plane_slot(a)
 	_refresh_route_preview(a)

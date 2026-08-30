@@ -303,8 +303,12 @@ func _refresh_slots() -> void:
 			var slot = _slots[area_name][apron_id]
 			if not is_instance_valid(slot):
 				continue
+			# HELD, not stood on. get_aircraft_at_apron already answers that
+			# way at home - a pad reads occupied while its aircraft is off
+			# flying - and the destination pad is held for the whole route now,
+			# so it answers the same way here.
 			slot.apron.occupied = (Fleet.get_aircraft_at_apron(apron_id) != null
-				or Fleet.get_aircraft_at_robot_apron(apron_id) != null)
+				or Fleet.get_aircraft_holding_robot_apron(apron_id) != null)
 			slot.queue_redraw()
 	_sync_world_aircraft()
 

@@ -334,15 +334,20 @@ func _draw() -> void:
 			_arm(CALLOUT_DRUM_TEXTURE, Fleet.refuel_at_destination.bind(visitor.id),
 				SWOOP_FUELING_TEXTURE, SWOOP_FUEL_TEXT, true)
 		_callout.visible = true
-	elif Maps.is_robot_map() \
-			and Fleet.get_aircraft_home_from_robot_apron(apron.id) != null:
-		# YOUR AIRCRAFT MADE IT HOME, and this is the pad it left from. The pad
-		# is free again - it was released at take-off - but it is the only
-		# thing here that knows the flight ended, so it says so and offers the
-		# way back. The green bubble is the one for this: see the BLUE/GREEN
-		# note above.
-		_set_callout_arrived(Maps.travel_to.bind(Maps.DEFAULT_MAP))
-		_callout.visible = true
+	elif Maps.is_robot_map() and _holder() != null:
+		# THE PAD IS HELD BUT THE AIRCRAFT IS NOT ON IT - it is in the air, or
+		# already back at your airport. Exactly the state a home pad is in
+		# while its aircraft is away, and it gets exactly the same treatment:
+		# the flight tag, counting down while it flies and reading "Arrived"
+		# with the way back on it once it is down. _tag_texture picks the green
+		# one here on its own.
+		var held := _holder()
+		_callout.visible = false
+		if Fleet.is_flying(held):
+			_show_tag(held, Fleet.time_left_text(held.flight_time_left),
+				Fleet.flight_progress(held), Callable())
+		else:
+			_show_tag(held, "Arrived", 1.0, Maps.travel_to.bind(Maps.DEFAULT_MAP))
 	elif not apron.occupied:
 		# The free-pad plane bubble means "assign one here", which you can't do
 		# at the robot airport - its empty pads are just unused landing slots,
@@ -410,6 +415,12 @@ func _draw() -> void:
 # BLUE for your own aircraft at your own airport, GREEN the moment a friend is
 # involved. Today that means "am I visiting", since nobody else's aircraft can
 # be here yet; when they can, this is the one place that decides.
+# What this destination pad is reserved for, whatever state it is in. Only ever
+# consulted on a friend's map - at home the pad's aircraft is assigned_apron_id.
+func _holder() -> FleetAircraft:
+	return Fleet.get_aircraft_holding_robot_apron(apron.id)
+
+
 func _tag_texture() -> Texture2D:
 	return TAG_FRIEND_TEXTURE if Maps.is_robot_map() else TAG_MINE_TEXTURE
 
