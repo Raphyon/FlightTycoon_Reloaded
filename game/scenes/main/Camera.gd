@@ -123,6 +123,24 @@ func _fit_limits_to_unlocked() -> void:
 			continue
 		for p in layout[area_name]:
 			pts.append(Vector2(float(p[0]), float(p[1])))
+	# THE RUNWAY IS PART OF THE AIRPORT, not part of a zone. Nothing in the
+	# data says which zone it belongs to, and the box was built from pad and
+	# plot positions alone - so on homeland it stopped at x=1716 while the
+	# takeoff roll runs to 3271 and its threshold sits at y=917, 84 above the
+	# top of the box. The aircraft was teleporting to a spot the camera could
+	# not reach and rolling further away from it.
+	#
+	# Gating does not depend on this. Locked zones are hidden by CLOUD COVER -
+	# see CloudLayout - so the camera box does not have to do that job as well,
+	# and the ground the runway opens up is tarmac rather than a zone.
+	#
+	# Roads are deliberately not included: they cover the whole map and would
+	# make the box the world.
+	for track in ["plane_body", "plane_shadow",
+			"plane_arrival_body", "plane_arrival_shadow"]:
+		for v in PathLayout.points_to_vectors(PathLayout.load_effective().get(track, [])):
+			pts.append(v)
+
 	# Plots count one zone at a time, not all at once. Every plot joining the
 	# box the moment Zone2 was bought is why an airport's whole city could be
 	# built inside two hours - see ZoneRegions for the regions this reads.
