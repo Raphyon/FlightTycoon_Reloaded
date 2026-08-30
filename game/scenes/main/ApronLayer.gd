@@ -384,13 +384,17 @@ func _sync_world_aircraft() -> void:
 			get_node("../WorldAircraft").add_child(node)
 			node.setup(a.model_key, slot.position, a.livery)
 			_world_aircraft[a.id] = node
-			# A plane appearing straight out of a return flight flies the
-			# traced approach in rather than blinking onto the apron. Any
-			# other first appearance (a fresh assignment) just parks.
+			# THE SAME AT EITHER AIRPORT. A flight that has just landed flies
+			# the traced approach in; any other first appearance parks. Landing
+			# HOME is AWAITING_HOME_CLAIM and landing at a friend's is
+			# AWAITING_DEST_CLAIM - only the first was here, so your aircraft
+			# blinked onto a friend's apron while it flew a proper approach
+			# onto your own.
 			# Not on the first sync - see reload_for_map. A save full of landed
 			# aircraft should open with them parked, not with the whole fleet
 			# queueing for the strip.
-			if a.state == FleetAircraft.State.AWAITING_HOME_CLAIM and not was_first:
+			if not was_first and (a.state == FleetAircraft.State.AWAITING_HOME_CLAIM
+					or a.state == FleetAircraft.State.AWAITING_DEST_CLAIM):
 				node.play_arrival()
 		else:
 			# Not setup() - that adds a fresh set of child sprites every
@@ -398,8 +402,14 @@ func _sync_world_aircraft() -> void:
 			# A settled aircraft has no approach left to fly. Claiming and
 			# refuelling while it is still queued for the strip used to leave it
 			# stranded there - see WorldAircraft.abandon_arrival.
+			# AND SO IS SETTLING. Claiming an aircraft while it is still
+			# queued for the strip strands it there - see
+			# WorldAircraft.abandon_arrival. AWAITING_DEST_REFUEL is that same
+			# settled state at a friend's airport, and it was missing, so the
+			# stranding bug fixed at home still happened away from it.
 			if a.state == FleetAircraft.State.PARKED \
-					or a.state == FleetAircraft.State.AWAITING_HOME_REFUEL:
+					or a.state == FleetAircraft.State.AWAITING_HOME_REFUEL \
+					or a.state == FleetAircraft.State.AWAITING_DEST_REFUEL:
 				_world_aircraft[a.id].abandon_arrival()
 			_world_aircraft[a.id].sync_position(slot.position)
 			# A livery bought or switched while the aircraft is already parked
