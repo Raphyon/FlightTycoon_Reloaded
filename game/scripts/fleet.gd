@@ -372,6 +372,14 @@ const WORLD_SPRITES := {
 		"rotor_offsets": [Vector2(-36.2, 1.2), Vector2(-1.6, 18.9)],
 		"rotor_scale": 0.78,
 	},
+	"il114": {
+		"body": "res://assets/aircraft/il114/body_2x.png",
+		"shadow": "res://assets/aircraft/il114/shadow_2x.png",
+	},
+	"an158": {
+		"body": "res://assets/aircraft/an158/body_2x.png",
+		"shadow": "res://assets/aircraft/an158/shadow_2x.png",
+	},
 	"dhc8": {
 		"body": "res://assets/aircraft/dhc8/body_2x.png",
 		"shadow": "res://assets/aircraft/dhc8/shadow_2x.png",

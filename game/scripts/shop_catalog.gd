@@ -365,6 +365,14 @@ const ENTRIES := [
 		"force": "B", "seats": 340, "fuel": 40, "xp": 53000, "range": 4, "has_world_sprite": true},
 	{"key": "a340-300", "name": "Airbus A340-300", "icon": "a340-300_default.png", "price": 15000000, "level": 49,
 		"force": "E", "seats": 560, "fuel": 66, "xp": 24000, "range": 5, "has_world_sprite": true},
+	# Level and price are GIVEN, and both are live locked-card slots - L50 at
+	# $18,000,000 and L55 at $50,000,000. Everything else is interpolated from
+	# the aircraft either side and wants replacing if cards turn up.
+	#
+	# The A400M had been interpolated onto that same $18,000,000; it moves,
+	# because these two are what those slots actually hold.
+	{"key": "il114", "name": "Ilyushin Il-114", "icon": "il114_default.png", "price": 18000000, "level": 50,
+		"force": "D", "seats": 460, "fuel": 58, "xp": 31000, "ticket": 100, "range": 5, "has_world_sprite": true},
 	# LIVE: 100 a head, 500 seats, rating 5 - 250,000 a leg, the biggest
 	# earner in the game. A 100 fare on a military transport is why ticket
 	# is a per-aircraft stat and not a constant.
@@ -409,10 +417,12 @@ const ENTRIES := [
 		"force": "D", "seats": 620, "fuel": 70, "xp": 62000, "range": 5, "has_world_sprite": true},
 	# Dreamland's boats. The island is a water resort and the fleet had no
 	# flying boat or amphibian in it - see ROADMAP item 10.
-	{"key": "be200", "name": "Beriev Be-200", "icon": "be200_default.png", "price": 37000000, "level": 56,
+	{"key": "be200", "name": "Beriev Be-200", "icon": "be200_default.png", "price": 37000000, "level": 55,
 		"force": "D", "seats": 480, "fuel": 58, "xp": 51000, "ticket": 100, "range": 5, "has_world_sprite": true},
-	{"key": "us2", "name": "ShinMaywa US-2", "icon": "us2_default.png", "price": 44000000, "level": 56,
+	{"key": "us2", "name": "ShinMaywa US-2", "icon": "us2_default.png", "price": 44000000, "level": 55,
 		"force": "D", "seats": 500, "fuel": 60, "xp": 59000, "ticket": 100, "range": 5, "has_world_sprite": true},
+	{"key": "an158", "name": "Antonov An-158", "icon": "an158_default.png", "price": 50000000, "level": 55,
+		"force": "D", "seats": 500, "fuel": 62, "xp": 63000, "ticket": 100, "range": 5, "has_world_sprite": true},
 	# A fighter in the tail. 9.96m span, so the smallest thing here after the
 	# Paper Plane, and priced as a trophy like everything past 50.
 	{"key": "f16", "name": "F-16 Fighting Falcon", "icon": "f16_default.png", "price": 53000000, "level": 57,
