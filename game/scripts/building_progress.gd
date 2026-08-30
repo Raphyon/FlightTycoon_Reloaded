@@ -438,22 +438,43 @@ const COIN_DROP_AMOUNT := 1
 # point of this is not more money, it is another reason to walk the map, in a
 # game where 42 plots compete with 150-odd pads for the same taps.
 #
-# EACH BUILDING ROLLS ITS OWN INTERVAL, anywhere from a minute to half an hour,
-# rather than every one of them running on the same clock. On a fixed hour the
-# whole city went dark together and came back together, which reads as a
-# scheduled event rather than as forty-two buildings each doing their own
-# thing - and it made the tour of the map one rhythm instead of a scatter.
+# EACH BUILDING ROLLS ITS OWN INTERVAL, a minute at minimum and half an hour at
+# most, rather than every one of them running on the same clock. On a fixed
+# hour the whole city went dark together and came back together, which reads as
+# a scheduled event rather than as forty-two buildings each doing their own
+# thing.
+#
+# MEMORYLESS, NOT UNIFORM. A flat draw between one and thirty minutes is random
+# in the arithmetic sense and does not read as random: with a hard floor, a
+# hard ceiling and everything between equally likely, no building ever comes
+# back quickly twice running and none ever makes you wait. An exponential draw
+# is what people mean by random - short gaps are common, long ones happen.
+#
+#     uniform 1-30      13% under five minutes, 17% over twenty-five
+#     1 min + exp(7)    43% under five minutes, 5% over twenty
+#
+# The minute is added rather than clamped to, so the floor is a real minimum
+# instead of a pile-up of buildings all landing on exactly sixty seconds.
 #
 # NO PITY COUNTER HERE, unlike the coin drops. That exists because a 1% roll
-# has no floor and a quarter of players wait three times the average; this roll
-# is BOUNDED at both ends, so the worst case is thirty minutes and there is no
-# drought to protect anybody from.
+# has no floor and a quarter of players wait three times the average; this one
+# is capped at half an hour, so there is no drought to protect anybody from.
 #
 # The interval is rolled when the building is lit and STORED, not rolled on
 # each check - a fresh roll every frame would either never expire or expire
 # instantly depending on the draw.
 const LIT_SECONDS_MIN := 60.0
 const LIT_SECONDS_MAX := 1800.0
+# The average WAIT ON TOP of the minimum, so the mean interval is about eight
+# minutes and the median under six.
+const LIT_SECONDS_MEAN := 420.0
+
+
+# A memoryless interval - see the note above. randf() can return exactly 0.0,
+# which log() will not take, so it is the 1.0 - x form.
+static func _roll_lit_seconds() -> float:
+	return minf(LIT_SECONDS_MAX,
+		LIT_SECONDS_MIN + -log(1.0 - randf()) * LIT_SECONDS_MEAN)
 
 const LIGHTS_CASH_SHARE := 0.25
 
@@ -600,7 +621,7 @@ func lit_seconds(plot_id: int, map_key: String = "") -> float:
 	if rec.is_empty():
 		return LIT_SECONDS_MAX
 	if not rec.has("lit_for"):
-		rec["lit_for"] = randf_range(LIT_SECONDS_MIN, LIT_SECONDS_MAX)
+		rec["lit_for"] = _roll_lit_seconds()
 		m[str(plot_id)] = rec
 		built[mk] = m
 	return float(rec["lit_for"])
@@ -642,7 +663,7 @@ func relight(plot_id: int, map_key: String = "") -> int:
 	# A NEW INTERVAL EVERY TIME. Keeping the first roll would give each
 	# building a fixed personal rhythm, which is the same problem as one shared
 	# clock only harder to notice.
-	rec["lit_for"] = randf_range(LIT_SECONDS_MIN, LIT_SECONDS_MAX)
+	rec["lit_for"] = _roll_lit_seconds()
 	m[str(plot_id)] = rec
 	built[mk] = m
 	_save()
@@ -780,7 +801,7 @@ func build(plot_id: int, building_key: String, map_key: String = "") -> bool:
 	# building that is being collected regularly - which is every building.
 	m[str(plot_id)] = {"key": building_key, "since": GameClock.now(),
 		"lit_since": GameClock.now(),
-		"lit_for": randf_range(LIT_SECONDS_MIN, LIT_SECONDS_MAX)}
+		"lit_for": _roll_lit_seconds()}
 	built[key] = m
 	_save()
 	built_changed.emit()
