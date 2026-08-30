@@ -51,4 +51,8 @@ window/stretch/aspect="expand"
 
 [rendering]
 
+; Required for a universal or arm64 macOS export - Godot refuses the preset
+; without it. Costs import time and cache size; nothing at runtime on desktop.
+textures/vram_compression/import_etc2_astc=true
+
 renderer/rendering_method="mobile"
