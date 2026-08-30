@@ -359,21 +359,40 @@ const ENTRIES := [
 	# 64.75m span, near enough the 747-8's - a modern widebody, so it lands
 	# between the 747 below it and the A340 above.
 	{"key": "a350-900", "name": "Airbus A350-900", "icon": "a350-900_default.png", "price": 4500000, "level": 44,
-		"force": "E", "seats": 530, "fuel": 64, "xp": 8700, "range": 5, "has_world_sprite": true},
+		"force": "E", "seats": 530, "fuel": 64, "xp": 8700, "ticket": 25, "range": 5, "has_world_sprite": true},
 	{"key": "an-225", "name": "An-225", "icon": "an-225_default.png", "price": 5000000, "level": 45,
 		"force": "E", "seats": 2000, "fuel": 300, "xp": 10000, "range": 5, "has_world_sprite": true},
 	# 64.8m span and the longest twinjet there is, so it shares the A340's rung -
 	# the same size class, four decades apart - and slots just above it on price.
 	{"key": "b777-300er", "name": "Boeing 777-300ER", "icon": "b777-300er_default.png", "price": 8700000, "level": 45,
-		"force": "E", "seats": 590, "fuel": 68, "xp": 13000, "range": 5, "has_world_sprite": true},
+		"force": "E", "seats": 590, "fuel": 68, "xp": 13000, "ticket": 43, "range": 5, "has_world_sprite": true},
 	# Two seats, so it earns on fare - the same trick the original uses on
 	# its F-15.
 	{"key": "p51", "name": "P-51 Mustang", "icon": "p51_white.png", "price": 125, "currency": COINS, "level": 45,
 		"force": "E", "seats": 2, "fuel": 500, "xp": 40000, "ticket": 22500, "range": 5, "has_world_sprite": true},
 	{"key": "blackh", "name": "Black Hawk", "icon": "blackh_green.png", "price": 180, "currency": COINS, "level": 48,
 		"force": "B", "seats": 340, "fuel": 40, "xp": 53000, "range": 4, "has_world_sprite": true},
+	# THE FARE SEAM, in the CARD's units - seats x ticket, which is what the
+	# shop prints. Clouds multiply it at the route, so a five-cloud aircraft
+	# earns five times this a leg.
+	#
+	# These three sat between a $500,000 B747 showing 5,000 and an $18,000,000
+	# A400M showing 50,000, and showed about 4,200 each - so an A340 cost
+	# thirty times a 747 and earned less than one.
+	#
+	# The cause was that their fare was the only thing about them nobody had
+	# set: default 7.5 a head times a cabin invented before the fare was
+	# corrected from 15. Every aircraft around them has a live figure.
+	#
+	# Priced onto the envelope of the live fares either side - the A340 lands at
+	# 42,000, which is where log-interpolation between the An-225's 15,000 at
+	# $5M and the A400M's 50,000 at $18M puts fifteen million.
+	#
+	# Realised as a per-head ticket rather than as seats. The A400M's live 100 a
+	# head is the same shape, and reaching these through cabin size alone would
+	# put 1,120 seats on an A340.
 	{"key": "a340-300", "name": "Airbus A340-300", "icon": "a340-300_default.png", "price": 15000000, "level": 49,
-		"force": "E", "seats": 560, "fuel": 66, "xp": 24000, "range": 5, "has_world_sprite": true},
+		"force": "E", "seats": 560, "fuel": 66, "xp": 24000, "ticket": 75, "range": 5, "has_world_sprite": true},
 	# Level and price are GIVEN, and both are live locked-card slots - L50 at
 	# $18,000,000 and L55 at $50,000,000. Everything else is interpolated from
 	# the aircraft either side and wants replacing if cards turn up.
