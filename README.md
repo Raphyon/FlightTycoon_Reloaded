@@ -1,10 +1,9 @@
 # ft-proto
 
-Isometric airport tycoon prototype. Private, local-only.
+Isometric airport tycoon remake.
 
-Third-party art from a discontinued game is used as **placeholder** while the
-systems get built. Everything borrowed lives under `source-assets/` so it can be
-stripped or swapped in one move. Nothing here ships.
+Third-party art from a discontinued game is used for art. 
+Everything borrowed lives under `source-assets/` so it can be easily identified.
 
 ## Layout
 
