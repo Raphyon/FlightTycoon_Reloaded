@@ -28,7 +28,12 @@ const SAVE_DEBOUNCE := 1.0
 # WHICH BUILD WROTE THIS SAVE. Balance moves; a save carrying a level and a
 # fleet says nothing useful once the prices under it have changed, and two
 # testers on two builds cannot be compared without knowing they differ.
-const BUILD := "a677bea"
+#
+# Set by hand, and OFF BY ONE on purpose: it names the commit that introduced
+# the code, not the commit that set the string, because a stamp cannot contain
+# the hash of the commit that contains it. Close enough to tell two builds
+# apart, which is all it is for.
+const BUILD := "5390159"
 
 # TELEMETRY, and the reason it exists: a save is a SNAPSHOT. It says where a
 # player got to and never how long it took, so the one thing it cannot answer
