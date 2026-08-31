@@ -372,9 +372,15 @@ const WORLD_SPRITES := {
 		"rotor_offsets": [Vector2(-36.2, 1.2), Vector2(-1.6, 18.9)],
 		"rotor_scale": 0.78,
 	},
+	# Twin turboprop, props drawn stopped in the body art the way the Dash 8's
+	# are. Offsets seeded from the Dash 8 scaled 126x89 against its 89x73 - a
+	# starting point for RotorEditor, not a placement.
 	"il114": {
 		"body": "res://assets/aircraft/il114/body_2x.png",
 		"shadow": "res://assets/aircraft/il114/shadow_2x.png",
+		"rotor_spin_frames": A400M_PROP,
+		"rotor_offsets": [Vector2(-48, 7), Vector2(-7, 28)],
+		"rotor_scale": 1.05,
 	},
 	"an158": {
 		"body": "res://assets/aircraft/an158/body_2x.png",
@@ -630,9 +636,24 @@ const WORLD_SPRITES := {
 		"body": "res://assets/aircraft/md11/body_2x.png",
 		"shadow": "res://assets/aircraft/md11/shadow_2x.png",
 	},
+	# FOUR RADIALS, and they were missing entirely - no rotor declaration here
+	# meant no discs in the world AND no entry in RotorEditor, which only lists
+	# models that already declare rotors. The count is read off the art (four
+	# hubs, drawn stopped, so a missing disc is visible rather than merely
+	# absent); the offsets are SEEDED from the DC-6, which is the same era and
+	# the same four-radial layout, scaled 115x85 against its 134x96. They are a
+	# starting point for RotorEditor, not a placement.
 	"dc4": {
 		"body": "res://assets/aircraft/dc4/body_2x.png",
 		"shadow": "res://assets/aircraft/dc4/shadow_2x.png",
+		"rotor_spin_frames": A400M_PROP,
+		"rotor_offsets": [
+			Vector2(-41, 4), Vector2(-29, 11), Vector2(-5, 23), Vector2(7, 29),
+		],
+		"rotor_scale": 0.76,
+		# Same as the DC-6: the inboard prop on the far wing is partly covered
+		# by the hull, so its disc must not paint over the fuselage.
+		"rotor_behind_body": [1],
 	},
 	"concorde": {
 		"body": "res://assets/aircraft/concorde/body_2x.png",
@@ -650,9 +671,15 @@ const WORLD_SPRITES := {
 		"exhaust_angle": 9.0,
 		"exhaust_scale": 0.85,
 	},
+	# One nose prop. Seeded at the hub in the body art rather than from another
+	# model - nothing else in the catalogue is a biplane, so there is no
+	# neighbour whose geometry transfers. Place it in RotorEditor.
 	"camel": {
 		"body": "res://assets/aircraft/camel/body_2x.png",
 		"shadow": "res://assets/aircraft/camel/shadow_2x.png",
+		"rotor_spin_frames": A400M_PROP,
+		"rotor_offsets": [Vector2(-33, 8)],
+		"rotor_scale": 0.62,
 	},
 	"c800": {
 		"body": "res://assets/aircraft/c800/body_2x.png",
