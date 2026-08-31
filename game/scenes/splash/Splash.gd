@@ -58,6 +58,15 @@ func _ready() -> void:
 	_layout()
 	get_tree().root.size_changed.connect(_layout)
 
+	# NOT DURING A BOT RUN. The bot drives the autoloads and frees whatever
+	# scene is current the moment it starts - which is this one, with a
+	# background load of Main.tscn still in flight. The loader then finishes
+	# against a freed requester and the run ends in "Parse Error ... Main.tscn"
+	# and a signal 11, both of which read as a broken scene file. Main.tscn is
+	# fine; it was being loaded by nobody.
+	if SaveGame.is_bot_run():
+		return
+
 	# Threaded, so the picture is on screen for the whole load rather than
 	# appearing after it. Sub-threads because Main pulls in a large tree of
 	# scenes and textures.
@@ -75,7 +84,7 @@ func _layout() -> void:
 
 
 func _process(delta: float) -> void:
-	if _done:
+	if _done or SaveGame.is_bot_run():
 		return
 	_elapsed += delta
 
