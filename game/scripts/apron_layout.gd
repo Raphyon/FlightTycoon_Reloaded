@@ -76,12 +76,44 @@ static func ensure_seeded() -> void:
 static var _cache: Dictionary = {}
 static var _cache_valid := false
 
+# Bumped every time the points change. Anything that memoises something DERIVED
+# from the layout - compute_id_starts here, Fleet.robot_apron_ids over there -
+# holds the version it computed at and recomputes when this moves. A plain
+# "invalidate" flag would need every such cache to know about every writer;
+# a version number lets each one check for itself.
+static var _version := 0
+
+# compute_id_starts walks every map and asks the layout for each one, and the
+# answer only changes when a pad is placed or removed - which is the apron
+# editor, not gameplay. It was being recomputed from scratch inside
+# Fleet.robot_apron_ids, which is asked per aircraft per apron on every fleet
+# refresh: 110 pads x 25 aircraft x 13 full copies of the point data, about a
+# second of frozen frame on every turnaround and every pad bought.
+static var _starts_cache: Dictionary = {}
+static var _starts_version := -1
+
+
+# What anything memoising a DERIVED value compares against - see _version.
+static func layout_version() -> int:
+	# Reading the layout is what parses the file, so a cache that asks for the
+	# version before anything has loaded would otherwise pin itself to version 0
+	# and never notice the first parse.
+	if not _cache_valid:
+		load_all()
+	return _version
+
 
 # {map_key: {area_name: [[x,y], ...]}} for every airport at once.
 static func load_all() -> Dictionary:
 	if _cache_valid:
 		return _cache.duplicate(true)
 	if not FileAccess.file_exists(SAVE_PATH):
+		# An empty layout is still an answer, and marking it cached is what lets
+		# layout_version() settle: left uncached, every version check re-ran the
+		# file test and the derived caches could never agree on a version.
+		_cache = {}
+		_cache_valid = true
+		_version += 1
 		return {}
 	var f := FileAccess.open(SAVE_PATH, FileAccess.READ)
 	var text := f.get_as_text()
@@ -89,6 +121,7 @@ static func load_all() -> Dictionary:
 	var parsed: Variant = JSON.parse_string(text)
 	_cache = Maps.unwrap_layout(parsed) if parsed is Dictionary else {}
 	_cache_valid = true
+	_version += 1
 	return _cache.duplicate(true)
 
 
@@ -102,6 +135,7 @@ static func save_all(all_data: Dictionary) -> void:
 	f.close()
 	_cache = all_data.duplicate(true)
 	_cache_valid = true
+	_version += 1
 
 
 # {area_name: [[x,y], ...]} for one airport - the current one unless told
@@ -160,6 +194,10 @@ static func effective_area_data(map_key: String = "") -> Dictionary:
 # it, which is why Maps lists homeland first - its aprons are already placed
 # and referenced, so placing in the newer maps can't disturb them.
 static func compute_id_starts() -> Dictionary:
+	# Shared, not copied: every caller reads it and none writes to it, and the
+	# copy is the whole cost this cache exists to avoid.
+	if _starts_version == _version:
+		return _starts_cache
 	var starts := {}
 	var next_id := 1
 	for map_key in Maps.MAPS:
@@ -170,6 +208,8 @@ static func compute_id_starts() -> Dictionary:
 		for area_name in Maps.MAPS[map_key]["areas"]:
 			starts[area_name] = next_id
 			next_id += (map_data.get(area_name, []) as Array).size()
+	_starts_cache = starts
+	_starts_version = _version
 	return starts
 
 

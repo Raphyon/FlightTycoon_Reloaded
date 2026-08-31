@@ -94,6 +94,12 @@ var _swoop: ProgressBubble
 var _tag: ProgressBubble
 var _tag_action: Callable = Callable()
 var _tag_aircraft: FleetAircraft = null
+# The skin path the overlay is already holding a texture for. _draw ran load()
+# on every redraw, and a redraw is not a rare thing here - every pad repaints on
+# every build, skin change, zone unlock and hover. ResourceLoader hands back a
+# cached resource, but only after normalising the path and taking its lock, and
+# a pad's skin only changes on ApronSkins.skin_changed, which redraws it anyway.
+var _skin_path := ""
 
 
 func setup(p_apron: Apron) -> void:
@@ -311,7 +317,10 @@ func _draw() -> void:
 
 	var skin_entry := ApronSkins.get_skin_entry(apron.id)
 	if skin_entry.size() > 0:
-		_skin_overlay.texture = load(skin_entry["texture"])
+		var skin_path := str(skin_entry["texture"])
+		if skin_path != _skin_path:
+			_skin_overlay.texture = load(skin_path)
+			_skin_path = skin_path
 		_skin_overlay.visible = true
 	else:
 		_skin_overlay.visible = false
