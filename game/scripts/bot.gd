@@ -37,6 +37,15 @@ extends Node
 # game minutes gone. --speed models playing under fast-forward and charges taps
 # accordingly, which is the only honest way to ask whether fast-forward actually
 # buys anything.
+#
+# IT IS REPRODUCIBLE. The clock starts from a fixed instant under --bot rather
+# than from the moment of launch (GameClock.BOT_EPOCH), so the fuel market and
+# the daily quest draw repeat exactly and two runs of one build differ only by
+# what is being tested. Before that they did not: the same config an hour apart
+# came out ~20% apart on day-40 cash. --epoch <unix seconds> moves the starting
+# instant, which is how to ask whether a result survives a different starting
+# hour - vary it deliberately, one run against another, rather than having the
+# clock vary it for you.
 
 const DEFAULT_DAYS := 30
 const DEFAULT_SESSIONS := 4
@@ -201,9 +210,16 @@ func _ready() -> void:
 			_days = int(w["days"])
 	for i in range(args.size() - 1):
 		match args[i]:
-			# Fixed RNG so two runs differ only by what is being tested. Lights,
-			# quests and coin drops are all random, and without this an A/B of the
-			# economy reads its own noise - two identical runs came out 10% apart.
+			# Fixes the GLOBAL RNG, which is HALF of what a reproducible run
+			# needs. Lights, quests and coin drops are all random, and this was
+			# added because two identical runs came out 10% apart - but it never
+			# closed the gap on its own, because the other half was the CLOCK: the
+			# fuel market and the daily quest draw seed themselves off
+			# GameClock.now(), which used to be the moment of launch. Both are
+			# fixed now, and BOTH are required - the clock is pinned automatically
+			# under --bot, this flag is not, so a run without --seed still varies
+			# by whatever the lights roll. Pass it for anything you intend to
+			# compare.
 			"--seed": seed(int(args[i + 1]))
 			"--stop-at-level": _stop_at_level = int(args[i + 1])
 			"--days": _days = int(args[i + 1])
@@ -243,8 +259,10 @@ func _run() -> void:
 
 	print("  BOT [%s] - %d sessions/day x %.0f min = %.0f min/day, over %d days"
 		% [_who, _sessions, _minutes, _sessions * _minutes, _days])
-	print("  fare %.1f - the game's own ShopCatalog, Fleet and Progression, not a copy\n"
+	print("  fare %.1f - the game's own ShopCatalog, Fleet and Progression, not a copy"
 		% Fleet.TICKET_PRICE)
+	print("  clock pinned at %d - same fuel market and same daily draw every run\n"
+		% int(GameClock.epoch()))
 	print("  %6s %6s %12s %6s %5s %5s %6s" %
 		["day", "level", "cash", "fleet", "pads", "zones", "bldgs"])
 
@@ -1031,8 +1049,19 @@ func _check_milestones() -> void:
 	# and this dictionary only ever held three, so "all pads" reported "not
 	# reached" unconditionally - on every run, at every setting, whatever the
 	# player did. It was quoted in BALANCE.md as a measurement.
+	#
+	# AND THEN IT COUNTED THE WRONG BOARD. The denominator was _owned_maps(),
+	# so it asked "are the maps you have RIGHT NOW full?" - which goes true the
+	# first time the homeland is filled and is then quoted as "every pad
+	# bought". The regular run tripped it on day 36 at 110 pads and went on
+	# buying for another 70 pads. Every map you can own counts, whether or not
+	# it has been bought yet, because that is the board the label describes.
+	# Visiting maps stay out: the robot airport's pads are landing slots that
+	# come free with your own, not something anybody buys.
 	var pads_total := 0
-	for map_key in _owned_maps():
+	for map_key in Maps.MAPS:
+		if Maps.MAPS[map_key].has("visiting"):
+			continue
 		var data := ApronLayout.effective_area_data(map_key)
 		for area_name in Maps.areas_for(map_key):
 			pads_total += (data.get(area_name, []) as Array).size()

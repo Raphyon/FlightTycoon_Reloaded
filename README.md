@@ -154,7 +154,7 @@ Claiming is not instant. Tapping a claim or a refuel fills a bar for two
 seconds - "Claiming", "Refueling" - and **the action fires when the bar lands**,
 so the wait is the transaction rather than a flourish over an outcome already
 decided. It does not block: every other pad stays live and can start its own,
-which matters because taps are the binding constraint (~34 a minute measured).
+which matters because taps are the binding constraint (43 a minute measured).
 
 What it paid then floats off the top of the bubble - cash first, XP half a
 second behind it, and a coin if a rent claim turned one up. Measured as
@@ -167,15 +167,19 @@ and reads "Level 15" rather than going absent. The level is measured, not
 picked: the manual path costs two taps an aircraft and the button costs two
 flat, so it saves 2N-2, and the fleet is 5-10 aircraft by level 8 - under 18
 taps, which nobody would miss - against 20 aircraft by level 15, where it saves
-38, about 46 seconds of tapping a cycle. Priced over 90 days:
+38, about 46 seconds of tapping a cycle. Priced over a full 140-day run:
 
-| | taps over 30 h of play | six home zones |
-|---|---|---|
-| without | 112,420 | 19.7 h |
-| with | 18,260 | 15.3 h |
+| | taps over the run | six home zones | top of the shelf | level at day 140 |
+|---|---|---|---|---|
+| without | 242,460 (43/min) | 14.0 h | 40.7 h | 89 |
+| with | 135,005 (24/min) | 12.0 h | 30.0 h | 101 |
 
-Six times fewer taps and 4.4 hours. Worth knowing that **the bot had never used
-it**, so every pacing figure below assumes the manual path.
+**Depart All is the single largest accelerant measured in this project.** Not
+because of the two hours it takes off the zones, but because of the ten it takes
+off the top of the shelf and the twelve levels it adds by day 140: taps are the
+session budget, and handing half of them back buys everything else. Worth
+knowing that **the bot does not use it by default**, so every pacing figure
+below assumes the manual path - which means every one of them is a floor.
 
 Routes panel rows are 52px, down from 62, and the bulk button keeps its art's
 3.1:1 at 138x45 rather than its native 192x62 - about 8 lines visible instead of
@@ -286,33 +290,34 @@ running, carrying a count and lit while a boost is live.
 
 ### Coins, and how many there are
 
-Four sources now, measured over a 90-day run:
+Four sources, re-measured on the pinned clock over the full runs:
 
-| | coins |
-|---|---|
-| daily tasks | 166 |
-| building rent drops | 130 |
-| upgrade milestones | 52 |
-| daily login | 52 |
-| **total** | **400** |
+| | casual (55 h) | regular (93 h) | heavy (140 h) |
+|---|---|---|---|
+| daily tasks | 388 | 278 | 142 |
+| building rent drops | 198 | 216 | 311 |
+| upgrade milestones | 84 | 84 | 84 |
+| daily login | 125 | 80 | 40 |
+| **total** | **795** | **658** | **577** |
 
-Against a catalogue costing **293**. A run ends about 107 clear of owning every
-coin aircraft in the game.
+Against a shop costing **1,705** across 14 coin aircraft. Nobody buys the set:
+runs end on 90, 73 and **-3** coins, which is a faucet sized against its sink
+about as well as it can be.
 
-**That is a decision, not a drift.** Three of those four sources were added in
-one day, and the total went 277 -> 400 against a figure of 323 that had been
-chosen as right. Coins are less scarce than they were, on purpose.
+**The three profiles earn it completely differently.** The casual player lives
+off dailies and logins - 64% of their coins - and the heavy player off building
+rent drops, 54% of theirs. It is not one faucet, and a change to any one source
+moves a different player.
 
 What it spends is what the coin gate used to buy. Coin aircraft were "aircraft
-you did not pay cash for", and every pacing number here was measured while they
-were rationed - so **if a run ever comes back faster than 32.7 h for the home
-zones, this is the first place to look.**
+you did not pay cash for" - so if a run ever comes back much faster than 14.0 h
+for the home zones, this is the first place to look.
 
 ### Progression and economy
 
-You start with **$5,000, 15 coins, and a granted DC-3**. 59 aircraft on the
-shop ladder **across levels 1-70**, nine of them coin-priced and totalling 345
-coins.
+You start with **$5,000, 15 coins, and a granted DC-3**. 69 aircraft on the
+shop ladder - **55 cash across levels 1-70** and **14 coin-priced, totalling
+1,705 coins and reaching level 84**.
 
 **Every price is a round number** - one or two significant digits and zeros for
 cash, a multiple of five for coins. That took spreading things out rather than
@@ -327,13 +332,12 @@ levels and three more inside four, so most of it arrived in two clumps. It steps
 4-5 levels now, 1/21/25/29/33/37/42/47/52, with the Spirit of St. Louis appended
 at 57 to continue the step rather than disturb it.
 
-**That tenth entry ends something deliberate**, and it is worth knowing which:
-at 65 coins the catalogue reaches 410 against a run earning about 400, so owning
-every coin aircraft in one playthrough is no longer possible. It used to be, on
-purpose. A trophy at the top of the lane is a fair reason to change it - a
-second one would not be.
+**Owning the whole lane is no longer possible**, which was the intent when the
+catalogue passed the size of a run's earnings. The rebuild took it much further
+than that: the shop is 1,705 coins across 14 aircraft now, against 577-795
+earned in a full run. The lane is a set of choices rather than a checklist.
 
-The ladder used to stop at 50 while the zone gates ran to 70, which left 62 of
+The ladder used to stop at 50 while the zone gates ran to 70, which left most of
 the game's 93 hours with nothing new to fly. Thirteen entries fill it, and every
 one belongs to the zone it opens rather than being another airliner:
 
@@ -397,7 +401,9 @@ that breaks when two aircraft share a rung.
 **Coin aircraft obey the level gate**, same as everything else. They used to
 ignore it - the pay-to-win lane, buyable from minute one - which made every coin
 a purchase of progress rather than of content. Gating it did not make coins free
-of pacing (2 coins a set against 5 is still 32.7 h against 28.0 h), but it
+of pacing (2 coins a set against 5 was 32.7 h against 28.0 h, on the older
+unpinned instrument and a smaller catalogue - unre-measured, since it needs the
+constant changed), but it
 changed the shape of the advantage: a coin now buys a DIFFERENT aircraft at a
 point you could have afforded one anyway.
 
@@ -607,8 +613,17 @@ figure in this project was measured with no affinity speed bonus.
 **The bot** (`scripts/bot.gd`) plays the real autoloads headless:
 
 ```bash
-godot --headless --path game -- --bot --who regular
+godot --headless --path game -- --bot --who regular --seed 1234
 ```
+
+**Pass `--seed` for anything you intend to compare.** A run is reproducible on
+two conditions and this is the one that is not automatic: the clock is pinned
+under `--bot` (`GameClock.BOT_EPOCH`), which fixes the fuel market and the daily
+quest draw, but the lights still roll off the global RNG. With both, two reports
+are byte-identical apart from the wall-time line; with neither, the same config
+an hour apart came out ~20% apart on day-40 cash. `--epoch <unix seconds>` moves
+the pinned instant, for asking whether a result survives a different starting
+hour deliberately rather than by accident.
 
 It drives Fleet, Economy, Progression and the rest directly rather than
 reimplementing them, because `tools/econ_sim.py` reimplemented the rules and
@@ -616,24 +631,30 @@ was wrong three separate times in ways that invalidated everything it had said.
 
 Flags worth knowing: `--bulk on` makes it use Depart All instead of tapping each
 aircraft, which is how that button was priced. It also reports **legs flown per
-model** (over 90 days it flew the atr72 41,060 legs and only three other models
-at all, so for a workhorse any affinity curve maxes) and **fleet size against
-level**, which is where the level 15 gate came from.
+model** - the rate-buying run flies eleven models in total against thirty for a
+prestige player, so for a workhorse any affinity curve maxes - and **fleet size
+against level**, which is where the level 15 gate came from.
 A tap costs 1.2s of session time (`--latency`), and `--speed` charges taps at
 `latency x speed` since fast-forward does not speed the player up either.
 
 ### Pacing
 
 Measured with the bot, latency modelled, for a regular player (4 sessions a
-day, 10 minutes each):
+day, 10 minutes each) over the full 140-day run - 93.3 hours of play. This
+table was three rebuilds out of date until 2026-08-31; `BALANCE.md` carries the
+other two profiles.
 
 | milestone | play time |
 |---|---|
-| Zone2 | 0.3 h |
-| all six homeland zones | 32.7 h |
-| all 42 building plots | ~31 h (gated behind the zones) |
-| the city | still being upgraded at day 90 - 413 levels, 35 of 42 maxed |
-| all pads | not reached in 90 days |
+| Zone2 | 0.7 h (day 2) |
+| all six homeland zones | 14.0 h (day 21) |
+| all 42 building plots | 14.0 h (day 21) |
+| the city maxed | 420 levels, 42 of 42, by the end |
+| top of the shelf, level 84 | 40.7 h (day 61) |
+| all pads | never - 152 of 184; the missing 32 are the Carrier's |
+
+The run ends at level 89 with $45.7M in hand, having grossed $791M and tapped
+242,460 times.
 
 **Pacing is XP-gated, not money-gated.** Quadrupling zone prices moved a casual
 player 9.5h to 10.0h; stretching the level requirements moved a regular player
@@ -661,7 +682,7 @@ the ramp bites again:
 | Carrier | 70 | harrier, e2, f14 |
 
 So the tail is not only empty of aircraft, it is missing the pattern that
-carries the first 48 levels - and that tail is 62 of the 93 hours. Eight
+carries the first 48 levels - and that tail is most of the 93 hours. Eight
 entries, placed on the teeth rather than spaced evenly, are specced in
 `ROADMAP.md` item 10.
 
@@ -824,31 +845,38 @@ the canvas edge. Do not assume a uniform trim margin in any importer.
 
 - ~~The last five zones have no aircraft~~ **DONE** - ten entries built, and all
   ten zones open with something new to fly. `ROADMAP.md` item 10.
-- **Range is inert - it buys nothing measurable.** A leg pays x5 from the
-  nearest destination to the furthest while taking x420 as long, so the 1-cloud
-  hop is 84x better per MINUTE - but a lap is four taps whatever its length, so
-  the furthest is 5x better per TAP. A session is a budget of the player's time
-  and the hours between sessions are free, so the two effects very nearly
-  cancel:
+- **Range is inert on the clock and expensive on the thumb.** A leg pays x5
+  from the nearest destination to the furthest while taking x420 as long, so the
+  1-cloud hop is 84x better per MINUTE - but a lap is four taps whatever its
+  length, so the furthest is 5x better per TAP. A session is a budget of the
+  player's time and the hours between sessions are free, so the two effects very
+  nearly cancel on pacing and do not cancel at all on cost:
 
-  | routing | all six zones | gross income |
-  |---|---|---|
-  | always 1-cloud | 40.0 h | $178.0M |
-  | always furthest | 40.7 h | $173.8M |
+  | routing | six home zones | top of the shelf | taps | gross income |
+  |---|---|---|---|---|
+  | always 1-cloud (`near`) | 15.3 h | 40.0 h | 296,738 (53/min) | $662M |
+  | the game's default (`match`) | 14.0 h | 40.7 h | 242,460 (43/min) | $791M |
 
-  2.4% apart (`--bot --routing near|far`). That is worse than short-haul simply
-  winning would be: range is the dearest stat on the shop card and it changes
-  nothing either way. Fixing the payout exponent buys no extra hours of game,
-  but it would make range mean something. Not done.
+  Forty-two minutes apart on the ladder, against 23% more taps and 16% less
+  income for the short hop. Range is the dearest stat on the shop card and it
+  still changes nothing you would notice. Fixing the payout exponent buys no
+  extra hours of game, but it would make range mean something. Not done.
+
+  **`--routing far` is not a second data point.** It produces a byte-identical
+  run to the default, because `Fleet.best_destination_for` returns the exact
+  cloud match and destinations sit at distances 1-5 with ranges of 1-5, so the
+  match always exists and is always the furthest reachable. The table this entry
+  used to carry was the near run against the default run under two names, on a
+  clock that was not pinned.
 - **The opening move is undiscoverable, and it is worth 8x.** Zone1 ships with
   five free pads; spending the whole $5,000 filling them immediately is the
   difference between reaching Zone2 in 1 hour and in 8-9. Nothing in the game
   says so. Granting two or three aircraft at start would make the five-pad
   opening happen whether or not the player works it out.
-- **Fuel is inert past the early game.** Measured over 60 h of play: $2.3M
-  spent on fuel against $173.7M earned - **1.3% of income**, and not one
-  aircraft ever grounded by an empty tank. Fuel is already ~0.1 units per seat
-  the whole way up the ladder, but pay is `seats x ticket x clouds` and the
+- **Fuel is inert past the early game.** Measured over the full 93 h regular
+  run: $4.0M spent on fuel against $791M earned - **0.5% of income**, and across
+  four full runs exactly one aircraft-pass was ever blocked on an empty tank.
+  Fuel is already ~0.1 units per seat the whole way up the ladder, but pay is `seats x ticket x clouds` and the
   ticket and cloud rating between them inflate revenue per seat about x37, so
   the cost falls from ~10% of a leg on a DC-3 to 0.3% on an Ark.
 
@@ -867,7 +895,8 @@ the canvas edge. Do not assume a uniform trim margin in any importer.
 - ~~Buildings cannot be upgraded~~ **DONE** - plots carry a level to 10, rent
   x1.45 each. The "two hours" figure this used to quote was stale anyway: it
   predated plots being gated behind zone regions, and the last plot actually
-  lands at ~31 h. See UPGRADES.md.
+  lands at 14.0 h - with every plot at level 10 by the end of the run, on every
+  profile. See UPGRADES.md.
 - ~~The coin catalogue is unreachable~~ **DONE** - daily tasks are the faucet,
   and coin aircraft now obey the level gate. See QUESTS.md.
 - ~~The fleet ladder stops at level 50 while zone gates run to 70~~ **DONE** -
@@ -881,8 +910,13 @@ the canvas edge. Do not assume a uniform trim margin in any importer.
   content that does not exist yet - dreamland has aprons and nothing else. The
   honest route to a 40-hour game past the homeland zones runs through building
   these, not through stretching the curve further.
-- **The bot never reaches "all pads"** in 90 simulated days, so the top of the
-  apron ladder is currently unmeasured rather than balanced.
+- **The board is 184 pads and no profile finishes it.** Every run stops at 150
+  to 152, and 184 - 152 is exactly the Carrier's 32: at $300,000,000 the zone
+  itself is never bought, so its pads are never on sale. This entry used to say
+  the bot "never reaches all pads, so the top of the apron ladder is unmeasured".
+  It is measured now - the check had been comparing pads built against the pads
+  on the maps owned at that moment, which goes true the first time the homeland
+  fills - and the answer is that one zone price is the end of the game.
 
 ### Technical
 
@@ -908,7 +942,7 @@ Run the game headless to check it boots, and the bot to measure pacing:
 
 ```bash
 godot --headless --path game --quit-after 30
-godot --headless --path game -- --bot --who regular --days 90
+godot --headless --path game -- --bot --who regular --seed 1234
 ```
 
 `class_name` globals only register after an editor rescan — `godot --headless
