@@ -38,7 +38,10 @@ from scipy import ndimage
 from PIL import Image, ImageDraw, ImageFilter
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-SRC = os.path.join(ROOT, "source-assets", "aircraft")
+# The flat renders live under generated/ since the art was split by PROVENANCE:
+# generated/ is art made for this project, aircraft/ is what was extracted from
+# the live game files. This tool only ever reads the former.
+SRC = os.path.join(ROOT, "source-assets", "aircraft", "generated")
 OUT = os.path.join(ROOT, "game", "assets", "aircraft")
 SHOP = os.path.join(ROOT, "game", "assets", "shop")
 
