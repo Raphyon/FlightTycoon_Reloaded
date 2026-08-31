@@ -53,10 +53,24 @@ const CARDS := {
 # that ask "is it on" ask about the FAMILY rather than listing three keys.
 const AUTOTURN := ["autoturn_30", "autoturn_60", "autoturn_720"]
 
-# How often an auto-turnaround pass runs while it is active. Not every frame:
-# advance_all touches the whole fleet and fires signals, and a fleet of sixty
-# does not need servicing sixty times a second to look continuous.
-const AUTOTURN_INTERVAL := 20.0
+# How often an auto-turnaround pass runs while it is active.
+#
+# THIS WAS 20 SECONDS AND THAT IS WHAT CLOGGED IT. A sweep on a long timer does
+# not service a landing when it lands - it collects every landing in the window
+# and turns them all round together, which is precisely the pile-up Depart All
+# had before BULK_LAUNCH_STAGGER, arriving by a different route. Twenty seconds
+# of a large fleet is a lot of aircraft on one frame.
+#
+# A second instead, so one landing is one turnaround and the natural spacing of
+# arrivals is the stagger. When several DO land together - coming back to a full
+# board after an absence - advance_all spreads their departures exactly the way
+# Depart All does, which is the behaviour that was wanted in both places.
+const AUTOTURN_INTERVAL := 1.0
+
+# Backing off when a pass finds nothing to do, or something merely BLOCKED -
+# an aircraft parked with no fuel stays serviceable forever, and retrying it
+# every second buys a full-fleet walk to be told so again.
+const AUTOTURN_IDLE_INTERVAL := 10.0
 
 var owned: Dictionary = {}      # key -> count
 var active: Dictionary = {}     # key -> GameClock time it ends at
@@ -72,8 +86,13 @@ func _process(_delta: float) -> void:
 	# run at x300 covers the game time it promised rather than the wall time.
 	if GameClock.now() < _autoturn_due:
 		return
-	_autoturn_due = GameClock.now() + AUTOTURN_INTERVAL
-	Fleet.advance_all()
+	if not Fleet.has_serviceable():
+		_autoturn_due = GameClock.now() + AUTOTURN_IDLE_INTERVAL
+		return
+	var result := Fleet.advance_all()
+	var moved := int(result.get("moved", 0))
+	_autoturn_due = GameClock.now() + (AUTOTURN_INTERVAL if moved > 0
+		else AUTOTURN_IDLE_INTERVAL)
 
 
 # --- inventory ---------------------------------------------------------------

@@ -1496,6 +1496,19 @@ const BULK_LAUNCH_STAGGER := 0.15
 const BULK_LAUNCH_WINDOW := 6.0
 
 
+# Is there anything for a turnaround pass to do? A cheap read-only walk, because
+# advance_all is not: it steps every aircraft up to six times and fires signals
+# for each, so it must never be called on the chance that something has landed.
+func has_serviceable() -> bool:
+	for a in aircraft:
+		if a.is_idle():
+			continue
+		if (a.state != FleetAircraft.State.FLYING_OUT
+				and a.state != FleetAircraft.State.FLYING_BACK):
+			return true
+	return false
+
+
 func advance_all() -> Dictionary:
 	_batching = true
 	_changed_while_batching = false
@@ -1605,8 +1618,25 @@ func get_aircraft_holding_robot_apron(apron_id: int) -> FleetAircraft:
 
 # Every pad at one destination, across all seven mirrored areas, in id order.
 # Defaults to the nearest, which is where a save with no destination goes.
+# Memoised per destination, keyed on ApronLayout's version so placing a pad in
+# the editor still moves the answer. This is the hottest read in the game:
+# get_aircraft_holding_robot_apron asks robot_apron_for about every aircraft,
+# ApronLayer._refresh_slots asks that about all 110 pads on every fleet change,
+# and ApronSlot._draw asks it again per pad on every redraw. Uncached it walked
+# every map's layout and deep-copied the whole point set each time - measured at
+# 480us a call, which is 1.2 seconds of frozen frame for one turnaround at 25
+# aircraft. The list itself is handed out shared; no caller writes to it.
+var _robot_ids_cache: Dictionary = {}
+var _robot_ids_version := -1
+
+
 func robot_apron_ids(map_key: String = "") -> Array:
 	var key := map_key if map_key != "" else Maps.ROBOT_MAP
+	if _robot_ids_version != ApronLayout.layout_version():
+		_robot_ids_cache.clear()
+		_robot_ids_version = ApronLayout.layout_version()
+	elif _robot_ids_cache.has(key):
+		return _robot_ids_cache[key]
 	var starts: Dictionary = ApronLayout.compute_id_starts()
 	var data: Dictionary = ApronLayout.effective_area_data(key)
 	var ids: Array = []
@@ -1616,6 +1646,7 @@ func robot_apron_ids(map_key: String = "") -> Array:
 		var start: int = starts[area]
 		for i in range((data.get(area, []) as Array).size()):
 			ids.append(start + i)
+	_robot_ids_cache[key] = ids
 	return ids
 
 

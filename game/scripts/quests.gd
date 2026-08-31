@@ -193,21 +193,22 @@ const DAILY_POOL := [
 		"reward": KIND_CASH, "scale": "destinations", "per": 2, "min": 2, "max": 2,
 	},
 	{
-		"key": "cheap_fuel", "weight": 0.8, "type": "cheap_fuel", "title": "Buy fuel at $%d a unit or less",
-		"reward": KIND_CASH, "scale": "fixed", "per": 1, "min": 1, "max": 1,
-	},
-	{
 		"key": "bulk_fuel", "weight": 0.6, "type": "bulk_fuel", "title": "Buy fuel %d units at a time",
 		"reward": KIND_CASH, "scale": "fixed", "per": 1, "min": 1, "max": 1,
 	},
 ]
 
-# The bulk-fuel task's batch, and the bar for the cheap-fuel one in dollars a
-# unit. The price bar sits below the base of 10, so it takes a GOOD slot rather
-# than any slot.
+# The bulk-fuel task's batch.
+#
+# THERE WAS A CHEAP-FUEL TASK HERE AND IT WAS REMOVED. "Buy fuel at $8 a unit or
+# less" was checked against the price PAID, which carries the batch premium, so
+# the bar was really $6 market for anyone who could only afford 50 units and $8
+# for anyone buying 5,000. Measured over two years of hourly slots, 1.5% of days
+# had no qualifying hour at all for a 50-unit buyer, with dry runs up to 59
+# hours - the task was hardest for the poorest player and sometimes impossible,
+# while never being impossible late. Its title also read as a market price, so
+# waiting for $7 and paying $8.40 failed with nothing on screen to say why.
 const BULK_FUEL_UNITS := 500
-
-const CHEAP_FUEL_PRICE := 8
 
 # Above this, "gain a level today" stops being a day's work - see _eligible.
 const LEVEL_TASK_MAX := 40
@@ -421,7 +422,6 @@ func title_for(key: String) -> String:
 	if not t.contains("%"):
 		return t
 	match _type_of(key):
-		"cheap_fuel": return t % CHEAP_FUEL_PRICE
 		"bulk_fuel": return t % BULK_FUEL_UNITS
 		"earn": return t % FloatingText.grouped(int(targets.get(key, 1)))
 		"model":
@@ -493,9 +493,7 @@ func _on_level_changed(_level: int) -> void:
 	_bump_type("level")
 
 
-func _on_fuel_bought(units: int, unit_price: float) -> void:
-	if unit_price <= float(CHEAP_FUEL_PRICE):
-		_bump_type("cheap_fuel")
+func _on_fuel_bought(units: int, _unit_price: float) -> void:
 	if units >= BULK_FUEL_UNITS:
 		_bump_type("bulk_fuel")
 
@@ -687,7 +685,14 @@ func to_save() -> Dictionary:
 
 func load_save(data: Dictionary) -> void:
 	day = int(data.get("day", -1))
-	active = data.get("active", [])
+	# Tasks that no longer exist are dropped rather than carried. A key with no
+	# pool entry renders as its own raw key, can never be counted, and blocks the
+	# day's set reward - so a save holding a retired task would be stuck until
+	# the next roll.
+	active = []
+	for key in data.get("active", []):
+		if not entry(str(key)).is_empty():
+			active.append(key)
 	targets = data.get("targets", {})
 	progress = data.get("progress", {})
 	claimed = data.get("claimed", {})
