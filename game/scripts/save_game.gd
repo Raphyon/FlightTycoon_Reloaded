@@ -25,6 +25,24 @@ const SAVE_FILE := "player.json"
 # alone fires money, XP and fleet changes together.
 const SAVE_DEBOUNCE := 1.0
 
+# WHICH BUILD WROTE THIS SAVE. Balance moves; a save carrying a level and a
+# fleet says nothing useful once the prices under it have changed, and two
+# testers on two builds cannot be compared without knowing they differ.
+const BUILD := "a677bea"
+
+# TELEMETRY, and the reason it exists: a save is a SNAPSHOT. It says where a
+# player got to and never how long it took, so the one thing it cannot answer
+# is the one thing balance keeps asking - pacing. A tester reaching level 40
+# in two hours and in twenty writes the identical file.
+#
+# level_at is the valuable one: unix time against each level the moment it was
+# first reached, so a single save carries the player's whole progression curve
+# and can be laid straight beside a --bot run's day-by-day table.
+var played_seconds := 0.0
+var earned_total := 0
+var level_at := {}
+var _earn_mark := -1
+
 var _dirty := false
 var _timer := 0.0
 var _loaded := false
@@ -38,9 +56,17 @@ func _ready() -> void:
 	Coins.coins_changed.connect(_mark_dirty.unbind(1))
 	FuelStore.fuel_changed.connect(_mark_dirty.unbind(1))
 	Progression.xp_changed.connect(_mark_dirty.unbind(1))
+	Economy.money_changed.connect(_on_money)
+	Progression.level_changed.connect(_on_level)
+	# Whatever was loaded is the starting point, not income - without this the
+	# balance restored at boot is counted as earnings on every single launch.
+	_earn_mark = Economy.money
 
 
 func _process(delta: float) -> void:
+	# Wall-clock time with the game actually open. Counted before the dirty
+	# check, or a session where nothing happens would not count at all.
+	played_seconds += delta
 	if not _dirty:
 		return
 	_timer += delta
@@ -57,6 +83,23 @@ func _notification(what: int) -> void:
 
 func _mark_dirty() -> void:
 	_dirty = true
+
+
+# GROSS income, not net worth: every upward move of the balance, so spending
+# does not cancel out what was earned to afford it.
+func _on_money(amount: int) -> void:
+	if _earn_mark >= 0 and amount > _earn_mark:
+		earned_total += amount - _earn_mark
+	_earn_mark = amount
+
+
+# First time only - a level is reached once, and re-firing must not move the
+# timestamp that makes the curve readable.
+func _on_level(level: int) -> void:
+	var key := str(level)
+	if not level_at.has(key):
+		level_at[key] = GameClock.now()
+		_mark_dirty()
 
 
 # THE BOT MUST NEVER WRITE THE PLAYER'S SAVE.
@@ -98,6 +141,10 @@ func save() -> void:
 		"quests": Quests.to_save(),
 		"daily_login": DailyLogin.to_save(),
 		"boosts": Boosts.to_save(),
+		"build": BUILD,
+		"played_seconds": int(played_seconds),
+		"earned_total": earned_total,
+		"level_at": level_at,
 	}
 	var f := FileAccess.open(SavePaths.write_path(SAVE_FILE), FileAccess.WRITE)
 	if not f:
@@ -134,6 +181,11 @@ func _load() -> void:
 	# level-up signal the player already saw.
 	Progression.xp = int(data.get("xp", 0))
 	Progression.level = maxi(1, int(data.get("level", 1)))
+
+	played_seconds = float(data.get("played_seconds", 0))
+	earned_total = int(data.get("earned_total", 0))
+	var seen: Variant = data.get("level_at", null)
+	level_at = seen if seen is Dictionary else {}
 
 	var quest_data: Variant = data.get("quests", null)
 	if quest_data is Dictionary:

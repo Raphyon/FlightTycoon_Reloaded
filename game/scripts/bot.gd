@@ -117,7 +117,24 @@ var _last_money := -1
 var _routing := "match"
 # rate     = best payout per minute of flight (an optimiser)
 # prestige = the dearest thing on the shelf you can afford (an actual player)
+# saver    = holds cash for the dearest aircraft it could own within a few days
+#
+# SAVER EXISTS BECAUSE THE OTHER TWO CANNOT TEST THE TOP OF THE LADDER. Both buy
+# the best thing affordable at that moment, so neither ever accumulates: a
+# repricing that cut the ceiling from $210M to $17.9M moved the dearest aircraft
+# ever flown by three levels, because peak cash on hand across the whole run was
+# $4.4M. That is a fact about the policy, not about the prices, and it made the
+# repricing untestable.
 var _buying := "prestige"
+# How many days of current income the bot will wait for something. Past this it
+# stops saving and grows its income instead, which is what keeps it from
+# standing still in front of an aircraft it will never reach.
+var _save_days := 4.0
+var _stop_at_level := 0
+# Reporting only: what it is holding out for, and how much that cost in passes.
+var _saving_for := ""
+var _save_passes := 0
+var _save_buys := 0
 # A CURATED FLEET RATHER THAN AN ACCUMULATED ONE. 0 is the game as it is: pads
 # only ever grow, keeping an aircraft is free, so the bot ends a 140 day run
 # with 180 aircraft and has never sold one. The DC-3 from minute one is still on
@@ -184,9 +201,15 @@ func _ready() -> void:
 			_days = int(w["days"])
 	for i in range(args.size() - 1):
 		match args[i]:
+			# Fixed RNG so two runs differ only by what is being tested. Lights,
+			# quests and coin drops are all random, and without this an A/B of the
+			# economy reads its own noise - two identical runs came out 10% apart.
+			"--seed": seed(int(args[i + 1]))
+			"--stop-at-level": _stop_at_level = int(args[i + 1])
 			"--days": _days = int(args[i + 1])
 			"--routing": _routing = args[i + 1]
 			"--buying": _buying = args[i + 1]
+			"--save-days": _save_days = maxf(0.0, float(args[i + 1]))
 			"--fleet-cap": _fleet_cap = maxi(0, int(args[i + 1]))
 			"--capstone": _capstone = args[i + 1]
 			"--quests": _do_quests = args[i + 1] != "off"
@@ -235,6 +258,10 @@ func _run() -> void:
 		_check_milestones()
 		if day == 1 or day == 7 or day % 10 == 0 or day == _days:
 			_report(day)
+		if _stop_at_level > 0 and Progression.level >= _stop_at_level:
+			SaveGame.save()
+			print("\n  DUMPED at day %d, level %d" % [day, Progression.level])
+			break
 		if Time.get_ticks_msec() / 1000.0 - _started > WALL_LIMIT:
 			print("\n  STOPPED at day %d - wall clock limit" % day)
 			break
@@ -594,6 +621,17 @@ func _buy_fuel(need: int) -> void:
 # pads first (they gate the fleet), then aircraft, then zones, then buildings.
 # A fuel reserve is held back - an aircraft that cannot fly is worth nothing.
 func _buy() -> void:
+	# SAVING HOLDS EVERYTHING, not just aircraft. A hold that let pads, zones and
+	# buildings carry on spending would never accumulate anything - which is the
+	# exact failure the policy exists to avoid.
+	var plan := _save_plan()
+	if not plan.is_empty():
+		if _saving_for != str(plan["key"]):
+			_saving_for = str(plan["key"])
+			_save_buys += 1
+		_save_passes += 1
+		return
+	_saving_for = ""
 	for _pass in range(60):
 		var did := false
 		if _free_pads() <= 0 and _pads_wanted() and _build_pad():
@@ -606,6 +644,48 @@ func _buy() -> void:
 			did = true
 		if not did:
 			return
+
+
+# What the fleet has actually been earning, per day, averaged over the run so
+# far. Deliberately the measured figure rather than a projection from the
+# catalogue - the bot should save against what it really earns.
+func _daily_income() -> float:
+	return float(_earned) / maxf(1.0, float(_day))
+
+
+func _owns(model_key: String) -> bool:
+	for a in Fleet.aircraft:
+		if a.model_key == model_key:
+			return true
+	return false
+
+
+# The aircraft worth waiting for, or {} to carry on buying normally.
+#
+# The DEAREST unowned aircraft that is out of reach today but within _save_days
+# of income. Anything already affordable is not a saving target - the normal
+# prestige path buys it, and once the money is there the target IS the dearest
+# affordable thing, so it gets bought without a special case.
+func _save_plan() -> Dictionary:
+	if _buying != "saver":
+		return {}
+	var target := {}
+	var spendable := _spendable()
+	var income := maxf(_daily_income(), 1.0)
+	for e in ShopCatalog.ENTRIES:
+		var key := str(e["key"])
+		if str(e.get("currency", ShopCatalog.CASH)) == ShopCatalog.COINS:
+			continue
+		if not ShopCatalog.unlocked(key) or _owns(key):
+			continue
+		var price := int(e["price"])
+		if price <= spendable:
+			continue
+		if float(price - spendable) / income > _save_days:
+			continue
+		if target.is_empty() or price > int(target["price"]):
+			target = {"key": key, "price": price}
+	return target
 
 
 func _reserve() -> int:
@@ -750,6 +830,12 @@ func _choose_capstones() -> void:
 func _replace_pass() -> void:
 	if _fleet_cap <= 0:
 		return
+	# THE SAVING HOLD APPLIES HERE TOO. This is a second spending path that
+	# _buy() does not go through, so without this the saver quietly spends its
+	# savings on replacements and the policy measures nothing.
+	if not _save_plan().is_empty():
+		_save_passes += 1
+		return
 	for _r in range(8):
 		if not _replace_worst():
 			return
@@ -852,6 +938,14 @@ func _buy_aircraft() -> bool:
 # as though that were a finding about the game.
 func _buy_zone() -> bool:
 	if _free_pads() > 0:
+		return false
+	# A ZONE IS PAD CAPACITY, so at a fleet cap it buys nothing at all. Without
+	# this the capped bot spent $16.65M opening six zones it was forbidden to
+	# build a single pad in - and because zones sit ABOVE buildings in the spend
+	# chain, that money was taken before replacements or plots ever saw it. It
+	# looked like curation being expensive; it was the bot buying land it could
+	# not use.
+	if not _pads_wanted():
 		return false
 	for area_name in ZoneProgress.ZONE_REQUIREMENTS:
 		if ZoneProgress.is_unlocked(area_name):
@@ -1014,6 +1108,9 @@ func _summary() -> void:
 		print("  CAPSTONE %s: taken on %d models" % [_capstone, _capstones_taken])
 	print("  routing policy: %s   buying: %s   daily tasks: %s" % [_routing, _buying, "on" if _do_quests else "off"])
 	print("  quests: %d sets completed, %d coins earned" % [_sets_done, _quest_coins])
+	if _buying == "saver":
+		print("  saving: held out for %d aircraft, %d passes spent waiting, %.0f days of patience"
+			% [_save_buys, _save_passes, _save_days])
 	print("  building coin drops: %d" % _building_coins)
 	print("  lights: %d relit for $%s = %.1f%% of income"
 		% [_lights_relit, _thousands(_lights_cash),
