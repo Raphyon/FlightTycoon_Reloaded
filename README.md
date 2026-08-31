@@ -6,6 +6,61 @@ Third-party art from a discontinued game is used as **placeholder** while the
 systems get built. Everything borrowed lives under `source-assets/` so it can be
 stripped or swapped in one move. Nothing here ships.
 
+## Installing a build
+
+Builds are attached to GitHub Releases rather than committed - a 130 MB exe is
+over GitHub's 100 MB per-file limit, and a binary that changes every session
+would add its full size to history on every rebuild. Assets are named for the
+commit they were built from (`ft-proto-win-4ad930e.zip`), which is the same
+string the save reports back in its `build` field.
+
+**Windows 10 or later.** Unzip anywhere and run `ft-proto.exe`. There is no
+installer and nothing else to fetch - the pack is embedded in the executable.
+
+Windows will say **"Windows protected your PC"**. The binary is unsigned, so
+SmartScreen has nothing to check it against; **More info -> Run anyway**. Worth
+saying to a tester up front, because otherwise it reads as a broken download.
+
+**macOS 10.12 or later**, universal. Unzip and **right-click the app -> Open**,
+then confirm. A normal double-click gives "cannot be opened because the
+developer cannot be verified" and no way past it - same unsigned-binary story as
+SmartScreen, and the right-click path is the only thing that differs.
+
+### Where a build keeps its save
+
+Progress lives in `user://`, which is outside the game folder - moving or
+replacing the executable does not touch it, and deleting this folder is how you
+force a fresh start:
+
+| | |
+|---|---|
+| Windows | `%APPDATA%\Godot\app_userdata\ft-proto\save` |
+| macOS | `~/Library/Application Support/Godot/app_userdata/ft-proto/save` |
+
+Seven JSON files. To collect a playthrough, zip the whole `save` folder - the
+fleet is in `player.json` but zones, pads, buildings and airframe mastery are in
+the other six.
+
+### Reading a tester's save
+
+`player.json` carries four fields that exist only to answer questions a snapshot
+cannot:
+
+    build             which commit produced the build, so two testers on two
+                      builds are never silently compared
+    played_seconds    wall-clock time with the game actually open
+    earned_total      gross income, every upward move of the balance
+    level_at          unix time against each level the moment it was reached
+
+`level_at` is the valuable one: it carries the whole progression curve in one
+file, directly comparable to a `--bot` run's day-by-day table.
+
+**It only records forward.** A save made on an older build has none of these,
+and carrying that save into a new build starts the curve from wherever the
+player already is - the levels before that are gone. **A pacing sample has to be
+a fresh start on a current build**, which is the one instruction worth giving a
+tester twice.
+
 ## Layout
 
 ```
@@ -706,10 +761,19 @@ the bot models the change at all before believing it.
 
 ### Saves
 
-`SaveGame` writes `player.json` plus three progress files under `game/data/`.
-All four are gitignored, and `aircraft_affinity.json` is tracked at its day 0
-`{}` and marked `skip-worktree`, so **the repo carries a day 0 save** and a
-live playthrough cannot be committed over it.
+`SaveGame` writes `player.json` and six sibling progress files to
+`user://save`, NOT to `game/data`. They were written to `res://data` until the
+project was first exported, at which point they would all have failed silently:
+res:// is baked into the pack and read-only, and nothing in the write path
+reported it. `SavePaths` owns the decision - it reads `user://` first and falls
+back to `res://data`, so an existing playthrough migrates on its next save
+without a step anybody has to run.
+
+**The layouts stay in `game/data`.** `apron_layout`, `building_layout`,
+`cloud_layout`, `landmark_layout`, `paths`, `zone_regions` and `aircraft_rig`
+are CONTENT, authored with the F1 editors and shipped with the game - not
+progress. The export excludes the eight progress files by name so a build ships
+with none of a developer's playthrough in it.
 
 **A bot run writes nothing to disk**, stated once as `SaveGame.is_bot_run()` and
 called by every writer under `scripts/`. It was enforced per-file before, which

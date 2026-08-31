@@ -27,6 +27,23 @@ airframes and 20-odd liveries - and the two items that mattered most moved.
 | 8 passenger animations | yes, none exists | blocked |
 | 11 trade-in | no - shop art covers it | open - the sell bug is fixed |
 
+**It is a distributable game now, which it was not this morning.** That is not
+on the numbered list either, because the list assumed a thing you run from the
+editor. What it took:
+
+| | |
+|---|---|
+| saves in `user://` | **DONE** - res:// is read-only once exported, so every save would have failed silently in a build |
+| export presets | **DONE** - macOS, macOS (devtools), Windows; progress files excluded by name |
+| real builds | **DONE** - 130 MB exe, 189 MB app, both self-contained |
+| distribution | **DONE** - GitHub Releases, named for the commit they were built from |
+| splash / threaded load | **DONE** - real `ResourceLoader` progress, not a timer |
+| save telemetry | **DONE** - `build`, `played_seconds`, `earned_total`, `level_at` |
+| camera clamp | **DONE** - max zoom is about one zone, no grey void |
+| audio | **NOT STARTED** - zero files, zero `AudioStreamPlayer` |
+| onboarding | **NOT STARTED** - nothing explains a tap, a route or a cloud |
+| signing | **NOT STARTED** - unsigned, so SmartScreen and Gatekeeper both object |
+
 Building upgrades were on this list as a Known Issue rather than a numbered item
 and are DONE - see UPGRADES.md. They were also nearly worthless when first
 built, and fixing that is the more useful half of the story.
@@ -53,6 +70,28 @@ assumed the manual path.
 **Afterburners**, which nobody asked for on this list but the fighters wanted -
 art, a rig, an editor mode, per-nozzle rotation and z-order, four aircraft
 placed.
+
+### What the first outside player did, immediately
+
+One save came back from someone who had never seen the game. **Every aircraft
+that had a choice of route was flying below its rating** - both DC-4s and the
+paper plane, all three rated for 3 clouds, all three on 1 or 2. Not one on its
+own route.
+
+That is the exact behaviour `--bot` measures as costing **11 levels and 2.7x
+income** over 60 days, arrived at within hours, with no bot heuristics involved.
+It is not a modelling artefact. The game teaches it: per MINUTE the short hop is
+better and the shop card shows a payout and a time, so the arithmetic a player
+can actually do points the wrong way. Per TAP - which is the cost that binds,
+because flights run while nobody is watching - distance pays exactly linearly.
+Nothing on screen says so.
+
+Their speed card made it worse: it cuts a 1-cloud leg in half and a 3-cloud leg
+by a third, so the item that looks like a straight upgrade sharpens the trap.
+
+**This is the strongest open design problem in the game** and it needs no new
+art, no new system and no rebalancing - a route picker that says "back in 6 min,
+pays 1x a tap" against "back tomorrow, pays 5x a tap" would close it.
 
 ### The bill for all of it
 
