@@ -47,7 +47,7 @@ const DIALOG := [
 # parked its button on top of the shop and the routes list. Hidden while a base
 # is open and restored to whatever they wanted when it closes - their own logic
 # still decides that, this only suppresses it.
-const CHROME := ["BoostButton", "QuestsButton"]
+const CHROME := ["BoostButton", "QuestsButton", "CollectAllButton"]
 
 var _ui: Node
 # Set while we are the ones changing visibility, so hiding six panels does not
