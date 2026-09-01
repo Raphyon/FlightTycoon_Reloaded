@@ -112,7 +112,7 @@ const ENTRIES := [
 	# 50 seats and 1 cloud add up to only 400 a leg. It is also the proof that
 	# ticket has to be a per-aircraft stat rather than a constant with a few
 	# exceptions: the cheap end varies as much as the expensive end does.
-	{"key": "dc3", "name": "Douglas DC-3", "icon": "dc3_default.png", "price": 3000, "level": 1,
+	{"key": "dc3", "name": "DC-3", "icon": "dc3_default.png", "price": 3000, "level": 1,
 		"force": "A", "seats": 50, "fuel": 4, "xp": 30, "ticket": 8, "range": 1, "has_world_sprite": true},
 	# LIVE 5c/A/10/0/3cl. WEAKER than the starter on purpose - 450 a leg
 	# against 750 - but burns NOTHING and rates 3 clouds. It teaches what
@@ -177,11 +177,11 @@ const ENTRIES := [
 	# Pay per leg steps 520 / 650 / 770 between the granted DC-3's 400 and the
 	# Twin Otter's 900, so each is a real step up without reaching past the next
 	# thing you can buy.
-	{"key": "an2", "name": "Antonov An-2", "icon": "an2_default.png", "price": 3300, "level": 2,
+	{"key": "an2", "name": "An-2", "icon": "an2_default.png", "price": 3300, "level": 2,
 		"force": "A", "seats": 40, "fuel": 4, "xp": 32, "ticket": 13, "range": 1, "has_world_sprite": true},
-	{"key": "trimotor", "name": "Ford Trimotor", "icon": "trimotor_default.png", "price": 3700, "level": 4,
+	{"key": "trimotor", "name": "Trimotor", "icon": "trimotor_default.png", "price": 3700, "level": 4,
 		"force": "A", "seats": 50, "fuel": 4, "xp": 35, "ticket": 13, "range": 1, "has_world_sprite": true},
-	{"key": "ju52", "name": "Junkers Ju 52", "icon": "ju52_default.png", "price": 4100, "level": 6,
+	{"key": "ju52", "name": "Ju 52", "icon": "ju52_default.png", "price": 4100, "level": 6,
 		"force": "A", "seats": 55, "fuel": 4, "xp": 37, "ticket": 14, "range": 1, "has_world_sprite": true},
 	{"key": "dhc6", "name": "Twin Otter", "icon": "dhc6_default.png", "price": 4500, "level": 7,
 		"force": "A", "seats": 60, "fuel": 4, "xp": 39, "range": 1, "has_world_sprite": true},
@@ -197,7 +197,7 @@ const ENTRIES := [
 	# Worth re-checking once measured. At 150 XP it sits where the curve wants
 	# roughly $33,000, so $8,000 makes it the best XP per dollar in the early
 	# game by some way.
-	{"key": "dc4", "name": "Douglas DC-4", "icon": "dc4_default.png", "price": 8000, "level": 10,
+	{"key": "dc4", "name": "DC-4", "icon": "dc4_default.png", "price": 8000, "level": 10,
 		"force": "C", "seats": 200, "fuel": 25, "xp": 150, "ticket": 2.5, "range": 3, "has_world_sprite": true},
 	# ---- levels 11-20 ------------------------------------------------
 	{"key": "dhc8", "name": "Dash 8", "icon": "dhc8_default.png", "price": 14000, "level": 11,
@@ -220,10 +220,10 @@ const ENTRIES := [
 	{"key": "an140", "name": "An-140", "icon": "an140_default.png", "price": 50000, "level": 20,
 		"force": "C", "seats": 150, "fuel": 25, "xp": 200, "range": 2, "has_world_sprite": true},
 	# ---- levels 21-30 ------------------------------------------------
-	{"key": "dc6", "name": "Douglas DC-6", "icon": "dc6_default.png", "price": 59000, "level": 22,
+	{"key": "dc6", "name": "DC-6", "icon": "dc6_default.png", "price": 59000, "level": 22,
 		"force": "C", "seats": 175, "fuel": 25, "xp": 220, "range": 3, "has_world_sprite": true},
 	# LIVE 70000/D/200/30/3cl.
-	{"key": "tu104", "name": "Tupolev Tu-104", "icon": "tu104_default.png", "price": 70000, "level": 25,
+	{"key": "tu104", "name": "Tu-104", "icon": "tu104_default.png", "price": 70000, "level": 25,
 		"force": "D", "seats": 200, "fuel": 45, "xp": 250, "range": 3, "has_world_sprite": true},
 	# LIVE stats, factory cash as the price - same treatment as the DC-4, and
 	# for the same reason: the original produces these rather than selling
@@ -233,15 +233,15 @@ const ENTRIES := [
 	# The ERJ-170 is the densest XP in the game outside the coin lane: 2,500 on
 	# a three-cloud leg, against the B787's 300 on five. It is the same premium
 	# short-haul shape as the CRJ and the C800 and wants watching in a run.
-	{"key": "erj145", "name": "Embraer ERJ-145", "icon": "erj145_default.png", "price": 70000, "level": 25,
+	{"key": "erj145", "name": "ERJ-145", "icon": "erj145_default.png", "price": 70000, "level": 25,
 		"force": "C", "seats": 200, "fuel": 50, "xp": 500, "ticket": 7.5, "range": 2, "has_world_sprite": true},
-	{"key": "a318", "name": "Airbus A318", "icon": "a318_default.png", "price": 77000, "level": 27,
+	{"key": "a318", "name": "A318", "icon": "a318_default.png", "price": 77000, "level": 27,
 		"force": "C", "seats": 235, "fuel": 30, "xp": 260, "range": 3, "has_world_sprite": true},
-	{"key": "a319", "name": "Airbus A319", "icon": "a319_default.png", "price": 84000, "level": 28,
+	{"key": "a319", "name": "A319", "icon": "a319_default.png", "price": 84000, "level": 28,
 		"force": "C", "seats": 280, "fuel": 32, "xp": 270, "range": 3, "has_world_sprite": true},
 	# 35.1m span, a hair over the A318 - the small end of the airliner class, so
 	# it sits just above the A319 it shares a cabin size with.
-	{"key": "a220", "name": "Airbus A220-300", "icon": "a220_default.png", "price": 91000, "level": 29,
+	{"key": "a220", "name": "A220-300", "icon": "a220_default.png", "price": 91000, "level": 29,
 		"force": "C", "seats": 290, "fuel": 33, "xp": 290, "range": 4, "has_world_sprite": true},
 	# LIVE stats: C / 100 seats / 30 fuel / 80 fare / 5 clouds. A saucer, and
 	# the coin lane's middle rung - 40,000 a leg against the F-15's 16,000.
@@ -258,11 +258,11 @@ const ENTRIES := [
 	# Same split the P-51 already has (shop "p51", sprites "p-51mustang").
 	# The fuel and the cloud rating above are SUPERSEDED by the payout card,
 	# which shows 60 and 5 for the same aircraft.
-	{"key": "b727", "name": "Tupolev Tu-154", "icon": "b727_default.png", "price": 100000, "level": 30,
+	{"key": "b727", "name": "Tu-154", "icon": "b727_default.png", "price": 100000, "level": 30,
 		"force": "E", "seats": 300, "fuel": 60, "xp": 300, "range": 5, "has_world_sprite": true},
 	# ---- levels 31-40 ------------------------------------------------
 	# The rating-4 threshold.
-	{"key": "b707", "name": "Boeing 707", "icon": "b707_default.png", "price": 110000, "level": 31,
+	{"key": "b707", "name": "707", "icon": "b707_default.png", "price": 110000, "level": 31,
 		"force": "D", "seats": 320, "fuel": 38, "xp": 300, "range": 4, "has_world_sprite": true},
 	# LIVE 25c/B/2/20/2000 fare/4cl - two seats at a 2000 fare, verbatim.
 	{"key": "f15", "name": "F-15 Eagle", "icon": "f15_default.png", "price": 25, "currency": COINS, "level": 31,
@@ -285,16 +285,16 @@ const ENTRIES := [
 	# LIVE: 80 coins, 5 clouds, C, 9,000 fare, 50 fuel, 5,000 XP. A WWI biplane
 	# with a five-cloud range and a 9,000 fare, which is exactly the sort of
 	# thing the coin lane is for.
-	{"key": "camel", "name": "Sopwith Camel", "icon": "camel_default.png", "price": 80, "currency": COINS, "level": 33,
+	{"key": "camel", "name": "Camel", "icon": "camel_default.png", "price": 80, "currency": COINS, "level": 33,
 		"force": "C", "seats": 2, "fuel": 50, "xp": 5000, "ticket": 4500, "range": 5, "has_world_sprite": true},
 	# LIVE 150000/E/400/40/5cl. Burns less than the A300 two tiers below it.
-	{"key": "b787", "name": "Boeing 787", "icon": "b787_default.png", "price": 150000, "level": 34,
+	{"key": "b787", "name": "787", "icon": "b787_default.png", "price": 150000, "level": 34,
 		"force": "E", "seats": 400, "fuel": 80, "xp": 300, "range": 5, "has_world_sprite": true},
 	# LIVE stats, factory cash as the price - the last of the four the original
 	# produces rather than sells. 625 seats at 8 is the exact fare.
-	{"key": "md11", "name": "McDonnell Douglas MD-11", "icon": "md11_default.png", "price": 150000, "level": 34,
+	{"key": "md11", "name": "MD-11", "icon": "md11_default.png", "price": 150000, "level": 34,
 		"force": "E", "seats": 625, "fuel": 55, "xp": 600, "ticket": 8, "range": 5, "has_world_sprite": true},
-	{"key": "dc10", "name": "Douglas DC-10", "icon": "dc10_default.png", "price": 210000, "level": 35,
+	{"key": "dc10", "name": "DC-10", "icon": "dc10_default.png", "price": 210000, "level": 35,
 		"force": "E", "seats": 250, "fuel": 25, "xp": 450, "ticket": 8, "range": 5, "has_world_sprite": true},
 	# Its own airframe, not a repaint of the A340-300 that sits eleven levels
 	# above it. Four engines and a widebody hull, placed in the B787's class.
@@ -303,14 +303,14 @@ const ENTRIES := [
 	# a card or a given figure behind it. $250,000 puts it directly above the
 	# B787/MD-11/DC-10 cluster and below the premium short-haul trio, which is
 	# what "closer to the 787" and "early" together suggest. Move it freely.
-	{"key": "a340-early", "name": "Airbus A340", "icon": "a340-early_default.png", "price": 250000, "level": 36,
+	{"key": "a340-early", "name": "A340", "icon": "a340-early_default.png", "price": 250000, "level": 36,
 		"force": "E", "seats": 550, "fuel": 90, "xp": 700, "ticket": 7.5, "range": 5, "has_world_sprite": true},
 	# Sits between the Dash 8 and the 328 Jet: a bigger cabin than the turboprop
 	# without the jet's third cloud, so it is a capacity step rather than a
 	# reach one.
 	{"key": "crj700", "name": "CRJ-700", "icon": "crj700_default.png", "price": 300000, "level": 36,
 		"force": "A", "seats": 200, "fuel": 50, "xp": 1250, "range": 1, "has_world_sprite": true},
-	{"key": "erj170", "name": "Embraer ERJ-170", "icon": "erj170_default.png", "price": 350000, "level": 37,
+	{"key": "erj170", "name": "ERJ-170", "icon": "erj170_default.png", "price": 350000, "level": 37,
 		"force": "C", "seats": 500, "fuel": 40, "xp": 2500, "ticket": 8, "range": 3, "has_world_sprite": true},
 	# LIVE: $350,000, 2 clouds, B, 2,000 fare, 60 fuel, 1,250 XP. One of the
 	# premium short-haul aircraft - it costs more than the B787 and flies a
@@ -324,10 +324,10 @@ const ENTRIES := [
 	# Sits with its contemporaries rather than in the tail: four rear-mounted
 	# engines, T-tail, 43m span, 900 km/h - a Boeing 707's exact class, so it
 	# takes the 707's grade and the rung above it.
-	{"key": "il62", "name": "Ilyushin IL-62", "icon": "il62_default.png", "price": 400000, "level": 38,
+	{"key": "il62", "name": "IL-62", "icon": "il62_default.png", "price": 400000, "level": 38,
 		"force": "C", "seats": 400, "fuel": 100, "xp": 1500, "range": 3, "has_world_sprite": true},
 	# Rating 5 from here on, which is what really makes this a tier.
-	{"key": "a300", "name": "Airbus A300", "icon": "a300_default.png", "price": 450000, "level": 39,
+	{"key": "a300", "name": "A300", "icon": "a300_default.png", "price": 450000, "level": 39,
 		"force": "D", "seats": 500, "fuel": 150, "xp": 2000, "ticket": 8, "range": 4, "has_world_sprite": true},
 	# ---- levels 41-50 ------------------------------------------------
 		# LIVE: $500,000 / E / 5,000 fare / 150 fuel / 2,500 XP / 5 clouds.
@@ -336,7 +336,7 @@ const ENTRIES := [
 	# SECOND 747 entry that sat beside this one - the catalogue carried two,
 	# one per sprite. Only this one's art fits the fleet's look, so it takes
 	# the live numbers and the other is gone.
-	{"key": "b747", "name": "Boeing 747", "icon": "b747_default.png", "price": 500000, "level": 41,
+	{"key": "b747", "name": "747", "icon": "b747_default.png", "price": 500000, "level": 41,
 		"force": "E", "seats": 500, "fuel": 150, "xp": 2500, "ticket": 10, "range": 5, "has_world_sprite": true},
 	# LIVE 1000000/E/700/70/5cl.
 		# LIVE, given directly rather than read off a card: $1,000,000, class 3,
@@ -348,7 +348,7 @@ const ENTRIES := [
 	#
 	# NOT the second-last unlock - that is the A380-800, a separate aircraft
 	# with its own art, which is why this came back down off level 84.
-	{"key": "a380-300", "name": "Airbus A380", "icon": "a380-300_default.png", "price": 1000000, "level": 42,
+	{"key": "a380-300", "name": "A380", "icon": "a380-300_default.png", "price": 1000000, "level": 42,
 		"force": "E", "seats": 875, "fuel": 200, "xp": 4000, "ticket": 10, "range": 5, "has_world_sprite": true},
 	{"key": "concorde", "name": "Concorde", "icon": "concorde_default.png", "price": 2000000, "level": 42,
 		"force": "D", "seats": 1000, "fuel": 75, "xp": 4000, "range": 5, "has_world_sprite": true},
@@ -358,13 +358,13 @@ const ENTRIES := [
 	# it shares a level band with. Slots into the empty rung at 44.
 	# 64.75m span, near enough the 747-8's - a modern widebody, so it lands
 	# between the 747 below it and the A340 above.
-	{"key": "a350-900", "name": "Airbus A350-900", "icon": "a350-900_default.png", "price": 4500000, "level": 44,
+	{"key": "a350-900", "name": "A350-900", "icon": "a350-900_default.png", "price": 4500000, "level": 44,
 		"force": "E", "seats": 530, "fuel": 64, "xp": 8700, "ticket": 25, "range": 5, "has_world_sprite": true},
 	{"key": "an-225", "name": "An-225", "icon": "an-225_default.png", "price": 5000000, "level": 45,
 		"force": "E", "seats": 2000, "fuel": 300, "xp": 10000, "range": 5, "has_world_sprite": true},
 	# 64.8m span and the longest twinjet there is, so it shares the A340's rung -
 	# the same size class, four decades apart - and slots just above it on price.
-	{"key": "b777-300er", "name": "Boeing 777-300ER", "icon": "b777-300er_default.png", "price": 8700000, "level": 45,
+	{"key": "b777-300er", "name": "777-300ER", "icon": "b777-300er_default.png", "price": 8700000, "level": 45,
 		"force": "E", "seats": 590, "fuel": 68, "xp": 13000, "ticket": 43, "range": 5, "has_world_sprite": true},
 	# Two seats, so it earns on fare - the same trick the original uses on
 	# its F-15.
@@ -391,7 +391,7 @@ const ENTRIES := [
 	# Realised as a per-head ticket rather than as seats. The A400M's live 100 a
 	# head is the same shape, and reaching these through cabin size alone would
 	# put 1,120 seats on an A340.
-	{"key": "a340-300", "name": "Airbus A340-300", "icon": "a340-300_default.png", "price": 15000000, "level": 49,
+	{"key": "a340-300", "name": "A340-300", "icon": "a340-300_default.png", "price": 15000000, "level": 49,
 		"force": "E", "seats": 560, "fuel": 66, "xp": 24000, "ticket": 75, "range": 5, "has_world_sprite": true},
 	# Level and price are GIVEN, and both are live locked-card slots - L50 at
 	# $18,000,000 and L55 at $50,000,000. Everything else is interpolated from
@@ -399,7 +399,7 @@ const ENTRIES := [
 	#
 	# The A400M had been interpolated onto that same $18,000,000; it moves,
 	# because these two are what those slots actually hold.
-	{"key": "il114", "name": "Ilyushin Il-114", "icon": "il114_default.png", "price": 18000000, "level": 50,
+	{"key": "il114", "name": "Il-114", "icon": "il114_default.png", "price": 18000000, "level": 50,
 		"force": "D", "seats": 460, "fuel": 58, "xp": 31000, "ticket": 100, "range": 5, "has_world_sprite": true},
 	# LIVE: 100 a head, 500 seats, rating 5 - 250,000 a leg, the biggest
 	# earner in the game. A 100 fare on a military transport is why ticket
@@ -431,7 +431,7 @@ const ENTRIES := [
 	# tail adds no income the pacing has not already seen. PRICE is the ladder
 	# here, not payout - these are sinks for a late game that measures $14M a
 	# day with nothing to spend it on.
-	{"key": "an74", "name": "Antonov An-74", "icon": "an74_default.png", "price": 26000000, "level": 52,
+	{"key": "an74", "name": "An-74", "icon": "an74_default.png", "price": 26000000, "level": 52,
 		"force": "D", "seats": 420, "fuel": 55, "xp": 40000, "ticket": 105, "range": 5, "has_world_sprite": true},
 	{"key": "lc130", "name": "Lockheed LC-130", "icon": "lc130_default.png", "price": 31000000, "level": 53,
 		"force": "D", "seats": 470, "fuel": 60, "xp": 45000, "ticket": 100, "range": 5, "has_world_sprite": true},
@@ -449,13 +449,13 @@ const ENTRIES := [
 		"force": "D", "seats": 480, "fuel": 58, "xp": 51000, "ticket": 100, "range": 5, "has_world_sprite": true},
 	{"key": "us2", "name": "ShinMaywa US-2", "icon": "us2_default.png", "price": 44000000, "level": 55,
 		"force": "D", "seats": 500, "fuel": 60, "xp": 59000, "ticket": 100, "range": 5, "has_world_sprite": true},
-	{"key": "an158", "name": "Antonov An-158", "icon": "an158_default.png", "price": 50000000, "level": 55,
+	{"key": "an158", "name": "An-158", "icon": "an158_default.png", "price": 50000000, "level": 55,
 		"force": "D", "seats": 500, "fuel": 62, "xp": 63000, "ticket": 100, "range": 5, "has_world_sprite": true},
 	# A fighter in the tail. 9.96m span, so the smallest thing here after the
 	# Paper Plane, and priced as a trophy like everything past 50.
 	{"key": "f16", "name": "F-16 Fighting Falcon", "icon": "f16_default.png", "price": 53000000, "level": 57,
 		"force": "S", "seats": 10, "fuel": 66, "xp": 66000, "ticket": 5500, "range": 5, "has_world_sprite": true},
-	{"key": "b314", "name": "Boeing 314 Clipper", "icon": "b314_default.png", "price": 64000000, "level": 57,
+	{"key": "b314", "name": "314 Clipper", "icon": "b314_default.png", "price": 64000000, "level": 57,
 		"force": "E", "seats": 560, "fuel": 64, "xp": 75000, "ticket": 95, "range": 5, "has_world_sprite": true},
 	# THE TOP OF THE COIN LANE, and the first entry added to it since it was
 	# respaced. APPENDED rather than inserted: the other nine step 4-5 levels and
@@ -502,16 +502,16 @@ const ENTRIES := [
 	# Its art came in as aircraft_a300_1/_2/_s, which is why it was nearly
 	# installed as A300 paint: a group can carry a SHEET of one aircraft's
 	# liveries AND separate cuts of a different aircraft entirely.
-	{"key": "skylink", "name": "Airbus Skylink", "icon": "skylink_default.png", "price": 92000000, "level": 60,
+	{"key": "skylink", "name": "Skylink", "icon": "skylink_default.png", "price": 92000000, "level": 60,
 		"force": "D", "seats": 620, "fuel": 68, "xp": 98000, "ticket": 90, "range": 5, "has_world_sprite": true},
 	# ---- levels 61-70 ------------------------------------------------
 	# LIVE: level 61, $110,000,000, off a locked card. Nothing else about it is
 	# known, so grade, clouds, fuel, cabin and XP are all interpolated from the
 	# aircraft either side of it in the band and want replacing if a card for
 	# it ever turns up.
-	{"key": "b737", "name": "Boeing 737", "icon": "b737_default.png", "price": 110000000, "level": 61,
+	{"key": "b737", "name": "737", "icon": "b737_default.png", "price": 110000000, "level": 61,
 		"force": "D", "seats": 600, "fuel": 72, "xp": 110000, "ticket": 96, "range": 5, "has_world_sprite": true},
-	{"key": "dreamlifter", "name": "Boeing Dreamlifter", "icon": "dreamlifter_default.png", "price": 130000000, "level": 65,
+	{"key": "dreamlifter", "name": "Dreamlifter", "icon": "dreamlifter_default.png", "price": 130000000, "level": 65,
 		"force": "D", "seats": 660, "fuel": 72, "xp": 110000, "ticket": 88, "range": 5, "has_world_sprite": true},
 	# DREAMLAND3'S, and the last gate in the game to get an aircraft. The
 	# largest wingspan ever built, so it is the largest sprite here too.
@@ -545,7 +545,7 @@ const ENTRIES := [
 	# has_world_sprite is FALSE until sheetfleet_derive.py installs its art -
 	# the card shows "No art yet" and cannot be bought, which is the existing
 	# way to have an aircraft in the catalogue before it can fly.
-	{"key": "a380-800", "name": "Airbus A380-800", "icon": "a380-800_default.png", "price": 400, "currency": COINS, "level": 84,
+	{"key": "a380-800", "name": "A380-800", "icon": "a380-800_default.png", "price": 400, "currency": COINS, "level": 84,
 		"force": "E", "seats": 1400, "fuel": 500, "xp": 99000, "ticket": 80, "range": 5, "has_world_sprite": true},
 ]
 

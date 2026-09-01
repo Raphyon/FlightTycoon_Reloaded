@@ -309,7 +309,7 @@ func _refresh_run_all() -> void:
 		_run_all.disabled = true
 		_run_all.texture_normal = LOCKED_TEXTURE
 		_run_all.modulate = Color(0.85, 0.85, 0.85, 1.0)
-		_run_all_label.text = "Locked"
+		_run_all_label.text = "Level %d" % DEPART_ALL_LEVEL
 		return
 	_run_all.texture_normal = WIDE_ACTION_TEXTURE
 	var pending := Fleet.pending_count()

@@ -521,5 +521,13 @@ func _on_input_event(_viewport: Node, event: InputEvent, _shape_idx: int) -> voi
 		elif _pressed:
 			_pressed = false
 			if event.position.distance_to(_press_position) <= DRAG_SLOP:
+				# A LOCKED ZONE SWALLOWS THE CLICK AND OPENS NOTHING. The pad
+				# under cloud cover still has a collision shape, so it was
+				# emitting clicked like any other - an info panel for a pad the
+				# player cannot see, reached by clicking a cloud. Handled
+				# rather than ignored, so the press does not fall through to
+				# whatever sits behind the cover either.
 				get_viewport().set_input_as_handled()
+				if not ZoneProgress.is_unlocked(apron.area_name):
+					return
 				clicked.emit(apron)
