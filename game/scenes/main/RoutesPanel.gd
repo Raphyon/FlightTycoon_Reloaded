@@ -90,7 +90,10 @@ const SORTS := [
 const ACTIONS := {
 	FleetAircraft.State.PARKED: "Depart",
 	FleetAircraft.State.AWAITING_DEST_CLAIM: "Collect",
-	FleetAircraft.State.AWAITING_DEST_REFUEL: "Send home",
+	# "Send home" overflowed the 112px button - every other caption here is one
+	# short verb and this was two words. "Return" says the same thing, matches
+	# the shape of Depart / Collect / Refuel, and fits.
+	FleetAircraft.State.AWAITING_DEST_REFUEL: "Return",
 	FleetAircraft.State.AWAITING_HOME_CLAIM: "Collect",
 	FleetAircraft.State.AWAITING_HOME_REFUEL: "Refuel",
 }
@@ -499,6 +502,9 @@ func _build_row(a: FleetAircraft) -> Control:
 	var action_label := Label.new()
 	action_label.text = ACTIONS.get(a.state, "In flight")
 	action_label.size = ACTION_SIZE
+	# Clipped rather than allowed to spill past the art, so a caption that is
+	# too long reads as truncated instead of as a broken button.
+	action_label.clip_text = true
 	action_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	action_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	action_label.add_theme_font_size_override("font_size", ACTION_FONT)

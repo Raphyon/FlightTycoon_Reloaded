@@ -46,7 +46,11 @@ const BUTTON_W := 68.0
 const BUTTON_Y := 176.0
 const NOTE_Y := 236.0
 const CONFIRM_W := BUTTON_W
-const CONFIRM_GAP := 10.0
+# 10 PUT CONFIRM AND CANCEL 10px APART, which is inside the slop of a hurried
+# click on the one button in the game that destroys an asset. Widened to a
+# clear thumb's width - the pair still centres on ACTION_CX, so nothing else
+# in the layout moves.
+const CONFIRM_GAP := 28.0
 
 const FONT_TITLE := 22
 const FONT_NAME := 14
