@@ -1,6 +1,9 @@
 extends Node2D
 
 
+var _panels: Node
+
+
 func _ready() -> void:
 	print("ft-proto booted")
 	# The shop shows ENTRIES in array order, so an entry in the wrong slot is a
@@ -11,6 +14,14 @@ func _ready() -> void:
 	# Aprons and world aircraft (including the starting plane) are all
 	# spawned by ApronLayer.gd, driven by Fleet's assignment data - see
 	# AreaOrigins for the markers and data/apron_layout.json for the cells.
+	# One place that knows what may be on screen at once - see PanelManager.
+	# Attached before anything can open a panel, and it observes rather than
+	# being called, so no panel had to change to be governed by it.
+	# Loaded by PATH, not by class_name. A class_name global only registers
+	# after an editor rescan, so a fresh checkout parses Main before the global
+	# exists and dies with "Identifier PanelManager not declared" - which is a
+	# clone that does not boot, for a convenience worth nothing here.
+	_panels = load("res://scenes/main/PanelManager.gd").attach($UI)
 	Maps.map_changed.connect(_on_map_changed)
 	DebugState.flags_changed.connect(_apply_ui_visibility)
 	_apply_map()
@@ -109,10 +120,15 @@ func _apply_visiting_ui() -> void:
 			node.visible = not visiting
 	if not visiting:
 		return
-	for node_name in VISITING_CLOSED:
-		var node: CanvasItem = $UI.get_node_or_null(node_name)
-		if node:
-			node.visible = false
+	# Everything except RoutesPanel, which is deliberately left running - see
+	# the note on VISITING_CLOSED above. close_all() then reopening it is
+	# simpler than maintaining a list that has to be edited whenever a panel is
+	# added, which is exactly how the old list fell behind.
+	var routes: CanvasItem = $UI.get_node_or_null("RoutesPanel")
+	var routes_open: bool = routes != null and routes.visible
+	_panels.close_all()
+	if routes_open and routes:
+		routes.visible = true
 
 
 # DebugState.hide_ui - everything on the UI layer goes except the debug menu,
