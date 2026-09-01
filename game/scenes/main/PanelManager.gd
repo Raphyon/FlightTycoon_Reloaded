@@ -42,6 +42,13 @@ const DIALOG := [
 	"FriendInfoPanel", "ZoneUnlockPanel",
 ]
 
+# FLOATING BUTTONS THAT ARE NOT PART OF A PANEL. They sit over the world, which
+# is right, and they sat over open panels too, which is not: a running boost
+# parked its button on top of the shop and the routes list. Hidden while a base
+# is open and restored to whatever they wanted when it closes - their own logic
+# still decides that, this only suppresses it.
+const CHROME := ["BoostButton", "QuestsButton"]
+
 var _ui: Node
 # Set while we are the ones changing visibility, so hiding six panels does not
 # re-enter once per panel and turn one open into a cascade.
@@ -72,6 +79,12 @@ func _watch() -> void:
 			push_warning("PanelManager: no panel named %s" % panel_name)
 			continue
 		node.visibility_changed.connect(_on_visibility_changed.bind(node))
+	for chrome_name in CHROME:
+		var chrome: CanvasItem = _ui.get_node_or_null(chrome_name)
+		if not chrome:
+			push_warning("PanelManager: no chrome named %s" % chrome_name)
+			continue
+		chrome.visibility_changed.connect(_on_chrome_changed.bind(chrome))
 
 
 func _on_visibility_changed(node: CanvasItem) -> void:
@@ -91,9 +104,50 @@ func _on_visibility_changed(node: CanvasItem) -> void:
 	# drawn UNDER chrome it covers - which is why the settings button showed
 	# through a shop panel looking pressable while the panel underneath it ate
 	# the click. Raised to front, the false affordance goes with it.
+	# DEFERRED, because a panel can become visible while its parent is still
+	# adding children - move_child() refuses during setup and Godot logs it.
+	# End of frame is soon enough for a z-order nobody has seen yet.
 	if node is Control:
-		(node as Control).move_to_front()
+		node.call_deferred("move_to_front")
 
+	_applying = false
+	_sync_chrome()
+
+
+func _base_open() -> bool:
+	for panel_name in BASE:
+		var node: CanvasItem = _ui.get_node_or_null(panel_name)
+		if node and node.visible:
+			return true
+	return false
+
+
+# A chrome node turning ITSELF on while a panel is up - put it back down.
+func _on_chrome_changed(node: CanvasItem) -> void:
+	if _applying or not node.visible or not _base_open():
+		return
+	_applying = true
+	node.visible = false
+	_applying = false
+
+
+# WE DO NOT REMEMBER WHAT CHROME WANTED, WE ASK IT AGAIN. Remembering was tried
+# and is subtly wrong: while the button is forced down, its own logic setting
+# `visible = false` changes nothing, fires no signal, and the remembered value
+# stays stale - so a boost that expired behind an open shop came back when the
+# shop closed. Re-running the button's own _refresh reads real state instead,
+# and cannot go stale by construction.
+func _sync_chrome() -> void:
+	var hide_all := _base_open()
+	_applying = true
+	for chrome_name in CHROME:
+		var node: CanvasItem = _ui.get_node_or_null(chrome_name)
+		if not node:
+			continue
+		if hide_all:
+			node.visible = false
+		elif node.has_method("_refresh"):
+			node.call("_refresh")
 	_applying = false
 
 
@@ -117,3 +171,4 @@ func close_all() -> void:
 		if node and node.visible:
 			node.visible = false
 	_applying = false
+	_sync_chrome()

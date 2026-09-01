@@ -326,12 +326,13 @@ func _on_pressed() -> void:
 	BuildingProgress.demolish(plot)
 	_armed = false
 	visible = false
-	# Clearing a site is almost always the first half of building something
-	# better, so hand straight over to the shop for the plot just emptied
-	# rather than making the player find it again.
-	var shop := get_node_or_null("../PropShopPanel")
-	if shop and shop.has_method("open_for_plot"):
-		shop.open_for_plot(plot)
+	# THIS USED TO OPEN THE PROP SHOP on the plot just cleared, on the
+	# reasoning that clearing a site is the first half of building something
+	# better. Played, it is wrong: clearing several sites is the common case,
+	# and every demolish threw a shop window in front of the next building the
+	# player was trying to reach. Closing and getting out of the way costs one
+	# press when the guess would have been right, against one press to dismiss
+	# every time it is not.
 
 
 func _refund_text(building_key: String) -> String:
