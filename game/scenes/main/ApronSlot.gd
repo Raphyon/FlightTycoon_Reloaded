@@ -3,6 +3,18 @@ extends Area2D
 signal clicked(apron: Apron)
 
 const SIZE := Vector2(220, 110)
+
+# WHAT IS SITTING ON THIS PAD, readable without opening anything. Three states,
+# bottom-left of the pad so a row of them reads down the board:
+#   free    nothing assigned
+#   mine    an aircraft of yours
+#   friend  one that came from somebody else
+# Cut from source-assets/airport/airport@2x.png at 833,139 / 883,143 / 933,146.
+const BADGE_FREE := preload("res://assets/aprons/pad_free@2x.png")
+const BADGE_MINE := preload("res://assets/aprons/pad_mine@2x.png")
+const BADGE_FRIEND := preload("res://assets/aprons/pad_friend@2x.png")
+const BADGE_SCALE := 1.5
+const BADGE_INSET := Vector2(8.0, 8.0)
 const COLOR_FREE := Color(0.2, 0.9, 0.4, 0.25)
 const COLOR_OCCUPIED := Color(0.9, 0.5, 0.2, 0.35)
 const COLOR_HOVER := Color(1, 1, 1, 0.4)
@@ -93,6 +105,7 @@ var _swoop: ProgressBubble
 # different times and neither should clear the other.
 var _tag: ProgressBubble
 var _tag_action: Callable = Callable()
+var _badge: TextureRect
 var _tag_aircraft: FleetAircraft = null
 # The skin path the overlay is already holding a texture for. _draw ran load()
 # on every redraw, and a redraw is not a rare thing here - every pad repaints on
@@ -157,6 +170,18 @@ func _ready() -> void:
 	_skin_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_skin_overlay.visible = false
 	add_child(_skin_overlay)
+
+	_badge = TextureRect.new()
+	_badge.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_badge.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	_badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var bs := BADGE_FREE.get_size() * BADGE_SCALE
+	_badge.size = bs
+	# Bottom-left corner of the pad, inset so it sits ON the apron rather than
+	# on its edge.
+	_badge.position = Vector2(-hw + BADGE_INSET.x, hh - bs.y - BADGE_INSET.y)
+	_badge.visible = false
+	add_child(_badge)
 
 	# Status callout - a bubble with an icon in it (cone = needs building,
 	# plane = free and ready to assign, dollar = reward ready to claim,
@@ -285,6 +310,7 @@ func _diamond_points() -> PackedVector2Array:
 
 
 func _draw() -> void:
+	_refresh_badge()
 	if not apron.built:
 		var on_paved_zone := apron.area_name in PAVED_ZONES
 		_under_construction.texture = (UNDER_CONSTRUCTION_TEXTURE if on_paved_zone
@@ -426,6 +452,31 @@ func _draw() -> void:
 # be here yet; when they can, this is the one place that decides.
 # What this destination pad is reserved for, whatever state it is in. Only ever
 # consulted on a friend's map - at home the pad's aircraft is assigned_apron_id.
+# Which badge this pad should be wearing, or null for none.
+#
+# FRIEND IS WIRED BUT UNREACHABLE TODAY. Nothing in the game models an aircraft
+# belonging to somebody else sitting on a pad - a friend's airport is a robot
+# map with your own fleet on it - so the green one has no case that produces it
+# yet. It is here rather than left out because the state is part of the design
+# and the art exists; the day foreign aircraft are modelled this reads them.
+func _badge_texture() -> Texture2D:
+	if not apron.built or not ZoneProgress.is_unlocked(apron.area_name):
+		return null
+	var a: FleetAircraft = (_holder() if Maps.is_robot_map()
+		else Fleet.get_aircraft_at_apron(apron.id))
+	if a == null:
+		return BADGE_FREE
+	return BADGE_MINE
+
+
+func _refresh_badge() -> void:
+	if not is_instance_valid(_badge):
+		return
+	var tex := _badge_texture()
+	_badge.texture = tex
+	_badge.visible = tex != null
+
+
 func _holder() -> FleetAircraft:
 	return Fleet.get_aircraft_holding_robot_apron(apron.id)
 
