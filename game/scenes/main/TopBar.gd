@@ -6,7 +6,35 @@ extends HBoxContainer
 @onready var _people_label: Label = $PeopleLabel
 
 
+# WHAT THE FOUR NUMBERS ARE CALLED. Nothing named them anywhere in the game -
+# four icons and four counters, and a new player has no way to learn that the
+# gold one is premium and the blue one is burned on departure, let alone that
+# the little people raise every fare. A hover is the cheapest place to say so,
+# and costs no screen space on a bar that has none to give.
+#
+# Set on BOTH the icon and the number of each pair: they are separate nodes in
+# the HBox, so a tooltip on one leaves a dead patch over the other.
+const TOOLTIPS := {
+	"Money": "Cash\nEarned from flights and building rent.\nBuys aircraft, pads and most buildings.",
+	"Coin": "Coins\nThe rare one. From daily rewards, quests,\nbuilding levels and milestones.",
+	"Fuel": "Fuel\nBurned every time an aircraft departs.\nBuy it in the Fuel Shop - the price moves hourly.",
+	"People": "Population\nResidents of the buildings you put up.\nEvery %d of them adds 1%% to every flight's pay.",
+}
+
+
 func _ready() -> void:
+	for prefix in TOOLTIPS:
+		var text: String = TOOLTIPS[prefix]
+		if prefix == "People":
+			text = text % int(BuildingProgress.PEOPLE_PER_PERCENT)
+		for suffix in ["Icon", "Label"]:
+			var node: Control = get_node_or_null("%s%s" % [prefix, suffix])
+			if not node:
+				continue
+			node.tooltip_text = text
+			# A tooltip needs the node to actually receive the mouse; these are
+			# read-outs, so they were set to ignore it.
+			node.mouse_filter = Control.MOUSE_FILTER_STOP
 	# The gear lives in TopBarRight but the panel it opens is a sibling of the
 	# whole HUD, so the wiring is done here rather than in another script whose
 	# only job would be one connect().

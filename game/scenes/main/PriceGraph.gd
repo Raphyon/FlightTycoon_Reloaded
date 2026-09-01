@@ -11,6 +11,13 @@ const HEADER_HEIGHT := 34.0
 const HEADER_FONT_SIZE := 22
 const COUNTDOWN_FONT_SIZE := 15
 const COUNTDOWN_COLOR := Color(0.85, 0.88, 0.95, 0.85)
+# The countdown's own column at the right end of the header. BOTH strings used
+# to be drawn across the full header width - one aligned left, one aligned
+# right - which only looks like two columns while the left one stays short. At
+# $10/unit it does; the price is two digits often enough, and then "Current
+# Price: $12/unit" ran straight through "new price in 43m". Reserving the strip
+# means the two cannot reach each other whatever they say.
+const COUNTDOWN_W := 150.0
 
 var _tick := 0.0
 
@@ -37,7 +44,8 @@ func _draw() -> void:
 	draw_string(
 		ThemeDB.fallback_font, Vector2(MARGIN, HEADER_HEIGHT - 10),
 		"Current Price: $%d/unit" % FuelStore.current_price,
-		HORIZONTAL_ALIGNMENT_LEFT, size.x - MARGIN * 2.0, HEADER_FONT_SIZE, Color.WHITE
+		HORIZONTAL_ALIGNMENT_LEFT, size.x - MARGIN * 2.0 - COUNTDOWN_W,
+		HEADER_FONT_SIZE, Color.WHITE
 	)
 
 	# What the price does next, and when. Without it "the market moves hourly"
