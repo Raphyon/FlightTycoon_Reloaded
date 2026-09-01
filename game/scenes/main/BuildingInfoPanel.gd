@@ -286,18 +286,30 @@ func _refresh_upgrade(key: String, level: int, upgrading: bool) -> void:
 	# question worth asking, which is what the money buys. That is what
 	# UpgradeConfirmPanel is for, and pressing this opens it.
 	_upgrade_label.text = "Upgrade"
-	_note_upgrade(key, level, cost)
+	_note_upgrade(key, level, cost, affordable, in_coins)
 
 
-func _note_upgrade(_key: String, level: int, _cost: int) -> void:
+# THE PRICE APPEARS ONLY WHEN YOU CANNOT PAY IT, which is the one time it is
+# any use. It was taken out of here on purpose - a price with no answer to what
+# the money buys is noise, and UpgradeConfirmPanel gives both. But that panel
+# opens from a button that is DISABLED until you can afford it, so the cost was
+# locked behind a door that only opens once you no longer need to ask. Short of
+# the money, the note says how much; able to pay, the confirm panel takes over
+# and the note stays about what the money buys.
+func _note_upgrade(_key: String, level: int, cost: int, affordable: bool,
+		in_coins: bool) -> void:
 	if _armed or level >= BuildingProgress.MAX_LEVEL:
 		return
 	var now: int = BuildingProgress.rent_at(_plot_id)
 	var after: int = BuildingProgress.rent_at_level(
 		BuildingProgress.building_at(_plot_id), level + 1)
-	_note.text = "Upgrade: rent $%s -> $%s, off service %s" % [
+	var text := "Upgrade: rent $%s -> $%s, off service %s" % [
 		_thousands(now), _thousands(after),
 		_countdown(BuildingProgress.upgrade_seconds(_plot_id))]
+	if not affordable:
+		text += "   -   costs %s" % (("%d coins" % cost) if in_coins
+			else "$%s" % _thousands(cost))
+	_note.text = text
 
 
 func _on_upgrade_pressed() -> void:

@@ -28,10 +28,12 @@ func _ready() -> void:
 		{"icon": "button_store03@2x.png", "label": "Gold"},
 		{"icon": "button_store04@2x.png", "label": "Terminal"},
 		{"icon": "button_store06@2x.png", "label": "Expanding Airport", "on_pressed": _open_expansion_shop},
-		{"icon": "button_store09@2x.png", "label": "Prop Shop", "on_pressed": _open_prop_shop},
+		{"icon": "button_store09@2x.png", "label": "Prop Shop", "on_pressed": _open_prop_shop,
+			"why_not": _prop_shop_unavailable},
 	]
 	for entry in _categories:
 		_grid.add_child(_build_category_button(entry))
+	_refresh_availability()
 
 	get_tree().root.size_changed.connect(_fit_content)
 	call_deferred("_fit_content")
@@ -42,6 +44,7 @@ func _ready() -> void:
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_VISIBILITY_CHANGED and visible:
 		call_deferred("_fit_content")
+		_refresh_availability()
 
 
 func _fit_content() -> void:
@@ -76,6 +79,7 @@ func _build_category_button(entry: Dictionary) -> Control:
 		button.pressed.connect(entry["on_pressed"])
 	else:
 		button.modulate = DISABLED_MODULATE
+	entry["_button"] = button
 	icon_wrap.add_child(button)
 
 	if not enabled:
@@ -87,9 +91,39 @@ func _build_category_button(entry: Dictionary) -> Control:
 		icon_wrap.add_child(lock)
 
 	vbox.add_child(icon_wrap)
-	vbox.add_child(_build_label_board(entry["label"]))
+	var board := _build_label_board(entry["label"])
+	entry["_label"] = board.get_child(1)
+	vbox.add_child(board)
 
 	return vbox
+
+
+# WHETHER A SHOP CAN BE ENTERED IS NOT FIXED AT BUILD TIME. The Prop Shop
+# always opens ON a site, so with every site taken there is nothing to show -
+# and it was still pressable, doing nothing on screen and printing the reason
+# to a console the player does not have. Re-decided every time the hub opens,
+# with the reason on the label rather than in stdout.
+func _refresh_availability() -> void:
+	for entry in _categories:
+		if not entry.has("why_not") or not entry.has("_button"):
+			continue
+		var why: String = (entry["why_not"] as Callable).call()
+		var ok := why == ""
+		var button: TextureButton = entry["_button"]
+		button.disabled = not ok
+		button.modulate = Color.WHITE if ok else DISABLED_MODULATE
+		var label: Label = entry["_label"]
+		label.text = entry["label"] if ok else "%s\n%s" % [entry["label"], why]
+
+
+# "" when it can be opened, otherwise the reason it cannot.
+func _prop_shop_unavailable() -> String:
+	if not BuildingProgress.buildings_unlocked():
+		return "opens with Zone 2"
+	for plot in BuildingLayout.load_data():
+		if not BuildingProgress.is_built(int(plot.get("id", 0))):
+			return ""
+	return "no empty sites"
 
 
 func _build_label_board(text: String) -> Control:
