@@ -22,7 +22,6 @@ const CLOUD_Y := 38.0
 # fact twice - and the two numbers a player actually chooses between, money and
 # XP, were the two that were missing.
 const FORCE_ICON := preload("res://assets/hud/stat_force@2x.png")
-const CASH_ICON := preload("res://assets/hud/icon_medium_money1@2x.png")
 const FUEL_ICON := preload("res://assets/bubbles/drum_icon@2x.png")
 const XP_ICON := preload("res://assets/hud/icon_medium_xp@2x.png")
 const STAT_Y := 152.0
@@ -128,7 +127,9 @@ func _add_stats(entry: Dictionary) -> void:
 	# use, which is the unit every price and fare in ShopCatalog was set in.
 	var pay := int(round(float(Fleet.passengers(key)) * Fleet.ticket_price(key)))
 	var rows := [
-		[[FORCE_ICON, str(ShopCatalog.stat(key, "force"))], [CASH_ICON, _compact(pay)]],
+		# null icon = the value carries its own mark. Cash is "$" everywhere
+		# rather than a coin icon here and a "$" elsewhere.
+		[[FORCE_ICON, str(ShopCatalog.stat(key, "force"))], [null, "$%s" % _compact(pay)]],
 		[[FUEL_ICON, str(ShopCatalog.stat(key, "fuel"))],
 			[XP_ICON, _compact(Fleet.xp_for_claim(key))]],
 	]
@@ -158,6 +159,19 @@ func _stat_row(y: float, cells: Array) -> void:
 		box.add_theme_constant_override("separation", 3)
 		box.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		row.add_child(box)
+
+		if cell[0] == null:
+			var only := Label.new()
+			only.add_theme_font_size_override("font_size", STAT_FONT)
+			only.text = cell[1]
+			only.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+			only.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+			only.add_theme_color_override("font_color", Color.WHITE)
+			only.add_theme_color_override("font_outline_color", Color(0.16, 0.09, 0.03, 1))
+			only.add_theme_constant_override("outline_size", 3)
+			only.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			box.add_child(only)
+			continue
 
 		var ic := TextureRect.new()
 		ic.expand_mode = TextureRect.EXPAND_IGNORE_SIZE

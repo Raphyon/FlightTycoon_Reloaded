@@ -226,7 +226,7 @@ func _refresh(_a = null, _b = null) -> void:
 		_close()
 		return
 
-	_title.text = "Site %d" % _plot_id
+	_title.text = "Site %d" % _site_number(_plot_id)
 	var path := BuildingLayout.texture_path(key)
 	_art.texture = load(path) if ResourceLoader.exists(path) else null
 	_name.text = BuildingLayout.name_of(key)
@@ -345,6 +345,19 @@ func _on_pressed() -> void:
 	# player was trying to reach. Closing and getting out of the way costs one
 	# press when the guess would have been right, against one press to dismiss
 	# every time it is not.
+
+
+# THE NUMBER ON THE SIGN IS NOT THE ID IN THE FILE. Plot ids run 1..42 in
+# layout order, and the site the player reads as the first one is 42 - so the
+# board said "Site 42" about the site at the front and "Site 1" about the
+# second. Shifted by one and wrapped, which puts 42 at the head and slides the
+# rest along: 42 -> 1, 1 -> 2, 2 -> 3. Display only; nothing is stored or
+# looked up by this.
+func _site_number(plot_id: int) -> int:
+	var total: int = BuildingLayout.load_data().size()
+	if total <= 0:
+		return plot_id
+	return (plot_id % total) + 1
 
 
 func _refund_text(building_key: String) -> String:
