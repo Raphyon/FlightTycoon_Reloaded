@@ -8,7 +8,13 @@ extends PanelContainer
 const LockOverlayScript := preload("res://scenes/main/LockOverlay.gd")
 const BOARD_TEXTURE := preload("res://assets/board/board_store@2x.png")
 const ICON_SIZE := Vector2(100, 100)
-const BOARD_SIZE := Vector2(120, 34)
+# 120x34 AT THE DEFAULT FONT DID NOT HOLD THE LONGEST LABEL. "Expanding
+# Airport" wraps to two lines and spilled past the board art, and the reason
+# line the Prop Shop now carries ("no empty sites") makes three. Wider, taller,
+# and a font size chosen so three lines fit rather than left at whatever the
+# theme happened to give.
+const BOARD_SIZE := Vector2(132, 48)
+const BOARD_FONT := 12
 const DISABLED_MODULATE := Color(0.55, 0.55, 0.55, 1.0)
 
 @onready var _grid: GridContainer = $Frame/SafeArea/Margin/VBox/Grid
@@ -93,6 +99,13 @@ func _build_category_button(entry: Dictionary) -> Control:
 	vbox.add_child(icon_wrap)
 	var board := _build_label_board(entry["label"])
 	entry["_label"] = board.get_child(1)
+	# THE NAME IS PART OF THE BUTTON. It sits directly under the icon, reads as
+	# one control, and did nothing when pressed - so half of every target was
+	# dead. Forwarded to the same handler, and it follows the icon's disabled
+	# state through _refresh_availability.
+	if enabled:
+		board.mouse_filter = Control.MOUSE_FILTER_STOP
+		board.gui_input.connect(_on_board_input.bind(entry))
 	vbox.add_child(board)
 
 	return vbox
@@ -126,6 +139,18 @@ func _prop_shop_unavailable() -> String:
 	return "no empty sites"
 
 
+func _on_board_input(event: InputEvent, entry: Dictionary) -> void:
+	if not (event is InputEventMouseButton):
+		return
+	var mb := event as InputEventMouseButton
+	if not (mb.pressed and mb.button_index == MOUSE_BUTTON_LEFT):
+		return
+	var button: TextureButton = entry.get("_button")
+	if button and button.disabled:
+		return
+	(entry["on_pressed"] as Callable).call()
+
+
 func _build_label_board(text: String) -> Control:
 	var wrap := Control.new()
 	wrap.custom_minimum_size = BOARD_SIZE
@@ -144,6 +169,7 @@ func _build_label_board(text: String) -> Control:
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	label.autowrap_mode = TextServer.AUTOWRAP_WORD
+	label.add_theme_font_size_override("font_size", BOARD_FONT)
 	label.add_theme_color_override("font_color", Color.WHITE)
 	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	wrap.add_child(label)

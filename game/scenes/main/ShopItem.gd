@@ -28,7 +28,12 @@ const XP_ICON := preload("res://assets/hud/icon_medium_xp@2x.png")
 const STAT_Y := 152.0
 const STAT_ROW_GAP := 17.0
 const STAT_HEIGHT := 16.0
-const STAT_ICON_W := 13.0
+# 13px ICONS IN A UI SCALED WELL ABOVE THAT, and every cell packed to its own
+# left edge - so three equal-width columns held three ragged left-aligned
+# groups and the row read as misaligned rather than as a grid. The icon is
+# sized to the row now, and each cell centres its own icon-and-number so the
+# three sit under one another whatever the numbers say.
+const STAT_ICON_W := 18.0
 const STAT_FONT := 11
 
 const COIN_ICON := preload("res://assets/hud/icon_medium_coin@2x.png")
@@ -149,7 +154,8 @@ func _stat_row(y: float, cells: Array) -> void:
 		# whatever it ends up being.
 		var box := HBoxContainer.new()
 		box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		box.add_theme_constant_override("separation", 2)
+		box.alignment = BoxContainer.ALIGNMENT_CENTER
+		box.add_theme_constant_override("separation", 3)
 		box.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		row.add_child(box)
 
@@ -164,7 +170,9 @@ func _stat_row(y: float, cells: Array) -> void:
 		var l := Label.new()
 		l.add_theme_font_size_override("font_size", STAT_FONT)
 		l.text = cell[1]
-		l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		# Shrinks to its text instead of eating the cell, or centring the box
+		# would centre a full-width label and move nothing.
+		l.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 		l.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 		l.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 		l.add_theme_color_override("font_color", Color.WHITE)
