@@ -884,10 +884,23 @@ func passengers(model_key: String) -> int:
 
 # Flat per leg, like pay - it is the number on the card. map_key is accepted and
 # ignored to match payout_for.
-func fuel_cost(model_key: String, _map_key: String = "") -> int:
+# FUEL SCALES WITH THE ROUTE, which it did not - the destination was passed in
+# by every caller and thrown away, so a twelve-hour five-cloud haul burned
+# exactly what a two-minute hop did. That is why fuel could not matter: the one
+# number that varies per flight was flat.
+#
+# It also made RoutePickerPanel lie. That panel prints "Total fuel consumption"
+# against each of the five destinations and printed the same figure five times,
+# which reads as a rule about the aircraft rather than a bug.
+#
+# Linear in clouds, the same shape as the payout, so the RATIO of fuel to
+# revenue is unchanged by distance and this does not quietly re-rank routes -
+# it only stops the long ones being free.
+func fuel_cost(model_key: String, map_key: String = "") -> int:
 	if Boosts.fuel_is_free():
 		return 0
-	return int(ShopCatalog.stat(model_key, "fuel"))
+	var clouds := distance_to(map_key) if map_key != "" else 1
+	return int(ShopCatalog.stat(model_key, "fuel")) * clouds
 
 
 # What one leg pays, and it is the ORIGINAL'S OWN FORMULA:
