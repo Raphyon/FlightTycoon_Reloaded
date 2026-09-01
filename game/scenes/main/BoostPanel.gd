@@ -79,6 +79,9 @@ func _ready() -> void:
 	# A boost STARTING adds a running row, and nothing here was listening for
 	# it - the per-frame rebuild had been covering that up.
 	Boosts.boost_started.connect(func(_k: String, _s: float) -> void: _rebuild())
+	# And when one ENDS - otherwise every Use button stays greyed until the
+	# panel is closed and opened again.
+	Boosts.boost_ended.connect(func(_k: String) -> void: _rebuild())
 	visibility_changed.connect(_on_visibility_changed)
 	set_process(false)
 
@@ -210,6 +213,12 @@ func _row(y: float, icon: String, name: String, sub: String, count: int,
 	if running:
 		return detail
 
+	# GREYED, AND IT SAYS WHY. One boost runs at a time now, so every Use
+	# button is dead while anything is going - and a live-looking button that
+	# does nothing is worse than no button. The hover carries the reason; the
+	# press is refused in _use rather than by `disabled`, because a disabled
+	# TextureButton stops taking the mouse and takes its tooltip with it.
+	var blocked := Boosts.any_active()
 	var h := USE_H
 	var b := TextureButton.new()
 	b.focus_mode = Control.FOCUS_NONE
@@ -220,6 +229,9 @@ func _row(y: float, icon: String, name: String, sub: String, count: int,
 	b.size = Vector2(USE_W, h)
 	b.position = Vector2(ROW_X + ROW_W - USE_W - 10.0, y + (ROW_H - h) * 0.5)
 	b.pressed.connect(func() -> void: _use(key))
+	if blocked:
+		b.modulate = Color(0.55, 0.55, 0.55, 1.0)
+		b.tooltip_text = "Boost is already running"
 	_content.add_child(b)
 
 	var caption := _label(FONT_BUTTON, Color.WHITE, HORIZONTAL_ALIGNMENT_CENTER)
@@ -233,7 +245,7 @@ func _row(y: float, icon: String, name: String, sub: String, count: int,
 
 
 func _use(key: String) -> void:
-	if key == "":
+	if key == "" or Boosts.any_active():
 		return
 	Boosts.use(key)
 

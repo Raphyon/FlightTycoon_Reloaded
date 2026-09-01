@@ -115,19 +115,36 @@ func total_held() -> int:
 	return n
 
 
-# Using a card that is already running EXTENDS it rather than replacing it -
-# starting again would throw away whatever was left, which is the player losing
-# something for pressing a button.
+# ONE BOOST AT A TIME, AND IT CANNOT BE EXTENDED.
+#
+# This used to let a card that was already running EXTEND itself, on the
+# reasoning that replacing it would throw away whatever was left. That is true,
+# and it is still the wrong trade: it made duration a thing you pile up, so the
+# strongest play was to hold cards until you had several of a kind and burn
+# them together, and a 12-hour autoturn on top of a running one was worth more
+# than the same two cards spent apart. Nothing else in the game rewards
+# hoarding like that.
+#
+# So: refused while ANYTHING is running, of any family. A card is a decision
+# about the next half hour, not a resource to stack.
+func any_active() -> bool:
+	for family in active:
+		if float(active[family]) > GameClock.now():
+			return true
+	return false
+
+
 func use(key: String) -> bool:
 	if count(key) <= 0:
+		return false
+	if any_active():
 		return false
 	owned[key] = count(key) - 1
 	if owned[key] <= 0:
 		owned.erase(key)
 
 	var family := _family(key)
-	var from: float = maxf(GameClock.now(), float(active.get(family, 0.0)))
-	active[family] = from + float(DURATIONS[key])
+	active[family] = GameClock.now() + float(DURATIONS[key])
 	if family == "autoturn":
 		_autoturn_due = GameClock.now()
 

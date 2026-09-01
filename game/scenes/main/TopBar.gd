@@ -22,7 +22,54 @@ const TOOLTIPS := {
 }
 
 
+# THE EMPTY 97px AT THE LEFT OF THE BAR. TopBarLeft is 220x96 and its XP bar
+# and level label both start at x=97, so the whole left third of the plate was
+# blank - which is where a player expects to find themselves. Built here rather
+# than in the scene so the sizes stay next to the arithmetic that picked them:
+# the frame is scaled to fit the gap, and the portrait to fit the frame.
+const AVATAR_FRAME := preload("res://assets/player_avatar/avatar_frame@2x.png")
+const AVATAR_FACE := preload("res://assets/player_avatar/avatar1@2x.png")
+const AVATAR_ORIGIN := Vector2(5, 5)
+const AVATAR_BOX := Vector2(92, 84)
+const AVATAR_FACE_INSET := 16.0
+
+
+func _build_avatar() -> void:
+	var ui := get_parent()
+	if ui == null or ui.has_node("PlayerAvatar"):
+		return
+	var wrap := Control.new()
+	wrap.name = "PlayerAvatar"
+	wrap.position = AVATAR_ORIGIN
+	wrap.size = AVATAR_BOX
+	# Above TopBarLeft, which sits at z 100 and would otherwise cover it.
+	wrap.z_index = 101
+	wrap.mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+	var frame := TextureRect.new()
+	frame.texture = AVATAR_FRAME
+	frame.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	frame.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	frame.size = AVATAR_BOX
+	frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+	var face := TextureRect.new()
+	face.texture = AVATAR_FACE
+	face.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	face.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	var inner := AVATAR_BOX - Vector2(AVATAR_FACE_INSET, AVATAR_FACE_INSET) * 2.0
+	face.position = Vector2(AVATAR_FACE_INSET, AVATAR_FACE_INSET)
+	face.size = inner
+	face.mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+	# Face under the frame, so the frame's border reads as in front of it.
+	wrap.add_child(face)
+	wrap.add_child(frame)
+	ui.add_child(wrap)
+
+
 func _ready() -> void:
+	_build_avatar()
 	for prefix in TOOLTIPS:
 		var text: String = TOOLTIPS[prefix]
 		if prefix == "People":
