@@ -1,6 +1,8 @@
 extends Node
 
 signal fuel_changed(new_amount: int)
+# Ordered, not yet landed. The panel wants to show what is on its way.
+signal delivery_changed
 signal price_changed(new_price: int)
 # Carries the UNIT PRICE PAID as well as the size, so a quest can ask you to buy
 # cheaply or to buy in bulk - the two things the market and the batch
@@ -58,6 +60,26 @@ const BATCH_MULTIPLIER := {
 	50000: 0.90,
 }
 
+# FUEL ARRIVES, IT DOES NOT APPEAR.
+#
+# Price and burn were tried first and neither makes anybody run dry: at 41% of
+# income the bot was stopped four times in sixty days, and capping the tank at
+# 3,000 units stopped it once. Fuel bought on demand out of money that is never
+# short can be made expensive but not scarce - so the thing to take away is not
+# the money, it is the INSTANT.
+#
+# The wait scales with the batch, which keeps the discount honest: topping up
+# 50 units is a minute, backing up the truck for 50,000 is an hour. Buying big
+# is still cheaper per unit and now costs foresight instead of nothing, and the
+# hourly market finally has something to bite on - a cheap slot you cannot use
+# for an hour is a different decision from a cheap slot you can.
+const DELIVERY_SECONDS := {
+	50: 60.0,
+	500: 300.0,
+	5000: 1200.0,
+	50000: 3600.0,
+}
+
 const STARTING_AMOUNT := 60
 
 var amount: int = STARTING_AMOUNT:
@@ -96,7 +118,11 @@ func _ready() -> void:
 
 # Checked once a second rather than every frame - the thing being watched
 # changes once an hour.
+var pending: Array = []
+
+
 func _process(delta: float) -> void:
+	land_deliveries()
 	_check_timer += delta
 	if _check_timer < 1.0:
 		return
@@ -151,13 +177,66 @@ func multiplier_for(units: int) -> float:
 	return float(BATCH_MULTIPLIER.get(units, 1.0))
 
 
+func delivery_seconds(units: int) -> float:
+	return float(DELIVERY_SECONDS.get(units, 60.0))
+
+
+# Paid for now, in the tank later. fuel_bought still fires on the ORDER, because
+# that is when the player spent the money and it is what the daily tasks count.
 func buy(units: int) -> bool:
 	var cost := cost_of(units)
 	if not Economy.spend_money(cost):
 		return false
-	amount += units
+	pending.append({"units": units, "at": GameClock.now() + delivery_seconds(units)})
+	delivery_changed.emit()
 	fuel_bought.emit(units, float(cost) / maxf(1.0, float(units)))
 	return true
+
+
+# Everything whose time has come, in one pass. Driven off GameClock, so an order
+# placed before closing the game is waiting in the tank on the next launch
+# rather than starting its clock again.
+func land_deliveries() -> void:
+	if pending.is_empty():
+		return
+	var now := GameClock.now()
+	var still: Array = []
+	var landed := 0
+	for order in pending:
+		if float(order.get("at", 0.0)) <= now:
+			landed += int(order.get("units", 0))
+		else:
+			still.append(order)
+	pending = still
+	if landed > 0:
+		amount += landed
+	delivery_changed.emit()
+
+
+# Units on the way, and how long until the next lot lands.
+func pending_units() -> int:
+	var n := 0
+	for order in pending:
+		n += int(order.get("units", 0))
+	return n
+
+
+func seconds_until_delivery() -> float:
+	var best := -1.0
+	for order in pending:
+		var left: float = float(order.get("at", 0.0)) - GameClock.now()
+		if left > 0.0 and (best < 0.0 or left < best):
+			best = left
+	return maxf(best, 0.0)
+
+
+func to_save() -> Array:
+	return pending.duplicate(true)
+
+
+func load_save(data: Array) -> void:
+	pending = data.duplicate(true)
+	land_deliveries()
 
 
 # NOTE: buy_with_coins() lived here until the fuel shop's fourth tier stopped

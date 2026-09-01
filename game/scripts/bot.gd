@@ -340,9 +340,13 @@ func _skip(seconds: float) -> void:
 		return
 	GameClock.skip(seconds)
 	Fleet.advance_by(seconds)
-	# Both of these normally ride _process, which never runs here - see
-	# Quests.tick.
+	# All of these normally ride _process, which never runs here - see
+	# Quests.tick. Fuel deliveries are the same shape: they land on a clock,
+	# and without this they never land at all in a bot run, so the whole fleet
+	# starves and the measurement reads as a balance catastrophe rather than as
+	# a missing call.
 	Quests.tick()
+	FuelStore.land_deliveries()
 
 
 # The same skip, but turning aircraft round as they land instead of leaving them
@@ -616,7 +620,13 @@ func _route_for(model_key: String) -> String:
 
 
 func _buy_fuel(need: int) -> void:
-	var short: int = need - FuelStore.amount
+	# FUEL ON ORDER COUNTS AS FUEL. Deliveries land on a delay now, so the tank
+	# does not move when you pay - and a bot that reads only the tank orders the
+	# same load again on every pass. Measured before this: fuel went to 5x
+	# income and the run ended 30 levels short, which is a fact about the bot,
+	# not about the delay. A player sees the order pending on the shop; so does
+	# this now.
+	var short: int = need - FuelStore.amount - FuelStore.pending_units()
 	var budget: float = Economy.money * FUEL_SPEND_SHARE
 	_fuel_before = Economy.money
 	var tiers := [50, 500, 5000, 50000]

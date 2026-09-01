@@ -140,6 +140,7 @@ func save() -> void:
 		"money": Economy.money,
 		"coins": Coins.amount,
 		"fuel": FuelStore.amount,
+		"fuel_orders": FuelStore.to_save(),
 		"xp": Progression.xp,
 		"level": Progression.level,
 		"fleet": Fleet.to_save(),
@@ -182,6 +183,9 @@ func _load() -> void:
 	Economy.money = int(data.get("money", Economy.money))
 	Coins.amount = int(data.get("coins", Coins.amount))
 	FuelStore.amount = int(data.get("fuel", FuelStore.amount))
+	var orders: Variant = data.get("fuel_orders", null)
+	if orders is Array:
+		FuelStore.load_save(orders)
 	# Set XP without going through add_xp, or reloading would re-fire every
 	# level-up signal the player already saw.
 	Progression.xp = int(data.get("xp", 0))
