@@ -13,7 +13,7 @@ const ICON_SIZE := Vector2(155, 155)
 # Drawn this far ABOVE its slot. The wrap keeps its own height so the label
 # board does not move with it; only the art lifts, closing the gap between the
 # disc and its name.
-const ICON_LIFT := 10.0
+const ICON_LIFT := 30.0
 # 120x34 AT THE DEFAULT FONT DID NOT HOLD THE LONGEST LABEL. "Expanding
 # Airport" wraps to two lines and spilled past the board art, and the reason
 # line the Prop Shop now carries ("no empty sites") makes three. Wider, taller,
