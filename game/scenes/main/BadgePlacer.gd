@@ -12,11 +12,12 @@ extends Node2D
 #
 #   click on any pad   put the badge where you clicked, on EVERY pad
 #   arrow keys         nudge one unit, shift for ten
-#   S                  print the value to stdout, to be pasted into ApronSlot
+#   S                  print the value, for pasting into ApronSlot's fallback
 #
-# It writes nothing. The offset is one constant in ApronSlot and belongs in the
-# source next to the art it positions, not in a data file that has to be loaded
-# before a pad can draw itself.
+# EVERY CHANGE IS SAVED to data/badge_offset.json as it is made, the same way
+# the apron and cloud layouts are. It used to only print, which meant the value
+# lived in a console I could not read and vanished when the game closed - the
+# first placement survived by luck, because Godot happened to keep a log.
 # Preloaded rather than named: ApronSlot has no class_name, and adding one to
 # reach a static would mean a fresh checkout that will not parse until an editor
 # rescan has run. Same reason PanelManager is loaded by path.
@@ -77,7 +78,8 @@ func _unhandled_input(event: InputEvent) -> void:
 		var pad := _pad_at(world)
 		if pad:
 			ApronSlotScript.badge_offset = (world - pad.global_position).round()
-			print("BADGE offset %s" % ApronSlotScript.badge_offset)
+			ApronSlotScript.save_badge_offset()
+			print("BADGE offset %s (saved)" % ApronSlotScript.badge_offset)
 			_redraw_pads()
 			get_viewport().set_input_as_handled()
 		return
@@ -100,6 +102,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		_:
 			return
 	ApronSlotScript.badge_offset += delta
-	print("BADGE offset %s" % ApronSlotScript.badge_offset)
+	ApronSlotScript.save_badge_offset()
+	print("BADGE offset %s (saved)" % ApronSlotScript.badge_offset)
 	_redraw_pads()
 	get_viewport().set_input_as_handled()

@@ -41,8 +41,42 @@ const BADGE_Z_INDEX := 50
 # was invented rather than asked for.
 #
 # NOT a const: BadgePlacer moves this at runtime so the spot can be chosen on a
-# real pad, and every pad reads the same value. Paste whatever it prints here.
+# real pad, and every pad reads the same value.
+#
+# LOADED FROM data/badge_offset.json IF IT IS THERE, exactly like the apron,
+# cloud and path layouts - it is placed with an in-game tool, so it is CONTENT,
+# and content that only survives in a console log is content that gets lost. The
+# value below is the fallback for a checkout that has no file yet.
+const BADGE_PATH := "res://data/badge_offset.json"
+
 static var badge_offset := Vector2(-94.0, -2.0)
+static var _badge_loaded := false
+
+
+static func load_badge_offset() -> Vector2:
+	if _badge_loaded:
+		return badge_offset
+	_badge_loaded = true
+	if not FileAccess.file_exists(BADGE_PATH):
+		return badge_offset
+	var f := FileAccess.open(BADGE_PATH, FileAccess.READ)
+	if not f:
+		return badge_offset
+	var parsed: Variant = JSON.parse_string(f.get_as_text())
+	f.close()
+	if parsed is Dictionary and parsed.has("x") and parsed.has("y"):
+		badge_offset = Vector2(float(parsed["x"]), float(parsed["y"]))
+	return badge_offset
+
+
+static func save_badge_offset() -> void:
+	DirAccess.make_dir_recursive_absolute("res://data")
+	var f := FileAccess.open(BADGE_PATH, FileAccess.WRITE)
+	if not f:
+		push_warning("ApronSlot: could not write %s" % BADGE_PATH)
+		return
+	f.store_string(JSON.stringify({"x": badge_offset.x, "y": badge_offset.y}, "\t"))
+	f.close()
 const COLOR_FREE := Color(0.2, 0.9, 0.4, 0.25)
 const COLOR_OCCUPIED := Color(0.9, 0.5, 0.2, 0.35)
 const COLOR_HOVER := Color(1, 1, 1, 0.4)
@@ -211,7 +245,7 @@ func _ready() -> void:
 	_badge.size = bs
 	# Bottom-left corner of the pad, inset so it sits ON the apron rather than
 	# on its edge.
-	_badge.position = badge_offset - bs * 0.5
+	_badge.position = load_badge_offset() - bs * 0.5
 	_badge.visible = false
 	add_child(_badge)
 
