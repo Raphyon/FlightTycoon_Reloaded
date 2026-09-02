@@ -9,23 +9,34 @@ const LockOverlayScript := preload("res://scenes/main/LockOverlay.gd")
 const BOARD_TEXTURE := preload("res://assets/board/board_store@2x.png")
 # 100 WAS SMALL AGAINST EVERYTHING AROUND IT - the board under it is 132 wide
 # and the panel is built at shop scale.
-const ICON_SIZE := Vector2(155, 155)
-# HOW FAR UP THE WHOLE GRID SITS - icons and their name boards together, their
-# spacing to each other untouched.
+# 145, NOT 155. The brown band is 468 units tall at the real viewport and the
+# block has to live inside it: title 34 + gap 12 + two rows of (icon + 4 + 48
+# board) + 20 between them. Solve it and the icon cannot exceed 149. 155 put the
+# bottom row's boards on the blue floor of the panel.
+const ICON_SIZE := Vector2(145, 145)
+
+# WHERE THE BROWN IS, as a fraction of the background texture (measured: the
+# band runs y168..584 of bigplane2@ipad.png, which is 1024x768).
 #
-# Three earlier goes were all wrong, and all for the same reason: each treated
-# the lift as a thing to do to the ICON, so the board either stayed behind
-# (gap), or followed by having its cell shortened (rows closed up and the row
-# below climbed into the boards above), or followed by negative separation
-# (board drawn 50px INSIDE the icon). Measured, that last one put board 0 at
-# y435 against an icon spanning y330-485.
+# Computed against the LIVE viewport rather than written down as a y, because
+# the panel is not a fixed height: stretch aspect is "expand", so the viewport
+# is 1152 x whatever the display's aspect gives - 720 on this machine, other
+# numbers elsewhere - and the background is KEEP_ASPECT_COVERED on top of that.
+# A hard-coded offset would be right on exactly one screen.
+const BROWN_TOP_FRAC := 168.0 / 768.0
+const BROWN_BOTTOM_FRAC := 584.0 / 768.0
+const BG_SIZE := Vector2(1024, 768)
+# THERE IS NO LIFT CONSTANT ANY MORE, and four attempts at one is why. Each
+# treated "move the icons up" as something to do TO the icon: offsetting the art
+# left the board behind and opened a gap; shortening the cell brought the board
+# but took the height out of the ROW, so the grid closed up and the row below
+# climbed into the boards above; negative separation drew the board 50px inside
+# the icon. Every one of those was a guess at a layout nobody had looked at.
 #
-# It is not a change to a cell at all. The cells are correct; the grid simply
-# sits too low in the panel. So the panel's top margin comes off, which moves
-# icons and boards together and leaves every internal measurement alone.
-const ICON_LIFT := 50.0
-# What the scene sets on Frame/SafeArea/Margin.
-const MARGIN_TOP := 8
+# The cells were right the whole time. The block was simply parked at the bottom
+# of the panel - 225px of empty brown above it, 1px below - because the grid
+# expanded to fill and its centre-aligned cells sank inside rows taller than
+# they needed. It is a placement problem, and placement is one flag.
 # 120x34 AT THE DEFAULT FONT DID NOT HOLD THE LONGEST LABEL. "Expanding
 # Airport" wraps to two lines and spilled past the board art, and the reason
 # line the Prop Shop now carries ("no empty sites") makes three. Wider, taller,
@@ -55,9 +66,17 @@ func _ready() -> void:
 		{"icon": "button_store09@2x.png", "label": "Prop Shop", "on_pressed": _open_prop_shop,
 			"why_not": _prop_shop_unavailable},
 	]
-	# The whole block up, spacing inside it untouched.
-	var margin := $Frame/SafeArea/Margin
-	margin.add_theme_constant_override("margin_top", MARGIN_TOP - int(ICON_LIFT))
+	# CENTRED IN THE BROWN, not pinned to the bottom of it. The grid was set to
+	# expand vertically, so it took all the leftover height and handed it to the
+	# rows - and each cell, being centre-aligned, pushed its own content down
+	# inside a row taller than it needed. Measured on screen: 225px of empty
+	# panel above the icons and 1px below the last board.
+	#
+	# Shrink to the content and centre what is left, so the block sits in the
+	# middle of the space between the title and the close button and no magic
+	# offset is involved.
+	_grid.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	_fit_to_brown()
 	for entry in _categories:
 		_grid.add_child(_build_category_button(entry))
 	_refresh_availability()
@@ -71,6 +90,7 @@ func _ready() -> void:
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_VISIBILITY_CHANGED and visible:
 		call_deferred("_fit_content")
+		call_deferred("_fit_to_brown")
 		_refresh_availability()
 
 
@@ -169,6 +189,26 @@ func _prop_shop_unavailable() -> String:
 		if not BuildingProgress.is_built(int(plot.get("id", 0))):
 			return ""
 	return "no empty sites"
+
+
+# Put the block inside the brown, wherever the brown has ended up.
+func _fit_to_brown() -> void:
+	var view := get_viewport_rect().size
+	# KEEP_ASPECT_COVERED: the texture is scaled by whichever axis needs more,
+	# then centred - so the vertical mapping is scale and offset, not a ratio.
+	var scale: float = maxf(view.x / BG_SIZE.x, view.y / BG_SIZE.y)
+	var offset: float = (view.y - BG_SIZE.y * scale) * 0.5
+	var top: float = BROWN_TOP_FRAC * BG_SIZE.y * scale + offset
+	var bottom: float = BROWN_BOTTOM_FRAC * BG_SIZE.y * scale + offset
+
+	var safe: Control = $Frame/SafeArea
+	var margin: MarginContainer = $Frame/SafeArea/Margin
+	var vbox: Control = $Frame/SafeArea/Margin/VBox
+	var content: float = vbox.get_combined_minimum_size().y
+	# Centred in the band, and never above its top edge.
+	var want: float = maxf(top, top + (bottom - top - content) * 0.5)
+	margin.add_theme_constant_override("margin_top",
+		int(round(want - safe.get_global_rect().position.y)))
 
 
 func _on_board_input(event: InputEvent, entry: Dictionary) -> void:
