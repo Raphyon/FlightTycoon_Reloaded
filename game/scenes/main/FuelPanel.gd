@@ -24,8 +24,11 @@ extends PanelContainer
 const MONEY_ICON := preload("res://assets/hud/icon_medium_money1@2x.png")
 
 const QUANTITIES := [50, 500, 5000, 50000]
+const DELIVERY_FONT := 15
+const DELIVERY_COLOR := Color(1.0, 0.86, 0.5, 1.0)
 
 
+var _delivery: Label
 @onready var _grid: GridContainer = $Frame/SafeArea/Margin/VBox/Row/Grid
 @onready var _close_button: Button = $Frame/SafeArea/Margin/VBox/CloseButton
 @onready var _option_nodes: Dictionary = {
@@ -43,6 +46,18 @@ func _ready() -> void:
 	# The reference uses a bottom-right arrow, not a full-width bar.
 	_close_button.visible = false
 	BackButton.add_to($Frame, hide)
+	# WHAT YOU HAVE ALREADY PAID FOR. Fuel lands on a delay now, so without this
+	# the tank does not move when you buy and there is nothing on screen saying
+	# why - which reads as the purchase having failed.
+	_delivery = Label.new()
+	_delivery.add_theme_font_size_override("font_size", DELIVERY_FONT)
+	_delivery.add_theme_color_override("font_color", DELIVERY_COLOR)
+	_delivery.add_theme_color_override("font_outline_color", Color(0.16, 0.09, 0.03, 1))
+	_delivery.add_theme_constant_override("outline_size", 4)
+	_delivery.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_delivery.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	$Frame/SafeArea/Margin/VBox.add_child(_delivery)
+	FuelStore.delivery_changed.connect(_refresh)
 	FuelStore.price_changed.connect(_refresh)
 	FuelStore.fuel_changed.connect(_refresh)
 	Economy.money_changed.connect(_refresh)
@@ -83,7 +98,30 @@ func _fit_content() -> void:
 	vbox.scale = Vector2(s, s)
 
 
+# The countdown has to tick, and nothing else on this panel changes per second.
+func _process(_delta: float) -> void:
+	if visible and is_instance_valid(_delivery):
+		_update_delivery()
+
+
+func _update_delivery() -> void:
+	var units := FuelStore.pending_units()
+	if units <= 0:
+		_delivery.text = ""
+		return
+	_delivery.text = "%s units on the way - arriving in %s" % [
+		FloatingText.grouped(units), _mmss(FuelStore.seconds_until_delivery())]
+
+
+func _mmss(seconds: float) -> String:
+	var t := int(ceil(maxf(seconds, 0.0)))
+	if t >= 3600:
+		return "%dh %02dm" % [t / 3600, (t % 3600) / 60]
+	return "%d:%02d" % [t / 60, t % 60]
+
+
 func _refresh(_unused = null) -> void:
+	_update_delivery()
 	for qty in QUANTITIES:
 		var cost: int = FuelStore.cost_of(qty)
 		_options[qty].set_price_text("%d" % cost)

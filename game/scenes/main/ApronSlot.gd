@@ -14,7 +14,18 @@ const BADGE_FREE := preload("res://assets/aprons/pad_free@2x.png")
 const BADGE_MINE := preload("res://assets/aprons/pad_mine@2x.png")
 const BADGE_FRIEND := preload("res://assets/aprons/pad_friend@2x.png")
 const BADGE_SCALE := 1.5
-const BADGE_INSET := Vector2(8.0, 8.0)
+# THE PAD IS A DIAMOND, NOT A RECTANGLE. SIZE is its 220x110 bounding box, and
+# the badge was placed at the bottom-left of THAT - which on an isometric tile
+# is empty space well off the paint. Measured from the art: the top and bottom
+# rows are a 2px sliver at the centre and only the middle row spans the full
+# width, so the corners are at left(-110,0) top(0,-55) right(110,0)
+# bottom(0,55).
+#
+# This is the badge's CENTRE, on the lower-left edge that runs from the left
+# corner to the bottom corner, pulled inside it far enough to sit on paint:
+# |x|/110 + |y|/55 = 0.93, just within the diamond. Nudge this one Vector2 to
+# move it along that edge.
+const BADGE_CENTRE := Vector2(-62.0, 20.0)
 const COLOR_FREE := Color(0.2, 0.9, 0.4, 0.25)
 const COLOR_OCCUPIED := Color(0.9, 0.5, 0.2, 0.35)
 const COLOR_HOVER := Color(1, 1, 1, 0.4)
@@ -179,7 +190,7 @@ func _ready() -> void:
 	_badge.size = bs
 	# Bottom-left corner of the pad, inset so it sits ON the apron rather than
 	# on its edge.
-	_badge.position = Vector2(-hw + BADGE_INSET.x, hh - bs.y - BADGE_INSET.y)
+	_badge.position = BADGE_CENTRE - bs * 0.5
 	_badge.visible = false
 	add_child(_badge)
 

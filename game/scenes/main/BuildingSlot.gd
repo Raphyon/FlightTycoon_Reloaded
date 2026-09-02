@@ -175,7 +175,8 @@ func refresh() -> void:
 	# dark building is the more urgent of the two - rent keeps waiting whether
 	# or not it is collected now, and relighting immediately hands the cash
 	# bubble back if rent was ready. Two taps, two rewards, in that order.
-	var dark := not empty and BuildingProgress.is_dark(plot_id)
+	# The OFFER, not merely being dark - a lapsed one shows no bubble.
+	var dark := not empty and BuildingProgress.lights_offer_open(plot_id)
 	_sprite.modulate = DARK_MODULATE if dark else Color.WHITE
 
 	# Cone on an empty site, cash on one with rent waiting, nothing while a
@@ -281,7 +282,7 @@ func set_pickable(on: bool) -> void:
 # it opens the Prop Shop, and there is nothing being done to watch.
 func _claim() -> void:
 	# Same order the bubble is drawn in: the lights come first.
-	if BuildingProgress.is_built(plot_id) and BuildingProgress.is_dark(plot_id):
+	if BuildingProgress.is_built(plot_id) and BuildingProgress.lights_offer_open(plot_id):
 		_bubble.visible = false
 		_shape.disabled = true
 		_swoop.visible = true
@@ -296,8 +297,13 @@ func _claim() -> void:
 	_bubble.visible = false
 	_shape.disabled = true
 	_swoop.visible = true
+	# ONE TAP TAKES THE WHOLE AIRPORT'S RENT. Collecting was a lap of the board
+	# - 42 plots, each its own tap on a site you had to find first - and the
+	# collecting had outgrown the deciding. Lights are deliberately NOT included:
+	# they are a thing you catch, and sweeping them from a rent tap would remove
+	# the only reason to look at the board.
 	_swoop.run(SWOOP_EARNING, "Claiming",
-		func() -> void: BuildingProgress.collect_rent(plot_id))
+		func() -> void: BuildingProgress.collect_all())
 
 
 func _on_input_event(_viewport: Node, event: InputEvent, _shape_idx: int) -> void:

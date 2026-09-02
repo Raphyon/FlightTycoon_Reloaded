@@ -38,6 +38,10 @@ func _process(delta: float) -> void:
 	if _tick < TICK_SECONDS:
 		return
 	_tick = 0.0
+	# Dark is computed from a clock, so there is no moment to hang an event on -
+	# the lapse has to be swept for, and this tick is already the thing that
+	# notices lights changing.
+	BuildingProgress.expire_light_offers()
 	_refresh_all()
 
 

@@ -177,7 +177,14 @@ func _stat_row(y: float, cells: Array) -> void:
 		ic.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		ic.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 		ic.texture = cell[0]
-		ic.custom_minimum_size = Vector2(STAT_ICON_W, STAT_HEIGHT)
+		# A SQUARE SLOT, EQUAL FOR ALL THREE. The source icons run from 0.62
+		# aspect (stat_force, 16x26 portrait) to 1.55 (icon_medium_xp, 51x33
+		# landscape), so KEEP_ASPECT_CENTERED drew them anywhere from 10px to
+		# 18px wide inside a 18x16 box - three different footprints in what is
+		# meant to read as one row. Equal square slots give them a common
+		# anchor; making them look like a matched SET needs the art normalised,
+		# which no layout here can do.
+		ic.custom_minimum_size = Vector2(STAT_ICON_W, STAT_ICON_W)
 		ic.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		box.add_child(ic)
 

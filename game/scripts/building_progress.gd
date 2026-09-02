@@ -650,6 +650,67 @@ func lights_xp(plot_id: int, map_key: String = "") -> int:
 
 # Switch them back on. Pays cash and XP, and restarts the lit clock - it does
 # NOT touch "since", so relighting neither grants nor delays a rent cycle.
+# THE RELIGHT BUBBLE IS AN OFFER WITH A DEADLINE.
+#
+# A dark building used to stay dark, and its bubble stayed up, until somebody
+# tapped it - so an airport left alone accumulated bubbles until the board was
+# more prompt than airport. It is a thing to catch now: miss the window and the
+# lights come back on by themselves, with nobody paid for it.
+#
+# The window is derived from the plot id rather than stored, so it varies
+# building to building without a new save field and without a roll that has to
+# survive a reload.
+const LIGHTS_OFFER_MIN := 30.0
+const LIGHTS_OFFER_MAX := 60.0
+
+
+func lights_offer_seconds(plot_id: int) -> float:
+	var span := int(LIGHTS_OFFER_MAX - LIGHTS_OFFER_MIN) + 1
+	return LIGHTS_OFFER_MIN + float((plot_id * 7919) % span)
+
+
+# How long this plot has been sitting dark. 0 when it is not.
+func dark_seconds(plot_id: int, map_key: String = "") -> float:
+	if not is_dark(plot_id, map_key):
+		return 0.0
+	return maxf(0.0, GameClock.now()
+		- (lit_since(plot_id, map_key) + lit_seconds(plot_id, map_key)))
+
+
+# Dark AND still within the window - which is what the bubble should follow.
+func lights_offer_open(plot_id: int, map_key: String = "") -> bool:
+	return is_dark(plot_id, map_key) \
+		and dark_seconds(plot_id, map_key) <= lights_offer_seconds(plot_id)
+
+
+# Put the lights back on where the offer lapsed, paying nothing. Swept rather
+# than fired on a timer per plot: dark is computed from a clock, so there is no
+# moment to hang an event on.
+func expire_light_offers(map_key: String = "") -> int:
+	var mk := map_key if map_key != "" else Maps.current
+	var expired := 0
+	for id_str in _map(mk):
+		var id := int(id_str)
+		if is_dark(id, mk) and not lights_offer_open(id, mk):
+			_reset_lights(id, mk)
+			expired += 1
+	if expired > 0:
+		_save()
+		lights_changed.emit(-1)
+	return expired
+
+
+# The clock half of relight(), without the money. Shared so a lapsed offer and
+# a claimed one leave the plot in exactly the same state.
+func _reset_lights(plot_id: int, map_key: String) -> void:
+	var m := _map(map_key)
+	var rec: Dictionary = m.get(str(plot_id), {})
+	rec["lit_since"] = GameClock.now()
+	rec["lit_for"] = _roll_lit_seconds()
+	m[str(plot_id)] = rec
+	built[map_key] = m
+
+
 func relight(plot_id: int, map_key: String = "") -> int:
 	if not is_dark(plot_id, map_key):
 		return 0

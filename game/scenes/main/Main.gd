@@ -4,28 +4,6 @@ extends Node2D
 var _panels: Node
 
 
-# Built here rather than in the scene so it lands before PanelManager attaches
-# and gets watched like the other floating chrome. Sits directly above
-# BoostButton, which is anchored bottom-right at -136,-190 with a 52px box.
-func _build_collect_all() -> void:
-	if $UI.has_node("CollectAllButton"):
-		return
-	var node := Control.new()
-	node.name = "CollectAllButton"
-	node.set_script(load("res://scenes/main/CollectAllButton.gd"))
-	node.anchor_left = 1.0
-	node.anchor_top = 1.0
-	node.anchor_right = 1.0
-	node.anchor_bottom = 1.0
-	node.grow_horizontal = Control.GROW_DIRECTION_BEGIN
-	node.grow_vertical = Control.GROW_DIRECTION_BEGIN
-	node.offset_left = -136.0
-	node.offset_top = -252.0
-	node.offset_right = -84.0
-	node.offset_bottom = -200.0
-	$UI.add_child(node)
-
-
 func _ready() -> void:
 	print("ft-proto booted")
 	# The shop shows ENTRIES in array order, so an entry in the wrong slot is a
@@ -43,7 +21,6 @@ func _ready() -> void:
 	# after an editor rescan, so a fresh checkout parses Main before the global
 	# exists and dies with "Identifier PanelManager not declared" - which is a
 	# clone that does not boot, for a convenience worth nothing here.
-	_build_collect_all()
 	_panels = load("res://scenes/main/PanelManager.gd").attach($UI)
 	Maps.map_changed.connect(_on_map_changed)
 	DebugState.flags_changed.connect(_apply_ui_visibility)
