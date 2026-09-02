@@ -10,9 +10,10 @@ const BOARD_TEXTURE := preload("res://assets/board/board_store@2x.png")
 # 100 WAS SMALL AGAINST EVERYTHING AROUND IT - the board under it is 132 wide
 # and the panel is built at shop scale.
 const ICON_SIZE := Vector2(155, 155)
-# Drawn this far ABOVE its slot. The wrap keeps its own height so the label
-# board does not move with it; only the art lifts, closing the gap between the
-# disc and its name.
+# Drawn this far ABOVE its slot, AND the slot gives back the same height - so
+# the label board rides up with the art instead of staying put. Lifting the
+# icon alone only opened a gap between the disc and its name, which is the
+# opposite of the point.
 const ICON_LIFT := 100.0
 # 120x34 AT THE DEFAULT FONT DID NOT HOLD THE LONGEST LABEL. "Expanding
 # Airport" wraps to two lines and spilled past the board art, and the reason
@@ -78,7 +79,11 @@ func _build_category_button(entry: Dictionary) -> Control:
 	vbox.alignment = BoxContainer.ALIGNMENT_CENTER
 
 	var icon_wrap := Control.new()
-	icon_wrap.custom_minimum_size = ICON_SIZE
+	# Shorter than the icon by exactly the lift: the art is drawn at -LIFT and
+	# the wrap gives that height back, so the board and everything under it
+	# move up with it.
+	icon_wrap.custom_minimum_size = Vector2(ICON_SIZE.x,
+		maxf(0.0, ICON_SIZE.y - ICON_LIFT))
 	# THIS IS WHY THEY SAT LEFT. A VBoxContainer STRETCHES its children to the
 	# column width, so this wrap became as wide as the label board under it -
 	# while the button inside stayed at (0,0) at its own size, pinned to the
