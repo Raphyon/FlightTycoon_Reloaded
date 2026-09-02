@@ -8,9 +8,12 @@ extends PanelContainer
 const LockOverlayScript := preload("res://scenes/main/LockOverlay.gd")
 const BOARD_TEXTURE := preload("res://assets/board/board_store@2x.png")
 # 100 WAS SMALL AGAINST EVERYTHING AROUND IT - the board under it is 132 wide
-# and the panel is built at shop scale. 124 fills the column without crowding
-# the label.
-const ICON_SIZE := Vector2(124, 124)
+# and the panel is built at shop scale.
+const ICON_SIZE := Vector2(155, 155)
+# Drawn this far ABOVE its slot. The wrap keeps its own height so the label
+# board does not move with it; only the art lifts, closing the gap between the
+# disc and its name.
+const ICON_LIFT := 10.0
 # 120x34 AT THE DEFAULT FONT DID NOT HOLD THE LONGEST LABEL. "Expanding
 # Airport" wraps to two lines and spilled past the board art, and the reason
 # line the Prop Shop now carries ("no empty sites") makes three. Wider, taller,
@@ -90,6 +93,8 @@ func _build_category_button(entry: Dictionary) -> Control:
 	button.ignore_texture_size = true
 	button.stretch_mode = TextureButton.STRETCH_KEEP_ASPECT_CENTERED
 	button.custom_minimum_size = ICON_SIZE
+	button.size = ICON_SIZE
+	button.position = Vector2(0.0, -ICON_LIFT)
 	var enabled: bool = entry.has("on_pressed")
 	button.disabled = not enabled
 	if enabled:
@@ -105,6 +110,8 @@ func _build_category_button(entry: Dictionary) -> Control:
 		lock.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		lock.custom_minimum_size = ICON_SIZE
 		lock.size = ICON_SIZE
+		# Follows the icon, or the padlock floats below the thing it locks.
+		lock.position = Vector2(0.0, -ICON_LIFT)
 		icon_wrap.add_child(lock)
 
 	vbox.add_child(icon_wrap)
