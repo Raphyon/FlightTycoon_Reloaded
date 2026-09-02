@@ -140,6 +140,9 @@ var _run_all_label: Label
 var _result_label: Label
 # aircraft id -> seconds elapsed on its swoop.
 var _swoops := {}
+# aircraft id -> the bubble showing it, so the bar can be advanced without
+# rebuilding the row sixty times a second.
+var _swoop_nodes := {}
 var _result_timer := 0.0
 
 
@@ -478,6 +481,9 @@ func _destination_text(a: FleetAircraft) -> String:
 func _refresh() -> void:
 	for child in _grid.get_children():
 		child.queue_free()
+	# The bubbles belonged to those rows. Cleared here rather than checked for
+	# validity later, so a stale entry cannot outlive the row it came from.
+	_swoop_nodes.clear()
 
 	var routes := _routes()
 	for a in routes:
@@ -527,6 +533,7 @@ func _build_row(a: FleetAircraft) -> Control:
 			(ROW_SIZE.y - SWOOP_SIZE.y) * 0.5)
 		var fuelling: bool = FUEL_STATES.has(a.state)
 		row.add_child(swoop)
+		_swoop_nodes[a.id] = swoop
 		# DEFERRED, and adding it to the row first is not enough. show_status
 		# writes to nodes ProgressBubble builds in its own _ready, and _ready
 		# does not run when a node is parented - it runs when it enters the
@@ -615,6 +622,14 @@ func _tick_swoops(delta: float) -> void:
 	var done: Array = []
 	for id in _swoops:
 		_swoops[id] = float(_swoops[id]) + delta
+		# THE BAR HAS TO BE PUSHED. show_status paints a fill and stops - it is
+		# the static display the pads use for a countdown, not the animating
+		# one - so without this the bubble appeared at zero, sat there for two
+		# seconds and vanished. On screen that is a button disappearing and
+		# nothing happening.
+		var node = _swoop_nodes.get(id)
+		if is_instance_valid(node):
+			node.set_fill(minf(1.0, float(_swoops[id]) / SWOOP_SECONDS))
 		if float(_swoops[id]) >= SWOOP_SECONDS:
 			done.append(id)
 	for id in done:
