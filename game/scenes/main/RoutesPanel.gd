@@ -9,7 +9,6 @@ extends PanelContainer
 # airport - so without this you'd have to fly over, claim, refuel, and come
 # back for every aircraft. Here the whole loop is driveable from home.
 const ROW_BOARD := preload("res://assets/board/board_aircraft_list@2x.png")
-const ACTION_TEXTURE := preload("res://assets/buttons/button_orange2@2x.png")
 # The wide variant, for the one button whose label doesn't fit the short one.
 const WIDE_ACTION_TEXTURE := preload("res://assets/buttons/button_orange4@2x.png")
 const COUNT_BOARD_TEXTURE := preload("res://assets/board/board_airline4@2x.png")
@@ -31,7 +30,15 @@ const ICON_SIZE := Vector2(44, 44)
 # The row was 62 tall. It is 52 now, along with everything sized off it, to fit
 # more of the fleet on screen at once - a 62px row put six lines in the scroll
 # area at a point in the game where the fleet is sixty aircraft.
-const ACTION_SIZE := Vector2(112, 26)
+# THE VISIBLE BUTTON IS NOT THIS WIDE. The art is drawn KEEP_ASPECT_CENTERED,
+# so it fits by the SHORT side and the rest of the box is empty: the narrow art
+# (136x62) at 26 high painted 57px of button inside a 112px rect, which is why a
+# nine-character caption spilled out of a button that looked twice wide enough.
+#
+# The wide art at 30 high paints 93px, and "Turn around" measures 73 at font 12
+# - so it fits with ten pixels either side, which is the whole reason for both
+# numbers. The row has 148px between COL_ACTION and its right edge.
+const ACTION_SIZE := Vector2(130, 30)
 const ACTION_FONT := 12
 # Column x positions inside a row.
 const COL_ICON := 10.0
@@ -116,12 +123,12 @@ const SORTS := [
 # purpose: an aircraft in the air has nothing you can do for it.
 const ACTIONS := {
 	FleetAircraft.State.PARKED: "Depart",
-	FleetAircraft.State.AWAITING_DEST_CLAIM: "Collect",
-	# "Send home" overflowed the 112px button - every other caption here is one
-	# short verb and this was two words. "Return" says the same thing, matches
-	# the shape of Depart / Collect / Refuel, and fits.
+	FleetAircraft.State.AWAITING_DEST_CLAIM: "Turn around",
+	# "Send home" was the caption that exposed the sizing above - it overflowed
+	# a button that measured 112 and painted 57. "Return" says the same thing
+	# and is shorter, and is kept now the button is wide enough for either.
 	FleetAircraft.State.AWAITING_DEST_REFUEL: "Return",
-	FleetAircraft.State.AWAITING_HOME_CLAIM: "Collect",
+	FleetAircraft.State.AWAITING_HOME_CLAIM: "Turn around",
 	FleetAircraft.State.AWAITING_HOME_REFUEL: "Refuel",
 }
 
@@ -555,7 +562,7 @@ func _build_row(a: FleetAircraft) -> Control:
 	var action := TextureButton.new()
 	action.ignore_texture_size = true
 	action.stretch_mode = TextureButton.STRETCH_KEEP_ASPECT_CENTERED
-	action.texture_normal = ACTION_TEXTURE
+	action.texture_normal = WIDE_ACTION_TEXTURE
 	action.custom_minimum_size = ACTION_SIZE
 	action.position = Vector2(COL_ACTION, (ROW_SIZE.y - ACTION_SIZE.y) * 0.5)
 	action.size = ACTION_SIZE
