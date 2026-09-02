@@ -7,7 +7,10 @@ extends PanelContainer
 # not build-per-category screens we haven't designed yet.
 const LockOverlayScript := preload("res://scenes/main/LockOverlay.gd")
 const BOARD_TEXTURE := preload("res://assets/board/board_store@2x.png")
-const ICON_SIZE := Vector2(100, 100)
+# 100 WAS SMALL AGAINST EVERYTHING AROUND IT - the board under it is 132 wide
+# and the panel is built at shop scale. 124 fills the column without crowding
+# the label.
+const ICON_SIZE := Vector2(124, 124)
 # 120x34 AT THE DEFAULT FONT DID NOT HOLD THE LONGEST LABEL. "Expanding
 # Airport" wraps to two lines and spilled past the board art, and the reason
 # line the Prop Shop now carries ("no empty sites") makes three. Wider, taller,
@@ -73,6 +76,14 @@ func _build_category_button(entry: Dictionary) -> Control:
 
 	var icon_wrap := Control.new()
 	icon_wrap.custom_minimum_size = ICON_SIZE
+	# THIS IS WHY THEY SAT LEFT. A VBoxContainer STRETCHES its children to the
+	# column width, so this wrap became as wide as the label board under it -
+	# while the button inside stayed at (0,0) at its own size, pinned to the
+	# left edge with the slack piling up on the right. Nothing centred it
+	# because nothing was laying it out. Shrink to the icon and centre the
+	# whole wrap instead, so the icon and the board share a centre line
+	# whatever either is sized to.
+	icon_wrap.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 
 	var button := TextureButton.new()
 	button.texture_normal = load("res://assets/buttons/%s" % entry["icon"])

@@ -39,6 +39,33 @@ const COL_TYPE := 84.0
 const COL_DEST := 330.0
 const COL_TIME := 560.0
 const COL_ACTION := 752.0
+
+# THE SAME TWO SECONDS THE APRONS SPEND. Collecting from this list was instant
+# while the identical action on a pad played a swoop - so the fast way to run an
+# airport was to stop looking at it, which is the opposite of what the swoop
+# exists for (see ProgressBubble: an airport should be seen WORKING, not only
+# finishing).
+#
+# THE PROGRESS LIVES IN THE PANEL, NOT THE ROW. _refresh frees and rebuilds
+# every row, and it runs on fleet_changed - which fires whenever any aircraft
+# anywhere lands, claims or departs. A bubble parented to a row would be
+# destroyed part-filled by an unrelated aircraft touching down, which is
+# precisely the bug ApronLayer documents. Keyed by aircraft id here, so a
+# rebuild redraws it at the fill it had reached.
+const SWOOP_EARN_TEXTURE := preload("res://assets/bubbles/earning_bubble@2x.png")
+const SWOOP_FUEL_TEXTURE := preload("res://assets/bubbles/fueling_bubble@2x.png")
+const SWOOP_SECONDS := 2.0
+const SWOOP_SIZE := Vector2(96, 58)
+# Verbs, the same two the pads use.
+const SWOOP_EARN_TEXT := "Claiming"
+const SWOOP_FUEL_TEXT := "Refueling"
+
+# Which actions are refuelling, for the bubble art and the bar colour.
+const FUEL_STATES := [
+	FleetAircraft.State.PARKED,
+	FleetAircraft.State.AWAITING_DEST_REFUEL,
+	FleetAircraft.State.AWAITING_HOME_REFUEL,
+]
 const ROW_FONT := 15
 
 # The bulk control. A round trip is five presses per aircraft, so a fleet of
@@ -111,6 +138,8 @@ var _sort_buttons: Dictionary = {}
 var _run_all: TextureButton
 var _run_all_label: Label
 var _result_label: Label
+# aircraft id -> seconds elapsed on its swoop.
+var _swoops := {}
 var _result_timer := 0.0
 
 
@@ -143,6 +172,10 @@ func _on_fleet_changed(_unused = null) -> void:
 # Times tick down every frame, so the rows would go stale sitting open. Only
 # the labels are rewritten - rebuilding the rows would fight the buttons.
 func _process(delta: float) -> void:
+	# Swoops run even while the panel is closed: an action already paid for
+	# should not be cancelled by looking away, and _refresh is guarded on
+	# visible anyway.
+	_tick_swoops(delta)
 	if not visible:
 		return
 	if _result_timer > 0.0:
@@ -487,6 +520,19 @@ func _build_row(a: FleetAircraft) -> Control:
 	# TextureRects need expand_mode first: otherwise the button's minimum size
 	# is its texture's, `size` clamps up to it, and the label - sized to what we
 	# asked for - ends up off-centre inside a button that grew.
+	if _swoops.has(a.id):
+		var swoop := ProgressBubble.new()
+		swoop.size = SWOOP_SIZE
+		swoop.position = Vector2(COL_ACTION + (ACTION_SIZE.x - SWOOP_SIZE.x) * 0.5,
+			(ROW_SIZE.y - SWOOP_SIZE.y) * 0.5)
+		var fuelling: bool = FUEL_STATES.has(a.state)
+		swoop.show_status(
+			SWOOP_FUEL_TEXTURE if fuelling else SWOOP_EARN_TEXTURE,
+			SWOOP_FUEL_TEXT if fuelling else SWOOP_EARN_TEXT,
+			float(_swoops[a.id]) / SWOOP_SECONDS, fuelling)
+		row.add_child(swoop)
+		return row
+
 	var action := TextureButton.new()
 	action.ignore_texture_size = true
 	action.stretch_mode = TextureButton.STRETCH_KEEP_ASPECT_CENTERED
@@ -549,7 +595,27 @@ func _cell(text: String, x: float, width: float, align: int) -> Label:
 # The one button. Which call it makes depends only on where the aircraft is in
 # its trip, so the player never has to know the difference.
 func _on_action(aircraft_id: int) -> void:
-	Fleet.advance(aircraft_id)
+	if _swoops.has(aircraft_id):
+		return
+	_swoops[aircraft_id] = 0.0
+	_refresh()
+
+
+# Advance every running swoop, and fire the ones that finish. Deliberately not
+# blocking: like the pads, you can start one on every row and let them all run.
+func _tick_swoops(delta: float) -> void:
+	if _swoops.is_empty():
+		return
+	var done: Array = []
+	for id in _swoops:
+		_swoops[id] = float(_swoops[id]) + delta
+		if float(_swoops[id]) >= SWOOP_SECONDS:
+			done.append(id)
+	for id in done:
+		_swoops.erase(id)
+		Fleet.advance(int(id))
+	if not done.is_empty():
+		_refresh()
 
 
 func _on_run_all_pressed() -> void:
