@@ -17,7 +17,7 @@ func _build_badge_placer() -> void:
 
 
 func _ready() -> void:
-	print("ft-proto booted")
+	print("Flight Tycoon Reloaded booted")
 	# The shop shows ENTRIES in array order, so an entry in the wrong slot is a
 	# silent bug - see ShopCatalog.order_problems. Shouted at boot rather than
 	# left for somebody to spot the prices going backwards.

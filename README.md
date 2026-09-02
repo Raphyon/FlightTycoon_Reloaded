@@ -1,4 +1,4 @@
-# ft-proto
+# Flight Tycoon Reloaded
 
 Isometric airport tycoon prototype. Private, local-only.
 
@@ -11,10 +11,10 @@ stripped or swapped in one move. Nothing here ships.
 Builds are attached to GitHub Releases rather than committed - a 130 MB exe is
 over GitHub's 100 MB per-file limit, and a binary that changes every session
 would add its full size to history on every rebuild. Assets are named for the
-commit they were built from (`ft-proto-win-4ad930e.zip`), which is the same
+commit they were built from (`FlightTycoon-Reloaded-win-4ad930e.zip`), which is the same
 string the save reports back in its `build` field.
 
-**Windows 10 or later.** Unzip anywhere and run `ft-proto.exe`. There is no
+**Windows 10 or later.** Unzip anywhere and run `FlightTycoon_Reloaded.exe`. There is no
 installer and nothing else to fetch - the pack is embedded in the executable.
 
 Windows will say **"Windows protected your PC"**. The binary is unsigned, so
@@ -36,6 +36,12 @@ force a fresh start:
 |---|---|
 | Windows | `%APPDATA%\Godot\app_userdata\ft-proto\save` |
 | macOS | `~/Library/Application Support/Godot/app_userdata/ft-proto/save` |
+
+**Still `ft-proto`, and deliberately.** Godot derives that folder from
+`config/name` in project.godot, so renaming the project to match the repo would
+point the game at an empty directory and every existing save - yours and every
+tester's - would still be on disk with nothing reading it. The internal name is
+not worth a migration; it is seen here and nowhere else.
 
 Seven JSON files. To collect a playthrough, zip the whole `save` folder - the
 fleet is in `player.json` but zones, pads, buildings and airframe mastery are in
