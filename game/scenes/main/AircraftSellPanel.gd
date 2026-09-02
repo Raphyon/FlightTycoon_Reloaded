@@ -262,15 +262,24 @@ func _note() -> void:
 	note.text = "Half the purchase price. Sells one that is home."
 
 
-# EVERYTHING SELLING THROWS AWAY, said before it happens rather than after.
-# Affinity is 405 legs at level 10 and the resale is a flat half of the
-# catalogue price whatever the level, and an aircraft that has landed but not
-# been tapped is still holding its flight money.
+# WHAT SELLING ACTUALLY THROWS AWAY, said before it happens rather than after.
+#
+# IT USED TO WARN ABOUT MASTERY AND THAT WAS NOT TRUE. Fleet.sell() adds the
+# money and erases the aircraft; it never touches AircraftAffinity, which keys
+# XP by MODEL rather than by aircraft and is only ever written to. Nothing
+# listens for a sale, nothing erases a model's entry, and the only reset() is
+# the one a new game runs - so selling every An-2 you own leaves the airframe at
+# the level it reached, and buying one back next week finds it still there.
+#
+# The panel was talking a player out of a loss that cannot happen, on top of a
+# resale that is already a flat half of the catalogue price. Mastery is
+# knowledge of an airframe and does not evaporate with the last airframe.
+#
+# The unclaimed reward is a real loss and stays: an aircraft that has landed and
+# not been tapped is still holding its flight money, and sell() forfeits it
+# deliberately rather than settling up.
 func _disclaimer() -> String:
 	var lost: Array[String] = []
-	var level: int = AircraftAffinity.level_for(_model_key)
-	if level > 1:
-		lost.append("level %d on this airframe" % level)
 	if Fleet.unclaimed_count(_model_key) > 0 and Fleet.sellable_count(_model_key) <= Fleet.unclaimed_count(_model_key):
 		lost.append("the reward it has not been tapped for")
 	if lost.is_empty():
