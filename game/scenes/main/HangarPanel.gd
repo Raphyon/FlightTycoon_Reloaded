@@ -34,6 +34,9 @@ const BOARD_TOP_MARGIN := 24.0
 # was already four wide but unbounded downwards, so a fleet of thirty models
 # ran off the bottom of the cabin and out of the panel entirely.
 const CARDS_PER_PAGE := 8
+# HangarTypeCard's own custom_minimum_size, needed here to reserve a full page
+# whatever the page actually holds - see _lock_grid_size.
+const CARD_SIZE := Vector2(180, 210)
 const ARROW_DIM := Color(1, 1, 1, 0.35)
 
 enum Filter { ALL, IDLE, IN_USE }
@@ -89,6 +92,7 @@ func _ready() -> void:
 	BackButton.add_to($Frame, hide)
 	Fleet.fleet_changed.connect(_refresh)
 	AircraftAffinity.affinity_changed.connect(_refresh_affinity)
+	_lock_grid_size()
 	get_tree().root.size_changed.connect(_fit_content)
 	_prev_button.pressed.connect(func() -> void: _show_page(_page - 1))
 	_next_button.pressed.connect(func() -> void: _show_page(_page + 1))
@@ -105,6 +109,28 @@ func _notification(what: int) -> void:
 	if what == NOTIFICATION_VISIBILITY_CHANGED and visible:
 		_refresh()
 		call_deferred("_fit_content")
+
+
+# THE PANEL MUST NOT RESIZE WHEN THE CONTENTS DO.
+#
+# _fit_content scales the board to whatever the VBox says it needs, and the
+# VBox says less when the grid holds fewer cards - so All, Idle and In use each
+# came out at a different size, and so did the last page of a tab whenever it
+# was short. Flicking between them made the whole panel breathe.
+#
+# The grid reserves a FULL PAGE from here on, so its minimum is the same
+# whether it is showing eight cards or one, and the scale computed from it does
+# not move.
+func _lock_grid_size() -> void:
+	if not is_instance_valid(_grid):
+		return
+	var cols: int = maxi(1, _grid.columns)
+	var rows: int = ceili(float(CARDS_PER_PAGE) / float(cols))
+	var hs: int = _grid.get_theme_constant("h_separation")
+	var vs: int = _grid.get_theme_constant("v_separation")
+	_grid.custom_minimum_size = Vector2(
+		cols * CARD_SIZE.x + (cols - 1) * hs,
+		rows * CARD_SIZE.y + (rows - 1) * vs)
 
 
 func _fit_content() -> void:
@@ -339,9 +365,19 @@ func _build_dots() -> void:
 		child.queue_free()
 	# One page needs no page indicator - and no arrows either, same rule the
 	# livery shop follows.
+	#
+	# HIDDEN BY GOING TRANSPARENT, NOT BY `visible`. A hidden Control takes no
+	# space, so dropping the arrows collapsed their row and the VBox lost 48px -
+	# which _fit_content then read as a different natural size and scaled the
+	# whole board to. That is the other half of the panel changing size between
+	# All, Idle and In use: one of those tabs fits on a single page and the
+	# others do not.
 	var many := _page_count() > 1
-	_prev_button.visible = many
-	_next_button.visible = many
+	for arrow in [_prev_button, _next_button]:
+		arrow.modulate.a = 1.0 if many else 0.0
+		arrow.disabled = not many
+		arrow.mouse_filter = (Control.MOUSE_FILTER_STOP if many
+			else Control.MOUSE_FILTER_IGNORE)
 	if not many:
 		return
 	for i in range(_page_count()):
