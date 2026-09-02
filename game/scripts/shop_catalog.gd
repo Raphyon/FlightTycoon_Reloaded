@@ -265,7 +265,7 @@ const ENTRIES := [
 	{"key": "b707", "name": "707", "icon": "b707_default.png", "price": 110000, "level": 31,
 		"force": "D", "seats": 320, "fuel": 38, "xp": 300, "range": 4, "has_world_sprite": true},
 	# LIVE 25c/B/2/20/2000 fare/4cl - two seats at a 2000 fare, verbatim.
-	{"key": "f15", "name": "F-15 Eagle", "icon": "f15_default.png", "price": 25, "currency": COINS, "level": 31,
+	{"key": "f15", "name": "F-15", "icon": "f15_default.png", "price": 25, "currency": COINS, "level": 31,
 		"force": "B", "seats": 2, "fuel": 20, "xp": 500, "ticket": 1875, "range": 5, "has_world_sprite": true},
 	# The coin lane's top rung, above the X-37B's 48. A gunship rather than an
 	# airliner, so it earns the coin lane's way - few seats, a large ticket -
@@ -433,7 +433,7 @@ const ENTRIES := [
 	# day with nothing to spend it on.
 	{"key": "an74", "name": "An-74", "icon": "an74_default.png", "price": 26000000, "level": 52,
 		"force": "D", "seats": 420, "fuel": 55, "xp": 40000, "ticket": 105, "range": 5, "has_world_sprite": true},
-	{"key": "lc130", "name": "Lockheed LC-130", "icon": "lc130_default.png", "price": 31000000, "level": 53,
+	{"key": "lc130", "name": "LC-130", "icon": "lc130_default.png", "price": 31000000, "level": 53,
 		"force": "D", "seats": 470, "fuel": 60, "xp": 45000, "ticket": 100, "range": 5, "has_world_sprite": true},
 	# LIVE 2000000/C/250/75/5cl - and THE ONE DELIBERATE BREAK in the
 	# ladder. Twice the A380's price for a third of its income: 107 legs to
@@ -441,19 +441,19 @@ const ENTRIES := [
 	# it is theirs - kept as priced rather than 'fixed'.
 	# A bigger A400M - 51.7m span against 42.4 - so it sits above it, and takes
 	# the A400M's grade because a heavy lifter is what it is.
-	{"key": "c17", "name": "C-17 Globemaster III", "icon": "c17_default.png", "price": 220, "currency": COINS, "level": 53,
+	{"key": "c17", "name": "C-17", "icon": "c17_default.png", "price": 220, "currency": COINS, "level": 53,
 		"force": "D", "seats": 620, "fuel": 70, "xp": 62000, "range": 5, "has_world_sprite": true},
 	# Dreamland's boats. The island is a water resort and the fleet had no
 	# flying boat or amphibian in it - see ROADMAP item 10.
-	{"key": "be200", "name": "Beriev Be-200", "icon": "be200_default.png", "price": 37000000, "level": 55,
+	{"key": "be200", "name": "Be-200", "icon": "be200_default.png", "price": 37000000, "level": 55,
 		"force": "D", "seats": 480, "fuel": 58, "xp": 51000, "ticket": 100, "range": 5, "has_world_sprite": true},
-	{"key": "us2", "name": "ShinMaywa US-2", "icon": "us2_default.png", "price": 44000000, "level": 55,
+	{"key": "us2", "name": "US-2", "icon": "us2_default.png", "price": 44000000, "level": 55,
 		"force": "D", "seats": 500, "fuel": 60, "xp": 59000, "ticket": 100, "range": 5, "has_world_sprite": true},
 	{"key": "an158", "name": "An-158", "icon": "an158_default.png", "price": 50000000, "level": 55,
 		"force": "D", "seats": 500, "fuel": 62, "xp": 63000, "ticket": 100, "range": 5, "has_world_sprite": true},
 	# A fighter in the tail. 9.96m span, so the smallest thing here after the
 	# Paper Plane, and priced as a trophy like everything past 50.
-	{"key": "f16", "name": "F-16 Fighting Falcon", "icon": "f16_default.png", "price": 53000000, "level": 57,
+	{"key": "f16", "name": "F-16", "icon": "f16_default.png", "price": 53000000, "level": 57,
 		"force": "S", "seats": 10, "fuel": 66, "xp": 66000, "ticket": 5500, "range": 5, "has_world_sprite": true},
 	{"key": "b314", "name": "314 Clipper", "icon": "b314_default.png", "price": 64000000, "level": 57,
 		"force": "E", "seats": 560, "fuel": 64, "xp": 75000, "ticket": 95, "range": 5, "has_world_sprite": true},
@@ -515,21 +515,21 @@ const ENTRIES := [
 		"force": "D", "seats": 660, "fuel": 72, "xp": 110000, "ticket": 88, "range": 5, "has_world_sprite": true},
 	# DREAMLAND3'S, and the last gate in the game to get an aircraft. The
 	# largest wingspan ever built, so it is the largest sprite here too.
-	{"key": "h4", "name": "Hughes H-4 Hercules", "icon": "h4_default.png", "price": 140000000, "level": 66,
+	{"key": "h4", "name": "H-4", "icon": "h4_default.png", "price": 140000000, "level": 66,
 		"force": "E", "seats": 700, "fuel": 74, "xp": 130000, "ticket": 85, "range": 5, "has_world_sprite": true},
 	# The Carrier's third, and the one that earns its slot mechanically - a
 	# Harrier leaves a deck straight up, and vtol already exists.
-	{"key": "harrier", "name": "AV-8B Harrier II", "icon": "harrier_default.png", "price": 160000000, "level": 68,
+	{"key": "harrier", "name": "AV-8B", "icon": "harrier_default.png", "price": 160000000, "level": 68,
 		"force": "A", "seats": 12, "fuel": 70, "xp": 140000, "ticket": 4500, "range": 5, "has_world_sprite": true},
 	# The Carrier's other half. A Tomcat and a Hawkeye is the pair a deck
 	# actually runs, and it gives the Carrier two entries the way Snow and
 	# Dreamland1 have two - one zone, one aircraft was the thinnest tooth here.
-	{"key": "e2", "name": "Grumman E-2 Hawkeye", "icon": "e2_default.png", "price": 180000000, "level": 69,
+	{"key": "e2", "name": "E-2", "icon": "e2_default.png", "price": 180000000, "level": 69,
 		"force": "D", "seats": 25, "fuel": 68, "xp": 170000, "ticket": 2300, "range": 5, "has_world_sprite": true},
 	# The Carrier's, and the top of the game. Twenty seats at a premium fare
 	# rather than a cabin full - it lands on the Ark's 300,000 a leg either way,
 	# and a Tomcat with 900 seats in it would read as a joke.
-	{"key": "f14", "name": "Grumman F-14 Tomcat", "icon": "f14_default.png", "price": 210000000, "level": 70,
+	{"key": "f14", "name": "F-14", "icon": "f14_default.png", "price": 210000000, "level": 70,
 		"force": "S", "seats": 20, "fuel": 70, "xp": 190000, "ticket": 3000, "range": 5, "has_world_sprite": true},
 	# ---- levels 81-90 ------------------------------------------------
 	# THE SECOND-LAST UNLOCK: level 84, 400 coins. Those two figures are given;

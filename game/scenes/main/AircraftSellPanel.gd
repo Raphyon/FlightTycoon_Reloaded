@@ -18,6 +18,7 @@ const CARD_ART := preload("res://assets/board/board_card1@2x.png")
 const TAG_ART := preload("res://assets/board/board_price@2x.png")
 const BUTTON_ART := preload("res://assets/buttons/button_red1@2x.png")
 const BUTTON_OFF_ART := preload("res://assets/buttons/button_grey3@2x.png")
+const MONEY_ICON := preload("res://assets/hud/icon_medium_money1@2x.png")
 const CANCEL_ART := preload("res://assets/buttons/button_orange2@2x.png")
 
 const BOARD_SIZE := Vector2(679, 325)
@@ -182,11 +183,20 @@ func _price_tag() -> void:
 	tag.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_content.add_child(tag)
 
-	# CASH IS A DOLLAR SIGN, EVERYWHERE. It was a coin icon on this tag and a
-	# "$" in the text two lines below it, which reads as two different
-	# currencies rather than one shown two ways.
+	# The note, like the shop card's income and the top bar - one picture for
+	# cash wherever it is shown.
+	var icon := TextureRect.new()
+	icon.texture = MONEY_ICON
+	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	icon.custom_minimum_size = Vector2.ZERO
+	icon.size = Vector2(22.0, 22.0)
+	icon.position = Vector2(ACTION_CX - TAG_W * 0.5 + 16.0, TAG_Y + h * 0.5 - 11.0)
+	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_content.add_child(icon)
+
 	var value := _label(FONT_TAG, COLOR_INK, HORIZONTAL_ALIGNMENT_CENTER)
-	value.text = "+$%s" % FloatingText.grouped(Fleet.sell_value(_model_key))
+	value.text = "+%s" % FloatingText.grouped(Fleet.sell_value(_model_key))
 	value.clip_text = true
 	value.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	value.position = Vector2(ACTION_CX - TAG_W * 0.5 + 30.0, TAG_Y)

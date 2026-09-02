@@ -35,6 +35,7 @@ const STAT_HEIGHT := 16.0
 const STAT_ICON_W := 18.0
 const STAT_FONT := 11
 
+const MONEY_ICON := preload("res://assets/hud/icon_medium_money1@2x.png")
 const COIN_ICON := preload("res://assets/hud/icon_medium_coin@2x.png")
 
 var _entry: Dictionary
@@ -127,9 +128,12 @@ func _add_stats(entry: Dictionary) -> void:
 	# use, which is the unit every price and fare in ShopCatalog was set in.
 	var pay := int(round(float(Fleet.passengers(key)) * Fleet.ticket_price(key)))
 	var rows := [
-		# null icon = the value carries its own mark. Cash is "$" everywhere
-		# rather than a coin icon here and a "$" elsewhere.
-		[[FORCE_ICON, str(ShopCatalog.stat(key, "force"))], [null, "$%s" % _compact(pay)]],
+		# THE SAME NOTE THE PRICE USES. Three of the four stats carry an icon
+		# and this one carried a bare "$", which reads as a different kind of
+		# money from the price at the top of the same card. The note is what
+		# cash looks like everywhere else in the game - top bar, fuel shop,
+		# daily rewards - so it is what income looks like too.
+		[[FORCE_ICON, str(ShopCatalog.stat(key, "force"))], [MONEY_ICON, _compact(pay)]],
 		[[FUEL_ICON, str(ShopCatalog.stat(key, "fuel"))],
 			[XP_ICON, _compact(Fleet.xp_for_claim(key))]],
 	]
