@@ -28,6 +28,54 @@ func _ready() -> void:
 	_apply_visiting_ui()
 	$Camera2D.position = $ApronLayer.get_occupied_position()
 	_offer_daily_login()
+	if OS.get_cmdline_user_args().has("--dump-ui"):
+		call_deferred("_dump_ui")
+
+
+# WHERE THINGS ACTUALLY ARE, because reading a layout off the source is how you
+# ship a panel three times and get it wrong three times. Containers decide the
+# real rectangles - a VBox stretches its children, a negative separation draws
+# one on top of another, a margin moves a whole block - and none of that is
+# visible in the code that sets it up.
+#
+#     godot --headless --path game -- --dump-ui
+#
+# Prints every child of a panel with its global rect, so overlaps and
+# misalignments are arithmetic rather than opinion.
+func _dump_ui() -> void:
+	for _i in range(3):
+		await get_tree().process_frame
+	for panel_name in ["ShopHubPanel", "FuelPanel", "HangarPanel", "RoutesPanel"]:
+		var panel: Control = $UI.get_node_or_null(panel_name)
+		if panel == null:
+			continue
+		panel.visible = true
+		for _i in range(3):
+			await get_tree().process_frame
+		print("UI %s %s" % [panel_name, panel.get_global_rect()])
+		_dump_children(panel, 1)
+		panel.visible = false
+	get_tree().quit()
+
+
+func _dump_children(node: Node, depth: int) -> void:
+	if depth > 4:
+		return
+	for child in node.get_children():
+		if child is Control:
+			var c := child as Control
+			# The texture too, where there is one - so a dump can be composited
+			# back into a picture with the real art at the real rectangles.
+			var tex := ""
+			if c is TextureRect and (c as TextureRect).texture:
+				tex = (c as TextureRect).texture.resource_path
+			elif c is TextureButton and (c as TextureButton).texture_normal:
+				tex = (c as TextureButton).texture_normal.resource_path
+			elif c is Label:
+				tex = "TEXT:" + (c as Label).text.replace("\n", "\\n")
+			print("UI %s%s %s %s %s" % ["  ".repeat(depth), c.name,
+				c.get_global_rect(), c.get_class(), tex])
+			_dump_children(child, depth + 1)
 
 
 # A daily that you have to go looking for is not a daily. It opens itself when a

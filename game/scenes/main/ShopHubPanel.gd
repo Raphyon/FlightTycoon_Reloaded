@@ -10,22 +10,22 @@ const BOARD_TEXTURE := preload("res://assets/board/board_store@2x.png")
 # 100 WAS SMALL AGAINST EVERYTHING AROUND IT - the board under it is 132 wide
 # and the panel is built at shop scale.
 const ICON_SIZE := Vector2(155, 155)
-# HOW MUCH CLOSER THE NAME BOARD SITS TO ITS ICON.
+# HOW FAR UP THE WHOLE GRID SITS - icons and their name boards together, their
+# spacing to each other untouched.
 #
-# Two earlier goes at this were both wrong. Offsetting the art alone left the
-# board where it was and opened a gap. Offsetting the art AND shrinking its slot
-# moved the board up, but the slot's lost height came out of the ROW - so every
-# row got shorter, the grid closed up, and the icons of the row below climbed
-# into the boards above them.
+# Three earlier goes were all wrong, and all for the same reason: each treated
+# the lift as a thing to do to the ICON, so the board either stayed behind
+# (gap), or followed by having its cell shortened (rows closed up and the row
+# below climbed into the boards above), or followed by negative separation
+# (board drawn 50px INSIDE the icon). Measured, that last one put board 0 at
+# y435 against an icon spanning y330-485.
 #
-# The gap and the row pitch are two different measurements and both have to be
-# paid. The VBox separation goes NEGATIVE by this much, which pulls the board up
-# to the icon, and the grid's row separation goes UP by the same amount, which
-# gives the row back exactly what the cell just lost. Net: name closer to its
-# icon, rows spaced as before, nothing overlapping anything.
+# It is not a change to a cell at all. The cells are correct; the grid simply
+# sits too low in the panel. So the panel's top margin comes off, which moves
+# icons and boards together and leaves every internal measurement alone.
 const ICON_LIFT := 50.0
-# What the scene sets, and what the row separation is measured from.
-const GRID_V_SEPARATION := 20
+# What the scene sets on Frame/SafeArea/Margin.
+const MARGIN_TOP := 8
 # 120x34 AT THE DEFAULT FONT DID NOT HOLD THE LONGEST LABEL. "Expanding
 # Airport" wraps to two lines and spilled past the board art, and the reason
 # line the Prop Shop now carries ("no empty sites") makes three. Wider, taller,
@@ -55,10 +55,9 @@ func _ready() -> void:
 		{"icon": "button_store09@2x.png", "label": "Prop Shop", "on_pressed": _open_prop_shop,
 			"why_not": _prop_shop_unavailable},
 	]
-	# Whatever the cells give up closing the icon-to-board gap, the rows take
-	# back - or the grid closes up and the row below rides into this one.
-	_grid.add_theme_constant_override("v_separation",
-		GRID_V_SEPARATION + int(ICON_LIFT))
+	# The whole block up, spacing inside it untouched.
+	var margin := $Frame/SafeArea/Margin
+	margin.add_theme_constant_override("margin_top", MARGIN_TOP - int(ICON_LIFT))
 	for entry in _categories:
 		_grid.add_child(_build_category_button(entry))
 	_refresh_availability()
@@ -92,9 +91,6 @@ func _fit_content() -> void:
 func _build_category_button(entry: Dictionary) -> Control:
 	var vbox := VBoxContainer.new()
 	vbox.alignment = BoxContainer.ALIGNMENT_CENTER
-	# Negative: pulls the name board up towards its icon. The row gets the same
-	# amount back below - see ICON_LIFT.
-	vbox.add_theme_constant_override("separation", -int(ICON_LIFT))
 
 	var icon_wrap := Control.new()
 	icon_wrap.custom_minimum_size = ICON_SIZE
@@ -125,6 +121,8 @@ func _build_category_button(entry: Dictionary) -> Control:
 	if not enabled:
 		var lock := Control.new()
 		lock.set_script(LockOverlayScript)
+		# The hub's categories are discs, not cards.
+		lock.circular = true
 		lock.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		lock.custom_minimum_size = ICON_SIZE
 		lock.size = ICON_SIZE
