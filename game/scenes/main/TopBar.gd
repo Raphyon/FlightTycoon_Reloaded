@@ -62,14 +62,21 @@ func _build_avatar() -> void:
 	face.size = inner
 	face.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
-	# Face under the frame, so the frame's border reads as in front of it.
-	wrap.add_child(face)
+	# FRAME FIRST, FACE ON TOP. avatar_frame is a solid PLATE, not a ring - its
+	# centre is fully opaque - so the other order drew the portrait and then
+	# covered it completely, leaving an empty white tile on screen.
 	wrap.add_child(frame)
+	wrap.add_child(face)
 	ui.add_child(wrap)
 
 
 func _ready() -> void:
-	_build_avatar()
+	# DEFERRED, or it silently does not happen. UI is a CanvasLayer still adding
+	# its own children when this runs, and add_child() REFUSES during that -
+	# "Parent node is busy setting up children" - so the avatar was built, the
+	# call failed, and the node never reached the tree. No script error, just
+	# nothing on screen. Same trap PanelManager hit with move_child.
+	call_deferred("_build_avatar")
 	for prefix in TOOLTIPS:
 		var text: String = TOOLTIPS[prefix]
 		if prefix == "People":
