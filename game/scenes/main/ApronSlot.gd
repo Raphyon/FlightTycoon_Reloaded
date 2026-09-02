@@ -30,10 +30,19 @@ const BADGE_Z_INDEX := 50
 # corner to the bottom corner, pulled inside it far enough to sit on paint:
 # |x|/110 + |y|/55 = 0.93, just within the diamond. Nudge this one Vector2 to
 # move it along that edge.
-# NOT a const: BadgePlacer moves this at runtime so the spot can be chosen by
-# eye on a real pad, and every pad reads the same value. Paste whatever it
-# prints back over this line.
-static var badge_offset := Vector2(-48.0, 12.0)
+# PLACED BY EYE with the F1 badge tool, not solved for. It sits at the pad's
+# LEFT vertex - which is what "the bottom-left corner" means on a diamond seen
+# in projection, and is why three attempts at deriving it landed halfway along
+# the lower-left edge instead.
+#
+# It deliberately OVERHANGS: the badge's outer corner reaches |x|/110 + |y|/55 =
+# 1.15, so part of it is off the paint. That was the choice made looking at it,
+# and the "must sit entirely on the diamond" rule the earlier attempts obeyed
+# was invented rather than asked for.
+#
+# NOT a const: BadgePlacer moves this at runtime so the spot can be chosen on a
+# real pad, and every pad reads the same value. Paste whatever it prints here.
+static var badge_offset := Vector2(-94.0, -2.0)
 const COLOR_FREE := Color(0.2, 0.9, 0.4, 0.25)
 const COLOR_OCCUPIED := Color(0.9, 0.5, 0.2, 0.35)
 const COLOR_HOVER := Color(1, 1, 1, 0.4)
