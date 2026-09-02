@@ -64,6 +64,15 @@ const AVATAR_H := 0.47
 # routes table, not here.
 const STATUS_X := 0.665
 const STATUS_Y := 0.27
+# WHICH WAY IT IS GOING, above the clock. FLYING_OUT and FLYING_BACK printed the
+# same countdown and nothing else, so a pad with eleven minutes on it could have
+# been eleven minutes from arriving or eleven from coming home - the two avatar
+# tiles either side say where the route runs, never which end it is pointed at.
+#
+# It sits in the gap between the tiles, which is 84px wide, so the words have to
+# be short.
+const HEADING_Y := 0.09
+const FONT_HEADING := 10
 const ACTION_Y := 0.64
 
 const FONT_TITLE := 15
@@ -90,6 +99,7 @@ var _from_avatar: TextureRect
 var _to_frame: TextureRect
 var _to_avatar: TextureRect
 var _status: Label
+var _heading: Label
 var _action_button: TextureButton
 var _action_label: Label
 # The aircraft whose flight clock the status line is counting down, or null.
@@ -174,6 +184,12 @@ func _build() -> void:
 
 	# Sits between the two tiles: an arrow when nothing is happening, the
 	# countdown while it flies, the outcome when it lands.
+	_heading = _label(_fs(FONT_HEADING), HORIZONTAL_ALIGNMENT_CENTER)
+	_heading.position = _px(STATUS_X, HEADING_Y)
+	_heading.size = _px(AVATAR_TO_X - STATUS_X, 0.16)
+	_heading.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	_heading.clip_text = true
+
 	_status = _label(_fs(FONT_STATUS), HORIZONTAL_ALIGNMENT_CENTER)
 	_status.position = _px(STATUS_X, STATUS_Y)
 	_status.size = _px(AVATAR_TO_X - STATUS_X, 0.20)
@@ -374,10 +390,12 @@ func _refresh(_unused = null) -> void:
 		# A locked zone is bought whole in the expansion shop, so there is no
 		# per-apron action to offer here at all.
 		if not ZoneProgress.is_unlocked(_apron.area_name):
+			_heading.text = ""
 			_status.text = "Locked"
 			_hide_action()
 			return
 		var cost := ApronProgress.cost_for_area(_apron.area_name)
+		_heading.text = ""
 		_status.text = ""
 		_set_action("Build ($%d)" % cost, Economy.money >= cost)
 		return
@@ -427,16 +445,27 @@ func _refresh(_unused = null) -> void:
 
 	if not a:
 		_status.text = "\u2192"
+		_heading.text = ""
 		return
 
 	var dest := Fleet.destination_of(a)
+	# Cleared before the match, not in each arm: the panel is reused for every
+	# pad, so a heading left from the last aircraft would sit over the next
+	# one's clock claiming a direction it is not going.
+	_heading.text = ""
 	match a.state:
 		FleetAircraft.State.PARKED:
 			# Out of range is a dead end rather than a wait, and the fix for it
 			# is in the route screen the button now opens.
 			_status.text = ("%d ~" % Fleet.distance_to(dest)
 				if not Fleet.in_range(a.model_key, dest) else "\u2192")
-		FleetAircraft.State.FLYING_OUT, FleetAircraft.State.FLYING_BACK:
+		FleetAircraft.State.FLYING_OUT:
+			_heading.text = "Outbound"
+			_status.text = _countdown(a.flight_time_left)
+			_ticking = a
+			set_process(true)
+		FleetAircraft.State.FLYING_BACK:
+			_heading.text = "Returning"
 			_status.text = _countdown(a.flight_time_left)
 			# The only line on this board that moves on its own.
 			_ticking = a
