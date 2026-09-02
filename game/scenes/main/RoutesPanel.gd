@@ -644,7 +644,14 @@ func _tick_swoops(delta: float) -> void:
 			done.append(id)
 	for id in done:
 		_swoops.erase(id)
-		Fleet.advance(int(id))
+		# ONE PRESS IS THE WHOLE TURNAROUND. advance() takes a single step, so
+		# a landed aircraft needed Collect, then Return, then Refuel - three
+		# presses and three two-second bars to send one aircraft out again,
+		# times the length of the list. Depart All already runs each aircraft
+		# as far as it will go in one press; this is that, for one row.
+		var steps := 0
+		while steps < Fleet.MAX_ADVANCE_STEPS and Fleet.advance(int(id)):
+			steps += 1
 	if not done.is_empty():
 		_refresh()
 
