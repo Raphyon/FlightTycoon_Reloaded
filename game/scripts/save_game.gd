@@ -33,7 +33,7 @@ const SAVE_DEBOUNCE := 1.0
 # the code, not the commit that set the string, because a stamp cannot contain
 # the hash of the commit that contains it. Close enough to tell two builds
 # apart, which is all it is for.
-const BUILD := "5a6ecf0"
+const BUILD := "7d52c9a"
 
 # TELEMETRY, and the reason it exists: a save is a SNAPSHOT. It says where a
 # player got to and never how long it took, so the one thing it cannot answer
