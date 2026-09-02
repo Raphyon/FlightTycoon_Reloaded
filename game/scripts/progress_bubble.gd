@@ -28,6 +28,20 @@ extends Control
 const BUBBLE_SIZE := Vector2(96, 58)
 # Where the tail tip lands within that canvas, measured off the alpha: the
 # bottom-most opaque row is y=56, spanning x 23..24.
+#
+# THE TAIL IS WHY THIS ONLY BELONGS ON THE BOARD. It is a POINTER: it hangs
+# above a pad or a plot and its tip names which one it is talking about. That
+# only means something where the thing being pointed at is somewhere on screen
+# with the bubble floating over it.
+#
+# A LIST ROW IS NOT THAT. The row IS the subject - it is already labelled, in
+# its own strip, in line with fifty others - so a tail points at nothing and the
+# oval is just a 96x58 lump in a 52px row. RoutesPanel had one for two commits
+# and it was wrong in a way that is obvious on sight and easy to argue into on
+# paper, because "the pads do it" sounds like consistency.
+#
+# Use a bare track-and-fill in a list, in the colours below so a claim still
+# reads the same. See RoutesPanel's SWOOP_BAR_SIZE.
 const TAIL := Vector2(23.5, 56.0)
 
 # The empty field inside the oval, in bubble pixels.
