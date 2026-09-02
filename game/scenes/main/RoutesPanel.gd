@@ -526,11 +526,17 @@ func _build_row(a: FleetAircraft) -> Control:
 		swoop.position = Vector2(COL_ACTION + (ACTION_SIZE.x - SWOOP_SIZE.x) * 0.5,
 			(ROW_SIZE.y - SWOOP_SIZE.y) * 0.5)
 		var fuelling: bool = FUEL_STATES.has(a.state)
-		swoop.show_status(
+		row.add_child(swoop)
+		# DEFERRED, and adding it to the row first is not enough. show_status
+		# writes to nodes ProgressBubble builds in its own _ready, and _ready
+		# does not run when a node is parented - it runs when it enters the
+		# SCENE TREE. This row is still being built and is not in the tree yet,
+		# so the bubble's _ready has not fired and its fields are null. End of
+		# frame is after _grid.add_child has put the whole chain in.
+		swoop.call_deferred("show_status",
 			SWOOP_FUEL_TEXTURE if fuelling else SWOOP_EARN_TEXTURE,
 			SWOOP_FUEL_TEXT if fuelling else SWOOP_EARN_TEXT,
 			float(_swoops[a.id]) / SWOOP_SECONDS, fuelling)
-		row.add_child(swoop)
 		return row
 
 	var action := TextureButton.new()
