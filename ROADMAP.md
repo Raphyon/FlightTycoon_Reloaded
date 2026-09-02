@@ -42,6 +42,7 @@ editor. What it took:
 | camera clamp | **DONE** - max zoom is about one zone, no grey void |
 | audio | **NOT STARTED** - zero files, zero `AudioStreamPlayer` |
 | onboarding | **NOT STARTED** - nothing explains a tap, a route or a cloud |
+| **friends: add / search** | **NOT STARTED** - see below, and it is the last item off the tester list |
 | signing | **NOT STARTED** - unsigned, so SmartScreen and Gatekeeper both object |
 
 Building upgrades were on this list as a Known Issue rather than a numbered item
@@ -70,6 +71,52 @@ assumed the manual path.
 **Afterburners**, which nobody asked for on this list but the fighters wanted -
 art, a rig, an editor mode, per-nozzle rotation and z-order, four aircraft
 placed.
+
+### The tester pass: 29 of 30
+
+A first outside build came back with thirty numbered faults. All but one are
+fixed. The ones worth remembering, because each was a class rather than a
+one-off:
+
+**No component knew what could be on screen.** Six panels could be open at once
+and a demolish confirmation could sit beside the upgrade menu it contradicted.
+`PanelManager` now owns that, in two tiers - a BASE you are looking at, a DIALOG
+taken on one - and it watches `visibility_changed` rather than being called, so
+all 24 panels kept the code they had.
+
+**Buttons are not where their rectangles are.** Toolbar art carries a shadow
+down one side, so captions centred on the rect sat eight pixels right of the
+button. Routes art is drawn KEEP_ASPECT_CENTERED, so a "112px" button painted 57
+and a nine-character caption spilled out of it.
+
+**Layouts were reasoned about instead of looked at.** The shop hub was changed
+three times and wrong three times; the pad badge four. What settled both was
+screenshotting the running game and dumping real rectangles - see the readme's
+`--dump-ui`, and the viewport warning attached to it.
+
+**Two economies were priced as pillars and meant as flavour.** Lights were 13.4%
+of income and 14.4% of every tap; fuel was 1.3% of income and blocked one
+departure in sixty days. Both re-measured and re-pitched.
+
+### 12. Friends you can actually add
+
+THE ONLY ITEM OFF THE FIRST TESTER PASS THAT IS STILL OPEN. Twenty-nine of the
+thirty were fixes; this one is a feature and was set aside deliberately rather
+than rushed in beside them.
+
+The Friends panel lists what `Friends` already holds and lets you visit and
+remove. There is no way to ADD one and no way to SEARCH, so the list is
+whatever the game seeded and the panel is a viewer for it.
+
+What it needs that does not exist: an identity for a player other than
+"whoever owns this save". Everything friend-shaped today is a robot map - a
+second airport on the same device with your own fleet standing on it - and the
+green pad badge for "sent by somebody else" is wired but unreachable for the
+same reason (see ApronSlot). Add and search are the front of a system whose
+back does not exist, so the honest order is: decide what a friend IS, then
+build the screen.
+
+Nothing else on this list is blocked by it.
 
 ### What the first outside player did, immediately
 

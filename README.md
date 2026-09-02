@@ -199,9 +199,11 @@ became available the moment Zone2 was bought.
 Buy an aircraft, assign it to a pad, route it to a destination, fly it.
 
 A lap is **four taps — two at each end**: claim the reward, then refuel and
-depart. Fuel is charged once, at departure; the destination refuels the return
-leg free. Legs run 1, 5, 20, 93 and 420 minutes by distance before aircraft
-class and livery speed bonuses.
+depart. From the routes list it is one press per end: that button runs the
+aircraft as far as it will go. Fuel is charged at departure and scales with the
+route, so a five-cloud haul burns five times a one-cloud hop; the destination
+refuels the return leg free. Legs run 1, 5, 20, 93 and 420 minutes by distance
+before aircraft class and livery speed bonuses.
 
 A flight pays `passengers x ticket price x distance`. Apron skins add a flat
 bonus to cash and XP; your city's population multiplies cash only, deliberately
@@ -209,6 +211,12 @@ not XP, so decorating cannot pull the level curve forward.
 
 Fuel is a shared stock bought from a market that **reprices hourly** off the
 wall clock, so you either wait for a better slot or buy at a loss.
+
+**It is ordered, not conjured.** A purchase lands after a delay that scales with
+the batch - a minute for 50 units, an hour for 50,000 - so buying big is still
+cheaper per unit and now costs foresight as well. This is what makes running dry
+possible at all: price and burn alone never did it, because fuel bought on demand
+out of money that is never short can be made expensive but not scarce.
 
 Batches carry a price multiplier, so how much you buy is its own decision:
 
@@ -620,6 +628,11 @@ placement mode bolted on because the tool was written inside the node that draws
 the things. They were called `*Editor` until the names started misleading people
 about what deleting them would do.
 
+`BadgePlacer` is the newest and the smallest: the pad badge sits at one offset
+shared by all 110 pads, so it is placed once by eye on a real pad and every pad
+takes it. It writes `data/badge_offset.json` on every nudge - a value that only
+a human can transcribe out of a console is a value that gets lost.
+
 `RotorEditor` is a genuine tool and rigs two things now: propeller and rotor
 hubs, and **afterburner nozzles**. A nozzle and a hub want exactly the same
 things placed against a live preview - where, how big, in front or behind - so
@@ -693,6 +706,22 @@ figure in this project was measured with no affinity speed bonus.
 ```bash
 godot --headless --path game -- --bot --who regular --seed 1234
 ```
+
+**`--dump-ui` prints every Control in a panel with its global rect and texture.**
+
+```bash
+godot --headless --path game -- --dump-ui     # but see below
+```
+
+Containers decide the real rectangles - a VBox stretches its children, a
+negative separation draws one on top of another, a margin moves a whole block -
+and none of that is visible in the code that sets it up. Reading the source
+instead is how one panel got "fixed" three times and was wrong three times.
+
+**RUN IT WINDOWED FOR ANYTHING ABOUT VERTICAL SPACE.** No `viewport_width` is
+set, so headless defaults to 1152x1152 while the real window is 1152x720 - a
+dump taken headless is measuring 432 units of height the game does not have, and
+content that "fits" there will sit outside the panel on screen.
 
 **Pass `--seed` for anything you intend to compare.** A run is reproducible on
 two conditions and this is the one that is not automatic: the clock is pinned
@@ -930,8 +959,6 @@ the canvas edge. Do not assume a uniform trim margin in any importer.
 
 ### Design
 
-- ~~The last five zones have no aircraft~~ **DONE** - ten entries built, and all
-  ten zones open with something new to fly. `ROADMAP.md` item 10.
 - **Range is inert on the clock and expensive on the thumb.** A leg pays x5
   from the nearest destination to the furthest while taking x420 as long, so the
   1-cloud hop is 84x better per MINUTE - but a lap is four taps whatever its
@@ -960,18 +987,10 @@ the canvas edge. Do not assume a uniform trim margin in any importer.
   difference between reaching Zone2 in 1 hour and in 8-9. Nothing in the game
   says so. Granting two or three aircraft at start would make the five-pad
   opening happen whether or not the player works it out.
-- **Fuel is inert past the early game.** Measured over the full 93 h regular
-  run: $4.0M spent on fuel against $791M earned - **0.5% of income**, and across
-  four full runs exactly one aircraft-pass was ever blocked on an empty tank.
-  Fuel is already ~0.1 units per seat the whole way up the ladder, but pay is `seats x ticket x clouds` and the
-  ticket and cloud rating between them inflate revenue per seat about x37, so
-  the cost falls from ~10% of a leg on a DC-3 to 0.3% on an Ark.
-
-  There is no fix in the units. Scaling them to match revenue would put a
-  single fleet cycle past the 50,000 batch, which is the exact problem that
-  tier was raised from 5,000 to fix. A late-game sink wants to be a PERCENTAGE
-  - a handling fee, apron upkeep - which tracks revenue on its own and cannot
-  produce a number too big for a button. Fuel stays early-game friction.
+- **Fuel bites now, but as a tax on the poor.** It scales with the route and
+  arrives on a delay, which took blocked departures from 1 to 250 over sixty
+  days. But its share of income runs 13.9% casual against 6.8% heavy: it costs
+  most to the player earning least, because income outgrows the fuel bill.
 - **The 50-unit batch squeezes the early game twice.** It is the only batch a
   new player can afford, it is the dearest fuel in the game at +20%, and 50
   units is still more than a small fleet needs - so the first fuel purchase is
@@ -979,16 +998,6 @@ the canvas edge. Do not assume a uniform trim margin in any importer.
   batches should be the habit you grow out of) but it stacks with a minimum
   that was already a trap. Lowering the minimum, rather than the premium, is
   probably the fix.
-- ~~Buildings cannot be upgraded~~ **DONE** - plots carry a level to 10, rent
-  x1.45 each. The "two hours" figure this used to quote was stale anyway: it
-  predated plots being gated behind zone regions, and the last plot actually
-  lands at 14.0 h - with every plot at level 10 by the end of the run, on every
-  profile. See UPGRADES.md.
-- ~~The coin catalogue is unreachable~~ **DONE** - daily tasks are the faucet,
-  and coin aircraft now obey the level gate. See QUESTS.md.
-- ~~The fleet ladder stops at level 50 while zone gates run to 70~~ **DONE** -
-  the ladder spans 1-70 now. The Ark is no longer the top of it either, which
-  was the same wall seen from the other side.
 - **Late-game cash is not a lever.** Repricing the Ark from $4.5M to $7M changed
   a 90-day run by nothing at all - by then income is large enough that price
   does not bind. Only level and availability do, which is worth remembering
