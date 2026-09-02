@@ -126,18 +126,6 @@ func run(texture: Texture2D, text: String, action: Callable, fuel := false) -> v
 # A STATIC display rather than a swoop: a countdown, or an arrived tag. Same
 # bubble, same bar, but nothing is being timed by this node - the caller owns
 # the numbers and pushes them in.
-# Move the bar on a bubble that is already showing. show_status paints a fill
-# and stops - it is the STATIC display, for a countdown that is redrawn when its
-# number changes - so a caller running its own clock needs a way to push the bar
-# without rebuilding the bubble and its text every frame.
-func set_fill(fill: float) -> void:
-	var next := clampf(fill, 0.0, 1.0)
-	if is_equal_approx(next, _fill):
-		return
-	_fill = next
-	queue_redraw()
-
-
 func show_status(texture: Texture2D, text: String, fill: float, fuel := false) -> void:
 	_bubble.texture = texture
 	_label.text = text

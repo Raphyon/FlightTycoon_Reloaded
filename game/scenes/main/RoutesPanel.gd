@@ -52,13 +52,13 @@ const COL_ACTION := 752.0
 # destroyed part-filled by an unrelated aircraft touching down, which is
 # precisely the bug ApronLayer documents. Keyed by aircraft id here, so a
 # rebuild redraws it at the fill it had reached.
-const SWOOP_EARN_TEXTURE := preload("res://assets/bubbles/earning_bubble@2x.png")
-const SWOOP_FUEL_TEXTURE := preload("res://assets/bubbles/fueling_bubble@2x.png")
 const SWOOP_SECONDS := 2.0
-const SWOOP_SIZE := Vector2(96, 58)
-# Verbs, the same two the pads use.
-const SWOOP_EARN_TEXT := "Claiming"
-const SWOOP_FUEL_TEXT := "Refueling"
+# Sized to the button it replaces, so the row does not change shape mid-swoop.
+const SWOOP_BAR_SIZE := Vector2(96, 10)
+# ProgressBubble's own bar colours, so a claim reads the same here as on a pad.
+const SWOOP_TRACK := Color(0.16, 0.16, 0.18, 0.75)
+const SWOOP_EARN_COLOR := Color(0.47, 0.86, 0.51)
+const SWOOP_FUEL_COLOR := Color(0.94, 0.71, 0.24)
 
 # Which actions are refuelling, for the bubble art and the bar colour.
 const FUEL_STATES := [
@@ -527,23 +527,29 @@ func _build_row(a: FleetAircraft) -> Control:
 	# is its texture's, `size` clamps up to it, and the label - sized to what we
 	# asked for - ends up off-centre inside a button that grew.
 	if _swoops.has(a.id):
-		var swoop := ProgressBubble.new()
-		swoop.size = SWOOP_SIZE
-		swoop.position = Vector2(COL_ACTION + (ACTION_SIZE.x - SWOOP_SIZE.x) * 0.5,
-			(ROW_SIZE.y - SWOOP_SIZE.y) * 0.5)
+		# JUST THE BAR. The pads use ProgressBubble - a 96x58 oval with an icon
+		# baked in - and dropping one into a 52px row of a list is a lump. The
+		# bar is the part that carries the meaning; the oval was only ever the
+		# frame it hangs in out on the board.
 		var fuelling: bool = FUEL_STATES.has(a.state)
-		row.add_child(swoop)
-		_swoop_nodes[a.id] = swoop
-		# DEFERRED, and adding it to the row first is not enough. show_status
-		# writes to nodes ProgressBubble builds in its own _ready, and _ready
-		# does not run when a node is parented - it runs when it enters the
-		# SCENE TREE. This row is still being built and is not in the tree yet,
-		# so the bubble's _ready has not fired and its fields are null. End of
-		# frame is after _grid.add_child has put the whole chain in.
-		swoop.call_deferred("show_status",
-			SWOOP_FUEL_TEXTURE if fuelling else SWOOP_EARN_TEXTURE,
-			SWOOP_FUEL_TEXT if fuelling else SWOOP_EARN_TEXT,
-			float(_swoops[a.id]) / SWOOP_SECONDS, fuelling)
+		var bar_x := COL_ACTION + (ACTION_SIZE.x - SWOOP_BAR_SIZE.x) * 0.5
+		var bar_y := (ROW_SIZE.y - SWOOP_BAR_SIZE.y) * 0.5
+
+		var track := ColorRect.new()
+		track.color = SWOOP_TRACK
+		track.position = Vector2(bar_x, bar_y)
+		track.size = SWOOP_BAR_SIZE
+		track.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		row.add_child(track)
+
+		var fill := ColorRect.new()
+		fill.color = SWOOP_FUEL_COLOR if fuelling else SWOOP_EARN_COLOR
+		fill.position = Vector2(bar_x, bar_y)
+		fill.size = Vector2(SWOOP_BAR_SIZE.x * _swoop_fraction(a.id),
+			SWOOP_BAR_SIZE.y)
+		fill.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		row.add_child(fill)
+		_swoop_nodes[a.id] = fill
 		return row
 
 	var action := TextureButton.new()
@@ -616,6 +622,10 @@ func _on_action(aircraft_id: int) -> void:
 
 # Advance every running swoop, and fire the ones that finish. Deliberately not
 # blocking: like the pads, you can start one on every row and let them all run.
+func _swoop_fraction(aircraft_id: int) -> float:
+	return clampf(float(_swoops.get(aircraft_id, 0.0)) / SWOOP_SECONDS, 0.0, 1.0)
+
+
 func _tick_swoops(delta: float) -> void:
 	if _swoops.is_empty():
 		return
@@ -629,7 +639,7 @@ func _tick_swoops(delta: float) -> void:
 		# nothing happening.
 		var node = _swoop_nodes.get(id)
 		if is_instance_valid(node):
-			node.set_fill(minf(1.0, float(_swoops[id]) / SWOOP_SECONDS))
+			node.size.x = SWOOP_BAR_SIZE.x * _swoop_fraction(id)
 		if float(_swoops[id]) >= SWOOP_SECONDS:
 			done.append(id)
 	for id in done:
