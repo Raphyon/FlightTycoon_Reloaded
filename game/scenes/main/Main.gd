@@ -161,7 +161,8 @@ func _carry_camera_over(previous: Vector2) -> void:
 # The toolbar shelf is NOT in here: it carries the Home button now, so it has
 # to stay. Which of its buttons are available is the toolbar's own business -
 # see Toolbar._apply_map.
-const VISITING_HIDDEN := ["TopBarRight", "TopBarLeft", "TopBar", "MapTab"]
+const VISITING_HIDDEN := ["TopBarRight", "TopBarLeft", "TopBar", "MapTab",
+	"PlayerAvatar"]
 # Panels that must not be left open behind us when we arrive.
 # RoutesPanel is NOT in here. Your routes keep running while you are away, so
 # being unable to look at them was the one thing you might genuinely want from

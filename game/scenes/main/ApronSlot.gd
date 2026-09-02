@@ -14,11 +14,15 @@ const BADGE_FREE := preload("res://assets/aprons/pad_free@2x.png")
 const BADGE_MINE := preload("res://assets/aprons/pad_mine@2x.png")
 const BADGE_FRIEND := preload("res://assets/aprons/pad_friend@2x.png")
 const BADGE_SCALE := 1.25
-# ABOVE THE AIRCRAFT, BELOW THE CALLOUTS. Slots live under Aprons and aircraft
-# under WorldAircraft, a later sibling - so at the default z the badge was drawn
-# and then painted over by whatever was parked on the pad. It was there the
-# whole time, reported visible, and could not be seen.
-const BADGE_Z_INDEX := 50
+# ABOVE THE AIRCRAFT, BELOW THE CLOUD COVER. Slots live under Aprons and
+# aircraft under WorldAircraft, a later sibling - so at the default z the badge
+# was drawn and then painted over by whatever was parked on the pad. It needs to
+# beat that.
+#
+# But CloudSlot is z_index 10, and 50 put the badge THROUGH the clouds - a pad
+# you are not meant to be able to see, advertising whether it is free. 5 clears
+# the aircraft at 0 and stays under the cover at 10.
+const BADGE_Z_INDEX := 5
 # THE PAD IS A DIAMOND, NOT A RECTANGLE. SIZE is its 220x110 bounding box, and
 # the badge was placed at the bottom-left of THAT - which on an isometric tile
 # is empty space well off the paint. Measured from the art: the top and bottom

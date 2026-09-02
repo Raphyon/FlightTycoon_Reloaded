@@ -98,7 +98,16 @@ func _watch() -> void:
 
 
 func _on_visibility_changed(node: CanvasItem) -> void:
-	if _applying or not node.visible:
+	if _applying:
+		return
+	# A PANEL CLOSING MATTERS TOO. This returned early on anything that was not
+	# becoming visible, so _sync_chrome ran on open and never on close - the
+	# floating buttons were hidden for a panel and then left hidden after it
+	# went away. At home that stranded the gift button the first time anything
+	# was opened, which reads as the quests having moved to the friend airport,
+	# where nothing had hidden them.
+	if not node.visible:
+		_sync_chrome()
 		return
 	_applying = true
 
