@@ -30,8 +30,18 @@ const BASE := [
 	"WorldMapPanel", "ShopHubPanel", "ShopPanel", "FuelPanel",
 	"ExpansionShopPanel", "PropShopPanel", "HangarPanel", "FriendsPanel",
 	"RoutesPanel", "QuestsPanel", "OptionsPanel", "DailyLoginPanel",
-	"BoostPanel", "ApronInfoPanel", "BuildingInfoPanel", "VisitorPanel",
+	"BoostPanel", "ApronInfoPanel", "BuildingInfoPanel",
 ]
+
+# NOT MANAGED, and VisitorPanel is why this note exists. It is a HUD readout -
+# "who you are visiting", shown only while standing in someone else's airport,
+# with its own visibility driven by whether there is anyone to name. Listing it
+# as a BASE made every other panel close it, and worse: arriving at a friend's
+# airport runs _apply_visiting_ui, which calls close_all(), which hid the panel
+# at the exact moment it existed to appear. It was reported as the top-centre
+# info panel vanishing.
+#
+# The test for this list is whether a thing can be DISMISSED. A readout cannot.
 
 # ZoneUnlockPanel is a dialog even though nothing opens it from a base: it is a
 # confirmation, and a confirmation that a base could appear on top of would be
