@@ -4,6 +4,18 @@ extends Node2D
 var _panels: Node
 
 
+# The badge placer lives beside the other F1 tools, as a child of Main - that is
+# where DebugMenu looks for them. Deferred, because add_child is refused while
+# the parent is still setting up its own children.
+func _build_badge_placer() -> void:
+	if has_node("BadgePlacer"):
+		return
+	var node := Node2D.new()
+	node.name = "BadgePlacer"
+	node.set_script(load("res://scenes/main/BadgePlacer.gd"))
+	add_child(node)
+
+
 func _ready() -> void:
 	print("ft-proto booted")
 	# The shop shows ENTRIES in array order, so an entry in the wrong slot is a
@@ -21,6 +33,7 @@ func _ready() -> void:
 	# after an editor rescan, so a fresh checkout parses Main before the global
 	# exists and dies with "Identifier PanelManager not declared" - which is a
 	# clone that does not boot, for a convenience worth nothing here.
+	call_deferred("_build_badge_placer")
 	_panels = load("res://scenes/main/PanelManager.gd").attach($UI)
 	Maps.map_changed.connect(_on_map_changed)
 	DebugState.flags_changed.connect(_apply_ui_visibility)

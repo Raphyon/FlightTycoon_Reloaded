@@ -46,6 +46,10 @@ const EDITORS := [
 		"node": "RotorEditor", "label": "Rotor placement", "key": "",
 		"help": "M model  ·  1-9 pick rotor  ·  click place  ·  - + disc size  ·  B behind/front",
 	},
+	{
+		"node": "BadgePlacer", "label": "Pad badge placement", "key": "",
+		"help": "click a pad to place it on EVERY pad  ·  arrows nudge (shift x10)  ·  S prints the value",
+	},
 ]
 
 var _speed_buttons: Array = []

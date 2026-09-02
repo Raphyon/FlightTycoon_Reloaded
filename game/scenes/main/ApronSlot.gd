@@ -30,7 +30,10 @@ const BADGE_Z_INDEX := 50
 # corner to the bottom corner, pulled inside it far enough to sit on paint:
 # |x|/110 + |y|/55 = 0.93, just within the diamond. Nudge this one Vector2 to
 # move it along that edge.
-const BADGE_CENTRE := Vector2(-48.0, 12.0)
+# NOT a const: BadgePlacer moves this at runtime so the spot can be chosen by
+# eye on a real pad, and every pad reads the same value. Paste whatever it
+# prints back over this line.
+static var badge_offset := Vector2(-48.0, 12.0)
 const COLOR_FREE := Color(0.2, 0.9, 0.4, 0.25)
 const COLOR_OCCUPIED := Color(0.9, 0.5, 0.2, 0.35)
 const COLOR_HOVER := Color(1, 1, 1, 0.4)
@@ -199,7 +202,7 @@ func _ready() -> void:
 	_badge.size = bs
 	# Bottom-left corner of the pad, inset so it sits ON the apron rather than
 	# on its edge.
-	_badge.position = BADGE_CENTRE - bs * 0.5
+	_badge.position = badge_offset - bs * 0.5
 	_badge.visible = false
 	add_child(_badge)
 
@@ -495,6 +498,7 @@ func _refresh_badge() -> void:
 	var tex := _badge_texture()
 	_badge.texture = tex
 	_badge.visible = tex != null
+	_badge.position = badge_offset - _badge.size * 0.5
 
 
 func _holder() -> FleetAircraft:
