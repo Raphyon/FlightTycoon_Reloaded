@@ -13,7 +13,12 @@ const SIZE := Vector2(220, 110)
 const BADGE_FREE := preload("res://assets/aprons/pad_free@2x.png")
 const BADGE_MINE := preload("res://assets/aprons/pad_mine@2x.png")
 const BADGE_FRIEND := preload("res://assets/aprons/pad_friend@2x.png")
-const BADGE_SCALE := 1.5
+const BADGE_SCALE := 1.25
+# ABOVE THE AIRCRAFT, BELOW THE CALLOUTS. Slots live under Aprons and aircraft
+# under WorldAircraft, a later sibling - so at the default z the badge was drawn
+# and then painted over by whatever was parked on the pad. It was there the
+# whole time, reported visible, and could not be seen.
+const BADGE_Z_INDEX := 50
 # THE PAD IS A DIAMOND, NOT A RECTANGLE. SIZE is its 220x110 bounding box, and
 # the badge was placed at the bottom-left of THAT - which on an isometric tile
 # is empty space well off the paint. Measured from the art: the top and bottom
@@ -25,7 +30,7 @@ const BADGE_SCALE := 1.5
 # corner to the bottom corner, pulled inside it far enough to sit on paint:
 # |x|/110 + |y|/55 = 0.93, just within the diamond. Nudge this one Vector2 to
 # move it along that edge.
-const BADGE_CENTRE := Vector2(-62.0, 20.0)
+const BADGE_CENTRE := Vector2(-48.0, 12.0)
 const COLOR_FREE := Color(0.2, 0.9, 0.4, 0.25)
 const COLOR_OCCUPIED := Color(0.9, 0.5, 0.2, 0.35)
 const COLOR_HOVER := Color(1, 1, 1, 0.4)
@@ -186,6 +191,10 @@ func _ready() -> void:
 	_badge.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	_badge.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	_badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_badge.z_index = BADGE_Z_INDEX
+	# Absolute, like the callouts - a badge that inherited the slot's z would
+	# sort differently depending on which pad it belongs to.
+	_badge.z_as_relative = false
 	var bs := BADGE_FREE.get_size() * BADGE_SCALE
 	_badge.size = bs
 	# Bottom-left corner of the pad, inset so it sits ON the apron rather than
