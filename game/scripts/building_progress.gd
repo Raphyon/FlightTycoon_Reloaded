@@ -463,11 +463,11 @@ const COIN_DROP_AMOUNT := 1
 # The interval is rolled when the building is lit and STORED, not rolled on
 # each check - a fresh roll every frame would either never expire or expire
 # instantly depending on the draw.
-const LIT_SECONDS_MIN := 60.0
-const LIT_SECONDS_MAX := 1800.0
+const LIT_SECONDS_MIN := 300.0
+const LIT_SECONDS_MAX := 7200.0
 # The average WAIT ON TOP of the minimum, so the mean interval is about eight
 # minutes and the median under six.
-const LIT_SECONDS_MEAN := 420.0
+const LIT_SECONDS_MEAN := 1800.0
 
 
 # A memoryless interval - see the note above. randf() can return exactly 0.0,
@@ -476,7 +476,17 @@ static func _roll_lit_seconds() -> float:
 	return minf(LIT_SECONDS_MAX,
 		LIT_SECONDS_MIN + -log(1.0 - randf()) * LIT_SECONDS_MEAN)
 
-const LIGHTS_CASH_SHARE := 0.25
+# A QUARTER OF THE RENT WAS NOT A BONUS. Lights are meant to be a mini-game you
+# catch, and at a seven-minute cycle across 42 plots they were 13.4% of income
+# and 14.4% of every tap in the game - the third pillar of the economy, priced
+# and paced like one. A tenth of the rent on a half-hour cycle puts them at 3.8%
+# of income, which is a bonus, and costs three levels over sixty days.
+#
+# BOTH DIALS WERE NEEDED. Slowing the cycle alone only took it to 7.6%, because
+# each catch was still worth a quarter of a rent that grows 1.45x a level -
+# fewer, but each one still large. Cutting the share alone would have left the
+# tap tax untouched, which is the half a player actually feels.
+const LIGHTS_CASH_SHARE := 0.10
 
 # XP is FLAT PER LEVEL, not a share of the cash. Rent runs away with building
 # level - RENT_PER_LEVEL is 1.45 compounding - and XP tied to it would hand a
