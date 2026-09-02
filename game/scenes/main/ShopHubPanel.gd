@@ -10,11 +10,22 @@ const BOARD_TEXTURE := preload("res://assets/board/board_store@2x.png")
 # 100 WAS SMALL AGAINST EVERYTHING AROUND IT - the board under it is 132 wide
 # and the panel is built at shop scale.
 const ICON_SIZE := Vector2(155, 155)
-# Drawn this far ABOVE its slot, AND the slot gives back the same height - so
-# the label board rides up with the art instead of staying put. Lifting the
-# icon alone only opened a gap between the disc and its name, which is the
-# opposite of the point.
-const ICON_LIFT := 100.0
+# HOW MUCH CLOSER THE NAME BOARD SITS TO ITS ICON.
+#
+# Two earlier goes at this were both wrong. Offsetting the art alone left the
+# board where it was and opened a gap. Offsetting the art AND shrinking its slot
+# moved the board up, but the slot's lost height came out of the ROW - so every
+# row got shorter, the grid closed up, and the icons of the row below climbed
+# into the boards above them.
+#
+# The gap and the row pitch are two different measurements and both have to be
+# paid. The VBox separation goes NEGATIVE by this much, which pulls the board up
+# to the icon, and the grid's row separation goes UP by the same amount, which
+# gives the row back exactly what the cell just lost. Net: name closer to its
+# icon, rows spaced as before, nothing overlapping anything.
+const ICON_LIFT := 50.0
+# What the scene sets, and what the row separation is measured from.
+const GRID_V_SEPARATION := 20
 # 120x34 AT THE DEFAULT FONT DID NOT HOLD THE LONGEST LABEL. "Expanding
 # Airport" wraps to two lines and spilled past the board art, and the reason
 # line the Prop Shop now carries ("no empty sites") makes three. Wider, taller,
@@ -44,6 +55,10 @@ func _ready() -> void:
 		{"icon": "button_store09@2x.png", "label": "Prop Shop", "on_pressed": _open_prop_shop,
 			"why_not": _prop_shop_unavailable},
 	]
+	# Whatever the cells give up closing the icon-to-board gap, the rows take
+	# back - or the grid closes up and the row below rides into this one.
+	_grid.add_theme_constant_override("v_separation",
+		GRID_V_SEPARATION + int(ICON_LIFT))
 	for entry in _categories:
 		_grid.add_child(_build_category_button(entry))
 	_refresh_availability()
@@ -77,13 +92,12 @@ func _fit_content() -> void:
 func _build_category_button(entry: Dictionary) -> Control:
 	var vbox := VBoxContainer.new()
 	vbox.alignment = BoxContainer.ALIGNMENT_CENTER
+	# Negative: pulls the name board up towards its icon. The row gets the same
+	# amount back below - see ICON_LIFT.
+	vbox.add_theme_constant_override("separation", -int(ICON_LIFT))
 
 	var icon_wrap := Control.new()
-	# Shorter than the icon by exactly the lift: the art is drawn at -LIFT and
-	# the wrap gives that height back, so the board and everything under it
-	# move up with it.
-	icon_wrap.custom_minimum_size = Vector2(ICON_SIZE.x,
-		maxf(0.0, ICON_SIZE.y - ICON_LIFT))
+	icon_wrap.custom_minimum_size = ICON_SIZE
 	# THIS IS WHY THEY SAT LEFT. A VBoxContainer STRETCHES its children to the
 	# column width, so this wrap became as wide as the label board under it -
 	# while the button inside stayed at (0,0) at its own size, pinned to the
@@ -99,7 +113,6 @@ func _build_category_button(entry: Dictionary) -> Control:
 	button.stretch_mode = TextureButton.STRETCH_KEEP_ASPECT_CENTERED
 	button.custom_minimum_size = ICON_SIZE
 	button.size = ICON_SIZE
-	button.position = Vector2(0.0, -ICON_LIFT)
 	var enabled: bool = entry.has("on_pressed")
 	button.disabled = not enabled
 	if enabled:
@@ -115,8 +128,6 @@ func _build_category_button(entry: Dictionary) -> Control:
 		lock.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		lock.custom_minimum_size = ICON_SIZE
 		lock.size = ICON_SIZE
-		# Follows the icon, or the padlock floats below the thing it locks.
-		lock.position = Vector2(0.0, -ICON_LIFT)
 		icon_wrap.add_child(lock)
 
 	vbox.add_child(icon_wrap)
