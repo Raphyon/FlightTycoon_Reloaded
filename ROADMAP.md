@@ -118,6 +118,11 @@ build the screen.
 
 Nothing else on this list is blocked by it.
 
+**THIS IS NOW THE FRONT OF A LARGER PROJECT.** Deciding what a friend IS turned
+out to be the first step of going online, not a self-contained screen - see
+*Project: online* at the end of this file. Add and search are tier 0 of it, and
+the reason they are worth doing first is that they need no server at all.
+
 ### What the first outside player did, immediately
 
 One save came back from someone who had never seen the game. **Every aircraft
@@ -1030,3 +1035,253 @@ it must not shorten them either, which is what the XP note above is for.
 The alternative considered and set aside: lowering the Dreamland and Carrier
 gates (they are PLACEHOLDER levels) to land inside the 31-50 window. Free, uses
 content that exists, but moves content rather than adding it.
+
+---
+
+# Project: online
+
+ITS OWN PROJECT, NOT AN ITEM ON THE LIST ABOVE. Everything numbered 1-12 adds
+something to a game that already runs on one machine. This changes what the
+game IS - it introduces a second player, and with them a second source of
+truth - so it gets its own file-within-a-file rather than a row in the table.
+
+**Nothing here is scheduled and nothing here is started.** This is the idea
+pass: what online could mean for THIS game specifically, what the project
+already has by accident, what it would cost, and which parts are worth
+refusing. The order below is cheapest-first, not best-first.
+
+## What is already built for it, by accident
+
+More than expected. Going looking for the blockers turned up the opposite - a
+client that has been written for other players all along and has never had any.
+
+| what | where | state |
+|---|---|---|
+| a second airport that RENDERS | `Maps.MAPS` - `ROBOT_AREAS` mirrors `HOMELAND_AREAS` one for one | live, visitable |
+| a table of five other "players" | `Maps.ROBOT_DESTINATIONS` - `{name, level, distance, unlock}` | live, fake |
+| aircraft that fly to someone else's airport and park there | `Fleet` + `flight_seconds_to` | live |
+| a friend list | `Friends` + `Maps.visitable_maps()` | live, seeded |
+| the "somebody else's aircraft is on your pad" badge | `ApronSlot.BADGE_FRIEND`, `pad_friend@2x.png` | ART DONE, unreachable |
+| the green friend flight tag and arrived bubble | `TAG_FRIEND_TEXTURE`, `CALLOUT_ARRIVED_HOME_TEXTURE` | ART DONE, half-reachable |
+| one clock for the whole game | `GameClock` | live, and see below |
+| per-player telemetry | `SaveGame` - `build`, `played_seconds`, `earned_total`, `level_at` | live |
+
+`Maps` says it out loud: *"The names/levels are PLACEHOLDER, same as the
+original robot's: there is no model of other players yet."* `ApronSlot` says it
+twice, about two different sprites. **The sockets are cut and the art is drawn.**
+
+Two of these are worth more than the rest:
+
+**`GameClock` is the only thing in the project that reads the wall clock.**
+Checked, not assumed: zero calls to `Time.get_unix_time_from_system` outside
+it, and seven files asking it instead. It was built that way so a headless bot
+could fast-forward - and it happens to be the single property that makes
+server-authoritative time a one-file change later instead of a twenty-file one.
+It costs nothing to keep. **Keep it.**
+
+**A dispatched aircraft lands on the same apron id it took off from.** That is
+not a shortcut, it is what the original did - a route record shows `startApron`
+and `endApron` both `airport001_area001_apron0014`, for two different users. It
+means a destination can never be full, there is no "friend's airport has no
+room" case to design, and the awkward question of where a visiting aircraft
+parks is already answered.
+
+And one absence that is also an asset: **there is no networking code in this
+project at all.** No `HTTPRequest`, no `WebSocket`, no multiplayer peer. Nothing
+to unpick, no half-built protocol to stay compatible with.
+
+## The idea worth building the rest around
+
+**Your friends list becomes your route network.**
+
+The payout formula is already `seats x ticket x ROUTE clouds`, and the five
+destinations are already spread across the five distance ratings - one minute
+at the near end, twelve hours at the far one, paying 5x for the trip. That is a
+finished economy with placeholder people in it. Put real players at those
+distances and the friends list stops being a viewer and becomes the thing you
+route the airline through: **a friend far away is worth more to fly to than a
+friend nearby.**
+
+This is not a new mechanic. It is the existing one with the placeholder taken
+out.
+
+It also lands on the strongest open design problem in the game. The first
+outside tester flew every aircraft below its rating - the bot measures that at
+**11 levels and 2.7x income over 60 days** - because per minute the short hop
+looks better and nothing on screen says that per TAP distance pays exactly
+linearly. A route picker with a real name and a real airport at the far end is
+a reason to fly the long leg that no tooltip is going to match.
+
+**If only one thing on this page ever gets built, build this.**
+
+## What "online" could mean, cheapest first
+
+Seven tiers. Each is playable on its own and each assumes the ones above it.
+The line worth noticing is between 2 and 5.
+
+**0. Identity.** A random id, written once at first launch, never changed. No
+network, no server, no meaning yet. Four lines. Everything below needs it and
+nothing below can be retrofitted onto saves that were written without it.
+
+**1. Snapshots - visit a real airport.** You upload a description of your
+airport; your friends download it and walk around it. Static, one-directional,
+no server logic - blob storage with a key on it. The renderer already does the
+hard half. This is the smallest thing that is genuinely online.
+
+**2. The aircraft actually lands there.** Dispatch to a friend; the aircraft
+appears on a pad at their airport with the green badge; they see it next time
+they open the game. Asynchronous, latency-tolerant, no real-time anything - and
+mechanically it is what the game already does, against a real person.
+**Tiers 1 and 2 together are the whole pitch.**
+
+**3. A mailbox.** Fuel, coins, a boost card, sent to a friend. The classic
+social-idle currency and the reason people add each other in the first place.
+Needs a server-side inbox and nothing more clever than that.
+
+**4. Verbs while visiting.** Shave time off a friend's building. Refuel
+something stranded on their apron. **Visiting with nothing to do is dead
+content** - it is a screenshot you walk around in - and this is the tier that
+decides whether tier 1 was worth building. Cheap, and it should probably ship
+WITH tier 1 rather than after it.
+
+**5. Leaderboards and anything competitive.** Wants server-authoritative time
+and validated progression, which is a different project wearing this one's
+coat. See the hard problems below. **The recommendation is to refuse this**, at
+least until there is a reason that outweighs it.
+
+**6. Events and shared goals.** Co-operative rather than competitive, which
+dodges most of tier 5's problems - a shared target nobody is incentivised to
+cheat downward. Sits naturally on item 7 (events) and should wait for it.
+
+## The four hard problems
+
+**Time is the currency, and the client owns it.** This is an idle game: closing
+it and coming back is how you earn. Progress is computed from timestamps on
+load, so moving the system clock forward is free money. That is fine today and
+stays fine for tiers 1 and 2 - cheating your own airport hurts nobody, and a
+snapshot of an implausible airport is just a tall building. **The line to draw
+is at anything that LEAVES your save.** A gift, a leaderboard entry, an
+aircraft landing on somebody else's pad: those get rate-limited or checked
+server-side, because they spend from a shared pool. Everything else stays
+client-side and unpoliced, on purpose.
+
+**Every number in the save is a claim, not a fact.** Eight plain JSON files in
+`user://save/`, editable in any text editor. Not worth encrypting - it delays
+nobody and it would break the thing that has been most useful all month, which
+is a tester mailing their save over. Design for it instead: the server stores
+what it was told and never treats it as authoritative for anything another
+player receives.
+
+**Names.** The moment a player types their own handle, someone types something
+vile into a game with a friends list. The project already has the answer and
+did not notice: `robot_222`, `robot_318`, `robot_451`. **Generated handles -
+word plus number, no free text -** costs nothing, needs no moderation queue,
+and is consistent with the five names already in the game. Free text can come
+later or never.
+
+**A server is a cost that never stops.** Money, attention, and an outage that
+is your problem at 2am. Two consequences, both non-negotiable: the backend must
+be the dumbest thing that works, and **the game must be completely playable
+with the network down.** It is an idle game - people play it on a plane. Every
+online feature is an addition to a game that still runs when it fails, and no
+loading spinner ever blocks the airport.
+
+## Shape of the backend
+
+Offline-first, and dumb on purpose. Three endpoints is the whole of tiers 0-2:
+
+| | |
+|---|---|
+| `PUT /airport/<id>` | store my snapshot |
+| `GET /airport/<id>` | fetch a friend's |
+| `POST /flight` | tell a friend an aircraft is coming |
+
+Add `GET/POST /inbox/<id>` for tier 3 and that is tiers 0-4 complete. No game
+logic on the server, no simulation, no authority - it is a mailbox and a filing
+cabinet. Which means it can be object storage plus a few lines of glue, it can
+sit inside a free tier for a long time, and it can be replaced wholesale later
+without the client noticing.
+
+Client side it is `HTTPRequest` and `JSON`, both in the engine already, both
+async. Nothing threaded, nothing exotic. The macOS export is not sandboxed, so
+no entitlement work; Windows is unaffected.
+
+**Poll, do not push.** No sockets, no persistent connection. Ask on launch,
+after a dispatch, and when the friends panel opens. An idle game measured in
+hours does not need a live socket, and not having one removes a whole class of
+failure.
+
+## Identity, and the phone-in-the-lake problem
+
+A device-local id means losing the device loses the account. The honest options:
+
+- **Do nothing.** Correct for a prototype with a handful of testers, and it is
+  where this starts.
+- **A transfer code.** The game shows a string; type it into the new install
+  and the id moves. No passwords, no email, no account system, no recovery
+  desk. Cheap and good enough for a long time.
+- **Real accounts.** Sign-in, recovery, a password to store and to leak.
+  **Not worth it** until there is something to lose.
+
+Take the first, plan for the second, and write the id into the save now so that
+either remains possible.
+
+## The snapshot format
+
+The one piece here that is genuinely worth NOT designing yet, because the thing
+it describes is still moving - pads, liveries, zones, and whatever the price
+ladder turns into. Freezing it now buys a migration later. Two rules to settle
+in advance, though, and they cost nothing:
+
+**Version it from the first byte.** A `version` field on the first snapshot
+ever written, even while there is only one version.
+
+**Unknown fields are never fatal.** The save loader already works this way -
+`d.get("destination", "")` - and a snapshot is read by a build that may be
+older OR newer than the one that wrote it, which the save file never is. An old
+client meeting a new airport should draw what it recognises and ignore the
+rest.
+
+What it holds, roughly: identity and level, the built pads and their skins, the
+buildings and their levels, the aircraft parked outside with their liveries,
+and a written-at timestamp. Explicitly NOT money, XP, or anything that would
+make one player's numbers visible to another.
+
+## What to do first, and it needs no network
+
+**Give the save a player id, then teach the game to load a foreign airport
+snapshot from a FILE ON DISK and visit it.**
+
+That is the whole risky part of tier 1, done with zero infrastructure: a real
+airport that is not yours, with pads you did not build and aircraft you do not
+own, rendered by the code that currently renders a fake one. Every hard
+question - what the format holds, what the renderer assumes about ownership,
+what breaks when a friend has a livery you have never seen - gets answered on
+the desk, for free, before a single line of server exists.
+
+Swapping the file read for an HTTP fetch afterwards is the small part. It is
+also the honest test of the format: if it cannot survive being loaded from a
+file, it will not survive being loaded from a server.
+
+Testers already mail their saves over. **The first foreign airport can be one
+of theirs.**
+
+## What this does NOT do, and what it risks
+
+It does not lengthen the game by an hour. The 62 hours in item 10 are still 62
+hours, and a friend at distance 5 pays what the robot at distance 5 pays -
+`payout_for` does not care whose airport it is. **Online changes the reason,
+not the rate.** Anything that makes friends pay BETTER than robots is a
+balance change and should be argued as one, separately.
+
+It does not fix the price ladder, and the price ladder is still the strongest
+threat to the whole idea: **93x divergence between what aircraft cost and what
+they pay, 33x inside a single tier.** The tester hit that wall in one session.
+A social layer over a game people quit at level 30 is a social layer nobody
+sees. If these two ever compete for a weekend, the ladder wins.
+
+And the standing risk of the whole project: **it is the first part of this game
+that can be broken by someone other than the person playing it.** A bad
+snapshot, an outage, a griefer, a name. None of that exists today. Every tier
+above zero is a trade of that safety for a reason to come back tomorrow, and
+tiers 1 and 2 are where that trade is clearly worth making.
