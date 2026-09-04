@@ -70,10 +70,13 @@ const LEVEL_REWARD_CASH := 1000
 const LEVEL_BOOST_CARDS := {5: "speed", 10: "autoturn_60"}
 
 # THE CAPSTONE: what reaching the top of a model's mastery actually buys, and
-# THE PLAYER PICKS ONE. Not a stack of all of them - see FLEET.md, where the
-# arithmetic for stacking them came out at x6.8 pay per tap on every model in
-# the game, which is the same order as the CLOUD_PAY experiment BALANCE.md
-# warns about.
+# THE PLAYER PICKS ONE. Not a stack of all of them - see FLEET.md, which
+# measures the three separately over 140 days with `--capstone`: cabin +31% on
+# gross income, reach +12%, turnaround +1% and two levels. Granting them
+# together would compound into a flat income multiplier on every model in the
+# game, and that is the reward FLEET.md argues against: money is not a
+# progression axis while money has no sink, so a bigger number would only be a
+# bigger number.
 #
 # THREE, NOT FOUR. The design listed speed, payout, seats and range. Payout and
 # seats are THE SAME LEVER - a leg pays `passengers x ticket x clouds`, so +50%
