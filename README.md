@@ -274,8 +274,38 @@ knowing that **the bot does not use it by default**, so every pacing figure
 below assumes the manual path - which means every one of them is a floor.
 
 Routes panel rows are 52px, down from 62, and the bulk button keeps its art's
-3.1:1 at 138x45 rather than its native 192x62 - about 8 lines visible instead of
-6, which matters when the fleet is sixty aircraft.
+3.1:1 at 138x45 rather than its native 192x62, which matters when the fleet is
+sixty aircraft.
+
+**A tapped row goes to the back of the queue on the tap**, not when its bar
+lands, and whatever the table is sorted by. Two seconds is long enough to keep
+tapping through, so a row that held its place would be the one under your finger
+for the next press. The stamp lasts until the aircraft has nothing left to do:
+one press runs the whole lap, so that is usually the moment the bar lands, but a
+turnaround that REFUSED - no fuel, no pad, out of range - leaves the aircraft
+sitting there ready, and it stays at the back rather than jumping back under
+your finger. Ties break on the aircraft id as well, because `sort_custom` is not
+a stable sort and every aircraft waiting on you sits at zero seconds left: under
+the default sort that was most of the table, free to reshuffle on every tap.
+
+**The table is the panel now.** Measured on the 1152x648 base canvas rather than
+estimated: a 16:9 screen showed 3.6 aircraft at a time, because the title, the
+sort buttons and Depart all each had a row of their own - 131 of the content
+area's 340 pixels spent on three short lines, each with the whole width to the
+right of it empty - and the panel started at 0.219 of the screen, 46 pixels
+below the lowest thing it had to clear.
+
+The three lines are one line: title left, sort centred, Depart all right, with
+the two side cells given the same minimum width so the sort group sits on the
+table's centre rather than 150 pixels left of it. The panel starts at 0.16, just
+under the avatar block (which ends at y96) and the "In service / Ready" board
+(y86), the two things it actually has to clear. Rows are 964 wide rather than
+900 - the limit is the back arrow at x1078, and a centred row of 964 stops at
+1065 - and the gap between them is 4px rather than 6.
+
+**3.6 aircraft on screen becomes 5.9** at 16:9, and 5.6 becomes 8.3 at 4:3. The
+table area goes from 914x207 to 978x331. Nothing shrank to pay for it: the row,
+its type, and the icons are the size they were.
 
 An aircraft in the air carries a **countdown tag** on its pad - `47m 42s` - but
 only while that pad's own menu is open, since there is nothing to tap. Once it
