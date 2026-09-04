@@ -2,8 +2,25 @@ extends Camera2D
 
 const ZOOM_STEP := 1.1
 const MIN_ZOOM := 0.3
-const MAX_ZOOM := 2.5
+# How far IN you may go, as a multiple of fully out. Relative rather than
+# absolute because the minimum now depends on the screen: a fixed 2.5 was
+# chosen when the minimum was about 0.6, and against a one-zone minimum it
+# leaves a 1080p screen almost no range and a 1440p one none at all.
+#
+# 2.6 puts the closest view at roughly two pads across, which is as far in as
+# anything in this game is worth looking at.
+const MAX_ZOOM_RATIO := 2.6
 const ZOOM_SMOOTHING := 10.0
+
+# THE WIDEST THE VIEW MAY EVER GET, in world units - about one zone and its
+# margin. Homeland's zones bound 512x194 to 961x608 of pads, and EDGE_MARGIN
+# adds 130 on each side, so a zone with air around it is roughly this.
+#
+# _min_zoom used to be measured against the WORLD instead, which let the view
+# grow to 3072 wide - wider than anything you own, and wider than the limit box
+# the camera is held inside. Godot centres a view that does not fit its limits,
+# so the overspill landed outside the map and showed the engine's grey.
+const MAX_VIEW := Vector2(1220.0, 740.0)
 
 # How far past the outermost thing you own the view may reach. Enough to see a
 # pad's whole tile plus a little air, not enough to show the next zone.
@@ -25,6 +42,8 @@ const MIN_VIEW_FACTOR := 1.15
 var _dragging := false
 var _drag_start_mouse := Vector2.ZERO
 var _drag_start_camera := Vector2.ZERO
+# Starts fully out - one zone - and is corrected to the real minimum on the
+# first fit, once the viewport size is known.
 var _target_zoom := 1.0
 var _editor_was_active := false
 
@@ -39,7 +58,18 @@ func _ready() -> void:
 	# _min_zoom is measured against the viewport, so a resized window
 	# changes how far out is legal.
 	get_tree().root.size_changed.connect(_refit)
-	call_deferred("_fit_limits_to_unlocked")
+	call_deferred("_start_zoomed_out")
+
+
+# Opening on the widest legal view: one zone, which is the whole of what a new
+# player owns. 1.0 was the old default and is now below the minimum on most
+# screens, so without this the camera snaps on the first frame.
+func _start_zoomed_out() -> void:
+	_fit_limits_to_unlocked()
+	_target_zoom = _min_zoom()
+	zoom = Vector2(_target_zoom, _target_zoom)
+	_fit_limits_to_unlocked()
+	position = _clamp_to_limits(position)
 
 
 func _on_map_changed(_map_key: String) -> void:
@@ -93,6 +123,24 @@ func _fit_limits_to_unlocked() -> void:
 			continue
 		for p in layout[area_name]:
 			pts.append(Vector2(float(p[0]), float(p[1])))
+	# THE RUNWAY IS PART OF THE AIRPORT, not part of a zone. Nothing in the
+	# data says which zone it belongs to, and the box was built from pad and
+	# plot positions alone - so on homeland it stopped at x=1716 while the
+	# takeoff roll runs to 3271 and its threshold sits at y=917, 84 above the
+	# top of the box. The aircraft was teleporting to a spot the camera could
+	# not reach and rolling further away from it.
+	#
+	# Gating does not depend on this. Locked zones are hidden by CLOUD COVER -
+	# see CloudLayout - so the camera box does not have to do that job as well,
+	# and the ground the runway opens up is tarmac rather than a zone.
+	#
+	# Roads are deliberately not included: they cover the whole map and would
+	# make the box the world.
+	for track in ["plane_body", "plane_shadow",
+			"plane_arrival_body", "plane_arrival_shadow"]:
+		for v in PathLayout.points_to_vectors(PathLayout.load_effective().get(track, [])):
+			pts.append(v)
+
 	# Plots count one zone at a time, not all at once. Every plot joining the
 	# box the moment Zone2 was bought is why an airport's whole city could be
 	# built inside two hours - see ZoneRegions for the regions this reads.
@@ -237,15 +285,25 @@ func _clamp_to_limits(p: Vector2) -> Vector2:
 # than the world, and the surround shows through. The carrier is the tight one
 # at 2304x1792 - a flat MIN_ZOOM of 0.3 shows 3840x2160 there, which is most of
 # a screen of white.
+# How far out you may go: one zone's worth, and never more than the map holds.
+# The world clamp matters on the carrier, which is 2304x1792 - smaller than two
+# zones in one direction.
 func _min_zoom() -> float:
 	var world := Vector2(Maps.size_for())
-	if world.x <= 0.0 or world.y <= 0.0:
-		return MIN_ZOOM
+	var widest := MAX_VIEW
+	if world.x > 0.0 and world.y > 0.0:
+		widest = Vector2(minf(MAX_VIEW.x, world.x), minf(MAX_VIEW.y, world.y))
 	var view := get_viewport_rect().size
-	return maxf(MIN_ZOOM, maxf(view.x / world.x, view.y / world.y))
+	return maxf(MIN_ZOOM, maxf(view.x / widest.x, view.y / widest.y))
 
 
 func _apply_zoom(new_zoom: float) -> void:
-	_target_zoom = clampf(new_zoom, _min_zoom(), MAX_ZOOM)
-	# Zooming out grows the view, which can push a legal position out of range.
+	var lo := _min_zoom()
+	_target_zoom = clampf(new_zoom, lo, lo * MAX_ZOOM_RATIO)
+	# THE LIMIT BOX IS SIZED AGAINST THE VIEW, so it has to be rebuilt when the
+	# view changes. It was only rebuilt on unlock, travel and resize - so
+	# through a zoom-out the box stayed the size it was at the old zoom while
+	# the view grew past it, and the camera spilled over the edge it was
+	# supposed to be held inside.
+	_fit_limits_to_unlocked()
 	position = _clamp_to_limits(position)

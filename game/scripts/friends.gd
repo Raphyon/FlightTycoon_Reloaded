@@ -8,15 +8,16 @@ extends Node
 # aircraft land at its airport and unfriending it would strand them.
 signal friends_changed
 
-const SAVE_PATH := "res://data/friends.json"
+# Progress, so it lives in user:// - see SavePaths.
+const SAVE_FILE := "friends.json"
 
 var removed: Dictionary = {}  # map_key -> true
 
 
 func _ready() -> void:
-	if not FileAccess.file_exists(SAVE_PATH):
+	if not SavePaths.read_path(SAVE_FILE) != "":
 		return
-	var f := FileAccess.open(SAVE_PATH, FileAccess.READ)
+	var f := FileAccess.open(SavePaths.read_path(SAVE_FILE), FileAccess.READ)
 	var parsed: Variant = JSON.parse_string(f.get_as_text())
 	f.close()
 	if parsed is Dictionary:
@@ -27,8 +28,7 @@ func _save() -> void:
 	# A bot run writes nothing to disk - see SaveGame.is_bot_run().
 	if SaveGame.is_bot_run():
 		return
-	DirAccess.make_dir_recursive_absolute("res://data")
-	var f := FileAccess.open(SAVE_PATH, FileAccess.WRITE)
+	var f := FileAccess.open(SavePaths.write_path(SAVE_FILE), FileAccess.WRITE)
 	f.store_string(JSON.stringify(removed, "\t"))
 	f.close()
 

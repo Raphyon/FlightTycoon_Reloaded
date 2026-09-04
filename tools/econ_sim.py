@@ -107,7 +107,7 @@ class Game:
         fleet, cat = gd("fleet.gd"), gd("shop_catalog.gd")
         bl, prog = gd("building_layout.gd"), gd("progression.gd")
 
-        self.fare = const(fleet, "TICKET_PRICE", int)
+        self.fare = const(fleet, "TICKET_PRICE")   # 7.5 - a float now
         self.base_min = const_list(fleet, "CLOUD_BASE_MINUTES")
         self.step_min = const_list(fleet, "CLASS_STEP_MINUTES")
         self.class_step = {k: float(v) for k, v in re.findall(
@@ -152,13 +152,12 @@ class Game:
         self.coin_amount = const(bp, "COIN_DROP_AMOUNT", int)
 
         ap = gd("apron_progress.gd")
-        self.pad_cost = {k: int(v) for k, v in re.findall(
-            r'"(\w+)": (\d+)',
-            re.search(r"const ZONE_BASE_COST := \{(.*?)\n\}", ap, re.S).group(1))}
-        # Each pad in an area costs PAD_COST_GROWTH times the one before it -
-        # the only thing that scales against a fleet that pays for itself every
-        # few minutes. See ApronProgress.cost_for_area.
-        self.pad_growth = const(ap, "PAD_COST_GROWTH")
+        # A pad costs a flat tenth of its zone's unlock price, with no curve -
+        # so the table this used to read is gone and the prices are derived
+        # from zone_progress below, in _pad_prices. See
+        # ApronProgress.cost_for_area.
+        self.pad_share = const(ap, "PAD_SHARE_OF_ZONE")
+        self.zone1_pad = const(ap, "ZONE1_PAD_COST", int)
         # "Zone1 and i < 5" in ApronLayout.build_area_aprons.
         m = re.search(r'area_name == "Zone1" and i < (\d+)', gd("apron_layout.gd"))
         self.free_pads = int(m.group(1)) if m else 0
@@ -503,7 +502,7 @@ class Sim:
             if self.free_pads() <= 0 and self.pads >= self.unlocked_pads():
                 return
             if self.free_pads() <= 0:
-                cost = self.g.pad_cost.get("Zone1", 1000)
+                cost = self.pad_cost("Zone1")
                 if self.money < cost:
                     return
                 self.money -= cost
@@ -514,8 +513,12 @@ class Sim:
             return
 
     def pad_cost(self, area):
-        base = self.g.pad_cost.get(area, 1000)
-        return round(base * self.g.pad_growth ** self.pads_in.get(area, 0))
+        # Flat: a tenth of what the zone cost to open, the same for every pad
+        # in it. Zone1 has no unlock price, so it carries its own figure.
+        zone = self.g.zone_req.get(area)
+        if zone is None:
+            return round(self.g.zone1_pad)
+        return round(zone[1] * self.g.pad_share)
 
     def _cheapest_pad(self):
         """The cheapest pad available anywhere, not the next one in Zone1.
@@ -781,8 +784,8 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--sessions", type=int, default=4, help="play sessions per day")
     ap.add_argument("--minutes", type=float, default=5.0, help="minutes per session")
-    ap.add_argument("--pad-growth", type=float, default=0.0,
-                    help="override ApronProgress.PAD_COST_GROWTH for tuning")
+    ap.add_argument("--pad-share", type=float, default=0.0,
+        help="override the pad price as a share of the zone unlock cost")
     ap.add_argument("--days", type=int, default=30)
     ap.add_argument("--cohort", type=int, default=0, metavar="N",
                     help="run N players per archetype and report min/mean/max")
@@ -797,8 +800,8 @@ def main():
 
     g = Game()
     # Tuning override, so a sweep does not mean editing the game between runs.
-    if args.pad_growth:
-        g.pad_growth = args.pad_growth
+    if args.pad_share:
+        g.pad_share = args.pad_share
     print("  MODEL PLAYER: %d sessions/day x %g min  (%g min/day of actual play)"
           % (args.sessions, args.minutes, args.sessions * args.minutes))
     print("  reading: fare %d, %d aircraft, %d buildings, %d plots, %d Zone1 pads"

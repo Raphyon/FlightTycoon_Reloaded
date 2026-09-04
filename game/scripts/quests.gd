@@ -84,8 +84,31 @@ const DAY_SECONDS := 86400.0
 # cut was worth nothing: 34.0 h against 33.3 h to all six zones, inside the
 # noise. Cash is not the lever here, the coin is (see SET_COIN_REWARD), so the
 # reward that makes a task feel worth doing stays at full strength.
-const CASH_BASE := 4000.0
-const CASH_EXPONENT := 1.1
+# RE-ANCHORED. 4000 x level^1.1 was anchored to nothing at all, and it paid the
+# opening's bills: measured against a --quests off run, the daily tasks were
+# buying HALF THE EARLY FLEET - nine aircraft against four at ten minutes,
+# forty-four against twenty-two at an hour.
+#
+# The clearest way to see it is against the zone gates, which are what money is
+# actually for:
+#
+#     level  5   a set of three paid $70,477   Zone2 costs $50,000
+#     level 10   a set of three paid $151,071  DarkZone costs $100,000
+#
+# A single day of tasks bought the gate outright, with change. At level 3-4 a
+# task alone paid 50-60k against a starter aircraft that earns 750 a lap.
+#
+# The shape was wrong in both directions. level^1.1 is nearly flat while a
+# player's income grows superlinearly - fleet size times a better ladder - so
+# the same curve was overwhelming at the bottom and irrelevant at the top, where
+# one task pays less than a single Ark lap.
+#
+# 125 x level^2 is solved from the two ends rather than picked: a task worth a
+# couple of starter laps at level 4, and about half an Ark lap at level 50. It
+# crosses the old curve around level 50 and pays MORE above it, which is where
+# quests had stopped being worth the tap.
+const CASH_BASE := 125.0
+const CASH_EXPONENT := 2.0
 const FUEL_BASE := 120.0
 const FUEL_EXPONENT := 0.6
 
@@ -170,21 +193,22 @@ const DAILY_POOL := [
 		"reward": KIND_CASH, "scale": "destinations", "per": 2, "min": 2, "max": 2,
 	},
 	{
-		"key": "cheap_fuel", "weight": 0.8, "type": "cheap_fuel", "title": "Buy fuel at $%d a unit or less",
-		"reward": KIND_CASH, "scale": "fixed", "per": 1, "min": 1, "max": 1,
-	},
-	{
 		"key": "bulk_fuel", "weight": 0.6, "type": "bulk_fuel", "title": "Buy fuel %d units at a time",
 		"reward": KIND_CASH, "scale": "fixed", "per": 1, "min": 1, "max": 1,
 	},
 ]
 
-# The bulk-fuel task's batch, and the bar for the cheap-fuel one in dollars a
-# unit. The price bar sits below the base of 10, so it takes a GOOD slot rather
-# than any slot.
+# The bulk-fuel task's batch.
+#
+# THERE WAS A CHEAP-FUEL TASK HERE AND IT WAS REMOVED. "Buy fuel at $8 a unit or
+# less" was checked against the price PAID, which carries the batch premium, so
+# the bar was really $6 market for anyone who could only afford 50 units and $8
+# for anyone buying 5,000. Measured over two years of hourly slots, 1.5% of days
+# had no qualifying hour at all for a 50-unit buyer, with dry runs up to 59
+# hours - the task was hardest for the poorest player and sometimes impossible,
+# while never being impossible late. Its title also read as a market price, so
+# waiting for $7 and paying $8.40 failed with nothing on screen to say why.
 const BULK_FUEL_UNITS := 500
-
-const CHEAP_FUEL_PRICE := 8
 
 # Above this, "gain a level today" stops being a day's work - see _eligible.
 const LEVEL_TASK_MAX := 40
@@ -398,7 +422,6 @@ func title_for(key: String) -> String:
 	if not t.contains("%"):
 		return t
 	match _type_of(key):
-		"cheap_fuel": return t % CHEAP_FUEL_PRICE
 		"bulk_fuel": return t % BULK_FUEL_UNITS
 		"earn": return t % FloatingText.grouped(int(targets.get(key, 1)))
 		"model":
@@ -470,9 +493,7 @@ func _on_level_changed(_level: int) -> void:
 	_bump_type("level")
 
 
-func _on_fuel_bought(units: int, unit_price: float) -> void:
-	if unit_price <= float(CHEAP_FUEL_PRICE):
-		_bump_type("cheap_fuel")
+func _on_fuel_bought(units: int, _unit_price: float) -> void:
 	if units >= BULK_FUEL_UNITS:
 		_bump_type("bulk_fuel")
 
@@ -664,7 +685,14 @@ func to_save() -> Dictionary:
 
 func load_save(data: Dictionary) -> void:
 	day = int(data.get("day", -1))
-	active = data.get("active", [])
+	# Tasks that no longer exist are dropped rather than carried. A key with no
+	# pool entry renders as its own raw key, can never be counted, and blocks the
+	# day's set reward - so a save holding a retired task would be stuck until
+	# the next roll.
+	active = []
+	for key in data.get("active", []):
+		if not entry(str(key)).is_empty():
+			active.append(key)
 	targets = data.get("targets", {})
 	progress = data.get("progress", {})
 	claimed = data.get("claimed", {})

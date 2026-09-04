@@ -27,8 +27,10 @@ const SKINS := [
 	{"key": "apronpaint08", "name": "Pyramid", "level": 20, "texture": "res://assets/aprons/apronpaint08@2x.png"},
 ]
 
-const SAVE_PATH := "res://data/apron_skins.json"
-const OWNED_SAVE_PATH := "res://data/apron_skins_owned.json"
+# Both are progress - which skin is on which pad, and which you have bought -
+# so both live in user://. See SavePaths.
+const SAVE_FILE := "apron_skins.json"
+const OWNED_SAVE_FILE := "apron_skins_owned.json"
 
 var _applied: Dictionary = {}  # str(apron_id) -> skin_key, persisted
 # str(apron_id) -> {skin_key: true}. Skins are bought FOR AN APRON, not for the
@@ -43,8 +45,8 @@ var owned: Dictionary = {}
 
 
 func _ready() -> void:
-	_applied = _load(SAVE_PATH)
-	owned = _migrate(_load(OWNED_SAVE_PATH))
+	_applied = _load(SAVE_FILE)
+	owned = _migrate(_load(OWNED_SAVE_FILE))
 
 
 # The old save was a flat set of skin keys with no apron attached. There's no
@@ -64,7 +66,7 @@ func _migrate(data: Dictionary) -> Dictionary:
 		var skin: String = str(_applied[apron_key])
 		if data.has(skin):
 			out[str(apron_key)] = {skin: true}
-	_save(OWNED_SAVE_PATH, out)
+	_save(OWNED_SAVE_FILE, out)
 	return out
 
 
@@ -98,8 +100,8 @@ func is_unlocked(skin_key: String) -> bool:
 func reset() -> void:
 	_applied.clear()
 	owned.clear()
-	_save(SAVE_PATH, _applied)
-	_save(OWNED_SAVE_PATH, owned)
+	_save(SAVE_FILE, _applied)
+	_save(OWNED_SAVE_FILE, owned)
 	skin_changed.emit()
 	owned_changed.emit()
 
@@ -127,11 +129,11 @@ func buy_skin(apron_id: int, skin_key: String) -> bool:
 		return false
 	if not Coins.spend(SKIN_COST):
 		return false
-	owned = _migrate(_load(OWNED_SAVE_PATH))
+	owned = _migrate(_load(OWNED_SAVE_FILE))
 	var for_apron: Dictionary = owned.get(str(apron_id), {})
 	for_apron[skin_key] = true
 	owned[str(apron_id)] = for_apron
-	_save(OWNED_SAVE_PATH, owned)
+	_save(OWNED_SAVE_FILE, owned)
 	owned_changed.emit()
 	return true
 
@@ -139,26 +141,23 @@ func buy_skin(apron_id: int, skin_key: String) -> bool:
 func set_skin(apron_id: int, skin_key: String) -> void:
 	if not is_owned(apron_id, skin_key):
 		return
-	_applied = _load(SAVE_PATH)
+	_applied = _load(SAVE_FILE)
 	_applied[str(apron_id)] = skin_key
-	_save(SAVE_PATH, _applied)
+	_save(SAVE_FILE, _applied)
 	skin_changed.emit()
 
 
-func _load(path: String) -> Dictionary:
-	if not FileAccess.file_exists(path):
+# By NAME now, not path - SavePaths decides where that name is read from and
+# written to, so this no longer has to know either.
+func _load(file_name: String) -> Dictionary:
+	var text := SavePaths.read_text(file_name)
+	if text == "":
 		return {}
-	var f := FileAccess.open(path, FileAccess.READ)
-	var parsed: Variant = JSON.parse_string(f.get_as_text())
-	f.close()
+	var parsed: Variant = JSON.parse_string(text)
 	return parsed if parsed is Dictionary else {}
 
 
-func _save(path: String, data: Dictionary) -> void:
-	# A bot run writes nothing to disk - see SaveGame.is_bot_run().
-	if SaveGame.is_bot_run():
-		return
-	DirAccess.make_dir_recursive_absolute("res://data")
-	var f := FileAccess.open(path, FileAccess.WRITE)
-	f.store_string(JSON.stringify(data, "\t"))
-	f.close()
+func _save(file_name: String, data: Dictionary) -> void:
+	# The bot guard lives in SavePaths.write_text - this is the file that leaked
+	# it last time, so it does not keep its own copy any more.
+	SavePaths.write_text(file_name, JSON.stringify(data, "\t"))

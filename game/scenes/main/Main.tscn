@@ -6,7 +6,7 @@
 [ext_resource type="Script" uid="uid://cfd5jo3hugstt" path="res://scenes/main/GridOverlay.gd" id="6"]
 [ext_resource type="Script" uid="uid://bfd4tc8yrj2vp" path="res://scenes/main/ApronLayer.gd" id="7"]
 [ext_resource type="Script" uid="uid://dn70ms0jgb7p" path="res://scenes/main/ApronInfoPanel.gd" id="8"]
-[ext_resource type="Texture2D" path="res://assets/hud/icon_medium_money1@2x.png" id="9"]
+[ext_resource type="Texture2D" uid="uid://dlkmx8yu1ciam" path="res://assets/hud/icon_medium_money1@2x.png" id="9"]
 [ext_resource type="Texture2D" uid="uid://c220asf3bpyfv" path="res://assets/hud/icon_medium_xp@2x.png" id="10"]
 [ext_resource type="Script" uid="uid://bmj0j2k8gwvtb" path="res://scenes/main/TopBar.gd" id="11"]
 [ext_resource type="Script" uid="uid://dhir8w21yu38y" path="res://scenes/main/ShopPanel.gd" id="12"]
@@ -19,64 +19,60 @@
 [ext_resource type="Texture2D" uid="uid://bf6iqmhsc5i1e" path="res://assets/buttons/button_aircraft2@2x.png" id="19"]
 [ext_resource type="Script" uid="uid://cqdyqg152a25k" path="res://scenes/main/ShopHubPanel.gd" id="20"]
 [ext_resource type="Texture2D" uid="uid://bed6xvhohrmcf" path="res://assets/background/bigplane2@ipad.png" id="22"]
-[ext_resource type="PackedScene" path="res://scenes/main/FuelPanel.tscn" id="24"]
-[ext_resource type="Script" path="res://scenes/main/LockOverlay.gd" id="25"]
-[ext_resource type="Texture2D" path="res://assets/board/board_buildinginfo@2x.png" id="26"]
-[ext_resource type="Texture2D" path="res://assets/board/board_apron_info_icon3@2x.png" id="27"]
-[ext_resource type="Texture2D" path="res://assets/board/board_apron_info_icon1@2x.png" id="28"]
-[ext_resource type="Script" path="res://scenes/main/SkinPickerPanel.gd" id="29"]
-[ext_resource type="Texture2D" path="res://assets/hud/icon_medium_coin@2x.png" id="30"]
-[ext_resource type="Script" path="res://scenes/main/AssignPickerPanel.gd" id="31"]
-[ext_resource type="Script" path="res://scenes/main/PathLayer.gd" id="32"]
-[ext_resource type="Script" path="res://scenes/main/RoadTraffic.gd" id="33"]
-[ext_resource type="Script" path="res://scenes/main/RotorEditor.gd" id="34"]
-[ext_resource type="Script" path="res://scenes/main/ExpansionShopPanel.gd" id="35"]
-[ext_resource type="Texture2D" path="res://assets/hud/hud_info_right@ipad.png" id="36"]
-[ext_resource type="Texture2D" path="res://assets/hud/hud_info_left@ipad.png" id="37"]
-[ext_resource type="Texture2D" path="res://assets/hud/hud_map@2x.png" id="38"]
-[ext_resource type="Script" path="res://scenes/main/XpBar.gd" id="39"]
-[ext_resource type="Texture2D" path="res://assets/hud/xp_fill.png" id="40"]
-[ext_resource type="Texture2D" path="res://assets/hud/icon_medium_oil@2x.png" id="41"]
-[ext_resource type="Texture2D" path="res://assets/hud/icon_medium_people@2x.png" id="69"]
-[ext_resource type="Texture2D" path="res://assets/hud/toolbar@2x.png" id="42"]
-[ext_resource type="Script" path="res://scenes/main/Toolbar.gd" id="43"]
-[ext_resource type="Script" path="res://scenes/main/WorldMapPanel.gd" id="44"]
-[ext_resource type="Texture2D" path="res://assets/board/board_worldmap@2x.png" id="45"]
-[ext_resource type="Texture2D" path="res://assets/buttons/button_map1@2x.png" id="46"]
-[ext_resource type="Texture2D" path="res://assets/buttons/button_map2@2x.png" id="47"]
-[ext_resource type="Texture2D" path="res://assets/buttons/button_map3@2x.png" id="48"]
-[ext_resource type="Texture2D" path="res://assets/buttons/button_map4@2x.png" id="49"]
-[ext_resource type="Texture2D" path="res://assets/buttons/button_map_current@2x.png" id="50"]
-[ext_resource type="Texture2D" path="res://assets/buttons/button_esc@2x.png" id="51"]
-[ext_resource type="Script" path="res://scenes/main/DebugMenu.gd" id="52"]
-[ext_resource type="Texture2D" path="res://assets/buttons/button_home1@2x.png" id="53"]
-[ext_resource type="Texture2D" path="res://assets/buttons/button_home2@2x.png" id="54"]
-[ext_resource type="Script" path="res://scenes/main/HomeButton.gd" id="55"]
-[ext_resource type="Script" path="res://scenes/main/VisitorPanel.gd" id="56"]
-[ext_resource type="Script" path="res://scenes/main/FriendsPanel.gd" id="57"]
-[ext_resource type="Script" path="res://scenes/main/FriendInfoPanel.gd" id="60"]
-[ext_resource type="Script" path="res://scenes/main/RoutesPanel.gd" id="61"]
-[ext_resource type="Texture2D" path="res://assets/buttons/button_airline@2x.png" id="62"]
-[ext_resource type="Texture2D" path="res://assets/buttons/button_airline2@2x.png" id="63"]
-[ext_resource type="Texture2D" path="res://assets/buttons/button_social@2x.png" id="58"]
-[ext_resource type="Texture2D" path="res://assets/buttons/button_social2@2x.png" id="59"]
-[ext_resource type="Script" path="res://scenes/main/RoutePickerPanel.gd" id="64"]
-[ext_resource type="Script" path="res://scenes/main/LiveryPickerPanel.gd" id="65"]
-[ext_resource type="Script" path="res://scenes/main/Buildings.gd" id="67"]
-[ext_resource type="Script" path="res://scenes/main/PropShopPanel.gd" id="68"]
-[ext_resource type="Script" path="res://scenes/main/OptionsPanel.gd" id="70"]
-[ext_resource type="Texture2D" path="res://assets/ui/gear_icon.svg" id="71"]
-[ext_resource type="Script" path="res://scenes/main/BuildingInfoPanel.gd" id="72"]
-[ext_resource type="Script" path="res://scenes/main/UpgradeConfirmPanel.gd" id="80"]
-[ext_resource type="Script" path="res://scenes/main/AircraftSellPanel.gd" id="84"]
-[ext_resource type="Script" path="res://scenes/main/DailyLoginPanel.gd" id="81"]
-[ext_resource type="Script" path="res://scenes/main/BoostPanel.gd" id="82"]
-[ext_resource type="Script" path="res://scenes/main/BoostButton.gd" id="83"]
-[ext_resource type="Script" path="res://scenes/main/Landmarks.gd" id="75"]
-[ext_resource type="Texture2D" path="res://assets/buttons/button_arrow_left@2x.png" id="73"]
-[ext_resource type="Texture2D" path="res://assets/buttons/button_arrow_right@2x.png" id="74"]
-[ext_resource type="Script" path="res://scenes/main/QuestsPanel.gd" id="78"]
-[ext_resource type="Script" path="res://scenes/main/QuestsButton.gd" id="79"]
+[ext_resource type="PackedScene" uid="uid://b5njiowsao2k3" path="res://scenes/main/FuelPanel.tscn" id="24"]
+[ext_resource type="Script" uid="uid://cprgn7yoij48r" path="res://scenes/main/SkinPickerPanel.gd" id="29"]
+[ext_resource type="Texture2D" uid="uid://dim8nuq40v0sb" path="res://assets/hud/icon_medium_coin@2x.png" id="30"]
+[ext_resource type="Script" uid="uid://gb8jqqnbefpx" path="res://scenes/main/AssignPickerPanel.gd" id="31"]
+[ext_resource type="Script" uid="uid://crss21dp8c1k8" path="res://scenes/main/PathLayer.gd" id="32"]
+[ext_resource type="Script" uid="uid://bla82ci18nwab" path="res://scenes/main/RoadTraffic.gd" id="33"]
+[ext_resource type="Script" uid="uid://c1kxb3w7iwtdv" path="res://scenes/main/RotorEditor.gd" id="34"]
+[ext_resource type="Script" uid="uid://dacuxj4bwcaqx" path="res://scenes/main/ExpansionShopPanel.gd" id="35"]
+[ext_resource type="Texture2D" uid="uid://b3nia31xvuo86" path="res://assets/hud/hud_info_right@ipad.png" id="36"]
+[ext_resource type="Texture2D" uid="uid://vfeeugkdttqb" path="res://assets/hud/hud_info_left@ipad.png" id="37"]
+[ext_resource type="Texture2D" uid="uid://11j348ptry0l" path="res://assets/hud/hud_map@2x.png" id="38"]
+[ext_resource type="Script" uid="uid://dmhxcmione8ra" path="res://scenes/main/XpBar.gd" id="39"]
+[ext_resource type="Texture2D" uid="uid://cgovsbty5n87" path="res://assets/hud/xp_fill.png" id="40"]
+[ext_resource type="Texture2D" uid="uid://dwlrsxg01l8ct" path="res://assets/hud/icon_medium_oil@2x.png" id="41"]
+[ext_resource type="Texture2D" uid="uid://imstvjqydwgg" path="res://assets/hud/toolbar@2x.png" id="42"]
+[ext_resource type="Script" uid="uid://c6ik5rdkfcsd6" path="res://scenes/main/Toolbar.gd" id="43"]
+[ext_resource type="Script" uid="uid://bepm6323ta53m" path="res://scenes/main/WorldMapPanel.gd" id="44"]
+[ext_resource type="Texture2D" uid="uid://cy1suvvklkerd" path="res://assets/board/board_worldmap@2x.png" id="45"]
+[ext_resource type="Texture2D" uid="uid://bjackbjxmdh5" path="res://assets/buttons/button_map1@2x.png" id="46"]
+[ext_resource type="Texture2D" uid="uid://t7h3oup5nny6" path="res://assets/buttons/button_map2@2x.png" id="47"]
+[ext_resource type="Texture2D" uid="uid://cw4o5sdq4588k" path="res://assets/buttons/button_map3@2x.png" id="48"]
+[ext_resource type="Texture2D" uid="uid://q13fwjp4vmin" path="res://assets/buttons/button_map4@2x.png" id="49"]
+[ext_resource type="Texture2D" uid="uid://cpwo6qh8s2arc" path="res://assets/buttons/button_map_current@2x.png" id="50"]
+[ext_resource type="Texture2D" uid="uid://b87brh473sipc" path="res://assets/buttons/button_esc@2x.png" id="51"]
+[ext_resource type="Script" uid="uid://bmcnqym8uut2e" path="res://scenes/main/DebugMenu.gd" id="52"]
+[ext_resource type="Texture2D" uid="uid://bt1hsq21xupe4" path="res://assets/buttons/button_home1@2x.png" id="53"]
+[ext_resource type="Texture2D" uid="uid://cpttxwqq7a4wu" path="res://assets/buttons/button_home2@2x.png" id="54"]
+[ext_resource type="Script" uid="uid://28pnbkuxv326" path="res://scenes/main/HomeButton.gd" id="55"]
+[ext_resource type="Script" uid="uid://c4s1mt62o8q8s" path="res://scenes/main/VisitorPanel.gd" id="56"]
+[ext_resource type="Script" uid="uid://cb84t2tjpmxlm" path="res://scenes/main/FriendsPanel.gd" id="57"]
+[ext_resource type="Texture2D" uid="uid://vr0fnnfnma0s" path="res://assets/buttons/button_social@2x.png" id="58"]
+[ext_resource type="Texture2D" uid="uid://n660yw1memfe" path="res://assets/buttons/button_social2@2x.png" id="59"]
+[ext_resource type="Script" uid="uid://b3nrx36fi26j5" path="res://scenes/main/FriendInfoPanel.gd" id="60"]
+[ext_resource type="Script" uid="uid://dwlstymhjm8qf" path="res://scenes/main/RoutesPanel.gd" id="61"]
+[ext_resource type="Texture2D" uid="uid://kr03t4vmwnj1" path="res://assets/buttons/button_airline@2x.png" id="62"]
+[ext_resource type="Texture2D" uid="uid://ce0a58b8rfkrl" path="res://assets/buttons/button_airline2@2x.png" id="63"]
+[ext_resource type="Script" uid="uid://djsett5bxn5wk" path="res://scenes/main/RoutePickerPanel.gd" id="64"]
+[ext_resource type="Script" uid="uid://b4bqg41x1rd0h" path="res://scenes/main/LiveryPickerPanel.gd" id="65"]
+[ext_resource type="Script" uid="uid://buxx0u6ghtm6u" path="res://scenes/main/Buildings.gd" id="67"]
+[ext_resource type="Script" uid="uid://bblsqkaow388k" path="res://scenes/main/PropShopPanel.gd" id="68"]
+[ext_resource type="Texture2D" uid="uid://c4mekj532g0tk" path="res://assets/hud/icon_medium_people@2x.png" id="69"]
+[ext_resource type="Script" uid="uid://djha7uprps7w6" path="res://scenes/main/OptionsPanel.gd" id="70"]
+[ext_resource type="Texture2D" uid="uid://gl2inn2higoo" path="res://assets/ui/gear_icon.svg" id="71"]
+[ext_resource type="Script" uid="uid://bhsm4prqf0bn5" path="res://scenes/main/BuildingInfoPanel.gd" id="72"]
+[ext_resource type="Texture2D" uid="uid://btovmoocdsc74" path="res://assets/buttons/button_arrow_left@2x.png" id="73"]
+[ext_resource type="Texture2D" uid="uid://6ikmyggpxhnj" path="res://assets/buttons/button_arrow_right@2x.png" id="74"]
+[ext_resource type="Script" uid="uid://dwjchiigrd2p6" path="res://scenes/main/Landmarks.gd" id="75"]
+[ext_resource type="Script" uid="uid://cekgm7h70vjyv" path="res://scenes/main/QuestsPanel.gd" id="78"]
+[ext_resource type="Script" uid="uid://bpl31lco6sa16" path="res://scenes/main/QuestsButton.gd" id="79"]
+[ext_resource type="Script" uid="uid://bglxvstdlhgtc" path="res://scenes/main/UpgradeConfirmPanel.gd" id="80"]
+[ext_resource type="Script" uid="uid://d34lgs3o4utfw" path="res://scenes/main/DailyLoginPanel.gd" id="81"]
+[ext_resource type="Script" uid="uid://cwti3hggavp4f" path="res://scenes/main/BoostPanel.gd" id="82"]
+[ext_resource type="Script" uid="uid://bj4nut3ep7vw0" path="res://scenes/main/BoostButton.gd" id="83"]
+[ext_resource type="Script" uid="uid://cc3cst0btdxrp" path="res://scenes/main/AircraftSellPanel.gd" id="84"]
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_bg"]
 
@@ -118,11 +114,14 @@ script = ExtResource("6")
 [node name="ApronLayer" type="Node2D" parent="." unique_id=1040825060]
 script = ExtResource("7")
 
-[node name="Landmarks" type="Node2D" parent="."]
+[node name="WorldAircraft" type="Node2D" parent="." unique_id=1232857671]
+y_sort_enabled = true
+
+[node name="Landmarks" type="Node2D" parent="." unique_id=969178488]
 y_sort_enabled = true
 script = ExtResource("75")
 
-[node name="Buildings" type="Node2D" parent="."]
+[node name="Buildings" type="Node2D" parent="." unique_id=444543223]
 y_sort_enabled = true
 script = ExtResource("67")
 
@@ -131,15 +130,13 @@ script = ExtResource("67")
 [node name="CloudLayer" type="Node2D" parent="." unique_id=2115948767]
 script = ExtResource("14")
 
-[node name="WorldAircraft" type="Node2D" parent="." unique_id=1232857671]
-
-[node name="PathLayer" type="Node2D" parent="." unique_id=3320458812]
+[node name="PathLayer" type="Node2D" parent="." unique_id=-974508484]
 script = ExtResource("32")
 
-[node name="RoadTraffic" type="Node2D" parent="." unique_id=3841029571]
+[node name="RoadTraffic" type="Node2D" parent="." unique_id=-453937725]
 script = ExtResource("33")
 
-[node name="RotorEditor" type="Node2D" parent="." unique_id=4029581037]
+[node name="RotorEditor" type="Node2D" parent="." unique_id=-265386259]
 script = ExtResource("34")
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=1881146880]
@@ -152,21 +149,18 @@ script = ExtResource("5")
 
 [node name="UI" type="CanvasLayer" parent="." unique_id=872881012]
 
-[node name="TopBarRight" type="TextureRect" parent="UI"]
+[node name="TopBarRight" type="TextureRect" parent="UI" unique_id=193486201]
 z_index = 100
-mouse_filter = 2
+anchors_preset = 10
 anchor_right = 1.0
 offset_left = 220.0
-offset_top = 0.0
-offset_right = 0.0
 offset_bottom = 48.0
 mouse_filter = 2
 texture = ExtResource("36")
 expand_mode = 1
-stretch_mode = 0
 
-
-[node name="OptionsButton" type="TextureButton" parent="UI/TopBarRight"]
+[node name="OptionsButton" type="TextureButton" parent="UI/TopBarRight" unique_id=1379993032]
+layout_mode = 0
 anchor_left = 1.0
 anchor_right = 1.0
 offset_left = -74.0
@@ -176,18 +170,17 @@ offset_bottom = 60.0
 texture_normal = ExtResource("71")
 ignore_texture_size = true
 stretch_mode = 5
-[node name="TopBarLeft" type="TextureRect" parent="UI"]
+
+[node name="TopBarLeft" type="TextureRect" parent="UI" unique_id=201208538]
 z_index = 100
-mouse_filter = 2
-offset_left = 0.0
-offset_top = 0.0
 offset_right = 220.0
 offset_bottom = 96.0
 mouse_filter = 2
 texture = ExtResource("37")
 
-[node name="XpBar" type="Control" parent="UI/TopBarLeft"]
+[node name="XpBar" type="Control" parent="UI/TopBarLeft" unique_id=405427391]
 clip_contents = true
+anchors_preset = 0
 offset_left = 97.0
 offset_top = 34.0
 offset_right = 198.0
@@ -195,16 +188,17 @@ offset_bottom = 56.0
 mouse_filter = 2
 script = ExtResource("39")
 
-[node name="Fill" type="NinePatchRect" parent="UI/TopBarLeft/XpBar"]
+[node name="Fill" type="NinePatchRect" parent="UI/TopBarLeft/XpBar" unique_id=1468086147]
+layout_mode = 0
 offset_right = 101.0
 offset_bottom = 22.0
-mouse_filter = 2
 texture = ExtResource("40")
 patch_margin_left = 6
 patch_margin_right = 6
 
-[node name="Icon" type="TextureRect" parent="UI/TopBarLeft/XpBar"]
+[node name="Icon" type="TextureRect" parent="UI/TopBarLeft/XpBar" unique_id=1378685206]
 custom_minimum_size = Vector2(26, 17)
+layout_mode = 0
 offset_right = 26.0
 offset_bottom = 17.0
 mouse_filter = 2
@@ -212,28 +206,28 @@ texture = ExtResource("10")
 expand_mode = 1
 stretch_mode = 5
 
-[node name="Label" type="Label" parent="UI/TopBarLeft/XpBar"]
+[node name="Label" type="Label" parent="UI/TopBarLeft/XpBar" unique_id=1863951917]
+layout_mode = 0
 offset_right = 101.0
 offset_bottom = 22.0
-mouse_filter = 2
-theme_override_font_sizes/font_size = 14
 theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 14
 text = "0"
 vertical_alignment = 1
 
-[node name="LevelLabel" type="Label" parent="UI/TopBarLeft"]
+[node name="LevelLabel" type="Label" parent="UI/TopBarLeft" unique_id=667704180]
+layout_mode = 0
 offset_left = 97.0
 offset_top = 58.0
 offset_right = 198.0
 offset_bottom = 78.0
-mouse_filter = 2
-theme_override_font_sizes/font_size = 14
 theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 14
 text = "Lv. 1"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="MapTab" type="TextureButton" parent="UI"]
+[node name="MapTab" type="TextureButton" parent="UI" unique_id=1122673923]
 offset_left = 11.0
 offset_top = 93.0
 offset_right = 193.0
@@ -242,23 +236,22 @@ texture_normal = ExtResource("38")
 ignore_texture_size = true
 stretch_mode = 5
 
-[node name="Label" type="Label" parent="UI/MapTab"]
+[node name="Label" type="Label" parent="UI/MapTab" unique_id=1354206520]
+layout_mode = 0
 offset_right = 182.0
 offset_bottom = 34.0
-mouse_filter = 2
-theme_override_font_sizes/font_size = 16
 theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 16
 text = "World Map"
 horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="TopBar" type="HBoxContainer" parent="UI" unique_id=1347047334]
 z_index = 100
-mouse_filter = 2
 offset_left = 240.0
-offset_top = 0.0
 offset_right = 1140.0
 offset_bottom = 48.0
+mouse_filter = 2
 theme_override_constants/separation = 20
 script = ExtResource("11")
 
@@ -275,20 +268,20 @@ theme_override_font_sizes/font_size = 20
 text = "0"
 vertical_alignment = 1
 
-[node name="CoinIcon" type="TextureRect" parent="UI/TopBar"]
+[node name="CoinIcon" type="TextureRect" parent="UI/TopBar" unique_id=2106262416]
 custom_minimum_size = Vector2(35, 39)
 layout_mode = 2
 texture = ExtResource("30")
 expand_mode = 1
 stretch_mode = 5
 
-[node name="CoinLabel" type="Label" parent="UI/TopBar"]
+[node name="CoinLabel" type="Label" parent="UI/TopBar" unique_id=172088076]
 layout_mode = 2
 theme_override_font_sizes/font_size = 20
 text = "0"
 vertical_alignment = 1
 
-[node name="FuelIcon" type="TextureRect" parent="UI/TopBar"]
+[node name="FuelIcon" type="TextureRect" parent="UI/TopBar" unique_id=1006495971]
 custom_minimum_size = Vector2(29, 42)
 layout_mode = 2
 texture = ExtResource("41")
@@ -301,20 +294,21 @@ theme_override_font_sizes/font_size = 20
 text = "0"
 vertical_alignment = 1
 
-[node name="PeopleIcon" type="TextureRect" parent="UI/TopBar"]
+[node name="PeopleIcon" type="TextureRect" parent="UI/TopBar" unique_id=1209508312]
 custom_minimum_size = Vector2(44, 31)
 layout_mode = 2
 texture = ExtResource("69")
 expand_mode = 1
 stretch_mode = 5
 
-[node name="PeopleLabel" type="Label" parent="UI/TopBar"]
+[node name="PeopleLabel" type="Label" parent="UI/TopBar" unique_id=1428620133]
 layout_mode = 2
 theme_override_font_sizes/font_size = 20
 text = "0"
 vertical_alignment = 1
 
-[node name="Toolbar" type="Control" parent="UI"]
+[node name="Toolbar" type="Control" parent="UI" unique_id=2048924287]
+layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -323,7 +317,8 @@ grow_vertical = 2
 mouse_filter = 2
 script = ExtResource("43")
 
-[node name="Shelf" type="TextureRect" parent="UI/Toolbar"]
+[node name="Shelf" type="TextureRect" parent="UI/Toolbar" unique_id=357582090]
+layout_mode = 0
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -333,9 +328,9 @@ grow_vertical = 0
 mouse_filter = 2
 texture = ExtResource("42")
 expand_mode = 1
-stretch_mode = 0
 
-[node name="Buttons" type="HBoxContainer" parent="UI/Toolbar"]
+[node name="Buttons" type="HBoxContainer" parent="UI/Toolbar" unique_id=851585979]
+layout_mode = 0
 anchor_left = 1.0
 anchor_top = 1.0
 anchor_right = 1.0
@@ -349,7 +344,7 @@ grow_vertical = 0
 theme_override_constants/separation = 12
 alignment = 2
 
-[node name="HomeButton" type="TextureButton" parent="UI/Toolbar/Buttons"]
+[node name="HomeButton" type="TextureButton" parent="UI/Toolbar/Buttons" unique_id=1710633645]
 custom_minimum_size = Vector2(109, 102)
 layout_mode = 2
 texture_normal = ExtResource("53")
@@ -359,14 +354,13 @@ ignore_texture_size = true
 stretch_mode = 5
 script = ExtResource("55")
 
-[node name="Label" type="Label" parent="UI/Toolbar/Buttons/HomeButton"]
-offset_left = 0.0
+[node name="Label" type="Label" parent="UI/Toolbar/Buttons/HomeButton" unique_id=1365929611]
+layout_mode = 0
 offset_top = 69.0
 offset_right = 109.0
 offset_bottom = 95.0
-mouse_filter = 2
-theme_override_font_sizes/font_size = 14
 theme_override_colors/font_color = Color(0.18, 0.13, 0.09, 1)
+theme_override_font_sizes/font_size = 14
 text = "Home"
 horizontal_alignment = 1
 vertical_alignment = 1
@@ -380,14 +374,13 @@ texture_pressed = ExtResource("17")
 ignore_texture_size = true
 stretch_mode = 5
 
-[node name="Label" type="Label" parent="UI/Toolbar/Buttons/ShopButton"]
-offset_left = 0.0
+[node name="Label" type="Label" parent="UI/Toolbar/Buttons/ShopButton" unique_id=510118071]
+layout_mode = 0
 offset_top = 69.0
 offset_right = 109.0
 offset_bottom = 95.0
-mouse_filter = 2
-theme_override_font_sizes/font_size = 14
 theme_override_colors/font_color = Color(0.18, 0.13, 0.09, 1)
+theme_override_font_sizes/font_size = 14
 text = "Shop"
 horizontal_alignment = 1
 vertical_alignment = 1
@@ -401,19 +394,18 @@ texture_pressed = ExtResource("19")
 ignore_texture_size = true
 stretch_mode = 5
 
-[node name="Label" type="Label" parent="UI/Toolbar/Buttons/HangarButton"]
-offset_left = 0.0
+[node name="Label" type="Label" parent="UI/Toolbar/Buttons/HangarButton" unique_id=779137362]
+layout_mode = 0
 offset_top = 69.0
 offset_right = 109.0
 offset_bottom = 95.0
-mouse_filter = 2
-theme_override_font_sizes/font_size = 14
 theme_override_colors/font_color = Color(0.18, 0.13, 0.09, 1)
+theme_override_font_sizes/font_size = 14
 text = "Hangar"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="FriendsButton" type="TextureButton" parent="UI/Toolbar/Buttons"]
+[node name="FriendsButton" type="TextureButton" parent="UI/Toolbar/Buttons" unique_id=224143607]
 custom_minimum_size = Vector2(109, 102)
 layout_mode = 2
 toggle_mode = true
@@ -422,19 +414,18 @@ texture_pressed = ExtResource("59")
 ignore_texture_size = true
 stretch_mode = 5
 
-[node name="Label" type="Label" parent="UI/Toolbar/Buttons/FriendsButton"]
-offset_left = 0.0
+[node name="Label" type="Label" parent="UI/Toolbar/Buttons/FriendsButton" unique_id=1285380154]
+layout_mode = 0
 offset_top = 69.0
 offset_right = 109.0
 offset_bottom = 95.0
-mouse_filter = 2
-theme_override_font_sizes/font_size = 14
 theme_override_colors/font_color = Color(0.18, 0.13, 0.09, 1)
+theme_override_font_sizes/font_size = 14
 text = "Friends"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="RoutesButton" type="TextureButton" parent="UI/Toolbar/Buttons"]
+[node name="RoutesButton" type="TextureButton" parent="UI/Toolbar/Buttons" unique_id=1323113995]
 custom_minimum_size = Vector2(109, 102)
 layout_mode = 2
 toggle_mode = true
@@ -443,25 +434,28 @@ texture_pressed = ExtResource("63")
 ignore_texture_size = true
 stretch_mode = 5
 
-[node name="Label" type="Label" parent="UI/Toolbar/Buttons/RoutesButton"]
-offset_left = 0.0
+[node name="Label" type="Label" parent="UI/Toolbar/Buttons/RoutesButton" unique_id=820386302]
+layout_mode = 0
 offset_top = 69.0
 offset_right = 109.0
 offset_bottom = 95.0
-mouse_filter = 2
-theme_override_font_sizes/font_size = 14
 theme_override_colors/font_color = Color(0.18, 0.13, 0.09, 1)
+theme_override_font_sizes/font_size = 14
 text = "Routes"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="QuestsButton" type="Control" parent="UI"]
+[node name="QuestsButton" type="Control" parent="UI" unique_id=1148244832]
+layout_mode = 3
+anchors_preset = 4
 anchor_top = 0.5
 anchor_bottom = 0.5
 grow_vertical = 2
 script = ExtResource("79")
 
-[node name="QuestsPanel" type="Control" parent="UI"]
+[node name="QuestsPanel" type="Control" parent="UI" unique_id=472812147]
+layout_mode = 3
+anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
@@ -471,25 +465,29 @@ grow_vertical = 2
 mouse_filter = 2
 script = ExtResource("78")
 
-[node name="VisitorPanel" type="Control" parent="UI"]
+[node name="VisitorPanel" type="Control" parent="UI" unique_id=1535618105]
+layout_mode = 3
+anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5
 offset_left = -138.0
-offset_top = 0.0
 offset_right = 138.0
 offset_bottom = 95.0
 grow_horizontal = 2
 mouse_filter = 2
 script = ExtResource("56")
 
-[node name="DebugMenu" type="Control" parent="UI"]
+[node name="DebugMenu" type="Control" parent="UI" unique_id=1174418407]
 visible = false
+layout_mode = 3
+anchors_preset = 0
 mouse_filter = 2
 script = ExtResource("52")
 
-[node name="WorldMapPanel" type="Control" parent="UI"]
+[node name="WorldMapPanel" type="Control" parent="UI" unique_id=1884716007]
 visible = false
 custom_minimum_size = Vector2(878, 422)
+layout_mode = 3
 anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
@@ -503,42 +501,43 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("44")
 
-[node name="Background" type="TextureRect" parent="UI/WorldMapPanel"]
-anchors_preset = 15
+[node name="Background" type="TextureRect" parent="UI/WorldMapPanel" unique_id=2083627580]
+layout_mode = 0
 anchor_right = 1.0
 anchor_bottom = 1.0
 mouse_filter = 2
 texture = ExtResource("45")
 
-[node name="CivilHeader" type="Label" parent="UI/WorldMapPanel"]
+[node name="CivilHeader" type="Label" parent="UI/WorldMapPanel" unique_id=1252196267]
+layout_mode = 0
 offset_left = 15.0
 offset_top = 13.0
 offset_right = 465.0
 offset_bottom = 47.0
-mouse_filter = 2
-theme_override_font_sizes/font_size = 21
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_colors/font_outline_color = Color(0.11, 0.06, 0.02, 1)
 theme_override_constants/outline_size = 6
+theme_override_font_sizes/font_size = 21
 text = "Civil Airports"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="WarHeader" type="Label" parent="UI/WorldMapPanel"]
+[node name="WarHeader" type="Label" parent="UI/WorldMapPanel" unique_id=534018412]
+layout_mode = 0
 offset_left = 477.0
 offset_top = 13.0
 offset_right = 860.0
 offset_bottom = 47.0
-mouse_filter = 2
-theme_override_font_sizes/font_size = 21
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_colors/font_outline_color = Color(0.11, 0.06, 0.02, 1)
 theme_override_constants/outline_size = 6
+theme_override_font_sizes/font_size = 21
 text = "War World"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="HomeLandButton" type="TextureButton" parent="UI/WorldMapPanel"]
+[node name="HomeLandButton" type="TextureButton" parent="UI/WorldMapPanel" unique_id=2040506652]
+layout_mode = 0
 offset_left = 55.0
 offset_top = 52.0
 offset_right = 425.0
@@ -547,7 +546,8 @@ texture_normal = ExtResource("46")
 ignore_texture_size = true
 stretch_mode = 5
 
-[node name="DreamLandButton" type="TextureButton" parent="UI/WorldMapPanel"]
+[node name="DreamLandButton" type="TextureButton" parent="UI/WorldMapPanel" unique_id=1174281726]
+layout_mode = 0
 offset_left = 55.0
 offset_top = 170.0
 offset_right = 425.0
@@ -556,7 +556,8 @@ texture_normal = ExtResource("47")
 ignore_texture_size = true
 stretch_mode = 5
 
-[node name="CarrierShipButton" type="TextureButton" parent="UI/WorldMapPanel"]
+[node name="CarrierShipButton" type="TextureButton" parent="UI/WorldMapPanel" unique_id=529995495]
+layout_mode = 0
 offset_left = 55.0
 offset_top = 288.0
 offset_right = 425.0
@@ -565,7 +566,8 @@ texture_normal = ExtResource("48")
 ignore_texture_size = true
 stretch_mode = 5
 
-[node name="SkyMasterButton" type="TextureButton" parent="UI/WorldMapPanel"]
+[node name="SkyMasterButton" type="TextureButton" parent="UI/WorldMapPanel" unique_id=209063478]
+layout_mode = 0
 offset_left = 492.0
 offset_top = 84.0
 offset_right = 845.0
@@ -574,13 +576,15 @@ texture_normal = ExtResource("49")
 ignore_texture_size = true
 stretch_mode = 5
 
-[node name="CurrentBadge" type="TextureRect" parent="UI/WorldMapPanel"]
+[node name="CurrentBadge" type="TextureRect" parent="UI/WorldMapPanel" unique_id=607373911]
+layout_mode = 0
 offset_right = 60.0
 offset_bottom = 42.0
 mouse_filter = 2
 texture = ExtResource("50")
 
-[node name="EscButton" type="TextureButton" parent="UI/WorldMapPanel"]
+[node name="EscButton" type="TextureButton" parent="UI/WorldMapPanel" unique_id=750023612]
+layout_mode = 0
 anchor_left = 1.0
 anchor_right = 1.0
 offset_left = -58.0
@@ -593,13 +597,13 @@ ignore_texture_size = true
 stretch_mode = 5
 
 [node name="ShopHubPanel" type="PanelContainer" parent="UI" unique_id=352734037]
-theme_override_styles/panel = SubResource("StyleBoxEmpty_bg")
 visible = false
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxEmpty_bg")
 script = ExtResource("20")
 
 [node name="Background" type="TextureRect" parent="UI/ShopHubPanel" unique_id=901830235]
@@ -653,17 +657,17 @@ columns = 3
 layout_mode = 2
 text = "Close"
 
-[node name="FuelPanel" parent="UI" instance=ExtResource("24")]
+[node name="FuelPanel" parent="UI" unique_id=1857853396 instance=ExtResource("24")]
 visible = false
 
 [node name="ShopPanel" type="PanelContainer" parent="UI" unique_id=813678258]
-theme_override_styles/panel = SubResource("StyleBoxEmpty_bg")
 visible = false
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxEmpty_bg")
 script = ExtResource("12")
 
 [node name="Background" type="TextureRect" parent="UI/ShopPanel" unique_id=1226671801]
@@ -718,38 +722,38 @@ theme_override_constants/separation = 16
 alignment = 1
 
 [node name="PrevButton" type="TextureButton" parent="UI/ShopPanel/Frame/SafeArea/Margin/VBox/PageControls" unique_id=179174484]
-layout_mode = 2
 custom_minimum_size = Vector2(40, 48)
+layout_mode = 2
+texture_normal = ExtResource("73")
 ignore_texture_size = true
 stretch_mode = 5
-texture_normal = ExtResource("73")
 
 [node name="Dots" type="HBoxContainer" parent="UI/ShopPanel/Frame/SafeArea/Margin/VBox/PageControls" unique_id=1175513873]
 layout_mode = 2
 theme_override_constants/separation = 6
 
 [node name="NextButton" type="TextureButton" parent="UI/ShopPanel/Frame/SafeArea/Margin/VBox/PageControls" unique_id=668112403]
-layout_mode = 2
 custom_minimum_size = Vector2(40, 48)
+layout_mode = 2
+texture_normal = ExtResource("74")
 ignore_texture_size = true
 stretch_mode = 5
-texture_normal = ExtResource("74")
 
 [node name="CloseButton" type="Button" parent="UI/ShopPanel/Frame/SafeArea/Margin/VBox" unique_id=1628004145]
 layout_mode = 2
 text = "Close"
 
-[node name="ExpansionShopPanel" type="PanelContainer" parent="UI"]
-theme_override_styles/panel = SubResource("StyleBoxEmpty_bg")
+[node name="ExpansionShopPanel" type="PanelContainer" parent="UI" unique_id=856811441]
 visible = false
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxEmpty_bg")
 script = ExtResource("35")
 
-[node name="Background" type="TextureRect" parent="UI/ExpansionShopPanel"]
+[node name="Background" type="TextureRect" parent="UI/ExpansionShopPanel" unique_id=1882646561]
 show_behind_parent = true
 layout_mode = 2
 mouse_filter = 2
@@ -757,10 +761,10 @@ texture = ExtResource("22")
 expand_mode = 1
 stretch_mode = 6
 
-[node name="Frame" type="Control" parent="UI/ExpansionShopPanel"]
+[node name="Frame" type="Control" parent="UI/ExpansionShopPanel" unique_id=279704254]
 layout_mode = 2
 
-[node name="SafeArea" type="Control" parent="UI/ExpansionShopPanel/Frame"]
+[node name="SafeArea" type="Control" parent="UI/ExpansionShopPanel/Frame" unique_id=1802555455]
 anchors_preset = 0
 anchor_top = 0.24
 anchor_right = 1.0
@@ -770,7 +774,7 @@ offset_right = -40.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="Margin" type="MarginContainer" parent="UI/ExpansionShopPanel/Frame/SafeArea"]
+[node name="Margin" type="MarginContainer" parent="UI/ExpansionShopPanel/Frame/SafeArea" unique_id=2058688520]
 layout_mode = 0
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -779,60 +783,60 @@ theme_override_constants/margin_top = 8
 theme_override_constants/margin_right = 8
 theme_override_constants/margin_bottom = 8
 
-[node name="VBox" type="VBoxContainer" parent="UI/ExpansionShopPanel/Frame/SafeArea/Margin"]
+[node name="VBox" type="VBoxContainer" parent="UI/ExpansionShopPanel/Frame/SafeArea/Margin" unique_id=954460495]
 layout_mode = 2
 theme_override_constants/separation = 12
 
-[node name="TitleLabel" type="Label" parent="UI/ExpansionShopPanel/Frame/SafeArea/Margin/VBox"]
+[node name="TitleLabel" type="Label" parent="UI/ExpansionShopPanel/Frame/SafeArea/Margin/VBox" unique_id=1872104981]
 layout_mode = 2
 theme_override_font_sizes/font_size = 24
 text = "Expansion Shop"
 
-[node name="CardRow" type="HBoxContainer" parent="UI/ExpansionShopPanel/Frame/SafeArea/Margin/VBox"]
+[node name="CardRow" type="HBoxContainer" parent="UI/ExpansionShopPanel/Frame/SafeArea/Margin/VBox" unique_id=1200238762]
 custom_minimum_size = Vector2(0, 232)
 layout_mode = 2
 size_flags_vertical = 3
 theme_override_constants/separation = 12
 alignment = 1
 
-[node name="PageControls" type="HBoxContainer" parent="UI/ExpansionShopPanel/Frame/SafeArea/Margin/VBox"]
+[node name="PageControls" type="HBoxContainer" parent="UI/ExpansionShopPanel/Frame/SafeArea/Margin/VBox" unique_id=752342600]
 layout_mode = 2
 theme_override_constants/separation = 16
 alignment = 1
 
-[node name="PrevButton" type="TextureButton" parent="UI/ExpansionShopPanel/Frame/SafeArea/Margin/VBox/PageControls"]
-layout_mode = 2
+[node name="PrevButton" type="TextureButton" parent="UI/ExpansionShopPanel/Frame/SafeArea/Margin/VBox/PageControls" unique_id=1178010557]
 custom_minimum_size = Vector2(40, 48)
+layout_mode = 2
+texture_normal = ExtResource("73")
 ignore_texture_size = true
 stretch_mode = 5
-texture_normal = ExtResource("73")
 
-[node name="Dots" type="HBoxContainer" parent="UI/ExpansionShopPanel/Frame/SafeArea/Margin/VBox/PageControls"]
+[node name="Dots" type="HBoxContainer" parent="UI/ExpansionShopPanel/Frame/SafeArea/Margin/VBox/PageControls" unique_id=697866057]
 layout_mode = 2
 theme_override_constants/separation = 6
 
-[node name="NextButton" type="TextureButton" parent="UI/ExpansionShopPanel/Frame/SafeArea/Margin/VBox/PageControls"]
-layout_mode = 2
+[node name="NextButton" type="TextureButton" parent="UI/ExpansionShopPanel/Frame/SafeArea/Margin/VBox/PageControls" unique_id=717448951]
 custom_minimum_size = Vector2(40, 48)
+layout_mode = 2
+texture_normal = ExtResource("74")
 ignore_texture_size = true
 stretch_mode = 5
-texture_normal = ExtResource("74")
 
-[node name="CloseButton" type="Button" parent="UI/ExpansionShopPanel/Frame/SafeArea/Margin/VBox"]
+[node name="CloseButton" type="Button" parent="UI/ExpansionShopPanel/Frame/SafeArea/Margin/VBox" unique_id=15254590]
 layout_mode = 2
 text = "Close"
 
-[node name="PropShopPanel" type="PanelContainer" parent="UI"]
-theme_override_styles/panel = SubResource("StyleBoxEmpty_bg")
+[node name="PropShopPanel" type="PanelContainer" parent="UI" unique_id=249659976]
 visible = false
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxEmpty_bg")
 script = ExtResource("68")
 
-[node name="Background" type="TextureRect" parent="UI/PropShopPanel"]
+[node name="Background" type="TextureRect" parent="UI/PropShopPanel" unique_id=967429099]
 show_behind_parent = true
 layout_mode = 2
 mouse_filter = 2
@@ -840,10 +844,10 @@ texture = ExtResource("22")
 expand_mode = 1
 stretch_mode = 6
 
-[node name="Frame" type="Control" parent="UI/PropShopPanel"]
+[node name="Frame" type="Control" parent="UI/PropShopPanel" unique_id=344997146]
 layout_mode = 2
 
-[node name="SafeArea" type="Control" parent="UI/PropShopPanel/Frame"]
+[node name="SafeArea" type="Control" parent="UI/PropShopPanel/Frame" unique_id=70197885]
 anchors_preset = 0
 anchor_top = 0.24
 anchor_right = 1.0
@@ -853,7 +857,7 @@ offset_right = -40.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="Margin" type="MarginContainer" parent="UI/PropShopPanel/Frame/SafeArea"]
+[node name="Margin" type="MarginContainer" parent="UI/PropShopPanel/Frame/SafeArea" unique_id=1850631667]
 layout_mode = 0
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -862,60 +866,60 @@ theme_override_constants/margin_top = 8
 theme_override_constants/margin_right = 8
 theme_override_constants/margin_bottom = 8
 
-[node name="VBox" type="VBoxContainer" parent="UI/PropShopPanel/Frame/SafeArea/Margin"]
+[node name="VBox" type="VBoxContainer" parent="UI/PropShopPanel/Frame/SafeArea/Margin" unique_id=460442952]
 layout_mode = 2
 theme_override_constants/separation = 12
 
-[node name="TitleLabel" type="Label" parent="UI/PropShopPanel/Frame/SafeArea/Margin/VBox"]
+[node name="TitleLabel" type="Label" parent="UI/PropShopPanel/Frame/SafeArea/Margin/VBox" unique_id=367564738]
 layout_mode = 2
 theme_override_font_sizes/font_size = 24
 text = "Prop Shop"
 
-[node name="CardRow" type="HBoxContainer" parent="UI/PropShopPanel/Frame/SafeArea/Margin/VBox"]
+[node name="CardRow" type="HBoxContainer" parent="UI/PropShopPanel/Frame/SafeArea/Margin/VBox" unique_id=540082676]
 custom_minimum_size = Vector2(0, 232)
 layout_mode = 2
 size_flags_vertical = 3
 theme_override_constants/separation = 12
 alignment = 1
 
-[node name="PageControls" type="HBoxContainer" parent="UI/PropShopPanel/Frame/SafeArea/Margin/VBox"]
+[node name="PageControls" type="HBoxContainer" parent="UI/PropShopPanel/Frame/SafeArea/Margin/VBox" unique_id=925139443]
 layout_mode = 2
 theme_override_constants/separation = 16
 alignment = 1
 
-[node name="PrevButton" type="TextureButton" parent="UI/PropShopPanel/Frame/SafeArea/Margin/VBox/PageControls"]
-layout_mode = 2
+[node name="PrevButton" type="TextureButton" parent="UI/PropShopPanel/Frame/SafeArea/Margin/VBox/PageControls" unique_id=67270703]
 custom_minimum_size = Vector2(40, 48)
+layout_mode = 2
+texture_normal = ExtResource("73")
 ignore_texture_size = true
 stretch_mode = 5
-texture_normal = ExtResource("73")
 
-[node name="Dots" type="HBoxContainer" parent="UI/PropShopPanel/Frame/SafeArea/Margin/VBox/PageControls"]
+[node name="Dots" type="HBoxContainer" parent="UI/PropShopPanel/Frame/SafeArea/Margin/VBox/PageControls" unique_id=251355281]
 layout_mode = 2
 theme_override_constants/separation = 6
 
-[node name="NextButton" type="TextureButton" parent="UI/PropShopPanel/Frame/SafeArea/Margin/VBox/PageControls"]
-layout_mode = 2
+[node name="NextButton" type="TextureButton" parent="UI/PropShopPanel/Frame/SafeArea/Margin/VBox/PageControls" unique_id=532076630]
 custom_minimum_size = Vector2(40, 48)
+layout_mode = 2
+texture_normal = ExtResource("74")
 ignore_texture_size = true
 stretch_mode = 5
-texture_normal = ExtResource("74")
 
-[node name="CloseButton" type="Button" parent="UI/PropShopPanel/Frame/SafeArea/Margin/VBox"]
+[node name="CloseButton" type="Button" parent="UI/PropShopPanel/Frame/SafeArea/Margin/VBox" unique_id=2082987370]
 layout_mode = 2
 text = "Close"
 
 [node name="HangarPanel" type="PanelContainer" parent="UI" unique_id=1514080592]
-theme_override_styles/panel = SubResource("StyleBoxEmpty_bg")
 visible = false
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxEmpty_bg")
 script = ExtResource("13")
 
-[node name="Background" type="TextureRect" parent="UI/HangarPanel"]
+[node name="Background" type="TextureRect" parent="UI/HangarPanel" unique_id=569020682]
 show_behind_parent = true
 layout_mode = 2
 mouse_filter = 2
@@ -923,10 +927,11 @@ texture = ExtResource("22")
 expand_mode = 1
 stretch_mode = 6
 
-[node name="Frame" type="Control" parent="UI/HangarPanel"]
+[node name="Frame" type="Control" parent="UI/HangarPanel" unique_id=564177423]
 layout_mode = 2
 
-[node name="SafeArea" type="Control" parent="UI/HangarPanel/Frame"]
+[node name="SafeArea" type="Control" parent="UI/HangarPanel/Frame" unique_id=1817395628]
+anchors_preset = 0
 anchor_top = 0.24
 anchor_right = 1.0
 anchor_bottom = 0.72
@@ -935,7 +940,8 @@ offset_right = -40.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="Margin" type="MarginContainer" parent="UI/HangarPanel/Frame/SafeArea"]
+[node name="Margin" type="MarginContainer" parent="UI/HangarPanel/Frame/SafeArea" unique_id=1319124577]
+layout_mode = 0
 anchor_right = 1.0
 anchor_bottom = 1.0
 theme_override_constants/margin_left = 8
@@ -952,52 +958,52 @@ layout_mode = 2
 theme_override_font_sizes/font_size = 24
 text = "Hangar"
 
-[node name="Grid" type="GridContainer" parent="UI/HangarPanel/Frame/SafeArea/Margin/VBox"]
+[node name="Grid" type="GridContainer" parent="UI/HangarPanel/Frame/SafeArea/Margin/VBox" unique_id=170724126]
 layout_mode = 2
-size_flags_vertical = 3
 size_flags_horizontal = 4
+size_flags_vertical = 3
 theme_override_constants/h_separation = 30
 theme_override_constants/v_separation = 20
 columns = 4
 
-[node name="PageControls" type="HBoxContainer" parent="UI/HangarPanel/Frame/SafeArea/Margin/VBox"]
+[node name="PageControls" type="HBoxContainer" parent="UI/HangarPanel/Frame/SafeArea/Margin/VBox" unique_id=513765265]
 layout_mode = 2
 theme_override_constants/separation = 16
 alignment = 1
 
-[node name="PrevButton" type="TextureButton" parent="UI/HangarPanel/Frame/SafeArea/Margin/VBox/PageControls"]
-layout_mode = 2
+[node name="PrevButton" type="TextureButton" parent="UI/HangarPanel/Frame/SafeArea/Margin/VBox/PageControls" unique_id=1016008786]
 custom_minimum_size = Vector2(40, 48)
+layout_mode = 2
+texture_normal = ExtResource("73")
 ignore_texture_size = true
 stretch_mode = 5
-texture_normal = ExtResource("73")
 
-[node name="Dots" type="HBoxContainer" parent="UI/HangarPanel/Frame/SafeArea/Margin/VBox/PageControls"]
+[node name="Dots" type="HBoxContainer" parent="UI/HangarPanel/Frame/SafeArea/Margin/VBox/PageControls" unique_id=450235291]
 layout_mode = 2
 theme_override_constants/separation = 6
 
-[node name="NextButton" type="TextureButton" parent="UI/HangarPanel/Frame/SafeArea/Margin/VBox/PageControls"]
-layout_mode = 2
+[node name="NextButton" type="TextureButton" parent="UI/HangarPanel/Frame/SafeArea/Margin/VBox/PageControls" unique_id=420096592]
 custom_minimum_size = Vector2(40, 48)
+layout_mode = 2
+texture_normal = ExtResource("74")
 ignore_texture_size = true
 stretch_mode = 5
-texture_normal = ExtResource("74")
 
 [node name="CloseButton" type="Button" parent="UI/HangarPanel/Frame/SafeArea/Margin/VBox" unique_id=1994010458]
 layout_mode = 2
 text = "Close"
 
-[node name="FriendsPanel" type="PanelContainer" parent="UI"]
-theme_override_styles/panel = SubResource("StyleBoxEmpty_bg")
+[node name="FriendsPanel" type="PanelContainer" parent="UI" unique_id=1995323550]
 visible = false
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxEmpty_bg")
 script = ExtResource("57")
 
-[node name="Background" type="TextureRect" parent="UI/FriendsPanel"]
+[node name="Background" type="TextureRect" parent="UI/FriendsPanel" unique_id=963865828]
 show_behind_parent = true
 layout_mode = 2
 mouse_filter = 2
@@ -1005,10 +1011,11 @@ texture = ExtResource("22")
 expand_mode = 1
 stretch_mode = 6
 
-[node name="Frame" type="Control" parent="UI/FriendsPanel"]
+[node name="Frame" type="Control" parent="UI/FriendsPanel" unique_id=172839404]
 layout_mode = 2
 
-[node name="SafeArea" type="Control" parent="UI/FriendsPanel/Frame"]
+[node name="SafeArea" type="Control" parent="UI/FriendsPanel/Frame" unique_id=774014325]
+anchors_preset = 0
 anchor_top = 0.24
 anchor_right = 1.0
 anchor_bottom = 0.72
@@ -1017,7 +1024,8 @@ offset_right = -40.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="Margin" type="MarginContainer" parent="UI/FriendsPanel/Frame/SafeArea"]
+[node name="Margin" type="MarginContainer" parent="UI/FriendsPanel/Frame/SafeArea" unique_id=1523298170]
+layout_mode = 0
 anchor_right = 1.0
 anchor_bottom = 1.0
 theme_override_constants/margin_left = 8
@@ -1025,38 +1033,38 @@ theme_override_constants/margin_top = 8
 theme_override_constants/margin_right = 8
 theme_override_constants/margin_bottom = 8
 
-[node name="VBox" type="VBoxContainer" parent="UI/FriendsPanel/Frame/SafeArea/Margin"]
+[node name="VBox" type="VBoxContainer" parent="UI/FriendsPanel/Frame/SafeArea/Margin" unique_id=444945271]
 layout_mode = 2
 theme_override_constants/separation = 12
 
-[node name="TitleLabel" type="Label" parent="UI/FriendsPanel/Frame/SafeArea/Margin/VBox"]
+[node name="TitleLabel" type="Label" parent="UI/FriendsPanel/Frame/SafeArea/Margin/VBox" unique_id=907925311]
 layout_mode = 2
 theme_override_font_sizes/font_size = 24
 text = "Friends"
 
-[node name="Grid" type="GridContainer" parent="UI/FriendsPanel/Frame/SafeArea/Margin/VBox"]
+[node name="Grid" type="GridContainer" parent="UI/FriendsPanel/Frame/SafeArea/Margin/VBox" unique_id=716175179]
 layout_mode = 2
-size_flags_vertical = 3
 size_flags_horizontal = 4
+size_flags_vertical = 3
 theme_override_constants/h_separation = 30
 theme_override_constants/v_separation = 20
 columns = 4
 
-[node name="CloseButton" type="Button" parent="UI/FriendsPanel/Frame/SafeArea/Margin/VBox"]
+[node name="CloseButton" type="Button" parent="UI/FriendsPanel/Frame/SafeArea/Margin/VBox" unique_id=528960287]
 layout_mode = 2
 text = "Close"
 
-[node name="RoutesPanel" type="PanelContainer" parent="UI"]
-theme_override_styles/panel = SubResource("StyleBoxEmpty_bg")
+[node name="RoutesPanel" type="PanelContainer" parent="UI" unique_id=30236468]
 visible = false
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxEmpty_bg")
 script = ExtResource("61")
 
-[node name="Background" type="TextureRect" parent="UI/RoutesPanel"]
+[node name="Background" type="TextureRect" parent="UI/RoutesPanel" unique_id=2052291518]
 show_behind_parent = true
 layout_mode = 2
 mouse_filter = 2
@@ -1064,11 +1072,12 @@ texture = ExtResource("22")
 expand_mode = 1
 stretch_mode = 6
 
-[node name="Frame" type="Control" parent="UI/RoutesPanel"]
+[node name="Frame" type="Control" parent="UI/RoutesPanel" unique_id=936502758]
 layout_mode = 2
 
-[node name="SafeArea" type="Control" parent="UI/RoutesPanel/Frame"]
-anchor_top = 0.219
+[node name="SafeArea" type="Control" parent="UI/RoutesPanel/Frame" unique_id=1384964245]
+anchors_preset = 0
+anchor_top = 0.16
 anchor_right = 1.0
 anchor_bottom = 0.768
 offset_left = 40.0
@@ -1076,7 +1085,8 @@ offset_right = -40.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="Margin" type="MarginContainer" parent="UI/RoutesPanel/Frame/SafeArea"]
+[node name="Margin" type="MarginContainer" parent="UI/RoutesPanel/Frame/SafeArea" unique_id=894242857]
+layout_mode = 0
 anchor_right = 1.0
 anchor_bottom = 1.0
 theme_override_constants/margin_left = 8
@@ -1084,28 +1094,28 @@ theme_override_constants/margin_top = 8
 theme_override_constants/margin_right = 8
 theme_override_constants/margin_bottom = 8
 
-[node name="VBox" type="VBoxContainer" parent="UI/RoutesPanel/Frame/SafeArea/Margin"]
+[node name="VBox" type="VBoxContainer" parent="UI/RoutesPanel/Frame/SafeArea/Margin" unique_id=821790573]
 layout_mode = 2
 theme_override_constants/separation = 12
 
-[node name="TitleLabel" type="Label" parent="UI/RoutesPanel/Frame/SafeArea/Margin/VBox"]
+[node name="TitleLabel" type="Label" parent="UI/RoutesPanel/Frame/SafeArea/Margin/VBox" unique_id=783270046]
 layout_mode = 2
 theme_override_font_sizes/font_size = 24
 text = "Routes"
 
-[node name="Grid" type="GridContainer" parent="UI/RoutesPanel/Frame/SafeArea/Margin/VBox"]
+[node name="Grid" type="GridContainer" parent="UI/RoutesPanel/Frame/SafeArea/Margin/VBox" unique_id=213918040]
 layout_mode = 2
-size_flags_vertical = 3
 size_flags_horizontal = 4
+size_flags_vertical = 3
 theme_override_constants/h_separation = 0
-theme_override_constants/v_separation = 6
-columns = 1
+theme_override_constants/v_separation = 4
 
-[node name="CloseButton" type="Button" parent="UI/RoutesPanel/Frame/SafeArea/Margin/VBox"]
+[node name="CloseButton" type="Button" parent="UI/RoutesPanel/Frame/SafeArea/Margin/VBox" unique_id=474001698]
 layout_mode = 2
 text = "Close"
 
-[node name="FriendInfoPanel" type="Control" parent="UI"]
+[node name="FriendInfoPanel" type="Control" parent="UI" unique_id=1460843320]
+layout_mode = 3
 anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
@@ -1119,8 +1129,10 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("60")
 
-[node name="LiveryPickerPanel" type="Control" parent="UI"]
+[node name="LiveryPickerPanel" type="Control" parent="UI" unique_id=629291457]
 visible = false
+layout_mode = 3
+anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
@@ -1133,7 +1145,8 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("65")
 
-[node name="RoutePickerPanel" type="Control" parent="UI"]
+[node name="RoutePickerPanel" type="Control" parent="UI" unique_id=1764836290]
+layout_mode = 3
 anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
@@ -1147,9 +1160,11 @@ script = ExtResource("64")
 
 [node name="ApronInfoPanel" type="Control" parent="UI" unique_id=521176117]
 visible = false
+layout_mode = 3
+anchors_preset = 7
 anchor_left = 0.5
-anchor_right = 0.5
 anchor_top = 1.0
+anchor_right = 0.5
 anchor_bottom = 1.0
 offset_left = -300.0
 offset_top = -160.0
@@ -1159,7 +1174,9 @@ grow_horizontal = 2
 grow_vertical = 0
 script = ExtResource("8")
 
-[node name="SkinPickerPanel" type="Control" parent="UI"]
+[node name="SkinPickerPanel" type="Control" parent="UI" unique_id=2068569944]
+layout_mode = 3
+anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
@@ -1172,9 +1189,9 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("29")
 
-[node name="AssignPickerPanel" type="PanelContainer" parent="UI"]
-theme_override_styles/panel = SubResource("StyleBoxEmpty_bg")
+[node name="AssignPickerPanel" type="PanelContainer" parent="UI" unique_id=806989272]
 visible = false
+anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
@@ -1185,42 +1202,45 @@ offset_right = 260.0
 offset_bottom = 180.0
 grow_horizontal = 2
 grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxEmpty_bg")
 script = ExtResource("31")
 
-[node name="Margin" type="MarginContainer" parent="UI/AssignPickerPanel"]
+[node name="Margin" type="MarginContainer" parent="UI/AssignPickerPanel" unique_id=1365745552]
 layout_mode = 2
 theme_override_constants/margin_left = 16
 theme_override_constants/margin_top = 16
 theme_override_constants/margin_right = 16
 theme_override_constants/margin_bottom = 16
 
-[node name="VBox" type="VBoxContainer" parent="UI/AssignPickerPanel/Margin"]
+[node name="VBox" type="VBoxContainer" parent="UI/AssignPickerPanel/Margin" unique_id=909075785]
 layout_mode = 2
 theme_override_constants/separation = 12
 
-[node name="TitleLabel" type="Label" parent="UI/AssignPickerPanel/Margin/VBox"]
+[node name="TitleLabel" type="Label" parent="UI/AssignPickerPanel/Margin/VBox" unique_id=1360636815]
 layout_mode = 2
 theme_override_font_sizes/font_size = 22
 text = "Select an Aircraft"
 
-[node name="EmptyLabel" type="Label" parent="UI/AssignPickerPanel/Margin/VBox"]
+[node name="EmptyLabel" type="Label" parent="UI/AssignPickerPanel/Margin/VBox" unique_id=1177560584]
 visible = false
 layout_mode = 2
 text = "No idle aircraft - buy one from the Shop"
 horizontal_alignment = 1
 autowrap_mode = 2
 
-[node name="List" type="VBoxContainer" parent="UI/AssignPickerPanel/Margin/VBox"]
+[node name="List" type="VBoxContainer" parent="UI/AssignPickerPanel/Margin/VBox" unique_id=834210636]
 layout_mode = 2
 size_flags_vertical = 3
 theme_override_constants/separation = 8
 
-[node name="CloseButton" type="Button" parent="UI/AssignPickerPanel/Margin/VBox"]
+[node name="CloseButton" type="Button" parent="UI/AssignPickerPanel/Margin/VBox" unique_id=1550910466]
 layout_mode = 2
 text = "Close"
 
-[node name="OptionsPanel" type="Control" parent="UI"]
+[node name="OptionsPanel" type="Control" parent="UI" unique_id=428117485]
 visible = false
+layout_mode = 3
+anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
@@ -1233,11 +1253,13 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("70")
 
-[node name="BuildingInfoPanel" type="Control" parent="UI"]
+[node name="BuildingInfoPanel" type="Control" parent="UI" unique_id=400203536]
 visible = false
+layout_mode = 3
+anchors_preset = 7
 anchor_left = 0.5
-anchor_right = 0.5
 anchor_top = 1.0
+anchor_right = 0.5
 anchor_bottom = 1.0
 offset_left = -300.0
 offset_top = -160.0
@@ -1247,8 +1269,10 @@ grow_horizontal = 2
 grow_vertical = 0
 script = ExtResource("72")
 
-[node name="UpgradeConfirmPanel" type="Control" parent="UI"]
+[node name="UpgradeConfirmPanel" type="Control" parent="UI" unique_id=1469088105]
 visible = false
+layout_mode = 3
+anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
@@ -1261,9 +1285,10 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("80")
 
-
-[node name="AircraftSellPanel" type="Control" parent="UI"]
+[node name="AircraftSellPanel" type="Control" parent="UI" unique_id=29504756]
 visible = false
+layout_mode = 3
+anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
@@ -1276,8 +1301,10 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("84")
 
-[node name="DailyLoginPanel" type="Control" parent="UI"]
+[node name="DailyLoginPanel" type="Control" parent="UI" unique_id=1365280158]
 visible = false
+layout_mode = 3
+anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
@@ -1290,9 +1317,10 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("81")
 
-
-[node name="BoostPanel" type="Control" parent="UI"]
+[node name="BoostPanel" type="Control" parent="UI" unique_id=987985382]
 visible = false
+layout_mode = 3
+anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
@@ -1305,7 +1333,9 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("82")
 
-[node name="BoostButton" type="Control" parent="UI"]
+[node name="BoostButton" type="Control" parent="UI" unique_id=2119001025]
+layout_mode = 3
+anchors_preset = 3
 anchor_left = 1.0
 anchor_top = 1.0
 anchor_right = 1.0
@@ -1318,9 +1348,7 @@ grow_horizontal = 0
 grow_vertical = 0
 script = ExtResource("83")
 
-
 [node name="ZoneUnlockPanel" type="PanelContainer" parent="UI" unique_id=785618106]
-theme_override_styles/panel = SubResource("StyleBoxEmpty_bg")
 visible = false
 anchors_preset = 8
 anchor_left = 0.5
@@ -1333,6 +1361,7 @@ offset_right = 160.0
 offset_bottom = 90.0
 grow_horizontal = 2
 grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxEmpty_bg")
 script = ExtResource("15")
 
 [node name="Margin" type="MarginContainer" parent="UI/ZoneUnlockPanel" unique_id=914221156]

@@ -21,6 +21,7 @@ const MARGIN := 16.0
 # The overlay flags on DebugState, as checkbox rows.
 const FLAGS := [
 	{"flag": &"show_grid", "label": "Isometric grid", "key": ""},
+	{"flag": &"hide_ui", "label": "Hide all UI (this menu stays)", "key": ""},
 	{"flag": &"show_apron_ids", "label": "Apron ID numbers", "key": ""},
 	{"flag": &"show_apron_tints", "label": "Apron free/occupied tints", "key": ""},
 	{"flag": &"show_apron_costs", "label": "Apron build costs", "key": ""},
@@ -45,6 +46,10 @@ const EDITORS := [
 		"node": "RotorEditor", "label": "Rotor placement", "key": "",
 		"help": "M model  ·  1-9 pick rotor  ·  click place  ·  - + disc size  ·  B behind/front",
 	},
+	{
+		"node": "BadgePlacer", "label": "Pad badge placement", "key": "",
+		"help": "click a pad to place it on EVERY pad  ·  arrows nudge (shift x10)  ·  S prints the value",
+	},
 ]
 
 var _speed_buttons: Array = []
@@ -62,8 +67,34 @@ const GIVE_ROWS := [
 ]
 
 
+# Whether the dev tools exist in this build at all.
+#
+# "editor" is set while running from the editor, which is every session up to
+# now. "devtools" is a custom feature an export preset can declare, so a debug
+# build can still carry them without the release build doing so.
+static func available() -> bool:
+	return OS.has_feature("editor") or OS.has_feature("devtools")
+
+
 func _ready() -> void:
+	# NOT IN A BUILD YOU HAND SOMEBODY. This menu gives away money, coins and
+	# levels outright, and it is the only way into the layout editors - which
+	# write to res://data, and that is read-only once it is inside a .pck, so
+	# they would fail silently rather than refuse. Neither is dangerous; both
+	# are confusing to stumble into in a game someone is playing.
+	#
+	# Freed rather than hidden. Every editor is reachable only from here and
+	# every one of them defaults to editing = false, so removing this removes
+	# the whole surface - there is no second way in to keep track of.
+	if not available():
+		queue_free()
+		return
 	visible = false
+	# It sits mid-list among UI's children, so twenty-odd panels declared after
+	# it would otherwise draw straight over the top. Debug furniture is always
+	# the frontmost thing on the screen - including over a panel that is itself
+	# only visible because this menu made it so.
+	z_index = RenderingServer.CANVAS_ITEM_Z_MAX
 	_build()
 	DebugState.flags_changed.connect(_refresh)
 

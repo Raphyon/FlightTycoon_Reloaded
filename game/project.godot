@@ -15,7 +15,7 @@ compatibility/default_parent_skeleton_in_mesh_instance_3d=true
 [application]
 
 config/name="ft-proto"
-run/main_scene="res://scenes/main/Main.tscn"
+run/main_scene="res://scenes/splash/Splash.tscn"
 config/features=PackedStringArray("4.7", "Forward Plus")
 
 [autoload]
@@ -52,3 +52,4 @@ window/stretch/aspect="expand"
 [rendering]
 
 renderer/rendering_method="mobile"
+textures/vram_compression/import_etc2_astc=true

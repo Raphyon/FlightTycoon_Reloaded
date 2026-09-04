@@ -18,8 +18,8 @@ const CARD_ART := preload("res://assets/board/board_card1@2x.png")
 const TAG_ART := preload("res://assets/board/board_price@2x.png")
 const BUTTON_ART := preload("res://assets/buttons/button_red1@2x.png")
 const BUTTON_OFF_ART := preload("res://assets/buttons/button_grey3@2x.png")
+const MONEY_ICON := preload("res://assets/hud/icon_medium_money1@2x.png")
 const CANCEL_ART := preload("res://assets/buttons/button_orange2@2x.png")
-const CASH_ICON := preload("res://assets/hud/icon_medium_money1@2x.png")
 
 const BOARD_SIZE := Vector2(679, 325)
 const BOARD_SCALE := 0.72
@@ -46,7 +46,11 @@ const BUTTON_W := 68.0
 const BUTTON_Y := 176.0
 const NOTE_Y := 236.0
 const CONFIRM_W := BUTTON_W
-const CONFIRM_GAP := 10.0
+# 10 PUT CONFIRM AND CANCEL 10px APART, which is inside the slop of a hurried
+# click on the one button in the game that destroys an asset. Widened to a
+# clear thumb's width - the pair still centres on ACTION_CX, so nothing else
+# in the layout moves.
+const CONFIRM_GAP := 28.0
 
 const FONT_TITLE := 22
 const FONT_NAME := 14
@@ -179,8 +183,10 @@ func _price_tag() -> void:
 	tag.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_content.add_child(tag)
 
+	# The note, like the shop card's income and the top bar - one picture for
+	# cash wherever it is shown.
 	var icon := TextureRect.new()
-	icon.texture = CASH_ICON
+	icon.texture = MONEY_ICON
 	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	icon.custom_minimum_size = Vector2.ZERO
@@ -256,15 +262,24 @@ func _note() -> void:
 	note.text = "Half the purchase price. Sells one that is home."
 
 
-# EVERYTHING SELLING THROWS AWAY, said before it happens rather than after.
-# Affinity is 405 legs at level 10 and the resale is a flat half of the
-# catalogue price whatever the level, and an aircraft that has landed but not
-# been tapped is still holding its flight money.
+# WHAT SELLING ACTUALLY THROWS AWAY, said before it happens rather than after.
+#
+# IT USED TO WARN ABOUT MASTERY AND THAT WAS NOT TRUE. Fleet.sell() adds the
+# money and erases the aircraft; it never touches AircraftAffinity, which keys
+# XP by MODEL rather than by aircraft and is only ever written to. Nothing
+# listens for a sale, nothing erases a model's entry, and the only reset() is
+# the one a new game runs - so selling every An-2 you own leaves the airframe at
+# the level it reached, and buying one back next week finds it still there.
+#
+# The panel was talking a player out of a loss that cannot happen, on top of a
+# resale that is already a flat half of the catalogue price. Mastery is
+# knowledge of an airframe and does not evaporate with the last airframe.
+#
+# The unclaimed reward is a real loss and stays: an aircraft that has landed and
+# not been tapped is still holding its flight money, and sell() forfeits it
+# deliberately rather than settling up.
 func _disclaimer() -> String:
 	var lost: Array[String] = []
-	var level: int = AircraftAffinity.level_for(_model_key)
-	if level > 1:
-		lost.append("level %d on this airframe" % level)
 	if Fleet.unclaimed_count(_model_key) > 0 and Fleet.sellable_count(_model_key) <= Fleet.unclaimed_count(_model_key):
 		lost.append("the reward it has not been tapped for")
 	if lost.is_empty():

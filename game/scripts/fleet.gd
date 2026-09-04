@@ -154,10 +154,6 @@ const WORLD_SPRITES := {
 	# Re-run the tool to regenerate; delete a folder + its entry here +
 	# flip has_world_sprite in ShopCatalog to drop one.
 	# ------------------------------------------------------------------
-	"747": {
-		"body": "res://assets/aircraft/747/body_2x.png",
-		"shadow": "res://assets/aircraft/747/shadow_2x.png",
-	},
 	"a300": {
 		"body": "res://assets/aircraft/a300/body_2x.png",
 		"shadow": "res://assets/aircraft/a300/shadow_2x.png",
@@ -173,6 +169,17 @@ const WORLD_SPRITES := {
 	"a380-300": {
 		"body": "res://assets/aircraft/a380-300/body_2x.png",
 		"shadow": "res://assets/aircraft/a380-300/shadow_2x.png",
+	},
+	# Its own airframe, not a repaint of the A380 above - the second-last
+	# unlock in the shop.
+	"a380-800": {
+		"body": "res://assets/aircraft/a380-800/body_2x.png",
+		"shadow": "res://assets/aircraft/a380-800/shadow_2x.png",
+	},
+	# Art installed; no catalogue entry yet, so nothing can buy one.
+	"b737": {
+		"body": "res://assets/aircraft/b737/body_2x.png",
+		"shadow": "res://assets/aircraft/b737/shadow_2x.png",
 	},
 	"an-225": {
 		"body": "res://assets/aircraft/an-225/body_2x.png",
@@ -190,10 +197,13 @@ const WORLD_SPRITES := {
 	# a skin system. The default matches the shop icon, which is the livery
 	# carrying the original developer's brand name on the hull - the one to
 	# replace first if this ever goes public.
+	# Drawn too big for a pad - it read as parked ON the apron rather than in a
+	# bay of it. Ten percent off, hull and shadow together.
 	"airship": {
 		"body": "res://assets/aircraft/airship/body_2x.png",
 		"shadow": "res://assets/aircraft/airship/shadow_2x.png",
 		"vtol": true,
+		"sprite_scale": 0.9,
 	},
 	# Real sheet art. The sheet is body-only, so the ground shadow is
 	# synthesised from its silhouette, and it keeps the V-22's downwash rings
@@ -325,6 +335,14 @@ const WORLD_SPRITES := {
 		"rotor_offsets": [Vector2(-32, 6), Vector2(-4, 22)],
 		"rotor_scale": 0.71,
 	},
+	"erj145": {
+		"body": "res://assets/aircraft/erj145/body_2x.png",
+		"shadow": "res://assets/aircraft/erj145/shadow_2x.png",
+	},
+	"erj170": {
+		"body": "res://assets/aircraft/erj170/body_2x.png",
+		"shadow": "res://assets/aircraft/erj170/shadow_2x.png",
+	},
 	# A regional JET, so no props - it just queues for the runway.
 	"crj700": {
 		"body": "res://assets/aircraft/crj700/body_2x.png",
@@ -353,6 +371,20 @@ const WORLD_SPRITES := {
 		"rotor_spin_frames": A400M_PROP,
 		"rotor_offsets": [Vector2(-36.2, 1.2), Vector2(-1.6, 18.9)],
 		"rotor_scale": 0.78,
+	},
+	# Twin turboprop, props drawn stopped in the body art the way the Dash 8's
+	# are. Offsets seeded from the Dash 8 scaled 126x89 against its 89x73 - a
+	# starting point for RotorEditor, not a placement.
+	"il114": {
+		"body": "res://assets/aircraft/il114/body_2x.png",
+		"shadow": "res://assets/aircraft/il114/shadow_2x.png",
+		"rotor_spin_frames": A400M_PROP,
+		"rotor_offsets": [Vector2(-48, 7), Vector2(-7, 28)],
+		"rotor_scale": 1.05,
+	},
+	"an158": {
+		"body": "res://assets/aircraft/an158/body_2x.png",
+		"shadow": "res://assets/aircraft/an158/shadow_2x.png",
 	},
 	"dhc8": {
 		"body": "res://assets/aircraft/dhc8/body_2x.png",
@@ -443,11 +475,9 @@ const WORLD_SPRITES := {
 		"rotor_offsets": [Vector2(0, 0), Vector2(0, 0), Vector2(0, 0)],
 		"rotor_scale": 0.78,
 	},
-	# THE TWO OUTSIZE FREIGHTERS. Plain jets - no props, no nozzles - so there
-	# is nothing to rig on either of them.
-	"beluga-xl": {
-		"body": "res://assets/aircraft/beluga-xl/body_2x.png",
-		"shadow": "res://assets/aircraft/beluga-xl/shadow_2x.png",
+	"skylink": {
+		"body": "res://assets/aircraft/skylink/body_2x.png",
+		"shadow": "res://assets/aircraft/skylink/shadow_2x.png",
 	},
 	"dreamlifter": {
 		"body": "res://assets/aircraft/dreamlifter/body_2x.png",
@@ -547,13 +577,23 @@ const WORLD_SPRITES := {
 		"rotor_offsets": [Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0)],
 		"rotor_scale": 0.78,
 	},
+	# Third and last of the scales that pulled an oversized hull onto the
+	# A350's 140. The sheet art is 137 and drawn for the pad, so 0.88 would
+	# have taken it down to 121 - smaller than the A319.
 	"b777-300er": {
 		"body": "res://assets/aircraft/b777-300er/body_2x.png",
 		"shadow": "res://assets/aircraft/b777-300er/shadow_2x.png",
 	},
+	# The 0.92 that was here brought a 152px hull down to the A350's 140. That
+	# hull is gone - the sheet art is 144 and drawn for the pad - so the scale
+	# would now be shrinking an aircraft that already fits.
 	"a340-300": {
 		"body": "res://assets/aircraft/a340-300/body_2x.png",
 		"shadow": "res://assets/aircraft/a340-300/shadow_2x.png",
+	},
+	"a340-early": {
+		"body": "res://assets/aircraft/a340-early/body_2x.png",
+		"shadow": "res://assets/aircraft/a340-early/shadow_2x.png",
 	},
 	"c17": {
 		"body": "res://assets/aircraft/c17/body_2x.png",
@@ -592,6 +632,29 @@ const WORLD_SPRITES := {
 		"body": "res://assets/aircraft/dc10/body_2x.png",
 		"shadow": "res://assets/aircraft/dc10/shadow_2x.png",
 	},
+	"md11": {
+		"body": "res://assets/aircraft/md11/body_2x.png",
+		"shadow": "res://assets/aircraft/md11/shadow_2x.png",
+	},
+	# FOUR RADIALS, and they were missing entirely - no rotor declaration here
+	# meant no discs in the world AND no entry in RotorEditor, which only lists
+	# models that already declare rotors. The count is read off the art (four
+	# hubs, drawn stopped, so a missing disc is visible rather than merely
+	# absent); the offsets are SEEDED from the DC-6, which is the same era and
+	# the same four-radial layout, scaled 115x85 against its 134x96. They are a
+	# starting point for RotorEditor, not a placement.
+	"dc4": {
+		"body": "res://assets/aircraft/dc4/body_2x.png",
+		"shadow": "res://assets/aircraft/dc4/shadow_2x.png",
+		"rotor_spin_frames": A400M_PROP,
+		"rotor_offsets": [
+			Vector2(-41, 4), Vector2(-29, 11), Vector2(-5, 23), Vector2(7, 29),
+		],
+		"rotor_scale": 0.76,
+		# Same as the DC-6: the inboard prop on the far wing is partly covered
+		# by the hull, so its disc must not paint over the fuselage.
+		"rotor_behind_body": [1],
+	},
 	"concorde": {
 		"body": "res://assets/aircraft/concorde/body_2x.png",
 		"shadow": "res://assets/aircraft/concorde/shadow_2x.png",
@@ -608,11 +671,27 @@ const WORLD_SPRITES := {
 		"exhaust_angle": 9.0,
 		"exhaust_scale": 0.85,
 	},
+	# One nose prop. Seeded at the hub in the body art rather than from another
+	# model - nothing else in the catalogue is a biplane, so there is no
+	# neighbour whose geometry transfers. Place it in RotorEditor.
+	"camel": {
+		"body": "res://assets/aircraft/camel/body_2x.png",
+		"shadow": "res://assets/aircraft/camel/shadow_2x.png",
+		"rotor_spin_frames": A400M_PROP,
+		"rotor_offsets": [Vector2(-33, 8)],
+		"rotor_scale": 0.62,
+	},
+	"c800": {
+		"body": "res://assets/aircraft/c800/body_2x.png",
+		"shadow": "res://assets/aircraft/c800/shadow_2x.png",
+	},
 	"b787": {
 		"body": "res://assets/aircraft/b787/body_2x.png",
 		"shadow": "res://assets/aircraft/b787/shadow_2x.png",
 	},
-	# A distinct airframe from "747" above, not a repaint of it.
+	# The 0.92 that was here brought a 152px hull onto the A350's 140. That
+	# hull is replaced - the sheet art is 167 and drawn for the pad - so the
+	# same reasoning that removed the A340's scale removes this one.
 	"b747": {
 		"body": "res://assets/aircraft/b747/body_2x.png",
 		"shadow": "res://assets/aircraft/b747/shadow_2x.png",
@@ -638,10 +717,19 @@ const WORLD_SPRITES := {
 		"vtol": true,
 	},
 	# Leaves the pad straight up, same as the UFO and the Ark.
+	# It reads as SITTING ON its shadow rather than hovering over it, so it is
+	# lifted eight. That was measured against the old 135x88 hull and its
+	# 135x70 shadow; the sheet art is 177x115 over 167x100, a near-identical
+	# relationship, so the figure still holds.
+	#
+	# KEPT rather than dropped with the sprite_scales, because this one is not
+	# correcting art that was the wrong size - it is a deliberate look, asked
+	# for, and the new art wants it just as much.
 	"ncc1701": {
 		"body": "res://assets/aircraft/ncc1701/body_2x.png",
 		"shadow": "res://assets/aircraft/ncc1701/shadow_2x.png",
 		"vtol": true,
+		"body_offset": Vector2(0, -8),
 	},
 }
 
@@ -668,30 +756,56 @@ const DESTINATION_NAME := "Robot"
 # own, which is the pacing target it was invented to hit.
 
 
-# map_key is accepted and ignored, matching payout_for - XP is the aircraft's
-# own stat and the route's distance does not enter it.
-func xp_for_claim(model_key: String, _map_key: String = "") -> int:
-	return maxi(1, int(ShopCatalog.stat(model_key, "xp")))
-
-# The flat fare for anything with a normal cabin. 15, which is the LIVE game's
-# own value, read straight off its shop cards - every airliner on every page
-# shows a 15 beside the money icon.
+# XP RESPONDS TO THE ROUTE THE WAY CASH DOES, normalised on the aircraft's OWN
+# catalogue range - so a model flying the route it was built for earns
+# exactly what it always earned, and only DEPARTURES from that route move the
+# number.
 #
-# This was 8, from a belief that the original charged 4 and that we needed to
-# double it to fill Zone1 in fifteen minutes. Both halves of that were wrong:
-# the fare is 15, and at 15 the DC-3 earns 750 a leg against its own 3,000
-# price - two round trips to pay for itself, which is the fifteen-minute
-# opening we were trying to buy by doubling. Every price in ShopCatalog had
-# been halved to compensate for the mistake; they are the live prices now.
+# It used to accept map_key and ignore it, which made XP the one reward in the
+# game that did not know where the aircraft had been: payout_for multiplies by
+# distance_to(map_key) and this did not. The two economies therefore disagreed
+# about what a route was worth, and the disagreement fell hardest on a long-haul
+# aircraft flown short - full XP for a fifth of the money. It now pays a fifth
+# of the XP too, and an aircraft that GAINS a cloud earns proportionally more of
+# both.
+#
+# The denominator is the CATALOGUE range, not the current one - if mastery
+# raises an aircraft's range, the denominator must not follow it or the bonus
+# cancels itself out exactly.
+func xp_for_claim(model_key: String, map_key: String = "") -> int:
+	var base := float(maxi(1, int(ShopCatalog.stat(model_key, "xp"))))
+	if map_key == "":
+		return int(base)
+	var built_for := maxf(1.0, float(int(ShopCatalog.stat(model_key, "range"))))
+	return maxi(1, int(round(base * float(distance_to(map_key)) / built_for)))
+
+# The flat fare for anything with a normal cabin. 7.5 - HALF what this said
+# yesterday, and the correction matters more than any other number here.
+#
+# The claim was that "every airliner on every page shows a 15 beside the money
+# icon". It does not. The shop card's 2x2 is GRADE, PAYOUT, FUEL, XP - the
+# figure beside the money icon is what the leg pays, and the card never prints
+# a ticket or a seat count at all. Screenshots of three airliners whose cabins
+# we already had settle it by arithmetic:
+#
+#     Tu-104   200 seats, card 1500   ->  7.5 a head
+#     Tu-154   300 seats, card 2250   ->  7.5 a head
+#     B787     400 seats, card 3000   ->  7.5 a head
+#
+# Three for three, exact. Every default-ticket aircraft in the game has been
+# paying double since the day that comment was written.
+#
+# It is a FLOAT because 7.5 is not an integer and truncating it loses 3% of
+# every fare in the game; payout_for rounds once, at the end.
 #
 # Aircraft that carry almost nobody override it (ShopCatalog "ticket"), which
 # is the only way a 2-seat P-51 can be worth owning - and the original does the
-# same, charging 2000 a head on its F-15 and 200 on its balloon.
-const TICKET_PRICE := 15
+# same, charging 1875 a head on its F-15 and 22500 on its Mustang.
+const TICKET_PRICE := 7.5
 
 
-func ticket_price(model_key: String) -> int:
-	return int(ShopCatalog.entry_for(model_key).get("ticket", TICKET_PRICE))
+func ticket_price(model_key: String) -> float:
+	return float(ShopCatalog.entry_for(model_key).get("ticket", TICKET_PRICE))
 
 # HOW LONG A LEG TAKES.
 #
@@ -759,17 +873,34 @@ func flight_seconds_for(a: FleetAircraft, map_key: String) -> float:
 		* AircraftAffinity.speed_multiplier(a.model_key))
 
 
-# How many passengers a leg carries: all of them.
+# How many passengers a leg carries: all of them, plus whatever the CABIN
+# capstone added. Applied here rather than inside payout_for so it reaches the
+# money through the seat count the shop card already shows, instead of becoming
+# a fourth invisible multiplier on the pay formula.
 func passengers(model_key: String) -> int:
-	return int(ShopCatalog.stat(model_key, "seats"))
+	return int(round(float(ShopCatalog.stat(model_key, "seats"))
+		* AircraftAffinity.cabin_multiplier(model_key)))
 
 
 # Flat per leg, like pay - it is the number on the card. map_key is accepted and
 # ignored to match payout_for.
-func fuel_cost(model_key: String, _map_key: String = "") -> int:
+# FUEL SCALES WITH THE ROUTE, which it did not - the destination was passed in
+# by every caller and thrown away, so a twelve-hour five-cloud haul burned
+# exactly what a two-minute hop did. That is why fuel could not matter: the one
+# number that varies per flight was flat.
+#
+# It also made RoutePickerPanel lie. That panel prints "Total fuel consumption"
+# against each of the five destinations and printed the same figure five times,
+# which reads as a rule about the aircraft rather than a bug.
+#
+# Linear in clouds, the same shape as the payout, so the RATIO of fuel to
+# revenue is unchanged by distance and this does not quietly re-rank routes -
+# it only stops the long ones being free.
+func fuel_cost(model_key: String, map_key: String = "") -> int:
 	if Boosts.fuel_is_free():
 		return 0
-	return int(ShopCatalog.stat(model_key, "fuel"))
+	var clouds := distance_to(map_key) if map_key != "" else 1
+	return int(ShopCatalog.stat(model_key, "fuel")) * clouds
 
 
 # What one leg pays, and it is the ORIGINAL'S OWN FORMULA:
@@ -792,7 +923,8 @@ func fuel_cost(model_key: String, _map_key: String = "") -> int:
 # Confirmed against the A400M: 100 a head, 500 seats, at its full 5 clouds is
 # the 250,000 a leg the game shows.
 func payout_for(model_key: String, map_key: String = "") -> int:
-	return passengers(model_key) * ticket_price(model_key) * distance_to(map_key)
+	return int(round(float(passengers(model_key)) * ticket_price(model_key)
+		* float(distance_to(map_key))))
 
 
 # The destination that MATCHES this aircraft's cloud rating - the one it was
@@ -802,8 +934,27 @@ func payout_for(model_key: String, map_key: String = "") -> int:
 # Falls back to the furthest it can reach when the exact match is still locked,
 # and to the nearest when nothing is. Used to pick a sensible default rather
 # than leaving every new route pointed at the tutorial hop.
+# The clouds this model can actually reach - its catalogue range plus whatever
+# the REACH capstone earned it. Every range QUESTION goes through here.
+#
+# Note what deliberately does NOT: xp_for_claim divides by the CATALOGUE range,
+# so an aircraft that earns a cloud earns proportionally more XP for flying
+# further rather than having the gain normalised away. Wiring that denominator
+# to this function would cancel the capstone out exactly.
+# The top of the ladder: CLOUD_BASE_MINUTES has five rungs and Maps has one
+# destination per rung. It cannot be written as CLOUD_BASE_MINUTES.size() -
+# GDScript will not take that as a constant expression - so if a sixth cloud is
+# ever added, this is the second place to change.
+const MAX_CLOUDS := 5
+
+
+func effective_range(model_key: String) -> int:
+	return mini(int(ShopCatalog.stat(model_key, "range"))
+		+ AircraftAffinity.bonus_clouds(model_key), MAX_CLOUDS)
+
+
 func best_destination_for(model_key: String) -> String:
-	var reach := int(ShopCatalog.stat(model_key, "range"))
+	var reach := effective_range(model_key)
 	var best := Maps.ROBOT_MAP
 	var best_d := 0
 	for key in Maps.visitable_maps():
@@ -817,7 +968,7 @@ func best_destination_for(model_key: String) -> String:
 
 
 func in_range(model_key: String, map_key: String) -> bool:
-	return int(ShopCatalog.stat(model_key, "range")) >= distance_to(map_key)
+	return effective_range(model_key) >= distance_to(map_key)
 
 
 
@@ -1015,6 +1166,7 @@ const HOME_STATES := [
 
 # Is this one holding a reward that selling would throw away? The panel asks
 # before it does.
+
 func has_unclaimed_reward(a: FleetAircraft) -> bool:
 	return a != null and a.state == FleetAircraft.State.AWAITING_HOME_CLAIM
 
@@ -1119,7 +1271,10 @@ func unassign(aircraft_id: int) -> void:
 	# mid-route would just vanish from the apron it's supposedly flying
 	# to/from.
 	if a and a.state == FleetAircraft.State.PARKED:
+		# Both ends at once. Deleting the route is the only thing that frees
+		# either pad, so leaving the destination's held would strand it.
 		a.assigned_apron_id = -1
+		a.robot_apron_id = -1
 		_emit_changed()
 
 
@@ -1211,10 +1366,11 @@ func refuel_at_destination(aircraft_id: int) -> void:
 	# Free, per the loop - the destination supplies fuel for the return leg.
 	var a := get_aircraft(aircraft_id)
 	if a and a.state == FleetAircraft.State.AWAITING_DEST_REFUEL:
-		# Releasing the pad here, not on touchdown at home: the aircraft has
-		# physically left the robot airport, so holding its slot for the whole
-		# return leg would halve the airport's usable capacity.
-		a.robot_apron_id = -1
+		# THE PAD IS NOT RELEASED HERE. It used to be, on the grounds that the
+		# aircraft had physically left - but a route holds a pad at each end
+		# until the route is deleted, the same way the home pad is held while
+		# the aircraft is away. Freeing it here left the destination with no
+		# idea the flight had happened.
 		a.state = FleetAircraft.State.FLYING_BACK
 		a.flight_time_left = flight_seconds_for(a, destination_of(a))
 		a.flight_time_total = a.flight_time_left
@@ -1380,6 +1536,19 @@ const BULK_LAUNCH_STAGGER := 0.15
 const BULK_LAUNCH_WINDOW := 6.0
 
 
+# Is there anything for a turnaround pass to do? A cheap read-only walk, because
+# advance_all is not: it steps every aircraft up to six times and fires signals
+# for each, so it must never be called on the chance that something has landed.
+func has_serviceable() -> bool:
+	for a in aircraft:
+		if a.is_idle():
+			continue
+		if (a.state != FleetAircraft.State.FLYING_OUT
+				and a.state != FleetAircraft.State.FLYING_BACK):
+			return true
+	return false
+
+
 func advance_all() -> Dictionary:
 	_batching = true
 	_changed_while_batching = false
@@ -1466,10 +1635,48 @@ func get_aircraft_at_robot_apron(apron_id: int) -> FleetAircraft:
 	return null
 
 
+
+# WHATEVER HOLDS THIS DESTINATION PAD, at any point in its route - waiting at
+# home, inbound, on the ground, or already flown back.
+#
+# DERIVED FROM THE ROUTE, not read from robot_apron_id. The pads mirror 1:1, so
+# a route reserves its destination pad by arithmetic the moment the aircraft
+# has a home pad and somewhere to go - robot_apron_for is that arithmetic.
+# Reading the stored field instead meant the pad only knew about the aircraft
+# between take-off and landing, so a parked aircraft with a route showed
+# nothing at the far end, and every aircraft already home in an existing save
+# showed nothing for good.
+#
+# get_aircraft_at_robot_apron answers the narrower question of what is
+# physically standing there, which is what the claim and refuel bubbles need.
+func get_aircraft_holding_robot_apron(apron_id: int) -> FleetAircraft:
+	for a in aircraft:
+		if a.assigned_apron_id > 0 and robot_apron_for(a) == apron_id:
+			return a
+	return null
+
+
 # Every pad at one destination, across all seven mirrored areas, in id order.
 # Defaults to the nearest, which is where a save with no destination goes.
+# Memoised per destination, keyed on ApronLayout's version so placing a pad in
+# the editor still moves the answer. This is the hottest read in the game:
+# get_aircraft_holding_robot_apron asks robot_apron_for about every aircraft,
+# ApronLayer._refresh_slots asks that about all 110 pads on every fleet change,
+# and ApronSlot._draw asks it again per pad on every redraw. Uncached it walked
+# every map's layout and deep-copied the whole point set each time - measured at
+# 480us a call, which is 1.2 seconds of frozen frame for one turnaround at 25
+# aircraft. The list itself is handed out shared; no caller writes to it.
+var _robot_ids_cache: Dictionary = {}
+var _robot_ids_version := -1
+
+
 func robot_apron_ids(map_key: String = "") -> Array:
 	var key := map_key if map_key != "" else Maps.ROBOT_MAP
+	if _robot_ids_version != ApronLayout.layout_version():
+		_robot_ids_cache.clear()
+		_robot_ids_version = ApronLayout.layout_version()
+	elif _robot_ids_cache.has(key):
+		return _robot_ids_cache[key]
 	var starts: Dictionary = ApronLayout.compute_id_starts()
 	var data: Dictionary = ApronLayout.effective_area_data(key)
 	var ids: Array = []
@@ -1479,6 +1686,7 @@ func robot_apron_ids(map_key: String = "") -> Array:
 		var start: int = starts[area]
 		for i in range((data.get(area, []) as Array).size()):
 			ids.append(start + i)
+	_robot_ids_cache[key] = ids
 	return ids
 
 

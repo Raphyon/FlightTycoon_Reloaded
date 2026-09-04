@@ -22,12 +22,13 @@ const CLOUD_TEXTURES := {
 	"Desert": "res://assets/cloud/airport001_area005_cloud.png",
 	"Beach": "res://assets/cloud/airport001_area006_cloud.png",
 	"Snow": "res://assets/cloud/airport001_area007_cloud.png",
-	# dreamland - airport002 is the island (not the carrier). Only one crop
-	# exists. Area numbering looks continuous across maps (homeland uses
-	# area001-007 for Zone1..Snow), which would make area008/009/010 =
-	# Dreamland1/2/3 and put this one on Dreamland2 - inferred from the
-	# filename, not confirmed, so move it if the art says otherwise.
+	# dreamland - airport002 is the island (not the carrier). Area numbering
+	# looks continuous across maps (homeland uses area001-007 for Zone1..Snow),
+	# which makes area008/009/010 = Dreamland1/2/3 - inferred from the
+	# filenames, not confirmed, so move these if the art says otherwise.
+	# Dreamland1 (area008) has no crop yet, and neither does the carrier.
 	"Dreamland2": "res://assets/cloud/airport002_area009_cloud.png",
+	"Dreamland3": "res://assets/cloud/airport002_area010_cloud.png",
 }
 
 

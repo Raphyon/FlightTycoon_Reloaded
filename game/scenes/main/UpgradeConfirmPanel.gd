@@ -209,7 +209,6 @@ func _card(key: String, x: float, level: int, rent: int, is_next: bool) -> void:
 	# the two cards differ in exactly one figure and it should be the one thing
 	# your eye lands on.
 	var amount := _label(FONT_RENT, COLOR_NEXT if is_next else COLOR_NOW)
-	_content.add_child(amount)
 	amount.text = _thousands(rent)
 	var text_w: float = amount.get_minimum_size().x
 	var icon_w: float = RENT_ICON_H * RENT_ICON.get_width() / float(RENT_ICON.get_height())
@@ -242,7 +241,6 @@ func _card(key: String, x: float, level: int, rent: int, is_next: bool) -> void:
 	if bonus <= 0:
 		return
 	var b_label := _label(FONT_LEVEL, COLOR_NEXT)
-	_content.add_child(b_label)
 	b_label.text = "+%d" % bonus
 	b_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 	b_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
@@ -280,7 +278,6 @@ func _price_tag(cost: int, in_coins: bool, affordable: bool) -> void:
 	var art: Texture2D = COST_COIN if in_coins else COST_CASH
 	var price := _label(FONT_TAG,
 		Color(1, 0.94, 0.68) if affordable else COLOR_SHORT)
-	_content.add_child(price)
 	price.text = str(cost) if in_coins else _thousands(cost)
 	price.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 	price.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
@@ -348,6 +345,11 @@ func _label(size_px: int, color: Color) -> Label:
 	l.add_theme_constant_override("outline_size", 4)
 	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	l.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	# PARENTED HERE. Three callers added the returned label to _content a second
+	# time, which Godot refuses - "already has a parent" - and every upgrade
+	# confirmation threw three errors before it drew. A helper that both builds
+	# and parents is easy to use twice; the alternative is returning a loose
+	# node that every caller has to remember to add.
 	_content.add_child(l)
 	return l
 

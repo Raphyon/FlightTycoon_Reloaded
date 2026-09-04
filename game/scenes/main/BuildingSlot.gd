@@ -56,6 +56,10 @@ const SWOOP_EARNING := preload("res://assets/bubbles/earning_bubble@2x.png")
 # The cone, not the fuel drum: it is the same language the empty-plot callout
 # already speaks, where a cone means work is happening here.
 const TAG_UPGRADING := preload("res://assets/bubbles/construction_bubble@2x.png")
+const CALLOUT_LIGHTS := preload("res://assets/bubbles/lights_bubble@2x.png")
+# What a building with its lights off looks like: dimmed and cooled, not
+# greyed. A flat grey reads as disabled UI; this reads as dusk.
+const DARK_MODULATE := Color(0.62, 0.66, 0.78, 1.0)
 # How far above the plot's ground point the callout floats - FIXED, and the
 # same whatever is standing there.
 #
@@ -167,13 +171,24 @@ func refresh() -> void:
 		return
 	_hide_upgrade_tag()
 
+	# LIGHTS OUT TAKES THE BUBBLE. There is only one callout per site, and a
+	# dark building is the more urgent of the two - rent keeps waiting whether
+	# or not it is collected now, and relighting immediately hands the cash
+	# bubble back if rent was ready. Two taps, two rewards, in that order.
+	# The OFFER, not merely being dark - a lapsed one shows no bubble.
+	var dark := not empty and BuildingProgress.lights_offer_open(plot_id)
+	_sprite.modulate = DARK_MODULATE if dark else Color.WHITE
+
 	# Cone on an empty site, cash on one with rent waiting, nothing while a
 	# building is still earning - the same three-state callout the aprons use.
 	var ready := not empty and BuildingProgress.is_rent_ready(plot_id)
-	var show_callout := empty or ready
+	var show_callout := empty or ready or dark
 	_bubble.visible = show_callout
 	if show_callout:
-		_bubble.texture = CALLOUT_CONE if empty else CALLOUT_CASH
+		if dark:
+			_bubble.texture = CALLOUT_LIGHTS
+		else:
+			_bubble.texture = CALLOUT_CONE if empty else CALLOUT_CASH
 		_bubble.position = Vector2(0, -CALLOUT_LIFT - _bubble.texture.get_height() * 0.5)
 
 	_rebuild_hit_area(show_callout)
@@ -266,6 +281,14 @@ func set_pickable(on: bool) -> void:
 # Rent gets the two second swoop the aprons use. An EMPTY site's cone does not:
 # it opens the Prop Shop, and there is nothing being done to watch.
 func _claim() -> void:
+	# Same order the bubble is drawn in: the lights come first.
+	if BuildingProgress.is_built(plot_id) and BuildingProgress.lights_offer_open(plot_id):
+		_bubble.visible = false
+		_shape.disabled = true
+		_swoop.visible = true
+		_swoop.run(SWOOP_EARNING, "Lighting",
+			func() -> void: BuildingProgress.relight(plot_id))
+		return
 	if not BuildingProgress.is_built(plot_id) or not BuildingProgress.is_rent_ready(plot_id):
 		clicked.emit(plot_id)
 		return
@@ -274,8 +297,13 @@ func _claim() -> void:
 	_bubble.visible = false
 	_shape.disabled = true
 	_swoop.visible = true
+	# ONE TAP TAKES THE WHOLE AIRPORT'S RENT. Collecting was a lap of the board
+	# - 42 plots, each its own tap on a site you had to find first - and the
+	# collecting had outgrown the deciding. Lights are deliberately NOT included:
+	# they are a thing you catch, and sweeping them from a rent tap would remove
+	# the only reason to look at the board.
 	_swoop.run(SWOOP_EARNING, "Claiming",
-		func() -> void: BuildingProgress.collect_rent(plot_id))
+		func() -> void: BuildingProgress.collect_all())
 
 
 func _on_input_event(_viewport: Node, event: InputEvent, _shape_idx: int) -> void:

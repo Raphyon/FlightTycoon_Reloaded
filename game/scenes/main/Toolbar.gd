@@ -9,7 +9,36 @@ extends Control
 @onready var _hangar_button: TextureButton = $Buttons/HangarButton
 
 
+
+# THE BUTTON IS NOT WHERE ITS RECTANGLE IS. Every toolbar texture carries a
+# shadow down the right-hand side and along the bottom: measured, the solid body
+# occupies x 2..91 of a 109 wide canvas, so the thing you see is centred on 46.5
+# while the rectangle is centred on 54.5. Every caption is centred on the
+# rectangle, so every caption sits eight pixels right of the button under it.
+#
+# The Home button is worse: its art is 98 wide but its label was left at 109, so
+# the text is off centre AND overhangs the button entirely.
+#
+# Fixed here rather than in the scene so the numbers sit next to the measurement
+# that produced them, and so adding a button cannot quietly reintroduce it.
+const BODY_LEFT := 2.0
+const BODY_RIGHT := 92.0
+
+
+func _centre_captions() -> void:
+	var buttons := get_node_or_null("Buttons")
+	if buttons == null:
+		return
+	for button in buttons.get_children():
+		var label: Label = button.get_node_or_null("Label")
+		if label == null:
+			continue
+		label.offset_left = BODY_LEFT
+		label.offset_right = BODY_RIGHT
+
+
 func _ready() -> void:
+	_centre_captions()
 	# The map tab lives up under the top-left HUD panel rather than down here,
 	# but its wiring belongs with the other HUD buttons.
 	var map_tab: TextureButton = get_node("../MapTab")
@@ -46,6 +75,7 @@ func _ready() -> void:
 	# Shop and Hangar are things you do at your own airport; visiting someone
 	# else's leaves just the way home on the shelf. The Home button hides
 	# itself the other way round - see HomeButton.gd.
+
 	Maps.map_changed.connect(func(_k: String) -> void: _apply_map())
 	_apply_map()
 
@@ -65,4 +95,8 @@ func _apply_map() -> void:
 	_shop_button.visible = not visiting
 	_hangar_button.visible = not visiting
 	get_node("Buttons/FriendsButton").visible = not visiting
-	get_node("Buttons/RoutesButton").visible = not visiting
+	# ROUTES STAYS. It is the one panel worth reaching from someone else's
+	# airport: the fleet keeps flying while you are here, and without it a
+	# landing at home is invisible until you travel back.
+	get_node("Buttons/RoutesButton").visible = true
+

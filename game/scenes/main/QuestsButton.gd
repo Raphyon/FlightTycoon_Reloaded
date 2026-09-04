@@ -46,6 +46,7 @@ func _ready() -> void:
 	# followed by assigning `position` left the right/bottom offsets stale and
 	# put the tab at y=-46, off the top of the screen - the same trap the debug
 	# menu hit. There is no shorthand here that is worth the ambiguity.
+	Maps.map_changed.connect(func(_m = null) -> void: _refresh())
 	anchor_left = 0.0
 	anchor_right = 0.0
 	anchor_top = EDGE_HEIGHT_FRACTION
@@ -78,9 +79,20 @@ func _ready() -> void:
 	_refresh()
 
 
+# THIS SETS `visible` NOW, and that is not cosmetic. PanelManager hides floating
+# chrome while a panel is open and then calls _refresh to let it decide for
+# itself again - which worked for BoostButton, whose _refresh sets visible, and
+# silently did not for this one, which only swapped its icon. So at home the
+# gift vanished the first time any panel was opened and never came back, while
+# at a friend's airport nothing hid it and it stayed - which reads as the quests
+# having MOVED there.
+#
+# Not shown while visiting, like the rest of the HUD: the daily tasks are your
+# airport's, and there is nothing to claim from somebody else's.
 func _refresh(_a = null) -> void:
 	if not is_instance_valid(_icon):
 		return
+	visible = not Maps.is_robot_map()
 	_icon.texture = GIFT_NEW if Quests.has_anything_to_claim() else GIFT_DEFAULT
 
 

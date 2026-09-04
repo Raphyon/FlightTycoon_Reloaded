@@ -22,16 +22,26 @@ and squashed vertically onto the ground plane.
 
 The balloon is the exception and gets an ellipse instead - see balloon_shadow.
 
-    python3 tools/newfleet_derive.py
+    python3 tools/newfleet_derive.py il114 an158   # just these
+    python3 tools/newfleet_derive.py               # EVERY model in the table
+
+RUNNING IT BARE IS NOW DESTRUCTIVE. Most of this table's aircraft have since
+been re-installed from the sheet art in source-assets/aircraft/aircraft (see
+sheetfleet_derive.py), and a bare run would overwrite all of it with the older
+renders. Name the keys you mean.
 """
 import os
+import sys
 
 import numpy as np
 from scipy import ndimage
 from PIL import Image, ImageDraw, ImageFilter
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-SRC = os.path.join(ROOT, "source-assets", "aircraft")
+# The flat renders live under generated/ since the art was split by PROVENANCE:
+# generated/ is art made for this project, aircraft/ is what was extracted from
+# the live game files. This tool only ever reads the former.
+SRC = os.path.join(ROOT, "source-assets", "aircraft", "generated")
 OUT = os.path.join(ROOT, "game", "assets", "aircraft")
 SHOP = os.path.join(ROOT, "game", "assets", "shop")
 
@@ -89,6 +99,18 @@ MODELS = {
                         "body_metaliminal": "atr_72_metaliminal.png",
                         "body_pinkdreams": "atr_72_pinkdreams.png"}),
     "an140":      (86, {"body": "an_140_default.png"}),
+    # 30.0m span, a shade over the Dash 8's 28.4 - so a shade over its 88. A
+    # turboprop regional, and the shop puts it at level 50 for $18,000,000,
+    # which says nothing about how big it is.
+    "il114":      (89, {"body": "il114_default.png"}),
+    # An earlier A340 and its own airframe, not a repaint of the -300. Four
+    # engines and a widebody hull, in the B787's class rather than the
+    # regionals' - so it takes the 108 the A350 has, that entry's note being
+    # that 60.3m of span is near enough the B787's 60.1 to share its height.
+    "a340-early": (108, {"body": "a340_early_default.png"}),
+    # 28.91m span, under the Il-114, but a 34.4m fuselage - the longest of the
+    # regional jets here, and length is what the isometric view shows most of.
+    "an158":      (90, {"body": "an158_default.png"}),
     "uss51":      (84, {"body": "uss_51_default.png"}),
     "crj700":     (86, {"body": "crj_700_default.png", "body_sas": "crj_700_sas.png"}),
     "ncc1701":    (88, {"body": "ncc_1701_default.png"}),
@@ -335,8 +357,20 @@ def write_bodies(folder: str, height: int, parts: dict) -> int:
 
 
 def main() -> None:
+    wanted = set(sys.argv[1:])
+    if not wanted:
+        print("Name the models to build - a bare run would overwrite every\n"
+              "aircraft that has since been re-installed from the sheet art.\n")
+        print("  " + " ".join(sorted(MODELS)))
+        return
+    unknown = wanted - set(MODELS) - set(LIVERY_OF_EXISTING)
+    if unknown:
+        print("not in the table: %s" % ", ".join(sorted(unknown)))
+        return
     made = 0
     for key, (height, parts) in MODELS.items():
+        if key not in wanted:
+            continue
         folder = os.path.join(OUT, key)
         made += write_bodies(folder, height, parts)
 
@@ -355,11 +389,13 @@ def main() -> None:
             "%dx%d" % icon.size, "   (ellipse)" if key == "balloon" else ""))
 
     for key, (height, parts) in LIVERY_OF_EXISTING.items():
+        if key not in wanted:
+            continue
         n = write_bodies(os.path.join(OUT, key), height, parts)
         made += n
         print("  %-11s +%d livery body (reuses the model's shadow)" % (key, n))
 
-    print("\n%d sprites across %d models" % (made, len(MODELS)))
+    print("\n%d sprites across %d models" % (made, len(wanted)))
 
 
 if __name__ == "__main__":

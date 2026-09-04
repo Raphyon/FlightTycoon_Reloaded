@@ -6,7 +6,89 @@ extends HBoxContainer
 @onready var _people_label: Label = $PeopleLabel
 
 
+# WHAT THE FOUR NUMBERS ARE CALLED. Nothing named them anywhere in the game -
+# four icons and four counters, and a new player has no way to learn that the
+# gold one is premium and the blue one is burned on departure, let alone that
+# the little people raise every fare. A hover is the cheapest place to say so,
+# and costs no screen space on a bar that has none to give.
+#
+# Set on BOTH the icon and the number of each pair: they are separate nodes in
+# the HBox, so a tooltip on one leaves a dead patch over the other.
+const TOOLTIPS := {
+	"Money": "Cash\nEarned from flights and building rent.\nBuys aircraft, pads and most buildings.",
+	"Coin": "Coins\nThe rare one. From daily rewards, quests,\nbuilding levels and milestones.",
+	"Fuel": "Fuel\nBurned every time an aircraft departs.\nBuy it in the Fuel Shop - the price moves hourly.",
+	"People": "Population\nResidents of the buildings you put up.\nEvery %d of them adds 1%% to every flight's pay.",
+}
+
+
+# THE EMPTY 97px AT THE LEFT OF THE BAR. TopBarLeft is 220x96 and its XP bar
+# and level label both start at x=97, so the whole left third of the plate was
+# blank - which is where a player expects to find themselves. Built here rather
+# than in the scene so the sizes stay next to the arithmetic that picked them:
+# the frame is scaled to fit the gap, and the portrait to fit the frame.
+const AVATAR_FRAME := preload("res://assets/player_avatar/avatar_frame@2x.png")
+const AVATAR_FACE := preload("res://assets/player_avatar/avatar1@2x.png")
+const AVATAR_ORIGIN := Vector2(5, 5)
+const AVATAR_BOX := Vector2(92, 84)
+const AVATAR_FACE_INSET := 16.0
+
+
+func _build_avatar() -> void:
+	var ui := get_parent()
+	if ui == null or ui.has_node("PlayerAvatar"):
+		return
+	var wrap := Control.new()
+	wrap.name = "PlayerAvatar"
+	wrap.position = AVATAR_ORIGIN
+	wrap.size = AVATAR_BOX
+	# Above TopBarLeft, which sits at z 100 and would otherwise cover it.
+	wrap.z_index = 101
+	wrap.mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+	var frame := TextureRect.new()
+	frame.texture = AVATAR_FRAME
+	frame.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	frame.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	frame.size = AVATAR_BOX
+	frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+	var face := TextureRect.new()
+	face.texture = AVATAR_FACE
+	face.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	face.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	var inner := AVATAR_BOX - Vector2(AVATAR_FACE_INSET, AVATAR_FACE_INSET) * 2.0
+	face.position = Vector2(AVATAR_FACE_INSET, AVATAR_FACE_INSET)
+	face.size = inner
+	face.mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+	# FRAME FIRST, FACE ON TOP. avatar_frame is a solid PLATE, not a ring - its
+	# centre is fully opaque - so the other order drew the portrait and then
+	# covered it completely, leaving an empty white tile on screen.
+	wrap.add_child(frame)
+	wrap.add_child(face)
+	ui.add_child(wrap)
+
+
 func _ready() -> void:
+	# DEFERRED, or it silently does not happen. UI is a CanvasLayer still adding
+	# its own children when this runs, and add_child() REFUSES during that -
+	# "Parent node is busy setting up children" - so the avatar was built, the
+	# call failed, and the node never reached the tree. No script error, just
+	# nothing on screen. Same trap PanelManager hit with move_child.
+	call_deferred("_build_avatar")
+	for prefix in TOOLTIPS:
+		var text: String = TOOLTIPS[prefix]
+		if prefix == "People":
+			text = text % int(BuildingProgress.PEOPLE_PER_PERCENT)
+		for suffix in ["Icon", "Label"]:
+			var node: Control = get_node_or_null("%s%s" % [prefix, suffix])
+			if not node:
+				continue
+			node.tooltip_text = text
+			# A tooltip needs the node to actually receive the mouse; these are
+			# read-outs, so they were set to ignore it.
+			node.mouse_filter = Control.MOUSE_FILTER_STOP
 	# The gear lives in TopBarRight but the panel it opens is a sibling of the
 	# whole HUD, so the wiring is done here rather than in another script whose
 	# only job would be one connect().

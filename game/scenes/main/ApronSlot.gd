@@ -3,6 +3,84 @@ extends Area2D
 signal clicked(apron: Apron)
 
 const SIZE := Vector2(220, 110)
+
+# WHAT IS SITTING ON THIS PAD, readable without opening anything. Three states,
+# bottom-left of the pad so a row of them reads down the board:
+#   free    nothing assigned
+#   mine    an aircraft of yours
+#   friend  one that came from somebody else
+# Cut from source-assets/airport/airport@2x.png at 833,139 / 883,143 / 933,146.
+const BADGE_FREE := preload("res://assets/aprons/pad_free@2x.png")
+const BADGE_MINE := preload("res://assets/aprons/pad_mine@2x.png")
+const BADGE_FRIEND := preload("res://assets/aprons/pad_friend@2x.png")
+const BADGE_SCALE := 1.25
+# ABOVE THE AIRCRAFT, BELOW THE CLOUD COVER. Slots live under Aprons and
+# aircraft under WorldAircraft, a later sibling - so at the default z the badge
+# was drawn and then painted over by whatever was parked on the pad. It needs to
+# beat that.
+#
+# But CloudSlot is z_index 10, and 50 put the badge THROUGH the clouds - a pad
+# you are not meant to be able to see, advertising whether it is free. 5 clears
+# the aircraft at 0 and stays under the cover at 10.
+const BADGE_Z_INDEX := 5
+# THE PAD IS A DIAMOND, NOT A RECTANGLE. SIZE is its 220x110 bounding box, and
+# the badge was placed at the bottom-left of THAT - which on an isometric tile
+# is empty space well off the paint. Measured from the art: the top and bottom
+# rows are a 2px sliver at the centre and only the middle row spans the full
+# width, so the corners are at left(-110,0) top(0,-55) right(110,0)
+# bottom(0,55).
+#
+# This is the badge's CENTRE, on the lower-left edge that runs from the left
+# corner to the bottom corner, pulled inside it far enough to sit on paint:
+# |x|/110 + |y|/55 = 0.93, just within the diamond. Nudge this one Vector2 to
+# move it along that edge.
+# PLACED BY EYE with the F1 badge tool, not solved for. It sits at the pad's
+# LEFT vertex - which is what "the bottom-left corner" means on a diamond seen
+# in projection, and is why three attempts at deriving it landed halfway along
+# the lower-left edge instead.
+#
+# It deliberately OVERHANGS: the badge's outer corner reaches |x|/110 + |y|/55 =
+# 1.15, so part of it is off the paint. That was the choice made looking at it,
+# and the "must sit entirely on the diamond" rule the earlier attempts obeyed
+# was invented rather than asked for.
+#
+# NOT a const: BadgePlacer moves this at runtime so the spot can be chosen on a
+# real pad, and every pad reads the same value.
+#
+# LOADED FROM data/badge_offset.json IF IT IS THERE, exactly like the apron,
+# cloud and path layouts - it is placed with an in-game tool, so it is CONTENT,
+# and content that only survives in a console log is content that gets lost. The
+# value below is the fallback for a checkout that has no file yet.
+const BADGE_PATH := "res://data/badge_offset.json"
+
+static var badge_offset := Vector2(-94.0, -2.0)
+static var _badge_loaded := false
+
+
+static func load_badge_offset() -> Vector2:
+	if _badge_loaded:
+		return badge_offset
+	_badge_loaded = true
+	if not FileAccess.file_exists(BADGE_PATH):
+		return badge_offset
+	var f := FileAccess.open(BADGE_PATH, FileAccess.READ)
+	if not f:
+		return badge_offset
+	var parsed: Variant = JSON.parse_string(f.get_as_text())
+	f.close()
+	if parsed is Dictionary and parsed.has("x") and parsed.has("y"):
+		badge_offset = Vector2(float(parsed["x"]), float(parsed["y"]))
+	return badge_offset
+
+
+static func save_badge_offset() -> void:
+	DirAccess.make_dir_recursive_absolute("res://data")
+	var f := FileAccess.open(BADGE_PATH, FileAccess.WRITE)
+	if not f:
+		push_warning("ApronSlot: could not write %s" % BADGE_PATH)
+		return
+	f.store_string(JSON.stringify({"x": badge_offset.x, "y": badge_offset.y}, "\t"))
+	f.close()
 const COLOR_FREE := Color(0.2, 0.9, 0.4, 0.25)
 const COLOR_OCCUPIED := Color(0.9, 0.5, 0.2, 0.35)
 const COLOR_HOVER := Color(1, 1, 1, 0.4)
@@ -28,7 +106,14 @@ const CALLOUT_DRUM_TEXTURE := preload("res://assets/bubbles/fuel_bubble@2x.png")
 # bar and the plane are all baked in (tools/arrived_label.py). Shown on a home
 # apron whose aircraft is waiting at the robot airport; clicking it travels
 # there.
-const CALLOUT_ARRIVED_TEXTURE := preload("res://assets/bubbles/arrived_bubble@2x.png")
+# Two arrived bubbles, and which one shows follows the same BLUE/GREEN rule as
+# the flight tag: blue at your own airport, green the moment a friend is
+# involved. The green one reads as "your aircraft is home" while you are away
+# visiting, which is the only time you can be looking at a pad that is not
+# yours. Both have the plane baked in - they are composed sprites, not a bubble
+# plus an icon.
+const CALLOUT_ARRIVED_TEXTURE := preload("res://assets/bubbles/arrived_bubble_new@2x.png")
+const CALLOUT_ARRIVED_HOME_TEXTURE := preload("res://assets/bubbles/arrived_home_new@2x.png")
 # The swoop family - one 96x58 oval per kind of work, icon baked in, the rest of
 # the oval left empty for the line of text and the bar (see ProgressBubble).
 const SWOOP_EARNING_TEXTURE := preload("res://assets/bubbles/earning_bubble@2x.png")
@@ -49,11 +134,12 @@ const TAG_MINE_TEXTURE := preload("res://assets/bubbles/arrived_away_bubble@2x.p
 const TAG_FRIEND_TEXTURE := preload("res://assets/bubbles/arrived_home_bubble@2x.png")
 # Native art size - drawn 1:1, so it stays crisp.
 const CALLOUT_BUBBLE_SIZE := Vector2(42, 49)
-const CALLOUT_ARRIVED_SIZE := Vector2(109, 58)
-# Where the arrived bubble's tail sits horizontally. Not half its width: the
-# plane icon overhangs the bubble's left edge, so the tail is off-centre at
-# ~34%, and centring the sprite would leave it pointing wide of the apron.
-const CALLOUT_ARRIVED_TAIL_X := 37.0
+const CALLOUT_ARRIVED_SIZE := Vector2(42, 50)
+# The arrived bubble used to be 109 wide with its plane hanging off the left
+# edge, which put the tail off-centre at ~34% and needed its own figure. The
+# replacement art is the same 42-wide callout as the cone, symmetric, with its
+# tail tip measured at x 20.6 - so this is simply half the width again.
+const CALLOUT_ARRIVED_TAIL_X := 21.0
 # Where the bubble's tail tip lands, relative to the apron's center (0,0) -
 # negative is above center. A little above center, not up at the top vertex.
 const CALLOUT_TAIL_Y := -20.0
@@ -85,7 +171,14 @@ var _swoop: ProgressBubble
 # different times and neither should clear the other.
 var _tag: ProgressBubble
 var _tag_action: Callable = Callable()
+var _badge: TextureRect
 var _tag_aircraft: FleetAircraft = null
+# The skin path the overlay is already holding a texture for. _draw ran load()
+# on every redraw, and a redraw is not a rare thing here - every pad repaints on
+# every build, skin change, zone unlock and hover. ResourceLoader hands back a
+# cached resource, but only after normalising the path and taking its lock, and
+# a pad's skin only changes on ApronSkins.skin_changed, which redraws it anyway.
+var _skin_path := ""
 
 
 func setup(p_apron: Apron) -> void:
@@ -143,6 +236,22 @@ func _ready() -> void:
 	_skin_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_skin_overlay.visible = false
 	add_child(_skin_overlay)
+
+	_badge = TextureRect.new()
+	_badge.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_badge.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	_badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_badge.z_index = BADGE_Z_INDEX
+	# Absolute, like the callouts - a badge that inherited the slot's z would
+	# sort differently depending on which pad it belongs to.
+	_badge.z_as_relative = false
+	var bs := BADGE_FREE.get_size() * BADGE_SCALE
+	_badge.size = bs
+	# Bottom-left corner of the pad, inset so it sits ON the apron rather than
+	# on its edge.
+	_badge.position = load_badge_offset() - bs * 0.5
+	_badge.visible = false
+	add_child(_badge)
 
 	# Status callout - a bubble with an icon in it (cone = needs building,
 	# plane = free and ready to assign, dollar = reward ready to claim,
@@ -226,7 +335,8 @@ func _set_callout_icon(texture: Texture2D, action: Callable = Callable()) -> voi
 func _set_callout_arrived(action: Callable) -> void:
 	# No swoop: this is "take me there", not a job being done.
 	_swoop_texture = null
-	_callout_bubble.texture = CALLOUT_ARRIVED_TEXTURE
+	_callout_bubble.texture = CALLOUT_ARRIVED_HOME_TEXTURE if Maps.is_robot_map() \
+		else CALLOUT_ARRIVED_TEXTURE
 	_callout_bubble.size = CALLOUT_ARRIVED_SIZE
 	_callout.size = CALLOUT_ARRIVED_SIZE
 	_callout.position = Vector2(-CALLOUT_ARRIVED_TAIL_X, CALLOUT_TAIL_Y - CALLOUT_ARRIVED_SIZE.y)
@@ -270,6 +380,7 @@ func _diamond_points() -> PackedVector2Array:
 
 
 func _draw() -> void:
+	_refresh_badge()
 	if not apron.built:
 		var on_paved_zone := apron.area_name in PAVED_ZONES
 		_under_construction.texture = (UNDER_CONSTRUCTION_TEXTURE if on_paved_zone
@@ -302,7 +413,10 @@ func _draw() -> void:
 
 	var skin_entry := ApronSkins.get_skin_entry(apron.id)
 	if skin_entry.size() > 0:
-		_skin_overlay.texture = load(skin_entry["texture"])
+		var skin_path := str(skin_entry["texture"])
+		if skin_path != _skin_path:
+			_skin_overlay.texture = load(skin_path)
+			_skin_path = skin_path
 		_skin_overlay.visible = true
 	else:
 		_skin_overlay.visible = false
@@ -325,6 +439,20 @@ func _draw() -> void:
 			_arm(CALLOUT_DRUM_TEXTURE, Fleet.refuel_at_destination.bind(visitor.id),
 				SWOOP_FUELING_TEXTURE, SWOOP_FUEL_TEXT, true)
 		_callout.visible = true
+	elif Maps.is_robot_map() and _holder() != null:
+		# THE PAD IS HELD BUT THE AIRCRAFT IS NOT ON IT - it is in the air, or
+		# already back at your airport. Exactly the state a home pad is in
+		# while its aircraft is away, and it gets exactly the same treatment:
+		# the flight tag, counting down while it flies and reading "Arrived"
+		# with the way back on it once it is down. _tag_texture picks the green
+		# one here on its own.
+		var held := _holder()
+		_callout.visible = false
+		if Fleet.is_flying(held):
+			_show_tag(held, Fleet.time_left_text(held.flight_time_left),
+				Fleet.flight_progress(held), Callable())
+		else:
+			_show_tag(held, "Arrived", 1.0, Maps.travel_to.bind(Maps.DEFAULT_MAP))
 	elif not apron.occupied:
 		# The free-pad plane bubble means "assign one here", which you can't do
 		# at the robot airport - its empty pads are just unused landing slots,
@@ -392,6 +520,38 @@ func _draw() -> void:
 # BLUE for your own aircraft at your own airport, GREEN the moment a friend is
 # involved. Today that means "am I visiting", since nobody else's aircraft can
 # be here yet; when they can, this is the one place that decides.
+# What this destination pad is reserved for, whatever state it is in. Only ever
+# consulted on a friend's map - at home the pad's aircraft is assigned_apron_id.
+# Which badge this pad should be wearing, or null for none.
+#
+# FRIEND IS WIRED BUT UNREACHABLE TODAY. Nothing in the game models an aircraft
+# belonging to somebody else sitting on a pad - a friend's airport is a robot
+# map with your own fleet on it - so the green one has no case that produces it
+# yet. It is here rather than left out because the state is part of the design
+# and the art exists; the day foreign aircraft are modelled this reads them.
+func _badge_texture() -> Texture2D:
+	if not apron.built or not ZoneProgress.is_unlocked(apron.area_name):
+		return null
+	var a: FleetAircraft = (_holder() if Maps.is_robot_map()
+		else Fleet.get_aircraft_at_apron(apron.id))
+	if a == null:
+		return BADGE_FREE
+	return BADGE_MINE
+
+
+func _refresh_badge() -> void:
+	if not is_instance_valid(_badge):
+		return
+	var tex := _badge_texture()
+	_badge.texture = tex
+	_badge.visible = tex != null
+	_badge.position = badge_offset - _badge.size * 0.5
+
+
+func _holder() -> FleetAircraft:
+	return Fleet.get_aircraft_holding_robot_apron(apron.id)
+
+
 func _tag_texture() -> Texture2D:
 	return TAG_FRIEND_TEXTURE if Maps.is_robot_map() else TAG_MINE_TEXTURE
 
@@ -483,5 +643,13 @@ func _on_input_event(_viewport: Node, event: InputEvent, _shape_idx: int) -> voi
 		elif _pressed:
 			_pressed = false
 			if event.position.distance_to(_press_position) <= DRAG_SLOP:
+				# A LOCKED ZONE SWALLOWS THE CLICK AND OPENS NOTHING. The pad
+				# under cloud cover still has a collision shape, so it was
+				# emitting clicked like any other - an info panel for a pad the
+				# player cannot see, reached by clicking a cloud. Handled
+				# rather than ignored, so the press does not fall through to
+				# whatever sits behind the cover either.
 				get_viewport().set_input_as_handled()
+				if not ZoneProgress.is_unlocked(apron.area_name):
+					return
 				clicked.emit(apron)

@@ -64,6 +64,15 @@ const AVATAR_H := 0.47
 # routes table, not here.
 const STATUS_X := 0.665
 const STATUS_Y := 0.27
+# WHICH WAY IT IS GOING, above the clock. FLYING_OUT and FLYING_BACK printed the
+# same countdown and nothing else, so a pad with eleven minutes on it could have
+# been eleven minutes from arriving or eleven from coming home - the two avatar
+# tiles either side say where the route runs, never which end it is pointed at.
+#
+# It sits in the gap between the tiles, which is 84px wide, so the words have to
+# be short.
+const HEADING_Y := 0.09
+const FONT_HEADING := 10
 const ACTION_Y := 0.64
 
 const FONT_TITLE := 15
@@ -90,8 +99,15 @@ var _from_avatar: TextureRect
 var _to_frame: TextureRect
 var _to_avatar: TextureRect
 var _status: Label
+var _heading: Label
 var _action_button: TextureButton
 var _action_label: Label
+# The aircraft whose flight clock the status line is counting down, or null.
+# _process used to re-run the whole of _refresh() every frame - re-resolving the
+# pad's aircraft, re-deciding every slot's visibility, and load()ing the skin and
+# hull art through ResourceLoader - to move one string that changes once a
+# second. Everything else _refresh works out now arrives on a signal.
+var _ticking: FleetAircraft = null
 
 
 func _ready() -> void:
@@ -111,15 +127,25 @@ func _ready() -> void:
 	_content.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_content)
 	_build()
+	# Nothing to tick until a pad with an aircraft in the air is opened.
+	set_process(false)
 
 	Fleet.fleet_changed.connect(_refresh)
 	# Closing counts too - the countdown has to come off the pad when its menu
 	# goes away, and hide() is called from several places.
 	visibility_changed.connect(func() -> void:
 		if not visible:
+			set_process(false)
+			_ticking = null
 			shown_apron_changed.emit(-1))
 	ApronProgress.built_changed.connect(_refresh)
 	ApronSkins.skin_changed.connect(_refresh)
+	# WHAT THE PER-FRAME REFRESH WAS QUIETLY COVERING. The Build button greys
+	# itself on what you can afford, and an unbuilt pad in a locked zone has no
+	# action at all until the zone is bought - neither had a signal, so both
+	# were only ever picked up by the poll. They need one now.
+	Economy.money_changed.connect(_refresh)
+	ZoneProgress.unlocked_changed.connect(_refresh)
 
 
 func _px(fx: float, fy: float) -> Vector2:
@@ -158,6 +184,12 @@ func _build() -> void:
 
 	# Sits between the two tiles: an arrow when nothing is happening, the
 	# countdown while it flies, the outcome when it lands.
+	_heading = _label(_fs(FONT_HEADING), HORIZONTAL_ALIGNMENT_CENTER)
+	_heading.position = _px(STATUS_X, HEADING_Y)
+	_heading.size = _px(AVATAR_TO_X - STATUS_X, 0.16)
+	_heading.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	_heading.clip_text = true
+
 	_status = _label(_fs(FONT_STATUS), HORIZONTAL_ALIGNMENT_CENTER)
 	_status.position = _px(STATUS_X, STATUS_Y)
 	_status.size = _px(AVATAR_TO_X - STATUS_X, 0.20)
@@ -297,8 +329,16 @@ func show_apron(apron: Apron) -> void:
 
 
 func _process(_delta: float) -> void:
-	if visible:
+	if not visible:
+		set_process(false)
+		return
+	# Landed, or swapped out from under us. The words for every other state are
+	# _refresh's to write, so hand it back rather than guessing here.
+	if not Fleet.is_flying(_ticking):
+		set_process(false)
 		_refresh()
+		return
+	_status.text = _countdown(_ticking.flight_time_left)
 
 
 func _set_action(text: String, enabled: bool) -> void:
@@ -335,6 +375,11 @@ func _refresh_route_preview(a: FleetAircraft) -> void:
 func _refresh(_unused = null) -> void:
 	if not visible or _apron_id == -1:
 		return
+	# Cleared here rather than in each of the returns below, so no path out of
+	# this function can leave the clock ticking on a pad that no longer has an
+	# aircraft in the air. The one state that wants it re-arms at the bottom.
+	_ticking = null
+	set_process(false)
 	_title.text = "Apron %d" % _apron_id
 
 	# _apron.built was correct as of show_apron() and stays valid if it was
@@ -345,10 +390,12 @@ func _refresh(_unused = null) -> void:
 		# A locked zone is bought whole in the expansion shop, so there is no
 		# per-apron action to offer here at all.
 		if not ZoneProgress.is_unlocked(_apron.area_name):
+			_heading.text = ""
 			_status.text = "Locked"
 			_hide_action()
 			return
 		var cost := ApronProgress.cost_for_area(_apron.area_name)
+		_heading.text = ""
 		_status.text = ""
 		_set_action("Build ($%d)" % cost, Economy.money >= cost)
 		return
@@ -364,7 +411,16 @@ func _refresh(_unused = null) -> void:
 	if not at_robot:
 		_refresh_skin_slot()
 
-	var a := Fleet.get_aircraft_at_apron(_apron_id)
+	# WHICH PAD THIS IS DECIDES WHICH FIELD TO ASK ABOUT. get_aircraft_at_apron
+	# matches on assigned_apron_id, which is the aircraft's pad at YOUR
+	# airport; at a friend's it stands on robot_apron_id and that lookup found
+	# nothing, so every pad over there read as empty however full it was.
+	#
+	# The HOLDER is asked for rather than what is physically standing there, so
+	# the pad shows its aircraft through the whole route - counting down on the
+	# way in, and still its pad on the way back - exactly as the home pad does.
+	var a := (Fleet.get_aircraft_holding_robot_apron(_apron_id) if at_robot
+		else Fleet.get_aircraft_at_apron(_apron_id))
 	_refresh_plane_slot(a)
 	_refresh_route_preview(a)
 
@@ -389,17 +445,31 @@ func _refresh(_unused = null) -> void:
 
 	if not a:
 		_status.text = "\u2192"
+		_heading.text = ""
 		return
 
 	var dest := Fleet.destination_of(a)
+	# Cleared before the match, not in each arm: the panel is reused for every
+	# pad, so a heading left from the last aircraft would sit over the next
+	# one's clock claiming a direction it is not going.
+	_heading.text = ""
 	match a.state:
 		FleetAircraft.State.PARKED:
 			# Out of range is a dead end rather than a wait, and the fix for it
 			# is in the route screen the button now opens.
 			_status.text = ("%d ~" % Fleet.distance_to(dest)
 				if not Fleet.in_range(a.model_key, dest) else "\u2192")
-		FleetAircraft.State.FLYING_OUT, FleetAircraft.State.FLYING_BACK:
+		FleetAircraft.State.FLYING_OUT:
+			_heading.text = "Outbound"
 			_status.text = _countdown(a.flight_time_left)
+			_ticking = a
+			set_process(true)
+		FleetAircraft.State.FLYING_BACK:
+			_heading.text = "Returning"
+			_status.text = _countdown(a.flight_time_left)
+			# The only line on this board that moves on its own.
+			_ticking = a
+			set_process(true)
 		FleetAircraft.State.AWAITING_DEST_CLAIM:
 			_status.text = "Arrived"
 		FleetAircraft.State.AWAITING_DEST_REFUEL:
@@ -473,7 +543,8 @@ func _on_skin_button_pressed() -> void:
 # The plane slot's button paints the aircraft standing on this pad: liveries
 # are bought per aircraft and buy a speed grade (see AircraftSkins).
 func _on_plane_button_pressed() -> void:
-	var a := Fleet.get_aircraft_at_apron(_apron_id)
+	var a := (Fleet.get_aircraft_at_robot_apron(_apron_id) if Maps.is_robot_map()
+		else Fleet.get_aircraft_at_apron(_apron_id))
 	if a:
 		get_node("../LiveryPickerPanel").show_for_aircraft(a.id)
 

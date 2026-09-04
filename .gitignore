@@ -34,3 +34,4 @@ game/data/apron_skins_owned.json
 # modified or deleted in every status for reasons that have nothing to do with
 # the work.
 *-autosave.kra
+build/

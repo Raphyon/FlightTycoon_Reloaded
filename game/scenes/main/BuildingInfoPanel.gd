@@ -226,7 +226,7 @@ func _refresh(_a = null, _b = null) -> void:
 		_close()
 		return
 
-	_title.text = "Site %d" % _plot_id
+	_title.text = "Site %d" % _site_number(_plot_id)
 	var path := BuildingLayout.texture_path(key)
 	_art.texture = load(path) if ResourceLoader.exists(path) else null
 	_name.text = BuildingLayout.name_of(key)
@@ -286,18 +286,30 @@ func _refresh_upgrade(key: String, level: int, upgrading: bool) -> void:
 	# question worth asking, which is what the money buys. That is what
 	# UpgradeConfirmPanel is for, and pressing this opens it.
 	_upgrade_label.text = "Upgrade"
-	_note_upgrade(key, level, cost)
+	_note_upgrade(key, level, cost, affordable, in_coins)
 
 
-func _note_upgrade(_key: String, level: int, _cost: int) -> void:
+# THE PRICE APPEARS ONLY WHEN YOU CANNOT PAY IT, which is the one time it is
+# any use. It was taken out of here on purpose - a price with no answer to what
+# the money buys is noise, and UpgradeConfirmPanel gives both. But that panel
+# opens from a button that is DISABLED until you can afford it, so the cost was
+# locked behind a door that only opens once you no longer need to ask. Short of
+# the money, the note says how much; able to pay, the confirm panel takes over
+# and the note stays about what the money buys.
+func _note_upgrade(_key: String, level: int, cost: int, affordable: bool,
+		in_coins: bool) -> void:
 	if _armed or level >= BuildingProgress.MAX_LEVEL:
 		return
 	var now: int = BuildingProgress.rent_at(_plot_id)
 	var after: int = BuildingProgress.rent_at_level(
 		BuildingProgress.building_at(_plot_id), level + 1)
-	_note.text = "Upgrade: rent $%s -> $%s, off service %s" % [
+	var text := "Upgrade: rent $%s -> $%s, off service %s" % [
 		_thousands(now), _thousands(after),
 		_countdown(BuildingProgress.upgrade_seconds(_plot_id))]
+	if not affordable:
+		text += "   -   costs %s" % (("%d coins" % cost) if in_coins
+			else "$%s" % _thousands(cost))
+	_note.text = text
 
 
 func _on_upgrade_pressed() -> void:
@@ -326,12 +338,26 @@ func _on_pressed() -> void:
 	BuildingProgress.demolish(plot)
 	_armed = false
 	visible = false
-	# Clearing a site is almost always the first half of building something
-	# better, so hand straight over to the shop for the plot just emptied
-	# rather than making the player find it again.
-	var shop := get_node_or_null("../PropShopPanel")
-	if shop and shop.has_method("open_for_plot"):
-		shop.open_for_plot(plot)
+	# THIS USED TO OPEN THE PROP SHOP on the plot just cleared, on the
+	# reasoning that clearing a site is the first half of building something
+	# better. Played, it is wrong: clearing several sites is the common case,
+	# and every demolish threw a shop window in front of the next building the
+	# player was trying to reach. Closing and getting out of the way costs one
+	# press when the guess would have been right, against one press to dismiss
+	# every time it is not.
+
+
+# THE NUMBER ON THE SIGN IS NOT THE ID IN THE FILE. Plot ids run 1..42 in
+# layout order, and the site the player reads as the first one is 42 - so the
+# board said "Site 42" about the site at the front and "Site 1" about the
+# second. Shifted by one and wrapped, which puts 42 at the head and slides the
+# rest along: 42 -> 1, 1 -> 2, 2 -> 3. Display only; nothing is stored or
+# looked up by this.
+func _site_number(plot_id: int) -> int:
+	var total: int = BuildingLayout.load_data().size()
+	if total <= 0:
+		return plot_id
+	return (plot_id % total) + 1
 
 
 func _refund_text(building_key: String) -> String:

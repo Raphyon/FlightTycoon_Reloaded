@@ -7,8 +7,43 @@ extends PanelContainer
 # not build-per-category screens we haven't designed yet.
 const LockOverlayScript := preload("res://scenes/main/LockOverlay.gd")
 const BOARD_TEXTURE := preload("res://assets/board/board_store@2x.png")
-const ICON_SIZE := Vector2(100, 100)
-const BOARD_SIZE := Vector2(120, 34)
+# 100 WAS SMALL AGAINST EVERYTHING AROUND IT - the board under it is 132 wide
+# and the panel is built at shop scale.
+# 145, NOT 155. The brown band is 468 units tall at the real viewport and the
+# block has to live inside it: title 34 + gap 12 + two rows of (icon + 4 + 48
+# board) + 20 between them. Solve it and the icon cannot exceed 149. 155 put the
+# bottom row's boards on the blue floor of the panel.
+const ICON_SIZE := Vector2(145, 145)
+
+# WHERE THE BROWN IS, as a fraction of the background texture (measured: the
+# band runs y168..584 of bigplane2@ipad.png, which is 1024x768).
+#
+# Computed against the LIVE viewport rather than written down as a y, because
+# the panel is not a fixed height: stretch aspect is "expand", so the viewport
+# is 1152 x whatever the display's aspect gives - 720 on this machine, other
+# numbers elsewhere - and the background is KEEP_ASPECT_COVERED on top of that.
+# A hard-coded offset would be right on exactly one screen.
+const BROWN_TOP_FRAC := 168.0 / 768.0
+const BROWN_BOTTOM_FRAC := 584.0 / 768.0
+const BG_SIZE := Vector2(1024, 768)
+# THERE IS NO LIFT CONSTANT ANY MORE, and four attempts at one is why. Each
+# treated "move the icons up" as something to do TO the icon: offsetting the art
+# left the board behind and opened a gap; shortening the cell brought the board
+# but took the height out of the ROW, so the grid closed up and the row below
+# climbed into the boards above; negative separation drew the board 50px inside
+# the icon. Every one of those was a guess at a layout nobody had looked at.
+#
+# The cells were right the whole time. The block was simply parked at the bottom
+# of the panel - 225px of empty brown above it, 1px below - because the grid
+# expanded to fill and its centre-aligned cells sank inside rows taller than
+# they needed. It is a placement problem, and placement is one flag.
+# 120x34 AT THE DEFAULT FONT DID NOT HOLD THE LONGEST LABEL. "Expanding
+# Airport" wraps to two lines and spilled past the board art, and the reason
+# line the Prop Shop now carries ("no empty sites") makes three. Wider, taller,
+# and a font size chosen so three lines fit rather than left at whatever the
+# theme happened to give.
+const BOARD_SIZE := Vector2(132, 48)
+const BOARD_FONT := 12
 const DISABLED_MODULATE := Color(0.55, 0.55, 0.55, 1.0)
 
 @onready var _grid: GridContainer = $Frame/SafeArea/Margin/VBox/Grid
@@ -28,10 +63,23 @@ func _ready() -> void:
 		{"icon": "button_store03@2x.png", "label": "Gold"},
 		{"icon": "button_store04@2x.png", "label": "Terminal"},
 		{"icon": "button_store06@2x.png", "label": "Expanding Airport", "on_pressed": _open_expansion_shop},
-		{"icon": "button_store09@2x.png", "label": "Prop Shop", "on_pressed": _open_prop_shop},
+		{"icon": "button_store09@2x.png", "label": "Prop Shop", "on_pressed": _open_prop_shop,
+			"why_not": _prop_shop_unavailable},
 	]
+	# CENTRED IN THE BROWN, not pinned to the bottom of it. The grid was set to
+	# expand vertically, so it took all the leftover height and handed it to the
+	# rows - and each cell, being centre-aligned, pushed its own content down
+	# inside a row taller than it needed. Measured on screen: 225px of empty
+	# panel above the icons and 1px below the last board.
+	#
+	# Shrink to the content and centre what is left, so the block sits in the
+	# middle of the space between the title and the close button and no magic
+	# offset is involved.
+	_grid.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	_fit_to_brown()
 	for entry in _categories:
 		_grid.add_child(_build_category_button(entry))
+	_refresh_availability()
 
 	get_tree().root.size_changed.connect(_fit_content)
 	call_deferred("_fit_content")
@@ -42,6 +90,8 @@ func _ready() -> void:
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_VISIBILITY_CHANGED and visible:
 		call_deferred("_fit_content")
+		call_deferred("_fit_to_brown")
+		_refresh_availability()
 
 
 func _fit_content() -> void:
@@ -64,32 +114,113 @@ func _build_category_button(entry: Dictionary) -> Control:
 
 	var icon_wrap := Control.new()
 	icon_wrap.custom_minimum_size = ICON_SIZE
+	# THIS IS WHY THEY SAT LEFT. A VBoxContainer STRETCHES its children to the
+	# column width, so this wrap became as wide as the label board under it -
+	# while the button inside stayed at (0,0) at its own size, pinned to the
+	# left edge with the slack piling up on the right. Nothing centred it
+	# because nothing was laying it out. Shrink to the icon and centre the
+	# whole wrap instead, so the icon and the board share a centre line
+	# whatever either is sized to.
+	icon_wrap.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 
 	var button := TextureButton.new()
 	button.texture_normal = load("res://assets/buttons/%s" % entry["icon"])
 	button.ignore_texture_size = true
 	button.stretch_mode = TextureButton.STRETCH_KEEP_ASPECT_CENTERED
 	button.custom_minimum_size = ICON_SIZE
+	button.size = ICON_SIZE
 	var enabled: bool = entry.has("on_pressed")
 	button.disabled = not enabled
 	if enabled:
 		button.pressed.connect(entry["on_pressed"])
 	else:
 		button.modulate = DISABLED_MODULATE
+	entry["_button"] = button
 	icon_wrap.add_child(button)
 
 	if not enabled:
 		var lock := Control.new()
 		lock.set_script(LockOverlayScript)
+		# The hub's categories are discs, not cards.
+		lock.circular = true
 		lock.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		lock.custom_minimum_size = ICON_SIZE
 		lock.size = ICON_SIZE
 		icon_wrap.add_child(lock)
 
 	vbox.add_child(icon_wrap)
-	vbox.add_child(_build_label_board(entry["label"]))
+	var board := _build_label_board(entry["label"])
+	entry["_label"] = board.get_child(1)
+	# THE NAME IS PART OF THE BUTTON. It sits directly under the icon, reads as
+	# one control, and did nothing when pressed - so half of every target was
+	# dead. Forwarded to the same handler, and it follows the icon's disabled
+	# state through _refresh_availability.
+	if enabled:
+		board.mouse_filter = Control.MOUSE_FILTER_STOP
+		board.gui_input.connect(_on_board_input.bind(entry))
+	vbox.add_child(board)
 
 	return vbox
+
+
+# WHETHER A SHOP CAN BE ENTERED IS NOT FIXED AT BUILD TIME. The Prop Shop
+# always opens ON a site, so with every site taken there is nothing to show -
+# and it was still pressable, doing nothing on screen and printing the reason
+# to a console the player does not have. Re-decided every time the hub opens,
+# with the reason on the label rather than in stdout.
+func _refresh_availability() -> void:
+	for entry in _categories:
+		if not entry.has("why_not") or not entry.has("_button"):
+			continue
+		var why: String = (entry["why_not"] as Callable).call()
+		var ok := why == ""
+		var button: TextureButton = entry["_button"]
+		button.disabled = not ok
+		button.modulate = Color.WHITE if ok else DISABLED_MODULATE
+		var label: Label = entry["_label"]
+		label.text = entry["label"] if ok else "%s\n%s" % [entry["label"], why]
+
+
+# "" when it can be opened, otherwise the reason it cannot.
+func _prop_shop_unavailable() -> String:
+	if not BuildingProgress.buildings_unlocked():
+		return "opens with Zone 2"
+	for plot in BuildingLayout.load_data():
+		if not BuildingProgress.is_built(int(plot.get("id", 0))):
+			return ""
+	return "no empty sites"
+
+
+# Put the block inside the brown, wherever the brown has ended up.
+func _fit_to_brown() -> void:
+	var view := get_viewport_rect().size
+	# KEEP_ASPECT_COVERED: the texture is scaled by whichever axis needs more,
+	# then centred - so the vertical mapping is scale and offset, not a ratio.
+	var scale: float = maxf(view.x / BG_SIZE.x, view.y / BG_SIZE.y)
+	var offset: float = (view.y - BG_SIZE.y * scale) * 0.5
+	var top: float = BROWN_TOP_FRAC * BG_SIZE.y * scale + offset
+	var bottom: float = BROWN_BOTTOM_FRAC * BG_SIZE.y * scale + offset
+
+	var safe: Control = $Frame/SafeArea
+	var margin: MarginContainer = $Frame/SafeArea/Margin
+	var vbox: Control = $Frame/SafeArea/Margin/VBox
+	var content: float = vbox.get_combined_minimum_size().y
+	# Centred in the band, and never above its top edge.
+	var want: float = maxf(top, top + (bottom - top - content) * 0.5)
+	margin.add_theme_constant_override("margin_top",
+		int(round(want - safe.get_global_rect().position.y)))
+
+
+func _on_board_input(event: InputEvent, entry: Dictionary) -> void:
+	if not (event is InputEventMouseButton):
+		return
+	var mb := event as InputEventMouseButton
+	if not (mb.pressed and mb.button_index == MOUSE_BUTTON_LEFT):
+		return
+	var button: TextureButton = entry.get("_button")
+	if button and button.disabled:
+		return
+	(entry["on_pressed"] as Callable).call()
 
 
 func _build_label_board(text: String) -> Control:
@@ -110,6 +241,7 @@ func _build_label_board(text: String) -> Control:
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	label.autowrap_mode = TextServer.AUTOWRAP_WORD
+	label.add_theme_font_size_override("font_size", BOARD_FONT)
 	label.add_theme_color_override("font_color", Color.WHITE)
 	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	wrap.add_child(label)

@@ -34,16 +34,51 @@ extends Node
 #
 # DEBUG ONLY in the sense that nothing in normal play changes it - at scale 1.0
 # now() is exactly Time.get_unix_time_from_system() and the offset stays zero.
+# A HEADLESS BOT RUN IS THE ONE EXCEPTION: it counts from a fixed instant
+# instead, which is what makes it reproducible. See BOT_EPOCH.
 #
 # When it is NOT 1.0 the badge below says so, on top of everything, always. A
 # fast-forward you forgot to turn off does not look like a fast-forward - it
 # looks like the economy is broken - and this project has already spent a whole
 # session chasing pacing numbers that turned out to be measurement artifacts.
 
-# Seconds added to the system clock. Grows while the game runs fast; never
+# Seconds added to the clock's origin. Grows while the game runs fast; never
 # shrinks, because time going backwards would make a rent cycle that had already
 # completed un-complete itself.
 var offset := 0.0
+
+# WHERE A BOT RUN COUNTS FROM, so that two runs of the same build agree.
+#
+# now() used to be the system clock outright, and two things seed themselves off
+# it: the fuel market's hourly slot (FuelStore.price_for_slot) and the daily
+# quest draw (Quests._roll_if_new_day) both hash a number derived from now(). So
+# a run launched at 09:40 on a Tuesday met a different market and a different
+# three tasks from the same build launched at 14:10 on a Wednesday. Two runs an
+# hour apart came out ~20% apart on day-40 cash, a quest set apart, and tens of
+# legs apart per model - while the structural columns (level, fleet, pads,
+# zones, buildings) matched to the digit, which is exactly why it read as noise
+# in the money rather than as a broken instrument. README calls the bot the
+# arbiter where it disagrees with the Python sweeps; it could not be.
+#
+# FIXED HERE RATHER THAN WITH MORE SEEDS DOWNSTREAM. Every wall-clock reader in
+# the project already asks this file, so pinning the origin makes all of them
+# reproducible at once - rent cycles, upgrade timers and boost expiries
+# included - and a reader added tomorrow is deterministic without anyone having
+# to remember to seed it.
+#
+# The value is arbitrary but must be DAY- AND HOUR-ALIGNED, so a run starts at
+# the top of a quest day and the top of a fuel slot rather than partway through
+# either. 0 satisfies that and was the obvious pick; a plausible modern
+# timestamp is used instead so nothing that stores a time and reads 0 as "unset"
+# can collide with the first instant of a run. 2023-11-15 00:00:00 UTC.
+const BOT_EPOCH := 1700006400.0
+
+# The origin in force, or -1 for "ask the system clock" - which is normal play.
+# Resolved on FIRST READ rather than in _ready(): FuelStore prices a slot inside
+# its own _ready, and this being autoload number one is not a thing to make the
+# fuel market depend on.
+var _epoch := -1.0
+var _epoch_resolved := false
 
 # Kept only so a caller can ask how long the process has been up; the offset is
 # derived from _process's own delta now, not from wall time.
@@ -149,7 +184,35 @@ func _process(delta: float) -> void:
 
 # What every wall-clock reader should ask instead of Time.
 func now() -> float:
-	return Time.get_unix_time_from_system() + offset
+	return epoch() + offset
+
+
+# What now() counts from: live wall time in normal play, a fixed instant under
+# --bot. Public so a report can state which, since a pinned clock is a fact
+# about the numbers underneath it.
+func epoch() -> float:
+	if not _epoch_resolved:
+		_epoch_resolved = true
+		_epoch = _resolve_epoch()
+	return Time.get_unix_time_from_system() if _epoch < 0.0 else _epoch
+
+
+# --epoch <unix seconds> overrides the constant, which is how you ask what the
+# SAME build does starting at a different hour of a different day - the one
+# question pinning the clock would otherwise make unanswerable.
+#
+# BOT RUNS ONLY. A real playthrough has to keep tracking real time or its rent
+# cycles stop, and reading the flag straight off the command line rather than
+# through SaveGame.is_bot_run() is deliberate: this is the first autoload in the
+# list and SaveGame is the second to last, so the singleton does not exist yet.
+func _resolve_epoch() -> float:
+	var args := OS.get_cmdline_user_args()
+	if not args.has("--bot"):
+		return -1.0
+	for i in range(args.size() - 1):
+		if args[i] == "--epoch":
+			return maxf(0.0, float(args[i + 1]))
+	return BOT_EPOCH
 
 
 # Jump forward without waiting - what the bot uses, and what makes a 44-hour

@@ -17,6 +17,10 @@ var assigned_apron_id: int = -1  # -1 = idle/in hangar, otherwise the apron it's
 # Which pad at the robot airport this aircraft is flying to / sitting on. Held
 # from dispatch until it heads home again, so it doubles as the capacity lock -
 # see Fleet.claim_robot_apron. -1 = not out on a trip.
+# The pad this aircraft holds at its DESTINATION, and it holds it for the whole
+# route - not just while it is standing on it. Same as assigned_apron_id at
+# home: both are released only when the route is deleted, so a route occupies
+# one pad at each end and the two airports agree about what is going on.
 var robot_apron_id: int = -1
 # Liveries are bought per aircraft, not per model (see AircraftSkins), so both
 # what this one wears and what it has paid for live here rather than in a

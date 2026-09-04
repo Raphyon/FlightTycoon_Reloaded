@@ -31,7 +31,24 @@ import numpy as np
 from scipy import ndimage
 import os
 
-SRC_DIR = 'source-assets/aircraft'
+# THE FOUR SHEETS ARE NOT IN ONE PLACE ANY MORE. The art was split by
+# provenance - generated/ for art made for this project, aircraft/ for what was
+# extracted from the live game files - and these four fall on both sides of
+# that line: blackh and ark are generated, ufo and airship are extracted. So
+# the sheet is looked up rather than joined to a fixed directory.
+SRC_DIRS = [
+    'source-assets/aircraft/generated',
+    'source-assets/aircraft/aircraft',
+]
+
+
+def sheet(name):
+    """The first of SRC_DIRS holding this sheet, or a clear error naming both."""
+    for d in SRC_DIRS:
+        p = os.path.join(d, name)
+        if os.path.exists(p):
+            return p
+    raise SystemExit("%s not found in %s" % (name, " or ".join(SRC_DIRS)))
 OUT_DIR = 'game/assets/aircraft'
 
 # Ground-shadow construction, for models whose sheet has no shadow of its own.
@@ -157,7 +174,7 @@ def shadow_from(body: Image.Image) -> Image.Image:
 # --- per model -----------------------------------------------------------
 
 def derive_blackh() -> None:
-    a, lab, _ = components(os.path.join(SRC_DIR, 'blackh_sheet_2x.png'))
+    a, lab, _ = components(sheet('blackh_sheet_2x.png'))
     parts = {
         'body_2x.png': (2, 'green hull (default livery)'),
         'body_desert_2x.png': (1, 'tan hull (desert livery)'),
@@ -183,7 +200,7 @@ def derive_blackh() -> None:
 
 
 def derive_ufo() -> None:
-    a, lab, _ = components(os.path.join(SRC_DIR, 'ufo_sheet_2x.png'))
+    a, lab, _ = components(sheet('ufo_sheet_2x.png'))
     # blob -> (plain, thrusters-firing) per livery
     liveries = {'': (1, 4), 'stone': (5, 3)}
     plain = cut(a, lab, liveries[''][0])
@@ -213,7 +230,7 @@ def derive_ufo() -> None:
 
 
 def derive_airship() -> None:
-    a, lab, _ = components(os.path.join(SRC_DIR, 'airship_sheet_2x.png'))
+    a, lab, _ = components(sheet('airship_sheet_2x.png'))
     # dreamingame is the default because the shop icon is that livery - keeping
     # shop and world consistent. It carries the original developer's brand name
     # on the hull, so it is the one to swap if this ever ships publicly.
@@ -234,7 +251,7 @@ def derive_airship() -> None:
 
 
 def derive_ark() -> None:
-    a, lab, _ = components(os.path.join(SRC_DIR, 'ark_sheet_2x.png'))
+    a, lab, _ = components(sheet('ark_sheet_2x.png'))
     body = cut(a, lab, 1)
     factor = 105.0 / body.height   # matches the size already accepted in game
     print('  scale %.4f -> hull %d px tall' % (factor, 105))

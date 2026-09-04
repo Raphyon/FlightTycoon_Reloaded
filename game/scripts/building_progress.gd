@@ -60,16 +60,17 @@ const UPGRADE_TIME_EXPONENT := 1.8
 #
 # Ids are strings here because JSON keys always are; helpers below take ints so
 # callers don't have to think about it.
-const SAVE_PATH := "res://data/building_progress.json"
+# Progress, so it lives in user:// - see SavePaths.
+const SAVE_FILE := "building_progress.json"
 
 
 var built: Dictionary = {}  # map_key -> {plot_id_string: building_key}
 
 
 func _ready() -> void:
-	if not FileAccess.file_exists(SAVE_PATH):
+	if not SavePaths.read_path(SAVE_FILE) != "":
 		return
-	var f := FileAccess.open(SAVE_PATH, FileAccess.READ)
+	var f := FileAccess.open(SavePaths.read_path(SAVE_FILE), FileAccess.READ)
 	var parsed: Variant = JSON.parse_string(f.get_as_text())
 	f.close()
 	if parsed is Dictionary:
@@ -90,7 +91,8 @@ func _migrate_bare_strings() -> void:
 			continue
 		for plot_key in (m as Dictionary):
 			if (m as Dictionary)[plot_key] is String:
-				(m as Dictionary)[plot_key] = {"key": (m as Dictionary)[plot_key], "since": now}
+				(m as Dictionary)[plot_key] = {"key": (m as Dictionary)[plot_key],
+					"since": now, "lit_since": now}
 				touched = true
 	if touched:
 		_save()
@@ -425,6 +427,72 @@ func is_rent_ready(plot_id: int, map_key: String = "") -> bool:
 # tools/econ_sim.py --coins.
 const COIN_CHANCE_PER_CYCLE_MINUTE := 0.00083
 const COIN_DROP_AMOUNT := 1
+
+
+# THE LIGHTS GO OUT. A building that has been standing lit for its own interval
+# goes dark, dims, and puts a bulb over itself, waiting to be switched back on
+# for cash and XP.
+#
+# It is a SECOND TAP LOOP on the city side, deliberately offset from rent. Rent
+# is the city's income and it already out-earns the fleet (see BALANCE.md); the
+# point of this is not more money, it is another reason to walk the map, in a
+# game where 42 plots compete with 150-odd pads for the same taps.
+#
+# EACH BUILDING ROLLS ITS OWN INTERVAL, a minute at minimum and half an hour at
+# most, rather than every one of them running on the same clock. On a fixed
+# hour the whole city went dark together and came back together, which reads as
+# a scheduled event rather than as forty-two buildings each doing their own
+# thing.
+#
+# MEMORYLESS, NOT UNIFORM. A flat draw between one and thirty minutes is random
+# in the arithmetic sense and does not read as random: with a hard floor, a
+# hard ceiling and everything between equally likely, no building ever comes
+# back quickly twice running and none ever makes you wait. An exponential draw
+# is what people mean by random - short gaps are common, long ones happen.
+#
+#     uniform 1-30      13% under five minutes, 17% over twenty-five
+#     1 min + exp(7)    43% under five minutes, 5% over twenty
+#
+# The minute is added rather than clamped to, so the floor is a real minimum
+# instead of a pile-up of buildings all landing on exactly sixty seconds.
+#
+# NO PITY COUNTER HERE, unlike the coin drops. That exists because a 1% roll
+# has no floor and a quarter of players wait three times the average; this one
+# is capped at half an hour, so there is no drought to protect anybody from.
+#
+# The interval is rolled when the building is lit and STORED, not rolled on
+# each check - a fresh roll every frame would either never expire or expire
+# instantly depending on the draw.
+const LIT_SECONDS_MIN := 300.0
+const LIT_SECONDS_MAX := 7200.0
+# The average WAIT ON TOP of the minimum, so the mean interval is about eight
+# minutes and the median under six.
+const LIT_SECONDS_MEAN := 1800.0
+
+
+# A memoryless interval - see the note above. randf() can return exactly 0.0,
+# which log() will not take, so it is the 1.0 - x form.
+static func _roll_lit_seconds() -> float:
+	return minf(LIT_SECONDS_MAX,
+		LIT_SECONDS_MIN + -log(1.0 - randf()) * LIT_SECONDS_MEAN)
+
+# A QUARTER OF THE RENT WAS NOT A BONUS. Lights are meant to be a mini-game you
+# catch, and at a seven-minute cycle across 42 plots they were 13.4% of income
+# and 14.4% of every tap in the game - the third pillar of the economy, priced
+# and paced like one. A tenth of the rent on a half-hour cycle puts them at 3.8%
+# of income, which is a bonus, and costs three levels over sixty days.
+#
+# BOTH DIALS WERE NEEDED. Slowing the cycle alone only took it to 7.6%, because
+# each catch was still worth a quarter of a rent that grows 1.45x a level -
+# fewer, but each one still large. Cutting the share alone would have left the
+# tap tax untouched, which is the half a player actually feels.
+const LIGHTS_CASH_SHARE := 0.10
+
+# XP is FLAT PER LEVEL, not a share of the cash. Rent runs away with building
+# level - RENT_PER_LEVEL is 1.45 compounding - and XP tied to it would hand a
+# maxed city more experience than the entire aircraft ladder. This pays a
+# maxed building ten times a new one, not four hundred times.
+const LIGHTS_XP_PER_LEVEL := 6
 # AND THE LEVEL RAISES IT. Before this an upgrade produced exactly one thing -
 # more cash - and cash is not what paces this game: a mid-game level pays for
 # itself in 20 to 40 hours of collecting every single cycle, and buys a currency
@@ -480,6 +548,7 @@ func coin_chance_at(plot_id: int, map_key: String = "") -> float:
 # So a drop can be shown. Without it the only feedback is the HUD counter
 # ticking up, which nobody is looking at while tapping a building.
 signal coin_found(plot_id: int, amount: int)
+signal lights_changed(plot_id: int)
 
 # Milestones get their OWN signal rather than borrowing coin_found. They can
 # fire from inside a rent collection - collect_rent reads rent_at, which reads
@@ -531,6 +600,156 @@ func collect_rent(plot_id: int, map_key: String = "") -> int:
 	rent_changed.emit()
 	rent_collected.emit(plot_id, amount)
 	return amount
+
+
+# When this building's lights were last on.
+#
+# A record from before the lights existed has no lit_since. It must NOT fall
+# back to "since": that is the rent clock, reset on every collection, so a
+# building collected more often than hourly would never go dark at all. It
+# starts its life lit instead, from the moment it is first asked about, which
+# costs one cycle on an old save and nothing after that.
+func lit_since(plot_id: int, map_key: String = "") -> float:
+	var mk := map_key if map_key != "" else Maps.current
+	var m := _map(mk)
+	var rec: Dictionary = m.get(str(plot_id), {})
+	if rec.is_empty():
+		return GameClock.now()
+	if not rec.has("lit_since"):
+		rec["lit_since"] = GameClock.now()
+		m[str(plot_id)] = rec
+		built[mk] = m
+	return float(rec["lit_since"])
+
+
+# How long THIS building stays lit. Rolled once and kept, so a record written
+# before the interval existed gets one now rather than inheriting a constant.
+func lit_seconds(plot_id: int, map_key: String = "") -> float:
+	var mk := map_key if map_key != "" else Maps.current
+	var m := _map(mk)
+	var rec: Dictionary = m.get(str(plot_id), {})
+	if rec.is_empty():
+		return LIT_SECONDS_MAX
+	if not rec.has("lit_for"):
+		rec["lit_for"] = _roll_lit_seconds()
+		m[str(plot_id)] = rec
+		built[mk] = m
+	return float(rec["lit_for"])
+
+
+func seconds_until_dark(plot_id: int, map_key: String = "") -> float:
+	return maxf(0.0, lit_since(plot_id, map_key)
+		+ lit_seconds(plot_id, map_key) - GameClock.now())
+
+
+# Scaffolding wins: a building being rebuilt is not sitting there with its
+# lights off, it is a building site, and it already has its own callout.
+func is_dark(plot_id: int, map_key: String = "") -> bool:
+	return building_at(plot_id, map_key) != "" \
+		and not is_upgrading(plot_id, map_key) \
+		and seconds_until_dark(plot_id, map_key) <= 0.0
+
+
+func lights_reward(plot_id: int, map_key: String = "") -> int:
+	return int(round(float(rent_at(plot_id, map_key)) * LIGHTS_CASH_SHARE))
+
+
+func lights_xp(plot_id: int, map_key: String = "") -> int:
+	return LIGHTS_XP_PER_LEVEL * level_at(plot_id, map_key)
+
+
+# Switch them back on. Pays cash and XP, and restarts the lit clock - it does
+# NOT touch "since", so relighting neither grants nor delays a rent cycle.
+# THE RELIGHT BUBBLE IS AN OFFER WITH A DEADLINE.
+#
+# A dark building used to stay dark, and its bubble stayed up, until somebody
+# tapped it - so an airport left alone accumulated bubbles until the board was
+# more prompt than airport. It is a thing to catch now: miss the window and the
+# lights come back on by themselves, with nobody paid for it.
+#
+# The window is derived from the plot id rather than stored, so it varies
+# building to building without a new save field and without a roll that has to
+# survive a reload.
+const LIGHTS_OFFER_MIN := 30.0
+const LIGHTS_OFFER_MAX := 60.0
+
+
+func lights_offer_seconds(plot_id: int) -> float:
+	var span := int(LIGHTS_OFFER_MAX - LIGHTS_OFFER_MIN) + 1
+	return LIGHTS_OFFER_MIN + float((plot_id * 7919) % span)
+
+
+# How long this plot has been sitting dark. 0 when it is not.
+func dark_seconds(plot_id: int, map_key: String = "") -> float:
+	if not is_dark(plot_id, map_key):
+		return 0.0
+	return maxf(0.0, GameClock.now()
+		- (lit_since(plot_id, map_key) + lit_seconds(plot_id, map_key)))
+
+
+# Dark AND still within the window - which is what the bubble should follow.
+func lights_offer_open(plot_id: int, map_key: String = "") -> bool:
+	return is_dark(plot_id, map_key) \
+		and dark_seconds(plot_id, map_key) <= lights_offer_seconds(plot_id)
+
+
+# Put the lights back on where the offer lapsed, paying nothing. Swept rather
+# than fired on a timer per plot: dark is computed from a clock, so there is no
+# moment to hang an event on.
+func expire_light_offers(map_key: String = "") -> int:
+	var mk := map_key if map_key != "" else Maps.current
+	var expired := 0
+	for id_str in _map(mk):
+		var id := int(id_str)
+		if is_dark(id, mk) and not lights_offer_open(id, mk):
+			_reset_lights(id, mk)
+			expired += 1
+	if expired > 0:
+		_save()
+		lights_changed.emit(-1)
+	return expired
+
+
+# The clock half of relight(), without the money. Shared so a lapsed offer and
+# a claimed one leave the plot in exactly the same state.
+func _reset_lights(plot_id: int, map_key: String) -> void:
+	var m := _map(map_key)
+	var rec: Dictionary = m.get(str(plot_id), {})
+	rec["lit_since"] = GameClock.now()
+	rec["lit_for"] = _roll_lit_seconds()
+	m[str(plot_id)] = rec
+	built[map_key] = m
+
+
+func relight(plot_id: int, map_key: String = "") -> int:
+	if not is_dark(plot_id, map_key):
+		return 0
+	var amount := lights_reward(plot_id, map_key)
+	Economy.add_money(amount)
+	Progression.add_xp(lights_xp(plot_id, map_key))
+	var mk := map_key if map_key != "" else Maps.current
+	var m := _map(mk)
+	var rec: Dictionary = m.get(str(plot_id), {})
+	rec["lit_since"] = GameClock.now()
+	# A NEW INTERVAL EVERY TIME. Keeping the first roll would give each
+	# building a fixed personal rhythm, which is the same problem as one shared
+	# clock only harder to notice.
+	rec["lit_for"] = _roll_lit_seconds()
+	m[str(plot_id)] = rec
+	built[mk] = m
+	_save()
+	lights_changed.emit(plot_id)
+	return amount
+
+
+func dark_plots(map_key: String = "") -> Array:
+	var out: Array = []
+	for id_str in _map(map_key):
+		var id := int(id_str)
+		if is_dark(id, map_key):
+			out.append(id)
+	out.sort()
+	return out
 
 
 # Everything waiting to be collected here, for a "collect all" and for the HUD.
@@ -647,7 +866,13 @@ func build(plot_id: int, building_key: String, map_key: String = "") -> bool:
 	var m := _map(key)
 	# The cycle starts the moment it's built, so a new building is not
 	# immediately collectable - you pay, then you wait, like every other timer.
-	m[str(plot_id)] = {"key": building_key, "since": GameClock.now()}
+	# lit_since is written HERE and not left to fall back on "since". They look
+	# interchangeable on a new building and are not: "since" is reset by every
+	# rent collection, so a lights clock reading it can never expire on a
+	# building that is being collected regularly - which is every building.
+	m[str(plot_id)] = {"key": building_key, "since": GameClock.now(),
+		"lit_since": GameClock.now(),
+		"lit_for": _roll_lit_seconds()}
 	built[key] = m
 	_save()
 	built_changed.emit()
@@ -658,7 +883,6 @@ func _save() -> void:
 	# Never over a real playthrough - see SaveGame.save().
 	if OS.get_cmdline_user_args().has("--bot"):
 		return
-	DirAccess.make_dir_recursive_absolute("res://data")
-	var f := FileAccess.open(SAVE_PATH, FileAccess.WRITE)
+	var f := FileAccess.open(SavePaths.write_path(SAVE_FILE), FileAccess.WRITE)
 	f.store_string(JSON.stringify(built, "\t"))
 	f.close()

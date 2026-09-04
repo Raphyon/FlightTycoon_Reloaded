@@ -37,6 +37,15 @@ extends Node
 # game minutes gone. --speed models playing under fast-forward and charges taps
 # accordingly, which is the only honest way to ask whether fast-forward actually
 # buys anything.
+#
+# IT IS REPRODUCIBLE. The clock starts from a fixed instant under --bot rather
+# than from the moment of launch (GameClock.BOT_EPOCH), so the fuel market and
+# the daily quest draw repeat exactly and two runs of one build differ only by
+# what is being tested. Before that they did not: the same config an hour apart
+# came out ~20% apart on day-40 cash. --epoch <unix seconds> moves the starting
+# instant, which is how to ask whether a result survives a different starting
+# hour - vary it deliberately, one run against another, rather than having the
+# clock vary it for you.
 
 const DEFAULT_DAYS := 30
 const DEFAULT_SESSIONS := 4
@@ -117,7 +126,53 @@ var _last_money := -1
 var _routing := "match"
 # rate     = best payout per minute of flight (an optimiser)
 # prestige = the dearest thing on the shelf you can afford (an actual player)
+# saver    = holds cash for the dearest aircraft it could own within a few days
+#
+# SAVER EXISTS BECAUSE THE OTHER TWO CANNOT TEST THE TOP OF THE LADDER. Both buy
+# the best thing affordable at that moment, so neither ever accumulates: a
+# repricing that cut the ceiling from $210M to $17.9M moved the dearest aircraft
+# ever flown by three levels, because peak cash on hand across the whole run was
+# $4.4M. That is a fact about the policy, not about the prices, and it made the
+# repricing untestable.
 var _buying := "prestige"
+# How many days of current income the bot will wait for something. Past this it
+# stops saving and grows its income instead, which is what keeps it from
+# standing still in front of an aircraft it will never reach.
+var _save_days := 4.0
+var _stop_at_level := 0
+# Reporting only: what it is holding out for, and how much that cost in passes.
+var _saving_for := ""
+var _save_passes := 0
+var _save_buys := 0
+# A CURATED FLEET RATHER THAN AN ACCUMULATED ONE. 0 is the game as it is: pads
+# only ever grow, keeping an aircraft is free, so the bot ends a 140 day run
+# with 180 aircraft and has never sold one. The DC-3 from minute one is still on
+# a pad at hour 93, still costing four taps a lap, still paying 1/750th of what
+# an F-14 pays for the same four taps.
+#
+# With a cap the bot stops building pads at N and, when it can afford something
+# that beats the worst thing it owns, RETIRES the worst and buys the better one.
+# That is what "replacing your fleet is the progression" would actually look
+# like, priced against today's rules with nothing in the game changed.
+#
+#     godot --headless --path game -- --bot --who regular --fleet-cap 40
+#
+# IT MEASURES TWO THINGS AT ONCE and there is no clean way to separate them
+# here: a capped board also stops paying the apron ladder. A --cap-pads control
+# that kept buying pads it would never fill was tried and does not work -
+# _buy_zone refuses to expand while any pad stands empty, so the control never
+# buys a zone after the first four and measures a player nobody is. Read the
+# result as "curating instead of accumulating", pads included, not as a figure
+# for fleet quality alone.
+# WHICH CAPSTONE THE PLAYER TAKES when a model tops out its mastery, or "off"
+# for a player who never opens the panel - which is the baseline every capstone
+# has to be measured against.
+#
+#     godot --headless --path game -- --bot --who regular --capstone reach
+var _capstone := "off"
+var _capstones_taken := 0
+var _fleet_cap := 0
+var _retired := 0
 # Whether the imaginary player bothers with the daily tasks. OFF is the baseline
 # the quest faucet has to be measured against - and a bot that does not claim
 # would report "quests changed nothing", which is a statement about the bot.
@@ -127,6 +182,8 @@ var _quest_coins := 0
 # sources can be sized against each other - the whole question of whether a
 # building upgrade is worth anything turns on which one dominates.
 var _building_coins := 0
+var _lights_cash := 0
+var _lights_relit := 0
 # Milestone payouts, apart from drops - they are a different lever with a
 # different cap and sizing one against the other is the whole point.
 var _milestone_coins := 0
@@ -153,9 +210,24 @@ func _ready() -> void:
 			_days = int(w["days"])
 	for i in range(args.size() - 1):
 		match args[i]:
+			# Fixes the GLOBAL RNG, which is HALF of what a reproducible run
+			# needs. Lights, quests and coin drops are all random, and this was
+			# added because two identical runs came out 10% apart - but it never
+			# closed the gap on its own, because the other half was the CLOCK: the
+			# fuel market and the daily quest draw seed themselves off
+			# GameClock.now(), which used to be the moment of launch. Both are
+			# fixed now, and BOTH are required - the clock is pinned automatically
+			# under --bot, this flag is not, so a run without --seed still varies
+			# by whatever the lights roll. Pass it for anything you intend to
+			# compare.
+			"--seed": seed(int(args[i + 1]))
+			"--stop-at-level": _stop_at_level = int(args[i + 1])
 			"--days": _days = int(args[i + 1])
 			"--routing": _routing = args[i + 1]
 			"--buying": _buying = args[i + 1]
+			"--save-days": _save_days = maxf(0.0, float(args[i + 1]))
+			"--fleet-cap": _fleet_cap = maxi(0, int(args[i + 1]))
+			"--capstone": _capstone = args[i + 1]
 			"--quests": _do_quests = args[i + 1] != "off"
 			"--trace": _trace = true
 			"--latency": _latency = maxf(0.0, float(args[i + 1]))
@@ -187,8 +259,10 @@ func _run() -> void:
 
 	print("  BOT [%s] - %d sessions/day x %.0f min = %.0f min/day, over %d days"
 		% [_who, _sessions, _minutes, _sessions * _minutes, _days])
-	print("  fare %d - the game's own ShopCatalog, Fleet and Progression, not a copy\n"
+	print("  fare %.1f - the game's own ShopCatalog, Fleet and Progression, not a copy"
 		% Fleet.TICKET_PRICE)
+	print("  clock pinned at %d - same fuel market and same daily draw every run\n"
+		% int(GameClock.epoch()))
 	print("  %6s %6s %12s %6s %5s %5s %6s" %
 		["day", "level", "cash", "fleet", "pads", "zones", "bldgs"])
 
@@ -202,6 +276,10 @@ func _run() -> void:
 		_check_milestones()
 		if day == 1 or day == 7 or day % 10 == 0 or day == _days:
 			_report(day)
+		if _stop_at_level > 0 and Progression.level >= _stop_at_level:
+			SaveGame.save()
+			print("\n  DUMPED at day %d, level %d" % [day, Progression.level])
+			break
 		if Time.get_ticks_msec() / 1000.0 - _started > WALL_LIMIT:
 			print("\n  STOPPED at day %d - wall clock limit" % day)
 			break
@@ -262,9 +340,13 @@ func _skip(seconds: float) -> void:
 		return
 	GameClock.skip(seconds)
 	Fleet.advance_by(seconds)
-	# Both of these normally ride _process, which never runs here - see
-	# Quests.tick.
+	# All of these normally ride _process, which never runs here - see
+	# Quests.tick. Fuel deliveries are the same shape: they land on a clock,
+	# and without this they never land at all in a bot run, so the whole fleet
+	# starves and the measurement reads as a balance catastrophe rather than as
+	# a missing call.
 	Quests.tick()
+	FuelStore.land_deliveries()
 
 
 # The same skip, but turning aircraft round as they land instead of leaving them
@@ -326,6 +408,16 @@ func _collect_bulk() -> void:
 	BuildingProgress.collect_all()
 	_building_coins += (Coins.amount - coins_before) \
 		- (_milestone_coins - milestones_before)
+	_relight_all()
+
+
+# The lights loop, counted separately from rent so its contribution can be
+# read on its own rather than hiding inside the city's total.
+func _relight_all() -> void:
+	for id in BuildingProgress.dark_plots():
+		_taps += 1
+		_lights_cash += BuildingProgress.relight(id)
+		_lights_relit += 1
 
 
 func _next_landing() -> float:
@@ -347,6 +439,18 @@ func _note_fleet() -> void:
 func _collect() -> void:
 	_note_fleet()
 	if _bulk:
+		# BEFORE advance_all, which is the only gap the bulk path has. It claims
+		# and departs in one call, so there is no moment afterwards when
+		# anything is standing on a pad - a replacement attempted after it
+		# retires nothing at all, and --fleet-cap under --bulk silently measured
+		# a board FROZEN at N rather than a curated one.
+		#
+		# The cost is that a retirement here forfeits whatever the aircraft was
+		# holding, since it has landed and not been claimed. Fleet.sell_one
+		# takes idle and parked aircraft ahead of unclaimed ones, so it only
+		# happens when nothing cleaner is available.
+		_replace_pass()
+		_choose_capstones()
 		_collect_bulk()
 		return
 	for a in Fleet.aircraft.duplicate():
@@ -357,6 +461,14 @@ func _collect() -> void:
 			FleetAircraft.State.AWAITING_HOME_CLAIM:
 				_taps += 1
 				Fleet.claim_home_reward(a.id)
+	# RETIRING HAPPENS HERE, between claiming and departing, because that is the
+	# only moment an aircraft is on the ground with nothing owed to it. The pass
+	# below sends everything straight back out, so a replacement attempted after
+	# it finds an empty apron and a board of airborne aircraft that can_sell
+	# refuses - which is exactly what the first version of this did, 758 times
+	# in a 30 day run, reporting nothing retired.
+	_replace_pass()
+	_choose_capstones()
 	for a in Fleet.aircraft.duplicate():
 		match a.state:
 			FleetAircraft.State.AWAITING_DEST_REFUEL:
@@ -381,6 +493,7 @@ func _collect() -> void:
 	BuildingProgress.collect_all()
 	_building_coins += (Coins.amount - coins_before) \
 		- (_milestone_coins - milestones_before)
+	_relight_all()
 
 
 # EVERY AIRCRAFT NEEDS A PAD BEFORE IT CAN DO ANYTHING. Fleet.buy only adds it
@@ -442,6 +555,16 @@ const FUEL_SPEND_SHARE := 0.34
 
 # The destination this policy wants, clamped to what the aircraft can actually
 # reach and what is actually unlocked.
+# What every coin aircraft in the shop costs together - the size of the sink
+# the coin economy has to fill.
+func _coin_catalogue() -> int:
+	var n := 0
+	for e in ShopCatalog.ENTRIES:
+		if str(e.get("currency", "")) == ShopCatalog.COINS:
+			n += int(e.get("price", 0))
+	return n
+
+
 func _coin_models() -> int:
 	var n := 0
 	for e in ShopCatalog.ENTRIES:
@@ -497,7 +620,13 @@ func _route_for(model_key: String) -> String:
 
 
 func _buy_fuel(need: int) -> void:
-	var short: int = need - FuelStore.amount
+	# FUEL ON ORDER COUNTS AS FUEL. Deliveries land on a delay now, so the tank
+	# does not move when you pay - and a bot that reads only the tank orders the
+	# same load again on every pass. Measured before this: fuel went to 5x
+	# income and the run ended 30 levels short, which is a fact about the bot,
+	# not about the delay. A player sees the order pending on the shop; so does
+	# this now.
+	var short: int = need - FuelStore.amount - FuelStore.pending_units()
 	var budget: float = Economy.money * FUEL_SPEND_SHARE
 	_fuel_before = Economy.money
 	var tiers := [50, 500, 5000, 50000]
@@ -520,9 +649,20 @@ func _buy_fuel(need: int) -> void:
 # pads first (they gate the fleet), then aircraft, then zones, then buildings.
 # A fuel reserve is held back - an aircraft that cannot fly is worth nothing.
 func _buy() -> void:
+	# SAVING HOLDS EVERYTHING, not just aircraft. A hold that let pads, zones and
+	# buildings carry on spending would never accumulate anything - which is the
+	# exact failure the policy exists to avoid.
+	var plan := _save_plan()
+	if not plan.is_empty():
+		if _saving_for != str(plan["key"]):
+			_saving_for = str(plan["key"])
+			_save_buys += 1
+		_save_passes += 1
+		return
+	_saving_for = ""
 	for _pass in range(60):
 		var did := false
-		if _free_pads() <= 0 and _build_pad():
+		if _free_pads() <= 0 and _pads_wanted() and _build_pad():
 			did = true
 		elif _free_pads() > 0 and _buy_aircraft():
 			did = true
@@ -532,6 +672,48 @@ func _buy() -> void:
 			did = true
 		if not did:
 			return
+
+
+# What the fleet has actually been earning, per day, averaged over the run so
+# far. Deliberately the measured figure rather than a projection from the
+# catalogue - the bot should save against what it really earns.
+func _daily_income() -> float:
+	return float(_earned) / maxf(1.0, float(_day))
+
+
+func _owns(model_key: String) -> bool:
+	for a in Fleet.aircraft:
+		if a.model_key == model_key:
+			return true
+	return false
+
+
+# The aircraft worth waiting for, or {} to carry on buying normally.
+#
+# The DEAREST unowned aircraft that is out of reach today but within _save_days
+# of income. Anything already affordable is not a saving target - the normal
+# prestige path buys it, and once the money is there the target IS the dearest
+# affordable thing, so it gets bought without a special case.
+func _save_plan() -> Dictionary:
+	if _buying != "saver":
+		return {}
+	var target := {}
+	var spendable := _spendable()
+	var income := maxf(_daily_income(), 1.0)
+	for e in ShopCatalog.ENTRIES:
+		var key := str(e["key"])
+		if str(e.get("currency", ShopCatalog.CASH)) == ShopCatalog.COINS:
+			continue
+		if not ShopCatalog.unlocked(key) or _owns(key):
+			continue
+		var price := int(e["price"])
+		if price <= spendable:
+			continue
+		if float(price - spendable) / income > _save_days:
+			continue
+		if target.is_empty() or price > int(target["price"]):
+			target = {"key": key, "price": price}
+	return target
 
 
 func _reserve() -> int:
@@ -610,7 +792,127 @@ func _build_pad() -> bool:
 	return ApronProgress.build(best_id, best_area)
 
 
+# With --fleet-cap the board stops growing at N pads. Money that would have gone
+# into the apron ladder - which BALANCE.md measures as the biggest sink in the
+# game - goes into zones, buildings and better aircraft instead, which is part
+# of what the cap is measuring.
+func _pads_wanted() -> bool:
+	return _fleet_cap <= 0 or _total_pads() < _fleet_cap
+
+
+func _at_cap() -> bool:
+	return _fleet_cap > 0 and Fleet.aircraft.size() >= _fleet_cap
+
+
+# What one lap of this model is worth. A lap is FOUR TAPS whatever it is flying
+# and whatever distance it flies, so pay per leg IS pay per tap up to a constant
+# - which is why this is the right ranking for a fleet that is limited by the
+# player's fingers rather than by pads.
+func _lap_value(model_key: String) -> int:
+	return Fleet.payout_for(model_key, Fleet.best_destination_for(model_key))
+
+
+# The worst thing on the board, by what one of its laps is worth. Coin aircraft
+# are skipped: Fleet.can_sell refuses them outright, so choosing one here would
+# stall the whole replacement loop on an aircraft that can never leave.
+func _worst_owned() -> String:
+	var worst := ""
+	var worst_value := 1 << 62
+	for a in Fleet.aircraft:
+		if Fleet.sell_value(a.model_key) <= 0:
+			continue
+		if not Fleet.can_sell(a):
+			continue
+		var v := _lap_value(a.model_key)
+		if v < worst_value:
+			worst_value = v
+			worst = a.model_key
+	return worst
+
+
+# Take the capstone on anything that has just topped out. Costs a tap, like
+# every other decision the bot makes - it is a panel the player has to open.
+#
+# Falls back to the first option the model actually offers: reach is withheld
+# from anything already built for five clouds, which is most of the top of the
+# ladder, and a bot that asked for it anyway would silently take nothing and
+# report a capstone run that never chose one.
+func _choose_capstones() -> void:
+	if _capstone == "off":
+		return
+	for a in Fleet.aircraft:
+		if not AircraftAffinity.can_choose_capstone(a.model_key):
+			continue
+		var opts: Array = AircraftAffinity.options_for(a.model_key)
+		if opts.is_empty():
+			continue
+		var pick: String = _capstone if opts.has(_capstone) else str(opts[0])
+		_taps += 1
+		if AircraftAffinity.choose_capstone(a.model_key, pick):
+			_capstones_taken += 1
+
+
+# Retire and replace until nothing more is worth doing this pass. Eight is a
+# stop, not a budget - the loop ends on its own as soon as the board holds
+# nothing worse than what the money can reach.
+func _replace_pass() -> void:
+	if _fleet_cap <= 0:
+		return
+	# THE SAVING HOLD APPLIES HERE TOO. This is a second spending path that
+	# _buy() does not go through, so without this the saver quietly spends its
+	# savings on replacements and the policy measures nothing.
+	if not _save_plan().is_empty():
+		_save_passes += 1
+		return
+	for _r in range(8):
+		if not _replace_worst():
+			return
+
+
+# At the cap, buying is REPLACING: scrap the worst lap on the board and put the
+# best lap the proceeds can reach in its place. Only ever a strict improvement,
+# so the fleet cannot churn sideways and cannot ratchet downwards.
+func _replace_worst() -> bool:
+	var worst := _worst_owned()
+	if worst == "":
+		if _trace:
+			print("      [cap] nothing sellable on the board")
+		return false
+	var floor_value := _lap_value(worst)
+	var budget := _spendable() + Fleet.sell_value(worst)
+	var best := ""
+	var best_value := floor_value
+	for e in ShopCatalog.ENTRIES:
+		var key := str(e["key"])
+		if not ShopCatalog.unlocked(key):
+			continue
+		if str(e.get("currency", ShopCatalog.CASH)) == ShopCatalog.COINS:
+			continue
+		if int(e["price"]) > budget:
+			continue
+		var v := _lap_value(key)
+		if v > best_value:
+			best_value = v
+			best = key
+	if best == "":
+		if _trace:
+			print("      [cap] worst=%s (%d) budget=%d - nothing better affordable"
+				% [worst, floor_value, budget])
+		return false
+	if not Fleet.sell_one(worst):
+		if _trace:
+			print("      [cap] sell_one(%s) refused" % worst)
+		return false
+	_retired += 1
+	return Fleet.buy(best, int(ShopCatalog.entry_for(best)["price"]), ShopCatalog.CASH)
+
+
 func _buy_aircraft() -> bool:
+	# At the cap the board only ever changes by REPLACEMENT, which happens in
+	# _collect where aircraft are actually on the ground. Adding here would let
+	# a spare pad push the fleet past the cap it is being measured at.
+	if _at_cap():
+		return false
 	var best := ""
 	var best_rate := 0.0
 	var coin_best := ""
@@ -664,6 +966,14 @@ func _buy_aircraft() -> bool:
 # as though that were a finding about the game.
 func _buy_zone() -> bool:
 	if _free_pads() > 0:
+		return false
+	# A ZONE IS PAD CAPACITY, so at a fleet cap it buys nothing at all. Without
+	# this the capped bot spent $16.65M opening six zones it was forbidden to
+	# build a single pad in - and because zones sit ABOVE buildings in the spend
+	# chain, that money was taken before replacements or plots ever saw it. It
+	# looked like curation being expensive; it was the bot buying land it could
+	# not use.
+	if not _pads_wanted():
 		return false
 	for area_name in ZoneProgress.ZONE_REQUIREMENTS:
 		if ZoneProgress.is_unlocked(area_name):
@@ -749,8 +1059,19 @@ func _check_milestones() -> void:
 	# and this dictionary only ever held three, so "all pads" reported "not
 	# reached" unconditionally - on every run, at every setting, whatever the
 	# player did. It was quoted in BALANCE.md as a measurement.
+	#
+	# AND THEN IT COUNTED THE WRONG BOARD. The denominator was _owned_maps(),
+	# so it asked "are the maps you have RIGHT NOW full?" - which goes true the
+	# first time the homeland is filled and is then quoted as "every pad
+	# bought". The regular run tripped it on day 36 at 110 pads and went on
+	# buying for another 70 pads. Every map you can own counts, whether or not
+	# it has been bought yet, because that is the board the label describes.
+	# Visiting maps stay out: the robot airport's pads are landing slots that
+	# come free with your own, not something anybody buys.
 	var pads_total := 0
-	for map_key in _owned_maps():
+	for map_key in Maps.MAPS:
+		if Maps.MAPS[map_key].has("visiting"):
+			continue
 		var data := ApronLayout.effective_area_data(map_key)
 		for area_name in Maps.areas_for(map_key):
 			pads_total += (data.get(area_name, []) as Array).size()
@@ -819,9 +1140,20 @@ func _summary() -> void:
 				maxed += 1
 	print("  city: %d building levels across the plots, %d of them maxed"
 		% [levels, maxed])
+	if _fleet_cap > 0:
+		print("  FLEET CAP %d: %d aircraft retired and replaced over the run"
+			% [_fleet_cap, _retired])
+	if _capstone != "off":
+		print("  CAPSTONE %s: taken on %d models" % [_capstone, _capstones_taken])
 	print("  routing policy: %s   buying: %s   daily tasks: %s" % [_routing, _buying, "on" if _do_quests else "off"])
 	print("  quests: %d sets completed, %d coins earned" % [_sets_done, _quest_coins])
+	if _buying == "saver":
+		print("  saving: held out for %d aircraft, %d passes spent waiting, %.0f days of patience"
+			% [_save_buys, _save_passes, _save_days])
 	print("  building coin drops: %d" % _building_coins)
+	print("  lights: %d relit for $%s = %.1f%% of income"
+		% [_lights_relit, _thousands(_lights_cash),
+			100.0 * float(_lights_cash) / maxf(1.0, _earned)])
 	if _autoturn_hours > 0.0:
 		print("  AUTOTURN %.1f h/day: %d skips, %.0f h covered" % [_autoturn_hours, _autoturn_calls, _autoturn_covered / 3600.0])
 	print("  daily login: %d days collected, %d coins" % [_login_days, _login_coins])
@@ -843,8 +1175,13 @@ func _summary() -> void:
 			print("    %2d aircraft  at level %-3d  %5.1f h of play   saves %d taps"
 				% [mark, v[0], v[1], v[2]])
 	print("  milestone coins: %d" % _milestone_coins)
-	print("  coins: %d earned over the run (started with %d), against %d coin aircraft in the shop"
-		% [Coins.amount - Coins.DEFAULT_AMOUNT, Coins.DEFAULT_AMOUNT, _coin_models()])
+	# LEFT, not earned - it is the closing balance less the float, and it was
+	# labelled "earned" while the four source lines above it added to ten times
+	# the figure. Reading it as earnings is what made the first balance pass
+	# call the coin economy comfortable when it was being drained.
+	var earned: int = _quest_coins + _building_coins + _login_coins + _milestone_coins
+	print("  coins: %d earned, %d left over, against a %d-coin shop of %d aircraft"
+		% [earned, Coins.amount - Coins.DEFAULT_AMOUNT, _coin_catalogue(), _coin_models()])
 	print("\n  fuel: spent $%s against $%s earned = %.1f%% of income"
 		% [_thousands(_fuel_spend), _thousands(_earned),
 			100.0 * _fuel_spend / maxf(1.0, _earned)])

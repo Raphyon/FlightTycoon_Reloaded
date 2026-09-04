@@ -9,7 +9,6 @@ extends PanelContainer
 # airport - so without this you'd have to fly over, claim, refuel, and come
 # back for every aircraft. Here the whole loop is driveable from home.
 const ROW_BOARD := preload("res://assets/board/board_aircraft_list@2x.png")
-const ACTION_TEXTURE := preload("res://assets/buttons/button_orange2@2x.png")
 # The wide variant, for the one button whose label doesn't fit the short one.
 const WIDE_ACTION_TEXTURE := preload("res://assets/buttons/button_orange4@2x.png")
 const COUNT_BOARD_TEXTURE := preload("res://assets/board/board_airline4@2x.png")
@@ -19,9 +18,14 @@ const BOARD_RIGHT_MARGIN := 20.0
 const BOARD_TOP_MARGIN := 24.0
 
 # Narrower than the panel on purpose: the back arrow occupies the bottom-right
-# corner (x1038 onward on a 1152-wide panel), and a centred 980px row reached
-# x1066 - straight through it. Plus room for the scrollbar.
-const ROW_SIZE := Vector2(900, 52)
+# corner of a 1152-wide panel, its left edge at x1078, and a row wide enough to
+# reach it would run straight through. Plus room for the scrollbar.
+#
+# 964, up from 900. The row area is centred in the 1056 the margins leave, so a
+# row of width W has its right edge at 576 + (W + SCROLLBAR_ALLOWANCE) / 2:
+# 964 puts it at 1065, thirteen clear of the arrow, and 980 - the width tried
+# once before - puts it at 1073.
+const ROW_SIZE := Vector2(964, 52)
 const SCROLLBAR_ALLOWANCE := 14.0
 const ICON_SIZE := Vector2(44, 44)
 # Half the row's height, so a line reads as exactly two buttons tall. The
@@ -31,14 +35,53 @@ const ICON_SIZE := Vector2(44, 44)
 # The row was 62 tall. It is 52 now, along with everything sized off it, to fit
 # more of the fleet on screen at once - a 62px row put six lines in the scroll
 # area at a point in the game where the fleet is sixty aircraft.
-const ACTION_SIZE := Vector2(112, 26)
+# THE VISIBLE BUTTON IS NOT THIS WIDE. The art is drawn KEEP_ASPECT_CENTERED,
+# so it fits by the SHORT side and the rest of the box is empty: the narrow art
+# (136x62) at 26 high painted 57px of button inside a 112px rect, which is why a
+# nine-character caption spilled out of a button that looked twice wide enough.
+#
+# The wide art at 30 high paints 93px, and "Turn around" measures 73 at font 12
+# - so it fits with ten pixels either side, which is the whole reason for both
+# numbers. The row has 148px between COL_ACTION and its right edge.
+const ACTION_SIZE := Vector2(130, 30)
 const ACTION_FONT := 12
-# Column x positions inside a row.
+# Column x positions inside a row. The icon and the type stay where they were -
+# a left-anchored column that moves for no reason only makes two versions of the
+# panel harder to compare - and the 64 pixels the wider row brings go to the
+# three columns right of them, which were the tight ones. COL_ACTION keeps the
+# same 148px to the row's right edge that the button was sized against.
 const COL_ICON := 10.0
 const COL_TYPE := 84.0
-const COL_DEST := 330.0
-const COL_TIME := 560.0
-const COL_ACTION := 752.0
+const COL_DEST := 356.0
+const COL_TIME := 600.0
+const COL_ACTION := 816.0
+
+# THE SAME TWO SECONDS THE APRONS SPEND. Collecting from this list was instant
+# while the identical action on a pad played a swoop - so the fast way to run an
+# airport was to stop looking at it, which is the opposite of what the swoop
+# exists for (see ProgressBubble: an airport should be seen WORKING, not only
+# finishing).
+#
+# THE PROGRESS LIVES IN THE PANEL, NOT THE ROW. _refresh frees and rebuilds
+# every row, and it runs on fleet_changed - which fires whenever any aircraft
+# anywhere lands, claims or departs. A bubble parented to a row would be
+# destroyed part-filled by an unrelated aircraft touching down, which is
+# precisely the bug ApronLayer documents. Keyed by aircraft id here, so a
+# rebuild redraws it at the fill it had reached.
+const SWOOP_SECONDS := 2.0
+# Sized to the button it replaces, so the row does not change shape mid-swoop.
+const SWOOP_BAR_SIZE := Vector2(96, 10)
+# ProgressBubble's own bar colours, so a claim reads the same here as on a pad.
+const SWOOP_TRACK := Color(0.16, 0.16, 0.18, 0.75)
+const SWOOP_EARN_COLOR := Color(0.47, 0.86, 0.51)
+const SWOOP_FUEL_COLOR := Color(0.94, 0.71, 0.24)
+
+# Which actions are refuelling, for the bubble art and the bar colour.
+const FUEL_STATES := [
+	FleetAircraft.State.PARKED,
+	FleetAircraft.State.AWAITING_DEST_REFUEL,
+	FleetAircraft.State.AWAITING_HOME_REFUEL,
+]
 const ROW_FONT := 15
 
 # The bulk control. A round trip is five presses per aircraft, so a fleet of
@@ -75,7 +118,19 @@ const RUN_ALL_SIZE := Vector2(96, 31)
 const RUN_ALL_FONT := 15
 const RESULT_FONT := 15
 const RESULT_HOLD := 3.0
-const RESULT_WIDTH := 300.0
+
+# ONE LINE OF CHROME, NOT THREE. The title, the sort buttons and Depart all
+# each had a row to themselves, stacked down the middle of a panel 1056 wide -
+# 131 of the content area's 340 pixels spent on three short lines, each with the
+# whole width to the right of it empty. They share a line now and the table gets
+# those pixels: about two more aircraft on screen.
+#
+# The two side cells are given the SAME minimum width, so the sort group lands
+# on the row's true centre and therefore on the table's, which is centred in the
+# same space. Left to find their own widths - the title is about 90 wide and the
+# Depart all cell about 320 - the group would sit some 150 pixels left of
+# centre, which reads as a mistake rather than as a layout.
+const HEADER_SIDE := 320.0
 
 enum Sort { TYPE, TIME, COMPLETED }
 
@@ -89,9 +144,12 @@ const SORTS := [
 # purpose: an aircraft in the air has nothing you can do for it.
 const ACTIONS := {
 	FleetAircraft.State.PARKED: "Depart",
-	FleetAircraft.State.AWAITING_DEST_CLAIM: "Collect",
-	FleetAircraft.State.AWAITING_DEST_REFUEL: "Send home",
-	FleetAircraft.State.AWAITING_HOME_CLAIM: "Collect",
+	FleetAircraft.State.AWAITING_DEST_CLAIM: "Turn around",
+	# "Send home" was the caption that exposed the sizing above - it overflowed
+	# a button that measured 112 and painted 57. "Return" says the same thing
+	# and is shorter, and is kept now the button is wide enough for either.
+	FleetAircraft.State.AWAITING_DEST_REFUEL: "Return",
+	FleetAircraft.State.AWAITING_HOME_CLAIM: "Turn around",
 	FleetAircraft.State.AWAITING_HOME_REFUEL: "Refuel",
 }
 
@@ -108,7 +166,17 @@ var _sort_buttons: Dictionary = {}
 var _run_all: TextureButton
 var _run_all_label: Label
 var _result_label: Label
+# aircraft id -> seconds elapsed on its swoop.
+var _swoops := {}
+# aircraft id -> the bubble showing it, so the bar can be advanced without
+# rebuilding the row sixty times a second.
+var _swoop_nodes := {}
 var _result_timer := 0.0
+
+# aircraft id -> tap sequence number. What sends a tapped row to the back of
+# the queue, and what keeps it there until the aircraft has nothing left to do.
+var _tap_order: Dictionary = {}
+var _tap_seq := 0
 
 
 func _ready() -> void:
@@ -120,8 +188,7 @@ func _ready() -> void:
 	Fleet.fleet_changed.connect(_on_fleet_changed)
 	get_tree().root.size_changed.connect(_fit_content)
 	_build_count_board()
-	_build_sort_row()
-	_build_run_all()
+	_build_header_row()
 	_build_empty_label()
 	_make_scrollable()
 
@@ -140,6 +207,10 @@ func _on_fleet_changed(_unused = null) -> void:
 # Times tick down every frame, so the rows would go stale sitting open. Only
 # the labels are rewritten - rebuilding the rows would fight the buttons.
 func _process(delta: float) -> void:
+	# Swoops run even while the panel is closed: an action already paid for
+	# should not be cancelled by looking away, and _refresh is guarded on
+	# visible anyway.
+	_tick_swoops(delta)
 	if not visible:
 		return
 	if _result_timer > 0.0:
@@ -226,7 +297,35 @@ func _build_count_board() -> void:
 	_frame.add_child(wrap)
 
 
-func _build_sort_row() -> void:
+# Title left, sort in the middle, Depart all right - the three rows of chrome
+# this panel used to stack, on one line. See HEADER_SIDE for why the outer two
+# carry a minimum width.
+func _build_header_row() -> void:
+	var row := HBoxContainer.new()
+	row.name = "Header"
+	row.add_theme_constant_override("separation", 10)
+
+	# The scene's own title, MOVED rather than restated, so its font and text
+	# stay the one the panel was authored with.
+	var title: Label = $Frame/SafeArea/Margin/VBox/TitleLabel
+	_vbox.remove_child(title)
+	title.custom_minimum_size = Vector2(HEADER_SIDE, 0)
+	title.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	row.add_child(title)
+
+	var middle := _build_sort_group()
+	middle.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_child(middle)
+
+	var right := _build_run_all_group()
+	right.custom_minimum_size = Vector2(HEADER_SIDE, 0)
+	row.add_child(right)
+
+	_vbox.add_child(row)
+	_vbox.move_child(row, _grid.get_index())
+
+
+func _build_sort_group() -> Control:
 	var row := HBoxContainer.new()
 	row.alignment = BoxContainer.ALIGNMENT_CENTER
 	row.add_theme_constant_override("separation", 10)
@@ -247,24 +346,26 @@ func _build_sort_row() -> void:
 		b.pressed.connect(_on_sort_pressed.bind(entry["sort"]))
 		row.add_child(b)
 		_sort_buttons[entry["sort"]] = b
-
-	_vbox.add_child(row)
-	_vbox.move_child(row, _grid.get_index())
+	return row
 
 
-func _build_run_all() -> void:
+func _build_run_all_group() -> Control:
 	var row := HBoxContainer.new()
-	row.alignment = BoxContainer.ALIGNMENT_CENTER
+	row.alignment = BoxContainer.ALIGNMENT_END
 	row.add_theme_constant_override("separation", 14)
 
-	# The result readout sits to the right of the button and reserves its width
-	# even while empty, which drags the button off centre. An equal spacer on
-	# the left balances it, so the button holds still whether or not a result
-	# is showing.
-	var spacer := Control.new()
-	spacer.custom_minimum_size = Vector2(RESULT_WIDTH, 0)
-	spacer.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	row.add_child(spacer)
+	# The readout takes whatever the button leaves and reads back towards it, so
+	# a long result grows leftward into empty row instead of pushing the button
+	# off the end. It used to need a spacer of its own width on the far side to
+	# stop exactly that; the fixed-width cell does that job now.
+	_result_label = Label.new()
+	_result_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_result_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	_result_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	_result_label.clip_text = true
+	_result_label.add_theme_font_size_override("font_size", RESULT_FONT)
+	_result_label.add_theme_color_override("font_color", Color(1, 1, 1, 0.8))
+	row.add_child(_result_label)
 
 	_run_all = TextureButton.new()
 	# Before the texture, or the button takes the art's own 136x62 as its
@@ -273,6 +374,10 @@ func _build_run_all() -> void:
 	_run_all.stretch_mode = TextureButton.STRETCH_SCALE
 	_run_all.texture_normal = WIDE_ACTION_TEXTURE
 	_run_all.custom_minimum_size = RUN_ALL_SIZE
+	# Pinned, not filled: in a row as tall as its tallest child a stretched
+	# TextureButton would scale the art vertically, and the caption inside it is
+	# placed at the button's own size rather than anchored to it.
+	_run_all.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	_run_all.pressed.connect(_on_run_all_pressed)
 	row.add_child(_run_all)
 
@@ -286,16 +391,7 @@ func _build_run_all() -> void:
 	_run_all_label.add_theme_constant_override("outline_size", 4)
 	_run_all_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_run_all.add_child(_run_all_label)
-
-	_result_label = Label.new()
-	_result_label.custom_minimum_size = Vector2(RESULT_WIDTH, 0)
-	_result_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	_result_label.add_theme_font_size_override("font_size", RESULT_FONT)
-	_result_label.add_theme_color_override("font_color", Color(1, 1, 1, 0.8))
-	row.add_child(_result_label)
-
-	_vbox.add_child(row)
-	_vbox.move_child(row, _grid.get_index())
+	return row
 
 
 # Says how many aircraft are waiting, so you know what the press will do
@@ -309,7 +405,7 @@ func _refresh_run_all() -> void:
 		_run_all.disabled = true
 		_run_all.texture_normal = LOCKED_TEXTURE
 		_run_all.modulate = Color(0.85, 0.85, 0.85, 1.0)
-		_run_all_label.text = "Locked"
+		_run_all_label.text = "Level %d" % DEPART_ALL_LEVEL
 		return
 	_run_all.texture_normal = WIDE_ACTION_TEXTURE
 	var pending := Fleet.pending_count()
@@ -372,21 +468,63 @@ func _routes() -> Array:
 	for a in Fleet.aircraft:
 		if not a.is_idle():
 			out.append(a)
+	_prune_tap_order()
+	out.sort_custom(_sorts_before)
+	return out
+
+
+# ONE comparator for all three modes, because the tap order has to come first in
+# every one of them: a row you have just tapped goes to the back of the queue
+# whatever the table happens to be sorted by.
+func _sorts_before(x: FleetAircraft, y: FleetAircraft) -> bool:
+	var rx := _tap_rank(x)
+	var ry := _tap_rank(y)
+	if rx != ry:
+		# Rank 0 is "not tapped", and it sorts above everything that has been.
+		# Among the tapped, oldest tap first, so they come back round in the
+		# order you sent them away rather than in a heap at the bottom.
+		if rx == 0 or ry == 0:
+			return rx == 0
+		return rx < ry
 	match _sort:
 		Sort.TYPE:
-			out.sort_custom(func(x, y): return _type_name(x) < _type_name(y))
+			var nx := _type_name(x)
+			var ny := _type_name(y)
+			if nx != ny:
+				return nx < ny
 		Sort.COMPLETED:
 			# Ready-for-action first, then by how long until they are.
-			out.sort_custom(func(x, y):
-				var rx := _has_action(x)
-				var ry := _has_action(y)
-				if rx != ry:
-					return rx
+			var ax := _has_action(x)
+			var ay := _has_action(y)
+			if ax != ay:
+				return ax
+			if not is_equal_approx(x.flight_time_left, y.flight_time_left):
 				return x.flight_time_left < y.flight_time_left
-			)
 		_:
-			out.sort_custom(func(x, y): return x.flight_time_left < y.flight_time_left)
-	return out
+			if not is_equal_approx(x.flight_time_left, y.flight_time_left):
+				return x.flight_time_left < y.flight_time_left
+	# STABLE, on a key nothing else ties. sort_custom is not a stable sort, so
+	# rows that tied were free to swap places on every rebuild - and since every
+	# aircraft waiting on you sits at zero seconds left, under the default sort
+	# that was most of the table, reshuffled on every single tap.
+	return x.id < y.id
+
+
+func _tap_rank(a: FleetAircraft) -> int:
+	return int(_tap_order.get(a.id, 0))
+
+
+# The stamp lasts until the aircraft has nothing left to do, not just until its
+# bar lands. One press runs the whole lap, so that is usually the same moment -
+# but an aircraft whose turnaround REFUSED (no fuel, no pad, out of range) is
+# still sitting there ready, and it should stay at the back rather than jump
+# under your finger again. Once it is in the air the stamp goes and the chosen
+# sort has it back.
+func _prune_tap_order() -> void:
+	for id in _tap_order.keys():
+		var a := Fleet.get_aircraft(int(id))
+		if a == null or a.is_idle() or (not _has_action(a) and not _swoops.has(int(id))):
+			_tap_order.erase(id)
 
 
 func _has_action(a: FleetAircraft) -> bool:
@@ -442,6 +580,9 @@ func _destination_text(a: FleetAircraft) -> String:
 func _refresh() -> void:
 	for child in _grid.get_children():
 		child.queue_free()
+	# The bubbles belonged to those rows. Cleared here rather than checked for
+	# validity later, so a stale entry cannot outlive the row it came from.
+	_swoop_nodes.clear()
 
 	var routes := _routes()
 	for a in routes:
@@ -484,10 +625,36 @@ func _build_row(a: FleetAircraft) -> Control:
 	# TextureRects need expand_mode first: otherwise the button's minimum size
 	# is its texture's, `size` clamps up to it, and the label - sized to what we
 	# asked for - ends up off-centre inside a button that grew.
+	if _swoops.has(a.id):
+		# JUST THE BAR. The pads use ProgressBubble - a 96x58 oval with an icon
+		# baked in - and dropping one into a 52px row of a list is a lump. The
+		# bar is the part that carries the meaning; the oval was only ever the
+		# frame it hangs in out on the board.
+		var fuelling: bool = FUEL_STATES.has(a.state)
+		var bar_x := COL_ACTION + (ACTION_SIZE.x - SWOOP_BAR_SIZE.x) * 0.5
+		var bar_y := (ROW_SIZE.y - SWOOP_BAR_SIZE.y) * 0.5
+
+		var track := ColorRect.new()
+		track.color = SWOOP_TRACK
+		track.position = Vector2(bar_x, bar_y)
+		track.size = SWOOP_BAR_SIZE
+		track.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		row.add_child(track)
+
+		var fill := ColorRect.new()
+		fill.color = SWOOP_FUEL_COLOR if fuelling else SWOOP_EARN_COLOR
+		fill.position = Vector2(bar_x, bar_y)
+		fill.size = Vector2(SWOOP_BAR_SIZE.x * _swoop_fraction(a.id),
+			SWOOP_BAR_SIZE.y)
+		fill.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		row.add_child(fill)
+		_swoop_nodes[a.id] = fill
+		return row
+
 	var action := TextureButton.new()
 	action.ignore_texture_size = true
 	action.stretch_mode = TextureButton.STRETCH_KEEP_ASPECT_CENTERED
-	action.texture_normal = ACTION_TEXTURE
+	action.texture_normal = WIDE_ACTION_TEXTURE
 	action.custom_minimum_size = ACTION_SIZE
 	action.position = Vector2(COL_ACTION, (ROW_SIZE.y - ACTION_SIZE.y) * 0.5)
 	action.size = ACTION_SIZE
@@ -499,6 +666,9 @@ func _build_row(a: FleetAircraft) -> Control:
 	var action_label := Label.new()
 	action_label.text = ACTIONS.get(a.state, "In flight")
 	action_label.size = ACTION_SIZE
+	# Clipped rather than allowed to spill past the art, so a caption that is
+	# too long reads as truncated instead of as a broken button.
+	action_label.clip_text = true
 	action_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	action_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	action_label.add_theme_font_size_override("font_size", ACTION_FONT)
@@ -542,8 +712,55 @@ func _cell(text: String, x: float, width: float, align: int) -> Label:
 
 # The one button. Which call it makes depends only on where the aircraft is in
 # its trip, so the player never has to know the difference.
+#
+# THE ROW LEAVES THE QUEUE ON THE TAP, not when its bar lands. Two seconds is
+# long enough to keep tapping through, so a row that held its place would be the
+# one under your finger for the next press - and with the fleet at sixty, a
+# table that reordered itself only once each bar finished meant re-reading it
+# after every press to find where the aircraft you had just dealt with had gone.
 func _on_action(aircraft_id: int) -> void:
-	Fleet.advance(aircraft_id)
+	if _swoops.has(aircraft_id):
+		return
+	_tap_seq += 1
+	_tap_order[aircraft_id] = _tap_seq
+	_swoops[aircraft_id] = 0.0
+	_refresh()
+
+
+# Advance every running swoop, and fire the ones that finish. Deliberately not
+# blocking: like the pads, you can start one on every row and let them all run.
+func _swoop_fraction(aircraft_id: int) -> float:
+	return clampf(float(_swoops.get(aircraft_id, 0.0)) / SWOOP_SECONDS, 0.0, 1.0)
+
+
+func _tick_swoops(delta: float) -> void:
+	if _swoops.is_empty():
+		return
+	var done: Array = []
+	for id in _swoops:
+		_swoops[id] = float(_swoops[id]) + delta
+		# THE BAR HAS TO BE PUSHED. show_status paints a fill and stops - it is
+		# the static display the pads use for a countdown, not the animating
+		# one - so without this the bubble appeared at zero, sat there for two
+		# seconds and vanished. On screen that is a button disappearing and
+		# nothing happening.
+		var node = _swoop_nodes.get(id)
+		if is_instance_valid(node):
+			node.size.x = SWOOP_BAR_SIZE.x * _swoop_fraction(id)
+		if float(_swoops[id]) >= SWOOP_SECONDS:
+			done.append(id)
+	for id in done:
+		_swoops.erase(id)
+		# ONE PRESS IS THE WHOLE TURNAROUND. advance() takes a single step, so
+		# a landed aircraft needed Collect, then Return, then Refuel - three
+		# presses and three two-second bars to send one aircraft out again,
+		# times the length of the list. Depart All already runs each aircraft
+		# as far as it will go in one press; this is that, for one row.
+		var steps := 0
+		while steps < Fleet.MAX_ADVANCE_STEPS and Fleet.advance(int(id)):
+			steps += 1
+	if not done.is_empty():
+		_refresh()
 
 
 func _on_run_all_pressed() -> void:

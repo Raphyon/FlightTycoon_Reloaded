@@ -12,18 +12,30 @@ const CLOUD_SIZE := Vector2(17, 12)
 const CLOUD_GAP := 1.0
 const CLOUD_Y := 38.0
 
-# force / seats / fuel, in that order, in one row under the name - exactly the
-# three the reference's late-game shop page shows. Fare is deliberately not
-# among them, even though most aircraft now carry their own: it's a number you
-# weigh against a route, not against another aircraft on the shelf.
+# A 2x2 under the name - grade and PAYOUT on top, fuel and XP beneath. That is
+# the reference card's own layout, and photographs of it settled a question we
+# had answered wrong: the figure beside its money icon is what a leg PAYS, not
+# a fare and not a seat count.
+#
+# Seats came off the card with it. A cabin size is an input to the payout and
+# the payout is now shown directly, so printing both was printing the same
+# fact twice - and the two numbers a player actually chooses between, money and
+# XP, were the two that were missing.
 const FORCE_ICON := preload("res://assets/hud/stat_force@2x.png")
-const SEAT_ICON := preload("res://assets/hud/stat_seat@2x.png")
 const FUEL_ICON := preload("res://assets/bubbles/drum_icon@2x.png")
-const STAT_Y := 154.0
-const STAT_HEIGHT := 18.0
-const STAT_ICON_W := 13.0
+const XP_ICON := preload("res://assets/hud/icon_medium_xp@2x.png")
+const STAT_Y := 152.0
+const STAT_ROW_GAP := 17.0
+const STAT_HEIGHT := 16.0
+# 13px ICONS IN A UI SCALED WELL ABOVE THAT, and every cell packed to its own
+# left edge - so three equal-width columns held three ragged left-aligned
+# groups and the row read as misaligned rather than as a grid. The icon is
+# sized to the row now, and each cell centres its own icon-and-number so the
+# three sit under one another whatever the numbers say.
+const STAT_ICON_W := 18.0
 const STAT_FONT := 11
 
+const MONEY_ICON := preload("res://assets/hud/icon_medium_money1@2x.png")
 const COIN_ICON := preload("res://assets/hud/icon_medium_coin@2x.png")
 
 var _entry: Dictionary
@@ -103,34 +115,89 @@ func _add_clouds(range_units: int) -> void:
 
 func _add_stats(entry: Dictionary) -> void:
 	var key: String = entry["key"]
-	var cells := [
-		[FORCE_ICON, str(ShopCatalog.stat(key, "force"))],
-		[SEAT_ICON, str(ShopCatalog.stat(key, "seats"))],
-		[FUEL_ICON, str(ShopCatalog.stat(key, "fuel"))],
+	# SEATS x TICKET, and NOT multiplied by the cloud rating.
+	#
+	# It was multiplied, on the reasoning that the clouds are drawn right above
+	# so the card may as well show what the aircraft actually earns on the route
+	# it was built for. That is defensible and it is not what the reference
+	# does: its B747 card reads 5,000, and 5,000 is 500 seats at 10 a head. The
+	# clouds are a separate number on the card because the player is meant to
+	# multiply them in.
+	#
+	# Showing the product made every figure five times the one the live cards
+	# use, which is the unit every price and fare in ShopCatalog was set in.
+	var pay := int(round(float(Fleet.passengers(key)) * Fleet.ticket_price(key)))
+	var rows := [
+		# THE SAME NOTE THE PRICE USES. Three of the four stats carry an icon
+		# and this one carried a bare "$", which reads as a different kind of
+		# money from the price at the top of the same card. The note is what
+		# cash looks like everywhere else in the game - top bar, fuel shop,
+		# daily rewards - so it is what income looks like too.
+		[[FORCE_ICON, str(ShopCatalog.stat(key, "force"))], [MONEY_ICON, _compact(pay)]],
+		[[FUEL_ICON, str(ShopCatalog.stat(key, "fuel"))],
+			[XP_ICON, _compact(Fleet.xp_for_claim(key))]],
 	]
-	var row := _row(STAT_Y, STAT_HEIGHT)
+	for i in rows.size():
+		_stat_row(STAT_Y + float(i) * STAT_ROW_GAP, rows[i])
+
+
+# Four-and-five-figure payouts do not fit a 122px card at eleven point, and the
+# top of the ladder is six.
+func _compact(n: int) -> String:
+	if n < 10000:
+		return str(n)
+	if n < 1000000:
+		return "%.1fk" % (float(n) / 1000.0)
+	return "%.1fM" % (float(n) / 1000000.0)
+
+
+func _stat_row(y: float, cells: Array) -> void:
+	var row := _row(y, STAT_HEIGHT)
 	row.add_theme_constant_override("separation", 0)
 	for cell in cells:
 		# One expanding cell per stat, so the three split the card evenly
 		# whatever it ends up being.
 		var box := HBoxContainer.new()
 		box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		box.add_theme_constant_override("separation", 2)
+		box.alignment = BoxContainer.ALIGNMENT_CENTER
+		box.add_theme_constant_override("separation", 3)
 		box.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		row.add_child(box)
+
+		if cell[0] == null:
+			var only := Label.new()
+			only.add_theme_font_size_override("font_size", STAT_FONT)
+			only.text = cell[1]
+			only.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+			only.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+			only.add_theme_color_override("font_color", Color.WHITE)
+			only.add_theme_color_override("font_outline_color", Color(0.16, 0.09, 0.03, 1))
+			only.add_theme_constant_override("outline_size", 3)
+			only.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			box.add_child(only)
+			continue
 
 		var ic := TextureRect.new()
 		ic.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		ic.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 		ic.texture = cell[0]
-		ic.custom_minimum_size = Vector2(STAT_ICON_W, STAT_HEIGHT)
+		# A SQUARE SLOT, EQUAL FOR ALL THREE. The source icons run from 0.62
+		# aspect (stat_force, 16x26 portrait) to 1.55 (icon_medium_xp, 51x33
+		# landscape), so KEEP_ASPECT_CENTERED drew them anywhere from 10px to
+		# 18px wide inside a 18x16 box - three different footprints in what is
+		# meant to read as one row. Equal square slots give them a common
+		# anchor; making them look like a matched SET needs the art normalised,
+		# which no layout here can do.
+		ic.custom_minimum_size = Vector2(STAT_ICON_W, STAT_ICON_W)
 		ic.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		box.add_child(ic)
 
 		var l := Label.new()
 		l.add_theme_font_size_override("font_size", STAT_FONT)
 		l.text = cell[1]
-		l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		# Shrinks to its text instead of eating the cell, or centring the box
+		# would centre a full-width label and move nothing.
+		l.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 		l.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 		l.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 		l.add_theme_color_override("font_color", Color.WHITE)

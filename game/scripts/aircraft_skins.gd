@@ -21,10 +21,254 @@ const COST := 10
 
 # Only the models we actually have alternate body art for.
 const LIVERIES := {
-	# Derived from full-size renders in source-assets/aircraft/atr_72_*.png
-	# rather than from shop icons - cropped to their own alpha and scaled to the
-	# stock body's 114x88. Checked against it edge by edge: zero drift on all
-	# four sides, so switching paint does not shift the aircraft on its pad.
+	# EVERY ENTRY BELOW IS DRAWN FROM THE SAME SHEET AS ITS HULL. They used to
+	# be a generation apart: the hulls were replaced wholesale by the sheet art
+	# and these were left pointing at the old renders, so a painted C-17 was
+	# five schemes from an aircraft that no longer existed.
+	#
+	# Names come from the paint. Each is read off the most saturated tenth of
+	# its own pixels - the livery rather than the white fuselage under it -
+	# which is why they are colours and not airline names: nothing in the art
+	# says who these are meant to be.
+	"a300": [
+		{"key": "crimson", "name": "Crimson",
+			"body": "res://assets/aircraft/a300/body_crimson_2x.png"},
+		{"key": "emerald", "name": "Emerald",
+			"body": "res://assets/aircraft/a300/body_emerald_2x.png"},
+		{"key": "gold", "name": "Gold",
+			"body": "res://assets/aircraft/a300/body_gold_2x.png"},
+		{"key": "crimson2", "name": "Crimson II",
+			"body": "res://assets/aircraft/a300/body_crimson2_2x.png"},
+	],
+	"a319": [
+		{"key": "silver", "name": "Silver",
+			"body": "res://assets/aircraft/a319/body_silver_2x.png"},
+	],
+	"a340-300": [
+		{"key": "darkcrimson", "name": "Dark Crimson",
+			"body": "res://assets/aircraft/a340-300/body_darkcrimson_2x.png"},
+	],
+	"a400m": [
+		{"key": "atlas", "name": "Atlas",
+			"body": "res://assets/aircraft/a400m/body_atlas_2x.png"},
+	],
+	"a380-300": [
+		{"key": "darkcrimson", "name": "Dark Crimson",
+			"body": "res://assets/aircraft/a380-300/body_darkcrimson_2x.png"},
+		{"key": "darkgold", "name": "Dark Gold",
+			"body": "res://assets/aircraft/a380-300/body_darkgold_2x.png"},
+		{"key": "darkemerald", "name": "Dark Emerald",
+			"body": "res://assets/aircraft/a380-300/body_darkemerald_2x.png"},
+		{"key": "darkazure", "name": "Dark Azure",
+			"body": "res://assets/aircraft/a380-300/body_darkazure_2x.png"},
+	],
+	"a380-800": [
+		{"key": "amber", "name": "Amber",
+			"body": "res://assets/aircraft/a380-800/body_amber_2x.png"},
+		{"key": "amber2", "name": "Amber II",
+			"body": "res://assets/aircraft/a380-800/body_amber2_2x.png"},
+	],
+	"airship": [
+		{"key": "crimson", "name": "Crimson",
+			"body": "res://assets/aircraft/airship/body_crimson_2x.png"},
+		{"key": "teal", "name": "Teal",
+			"body": "res://assets/aircraft/airship/body_teal_2x.png"},
+	],
+	"b727": [
+		{"key": "gold", "name": "Gold",
+			"body": "res://assets/aircraft/b727/body_gold_2x.png"},
+		{"key": "crimson", "name": "Crimson",
+			"body": "res://assets/aircraft/b727/body_crimson_2x.png"},
+		{"key": "gold2", "name": "Gold II",
+			"body": "res://assets/aircraft/b727/body_gold2_2x.png"},
+		{"key": "azure", "name": "Azure",
+			"body": "res://assets/aircraft/b727/body_azure_2x.png"},
+	],
+	"b737": [
+		{"key": "crimson", "name": "Crimson",
+			"body": "res://assets/aircraft/b737/body_crimson_2x.png"},
+	],
+	"b747": [
+		{"key": "crimson", "name": "Crimson",
+			"body": "res://assets/aircraft/b747/body_crimson_2x.png"},
+		{"key": "darkazure", "name": "Dark Azure",
+			"body": "res://assets/aircraft/b747/body_darkazure_2x.png"},
+		{"key": "crimson2", "name": "Crimson II",
+			"body": "res://assets/aircraft/b747/body_crimson2_2x.png"},
+		{"key": "darkamber", "name": "Dark Amber",
+			"body": "res://assets/aircraft/b747/body_darkamber_2x.png"},
+	],
+	"b777-300er": [
+		{"key": "crimson", "name": "Crimson",
+			"body": "res://assets/aircraft/b777-300er/body_crimson_2x.png"},
+	],
+	"b787": [
+		{"key": "emerald", "name": "Emerald",
+			"body": "res://assets/aircraft/b787/body_emerald_2x.png"},
+		{"key": "crimson", "name": "Crimson",
+			"body": "res://assets/aircraft/b787/body_crimson_2x.png"},
+		{"key": "silver", "name": "Silver",
+			"body": "res://assets/aircraft/b787/body_silver_2x.png"},
+		{"key": "darkazure", "name": "Dark Azure",
+			"body": "res://assets/aircraft/b787/body_darkazure_2x.png"},
+	],
+	"banshee": [
+		{"key": "darkazure", "name": "Dark Azure",
+			"body": "res://assets/aircraft/banshee/body_darkazure_2x.png"},
+		{"key": "gold", "name": "Gold",
+			"body": "res://assets/aircraft/banshee/body_gold_2x.png"},
+		{"key": "azure", "name": "Azure",
+			"body": "res://assets/aircraft/banshee/body_azure_2x.png"},
+		{"key": "darkviolet", "name": "Dark Violet",
+			"body": "res://assets/aircraft/banshee/body_darkviolet_2x.png"},
+	],
+	"blackh": [
+		{"key": "darkgold", "name": "Dark Gold",
+			"body": "res://assets/aircraft/blackh/body_darkgold_2x.png"},
+	],
+	"c17": [
+		{"key": "darkazure", "name": "Dark Azure",
+			"body": "res://assets/aircraft/c17/body_darkazure_2x.png"},
+		{"key": "silver", "name": "Silver",
+			"body": "res://assets/aircraft/c17/body_silver_2x.png"},
+		{"key": "azure", "name": "Azure",
+			"body": "res://assets/aircraft/c17/body_azure_2x.png"},
+	],
+	"c800": [
+		{"key": "azure", "name": "Azure",
+			"body": "res://assets/aircraft/c800/body_azure_2x.png"},
+		{"key": "darkemerald", "name": "Dark Emerald",
+			"body": "res://assets/aircraft/c800/body_darkemerald_2x.png"},
+		{"key": "darkteal", "name": "Dark Teal",
+			"body": "res://assets/aircraft/c800/body_darkteal_2x.png"},
+		{"key": "amber", "name": "Amber",
+			"body": "res://assets/aircraft/c800/body_amber_2x.png"},
+	],
+	"camel": [
+		{"key": "crimson", "name": "Crimson",
+			"body": "res://assets/aircraft/camel/body_crimson_2x.png"},
+	],
+	"concorde": [
+		{"key": "darkcrimson", "name": "Dark Crimson",
+			"body": "res://assets/aircraft/concorde/body_darkcrimson_2x.png"},
+		{"key": "darkazure", "name": "Dark Azure",
+			"body": "res://assets/aircraft/concorde/body_darkazure_2x.png"},
+		{"key": "gold", "name": "Gold",
+			"body": "res://assets/aircraft/concorde/body_gold_2x.png"},
+		{"key": "darkazure2", "name": "Dark Azure II",
+			"body": "res://assets/aircraft/concorde/body_darkazure2_2x.png"},
+	],
+	"crj700": [
+		{"key": "darkazure", "name": "Dark Azure",
+			"body": "res://assets/aircraft/crj700/body_darkazure_2x.png"},
+		{"key": "crimson", "name": "Crimson",
+			"body": "res://assets/aircraft/crj700/body_crimson_2x.png"},
+		{"key": "amber", "name": "Amber",
+			"body": "res://assets/aircraft/crj700/body_amber_2x.png"},
+		{"key": "azure", "name": "Azure",
+			"body": "res://assets/aircraft/crj700/body_azure_2x.png"},
+	],
+	"dc10": [
+		{"key": "darkazure", "name": "Dark Azure",
+			"body": "res://assets/aircraft/dc10/body_darkazure_2x.png"},
+	],
+	"dc3": [
+		{"key": "magenta", "name": "Magenta",
+			"body": "res://assets/aircraft/dc3/body_magenta_2x.png"},
+		{"key": "crimson", "name": "Crimson",
+			"body": "res://assets/aircraft/dc3/body_crimson_2x.png"},
+		{"key": "darkgold", "name": "Dark Gold",
+			"body": "res://assets/aircraft/dc3/body_darkgold_2x.png"},
+		{"key": "darkazure", "name": "Dark Azure",
+			"body": "res://assets/aircraft/dc3/body_darkazure_2x.png"},
+	],
+	"dc4": [
+		{"key": "amber", "name": "Amber",
+			"body": "res://assets/aircraft/dc4/body_amber_2x.png"},
+	],
+	"dc6": [
+		{"key": "azure", "name": "Azure",
+			"body": "res://assets/aircraft/dc6/body_azure_2x.png"},
+		{"key": "darkcrimson", "name": "Dark Crimson",
+			"body": "res://assets/aircraft/dc6/body_darkcrimson_2x.png"},
+		{"key": "amber", "name": "Amber",
+			"body": "res://assets/aircraft/dc6/body_amber_2x.png"},
+		{"key": "teal", "name": "Teal",
+			"body": "res://assets/aircraft/dc6/body_teal_2x.png"},
+	],
+	"dhc8": [
+		{"key": "magenta", "name": "Magenta",
+			"body": "res://assets/aircraft/dhc8/body_magenta_2x.png"},
+		{"key": "darkazure", "name": "Dark Azure",
+			"body": "res://assets/aircraft/dhc8/body_darkazure_2x.png"},
+		{"key": "emerald", "name": "Emerald",
+			"body": "res://assets/aircraft/dhc8/body_emerald_2x.png"},
+		{"key": "amber", "name": "Amber",
+			"body": "res://assets/aircraft/dhc8/body_amber_2x.png"},
+	],
+	"emb120": [
+		{"key": "darkazure", "name": "Dark Azure",
+			"body": "res://assets/aircraft/emb120/body_darkazure_2x.png"},
+		{"key": "darkgold", "name": "Dark Gold",
+			"body": "res://assets/aircraft/emb120/body_darkgold_2x.png"},
+		{"key": "gold", "name": "Gold",
+			"body": "res://assets/aircraft/emb120/body_gold_2x.png"},
+		{"key": "azure", "name": "Azure",
+			"body": "res://assets/aircraft/emb120/body_azure_2x.png"},
+	],
+	"erj145": [
+		{"key": "silver", "name": "Silver",
+			"body": "res://assets/aircraft/erj145/body_silver_2x.png"},
+	],
+	"erj170": [
+		{"key": "silver", "name": "Silver",
+			"body": "res://assets/aircraft/erj170/body_silver_2x.png"},
+	],
+	"f15": [
+		{"key": "silver", "name": "Silver",
+			"body": "res://assets/aircraft/f15/body_silver_2x.png"},
+		{"key": "silver2", "name": "Silver II",
+			"body": "res://assets/aircraft/f15/body_silver2_2x.png"},
+		{"key": "emerald", "name": "Emerald",
+			"body": "res://assets/aircraft/f15/body_emerald_2x.png"},
+		{"key": "crimson", "name": "Crimson",
+			"body": "res://assets/aircraft/f15/body_crimson_2x.png"},
+	],
+	"md11": [
+		{"key": "darkcrimson", "name": "Dark Crimson",
+			"body": "res://assets/aircraft/md11/body_darkcrimson_2x.png"},
+	],
+	"ncc1701": [
+		{"key": "darkazure", "name": "Dark Azure",
+			"body": "res://assets/aircraft/ncc1701/body_darkazure_2x.png"},
+		{"key": "silver", "name": "Silver",
+			"body": "res://assets/aircraft/ncc1701/body_silver_2x.png"},
+		{"key": "gold", "name": "Gold",
+			"body": "res://assets/aircraft/ncc1701/body_gold_2x.png"},
+		{"key": "azure", "name": "Azure",
+			"body": "res://assets/aircraft/ncc1701/body_azure_2x.png"},
+	],
+	"p51": [
+		{"key": "crimson", "name": "Crimson",
+			"body": "res://assets/aircraft/p51/body_crimson_2x.png"},
+		{"key": "silver", "name": "Silver",
+			"body": "res://assets/aircraft/p51/body_silver_2x.png"},
+	],
+	"skylink": [
+		{"key": "aurora", "name": "Aurora",
+			"body": "res://assets/aircraft/skylink/body_aurora_2x.png"},
+	],
+	"tu104": [
+		{"key": "darkamber", "name": "Dark Amber",
+			"body": "res://assets/aircraft/tu104/body_darkamber_2x.png"},
+		{"key": "darkemerald", "name": "Dark Emerald",
+			"body": "res://assets/aircraft/tu104/body_darkemerald_2x.png"},
+		{"key": "darkazure", "name": "Dark Azure",
+			"body": "res://assets/aircraft/tu104/body_darkazure_2x.png"},
+		{"key": "darkazure2", "name": "Dark Azure II",
+			"body": "res://assets/aircraft/tu104/body_darkazure2_2x.png"},
+	],
+	# Still on the older render set - their hulls were not replaced.
 	"h4": [
 		{"key": "gold", "name": "Goldrush",
 			"body": "res://assets/aircraft/h4/body_gold_2x.png"},
@@ -33,8 +277,6 @@ const LIVERIES := {
 		{"key": "forest", "name": "Forest",
 			"body": "res://assets/aircraft/h4/body_forest_2x.png"},
 	],
-	# Four on one sheet, cut by connected alpha like every other livery here and
-	# pinned to the stock body's 143x110.
 	"dreamlifter": [
 		{"key": "retro", "name": "Retro Cargo",
 			"body": "res://assets/aircraft/dreamlifter/body_retro_2x.png"},
@@ -44,26 +286,6 @@ const LIVERIES := {
 			"body": "res://assets/aircraft/dreamlifter/body_digital_2x.png"},
 		{"key": "lcf", "name": "Boeing LCF",
 			"body": "res://assets/aircraft/dreamlifter/body_lcf_2x.png"},
-	],
-	"c17": [
-		{"key": "house", "name": "House Blue",
-			"body": "res://assets/aircraft/c17/body_house_2x.png"},
-		{"key": "military", "name": "Military",
-			"body": "res://assets/aircraft/c17/body_military_2x.png"},
-		{"key": "globecargo", "name": "GlobeCargo",
-			"body": "res://assets/aircraft/c17/body_globecargo_2x.png"},
-		{"key": "atlas", "name": "Atlas Air",
-			"body": "res://assets/aircraft/c17/body_atlas_2x.png"},
-		{"key": "express", "name": "Global Express",
-			"body": "res://assets/aircraft/c17/body_express_2x.png"},
-	],
-	"b777-300er": [
-		{"key": "delta", "name": "Delta",
-			"body": "res://assets/aircraft/b777-300er/body_delta_2x.png"},
-		{"key": "emirates", "name": "Emirates",
-			"body": "res://assets/aircraft/b777-300er/body_emirates_2x.png"},
-		{"key": "ana", "name": "ANA",
-			"body": "res://assets/aircraft/b777-300er/body_ana_2x.png"},
 	],
 	"a350-900": [
 		{"key": "global", "name": "Global Alliance",
@@ -77,12 +299,6 @@ const LIVERIES := {
 		{"key": "sas", "name": "SAS",
 			"body": "res://assets/aircraft/a350-900/body_sas_2x.png"},
 	],
-	"a340-300": [
-		{"key": "celestial", "name": "Celestial",
-			"body": "res://assets/aircraft/a340-300/body_celestial_2x.png"},
-		{"key": "global", "name": "Global",
-			"body": "res://assets/aircraft/a340-300/body_global_2x.png"},
-	],
 	"il62": [
 		{"key": "zipped", "name": "Zipped",
 			"body": "res://assets/aircraft/il62/body_zipped_2x.png"},
@@ -95,74 +311,14 @@ const LIVERIES := {
 		{"key": "pinkdreams", "name": "Pink Dreams",
 			"body": "res://assets/aircraft/atr72/body_pinkdreams_2x.png"},
 	],
-	"blackh": [
-		{"key": "desert", "name": "Desert",
-			"body": "res://assets/aircraft/blackh/body_desert_2x.png"},
-	],
-	"airship": [
-		{"key": "green", "name": "Green",
-			"body": "res://assets/aircraft/airship/body_green_2x.png"},
-		{"key": "purple", "name": "Purple",
-			"body": "res://assets/aircraft/airship/body_purple_2x.png"},
-	],
 	"ufo": [
 		{"key": "stone", "name": "Stone",
 			"body": "res://assets/aircraft/ufo/body_stone_2x.png",
 			"body_spin": "res://assets/aircraft/ufo/body_stone_spin_2x.png"},
 	],
-	# From the hand-made fleet (tools/newfleet_derive.py). Until these landed
-	# only three models had alternate art and the earliest was level 35, so the
-	# whole feature was unreachable for most of a playthrough. These start at
-	# level 2 and run to the top of the ladder.
-	#
-	# The paper plane is A rather than S because a paper plane has no business
-	# being the fastest thing in the game, not because of any ceiling - S+ means
-	# an S-class model can be painted too, and the UFO's Stone livery below is
-	# the one that proves it.
 	"paperplane": [
 		{"key": "dollar", "name": "Dollar",
 			"body": "res://assets/aircraft/paperplane/body_dollar_2x.png"},
-	],
-	"crj700": [
-		{"key": "sas", "name": "SAS",
-			"body": "res://assets/aircraft/crj700/body_sas_2x.png"},
-	],
-	"dc3": [
-		{"key": "duggy", "name": "Duggy",
-			"body": "res://assets/aircraft/dc3/body_duggy_2x.png"},
-	],
-	"tu104": [
-		{"key": "beard", "name": "Beard",
-			"body": "res://assets/aircraft/tu104/body_beard_2x.png"},
-	],
-	"b727": [
-		{"key": "welcome", "name": "Welcome",
-			"body": "res://assets/aircraft/b727/body_welcome_2x.png"},
-	],
-	# The default is the zebra scheme; the firebird is the coin unlock.
-	"concorde": [
-		{"key": "firebird", "name": "Firebird",
-			"body": "res://assets/aircraft/concorde/body_firebird_2x.png"},
-	],
-	"b787": [
-		{"key": "klm", "name": "KLM",
-			"body": "res://assets/aircraft/b787/body_klm_2x.png"},
-		{"key": "sharky", "name": "Sharky",
-			"body": "res://assets/aircraft/b787/body_sharky_2x.png"},
-		{"key": "flash", "name": "Flash",
-			"body": "res://assets/aircraft/b787/body_flash_2x.png"},
-	],
-	"b747": [
-		{"key": "yellow", "name": "Yellow",
-			"body": "res://assets/aircraft/b747/body_yellow_2x.png"},
-	],
-	# The A380 arrived as a second airframe and turned out to be the same one
-	# in different paint, so it's a livery of the model we already had rather
-	# than a new entry in the shop. The default keeps the airline scheme; this
-	# is the blue-and-magenta one.
-	"a380-300": [
-		{"key": "midnight", "name": "Midnight",
-			"body": "res://assets/aircraft/a380-300/body_midnight_2x.png"},
 	],
 }
 
