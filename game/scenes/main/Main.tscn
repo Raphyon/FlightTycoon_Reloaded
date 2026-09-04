@@ -365,6 +365,10 @@ text = "Home"
 horizontal_alignment = 1
 vertical_alignment = 1
 
+[node name="QuestsButton" type="Control" parent="UI/Toolbar/Buttons" unique_id=1148244832]
+layout_mode = 2
+script = ExtResource("79")
+
 [node name="ShopButton" type="TextureButton" parent="UI/Toolbar/Buttons" unique_id=798617765]
 custom_minimum_size = Vector2(109, 102)
 layout_mode = 2
@@ -444,14 +448,6 @@ theme_override_font_sizes/font_size = 14
 text = "Routes"
 horizontal_alignment = 1
 vertical_alignment = 1
-
-[node name="QuestsButton" type="Control" parent="UI" unique_id=1148244832]
-layout_mode = 3
-anchors_preset = 4
-anchor_top = 0.5
-anchor_bottom = 0.5
-grow_vertical = 2
-script = ExtResource("79")
 
 [node name="QuestsPanel" type="Control" parent="UI" unique_id=472812147]
 layout_mode = 3

@@ -57,7 +57,13 @@ const DIALOG := [
 # parked its button on top of the shop and the routes list. Hidden while a base
 # is open and restored to whatever they wanted when it closes - their own logic
 # still decides that, this only suppresses it.
-const CHROME := ["BoostButton", "QuestsButton"]
+#
+# THE GIFT IS NOT ON THIS LIST ANY MORE. It moved onto the toolbar shelf, where
+# it is a sibling of the Shop and Hangar buttons - so the full-screen panels
+# cover it exactly as they cover those, and the small ones leave it standing
+# exactly as they do. Forcing it down here as well would have made it the one
+# button on the shelf that vanishes under a pad menu.
+const CHROME := ["BoostButton"]
 
 var _ui: Node
 # Set while we are the ones changing visibility, so hiding six panels does not
