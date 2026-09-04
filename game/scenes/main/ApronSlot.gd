@@ -106,6 +106,20 @@ const UNDER_CONSTRUCTION_WILD_TEXTURE := preload("res://assets/buildings/constru
 # is (0.74 - 0.5) x 110. Applied only to the wild texture; the paved one is
 # already where it belongs.
 const UNDER_CONSTRUCTION_WILD_LIFT := 26.0
+# WHERE THE TAPED DIAMOND ACTUALLY IS INSIDE ITS BITMAP, measured off the file
+# rather than assumed. apron9 is 207x113, but the ground diamond is not what
+# fills it: the silhouette's top vertex is a tape POST, so the diamond's waist
+# - its widest row, 206px across - sits at y=60 while the bitmap's own centre
+# is 56.5, and the lower vertex is at y=111. Ground diamond: centre (103.5,
+# 60), half-extents (103, 51), aspect 2.02 against the tile's 2.00.
+#
+# Fitting the BITMAP to the tile therefore never fits the DIAMOND to it. At
+# 220x110 the ground's top vertex landed 8.8px inside the tile - the asphalt
+# edge showing above the tape - while its base ran past the bottom. Scaling
+# the diamond's half-extents onto the tile's instead gives 1.068 x 1.078, so
+# the bitmap draws at 221x122 offset to put the waist on the tile's centre.
+const PAVED_ART_SIZE := Vector2(221.1, 121.9)
+const PAVED_ART_POSITION := Vector2(-110.5, -64.7)
 # One-piece callouts: the icon is part of the art, so there is nothing to
 # centre. These were a shared bubble with an icon laid on top, positioned by
 # "(bubble width - icon width) * 0.5 - 3.0, 6.0" - a fudge per axis that never
@@ -397,23 +411,26 @@ func _draw() -> void:
 		var on_paved_zone := apron.area_name in PAVED_ZONES
 		_under_construction.texture = (UNDER_CONSTRUCTION_TEXTURE if on_paved_zone
 			else UNDER_CONSTRUCTION_WILD_TEXTURE)
-		# Set with the texture, not once at build time: the two do not share a
-		# ground line or a stretch, and which one a slot draws depends on its
-		# zone.
-		_under_construction.position.y = (-SIZE.y * 0.5 if on_paved_zone
-			else -SIZE.y * 0.5 - UNDER_CONSTRUCTION_WILD_LIFT)
-		# THE PAVED ART COVERS A TILE, SO IT TAKES THE TILE'S SHAPE. apron9 is
-		# 207x113 against a 220x110 slot, and KEEP_ASPECT fits by the tighter
-		# axis - height - so it drew 202x110 and left 9px of asphalt showing
-		# down each side, which is the apron edge visible past the tape. Scaled
-		# outright it lands on 220x110 exactly. The 1.06x width it gains is a
-		# diamond getting slightly wider, not machinery getting fat.
+		# Rect and stretch both follow the texture, because the two agree on
+		# nothing except which node draws them.
 		#
-		# The wild art keeps its aspect: it is a scene standing on the ground
-		# rather than a covering for it, and stretching an excavator to a 2:1
-		# footprint would look like exactly what it is.
-		_under_construction.stretch_mode = (TextureRect.STRETCH_SCALE
-			if on_paved_zone else TextureRect.STRETCH_KEEP_ASPECT_CENTERED)
+		# THE PAVED ART IS A COVERING FOR THE TILE, so it is placed by its own
+		# diamond rather than by its bitmap - see PAVED_ART_SIZE. Stretched
+		# outright, since a diamond drawn for this footprint arriving at this
+		# footprint is not a distortion.
+		#
+		# THE WILD ART STANDS ON THE TILE, so it keeps its aspect and its
+		# ground-line lift. Stretching an excavator to a 2:1 footprint would
+		# look like exactly what it is.
+		if on_paved_zone:
+			_under_construction.stretch_mode = TextureRect.STRETCH_SCALE
+			_under_construction.size = PAVED_ART_SIZE
+			_under_construction.position = PAVED_ART_POSITION
+		else:
+			_under_construction.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+			_under_construction.size = SIZE
+			_under_construction.position = Vector2(-SIZE.x * 0.5,
+				-SIZE.y * 0.5 - UNDER_CONSTRUCTION_WILD_LIFT)
 		_under_construction.visible = true
 		# Nothing in a locked zone can be built until the zone itself is
 		# bought in the expansion shop, so it gets no "build me" prompt and
