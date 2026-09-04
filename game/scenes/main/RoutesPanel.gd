@@ -11,6 +11,12 @@ extends PanelContainer
 const ROW_BOARD := preload("res://assets/board/board_aircraft_list@2x.png")
 # The wide variant, for the one button whose label doesn't fit the short one.
 const WIDE_ACTION_TEXTURE := preload("res://assets/buttons/button_orange4@2x.png")
+# HOW A PRESS LOOKS WHILE THE FINGER IS STILL DOWN. Darkened art rather than a
+# pressed texture, because the wide button has none: every pill in the game
+# flashes to button_grey3, and that is 136x62 against button_orange4's 192x62,
+# so borrowing it would change the button's SHAPE on the press. Dimming keeps
+# the silhouette and reads as the same button, pushed in.
+const PRESS_TINT := Color(0.72, 0.72, 0.72, 1.0)
 const COUNT_BOARD_TEXTURE := preload("res://assets/board/board_airline4@2x.png")
 
 const COUNT_BOARD_SIZE := Vector2(410, 62)
@@ -379,6 +385,7 @@ func _build_run_all_group() -> Control:
 	# placed at the button's own size rather than anchored to it.
 	_run_all.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	_run_all.pressed.connect(_on_run_all_pressed)
+	_show_press(_run_all)
 	row.add_child(_run_all)
 
 	_run_all_label = Label.new()
@@ -663,6 +670,7 @@ func _build_row(a: FleetAircraft) -> Control:
 	action.modulate = Color.WHITE if has_action else Color(0.55, 0.55, 0.55, 1.0)
 	if has_action:
 		action.pressed.connect(_on_action.bind(a.id))
+		_show_press(action)
 	var action_label := Label.new()
 	action_label.text = ACTIONS.get(a.state, "In flight")
 	action_label.size = ACTION_SIZE
@@ -679,6 +687,22 @@ func _build_row(a: FleetAircraft) -> Control:
 	action.add_child(action_label)
 	row.add_child(action)
 	return row
+
+
+# THE PRESS ITSELF, WHICH NEITHER WIDE BUTTON SHOWED. Both only ever answered
+# on RELEASE - the row swaps its button for the swoop bar, Depart all prints its
+# result line - so everything before that looked identical whether the press had
+# landed or not: a finger held on the button, a press that slid off it, and a
+# tap the button never received all drew the same. On a list you tap down twenty
+# times that is the difference between trusting the button and pressing it again.
+#
+# self_modulate, not modulate: the caption is a CHILD of the button, so modulate
+# would dim the text along with the art, and the row already spends modulate on
+# the disabled grey. Nothing else in this panel touches self_modulate, so
+# restoring it to white cannot clobber a state something else set.
+func _show_press(button: TextureButton) -> void:
+	button.button_down.connect(func() -> void: button.self_modulate = PRESS_TINT)
+	button.button_up.connect(func() -> void: button.self_modulate = Color.WHITE)
 
 
 # expand_mode BEFORE the texture, and custom_minimum_size pinned: a TextureRect
