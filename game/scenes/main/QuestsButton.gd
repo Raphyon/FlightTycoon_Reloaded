@@ -1,12 +1,23 @@
 extends Control
 
-# The gift box on the left edge, where the reference game puts its DAILY REWARD.
+# The gift box, on the shelf with the rest of the toolbar.
+#
+# IT USED TO FLOAT. It sat a quarter of the way down the LEFT EDGE, over the
+# world - which is where the reference game puts it, but the reference game has
+# nothing else there. Here it landed on the foliage beside the terminal, touching
+# nothing and lined up with nothing, and read as a sprite that had come loose
+# rather than as a control. Every other thing you can press in the HUD is either
+# on the top bar or on the shelf; this was the only exception, and being the
+# exception was the whole problem.
+#
+# It is a peer of the Shop, Hangar, Friends and Routes buttons - the comment
+# below already said so about its SIZE - so it now sits where its peers sit,
+# first on the shelf, immediately left of Shop.
 #
 # TWO PIECES OF ART, and which one is showing is the whole message: the plain box
 # when there is nothing waiting, the badged one the moment there is. That is why
 # there is no longer a drawn plate, a border or a row of pips under it - the art
-# says it, and a tab on the edge of the screen has room for exactly one
-# statement.
+# says it, and one slot on the shelf has room for exactly one statement.
 #
 # Both are cropped to a SHARED box (tools note: min/max of the two bounding
 # boxes), because the badge on `new` overhangs to the left and cropping each to
@@ -22,41 +33,28 @@ const GIFT_NEW := preload("res://assets/buttons/daily_gift_new@2x.png")
 # The art itself stays at 127x132 and is drawn down to this, which is sharper
 # than authoring it at the drawn size.
 const TAB_SIZE := Vector2(72, 75)
-const EDGE_MARGIN := 12.0
-# How far down the left edge, as a fraction of screen height. A QUARTER, not
-# half: that is where the reference game puts its NEWS icon, with the daily
-# reward gift box directly beneath it. Proportional rather than a pixel offset
-# so it holds its place on a screen of any height.
-const EDGE_HEIGHT_FRACTION := 0.25
-# Nudged down from the quarter line, clear of the NEWS icon that sits there in
-# the reference. A pixel offset rather than a fraction, because it is a gap
-# between two specific things and not a share of the screen.
-const EDGE_DROP := 40.0
+
+# The row's own height, from the Buttons container: 109x102 per button. The cell
+# is the gift's width but the ROW's height, and the art sits at the bottom of it
+# - the neighbouring buttons are plates whose art runs to their full 102, so a
+# gift centred in the cell would hover above a shelf everything else rests on.
+const ROW_HEIGHT := 102.0
 
 var _icon: TextureRect
 var _button: TextureButton
 
 
 func _ready() -> void:
-	# Left edge, a quarter of the way down - where the reference game's NEWS
-	# icon sits. Clear of the player card in the top corner and of the toolbar
-	# along the bottom.
-	#
-	# ALL FOUR ANCHORS AND ALL FOUR OFFSETS, explicitly. set_anchors_preset
-	# followed by assigning `position` left the right/bottom offsets stale and
-	# put the tab at y=-46, off the top of the screen - the same trap the debug
-	# menu hit. There is no shorthand here that is worth the ambiguity.
+	# NO ANCHORS AND NO OFFSETS ANY MORE. The HBoxContainer on the shelf places
+	# this now, off custom_minimum_size, and anchors set on a container's child
+	# are overwritten every time it lays out - which is the trap the old edge
+	# placement documented from the other side.
 	Maps.map_changed.connect(func(_m = null) -> void: _refresh())
-	anchor_left = 0.0
-	anchor_right = 0.0
-	anchor_top = EDGE_HEIGHT_FRACTION
-	anchor_bottom = EDGE_HEIGHT_FRACTION
-	offset_left = EDGE_MARGIN
-	offset_right = EDGE_MARGIN + TAB_SIZE.x
-	offset_top = -TAB_SIZE.y * 0.5 + EDGE_DROP
-	offset_bottom = TAB_SIZE.y * 0.5 + EDGE_DROP
+	custom_minimum_size = Vector2(TAB_SIZE.x, ROW_HEIGHT)
+	var top := ROW_HEIGHT - TAB_SIZE.y
 
 	_icon = TextureRect.new()
+	_icon.position = Vector2(0.0, top)
 	_icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	# Minimum first, THEN the size - a TextureRect's own art is its minimum size
@@ -70,6 +68,7 @@ func _ready() -> void:
 	_button = TextureButton.new()
 	_button.ignore_texture_size = true
 	_button.stretch_mode = TextureButton.STRETCH_SCALE
+	_button.position = Vector2(0.0, top)
 	_button.size = TAB_SIZE
 	_button.pressed.connect(_open)
 	add_child(_button)
@@ -79,16 +78,16 @@ func _ready() -> void:
 	_refresh()
 
 
-# THIS SETS `visible` NOW, and that is not cosmetic. PanelManager hides floating
-# chrome while a panel is open and then calls _refresh to let it decide for
-# itself again - which worked for BoostButton, whose _refresh sets visible, and
-# silently did not for this one, which only swapped its icon. So at home the
-# gift vanished the first time any panel was opened and never came back, while
-# at a friend's airport nothing hid it and it stayed - which reads as the quests
-# having MOVED there.
+# NOT FLOATING CHROME ANY MORE, so PanelManager no longer forces it down while a
+# panel is open - it is covered by the full-screen panels exactly as the Shop and
+# Hangar buttons beside it are, and left standing by the small ones exactly as
+# they are. `visible` is still set here, and still is not cosmetic: it is the
+# visiting rule below, which nothing else applies to this node.
 #
-# Not shown while visiting, like the rest of the HUD: the daily tasks are your
-# airport's, and there is nothing to claim from somebody else's.
+# Not shown while visiting, like the rest of the shelf: the daily tasks are your
+# airport's, and there is nothing to claim from somebody else's. Shop, Hangar and
+# Friends drop out the same way in Toolbar._apply_map; Routes is the one that
+# stays.
 func _refresh(_a = null) -> void:
 	if not is_instance_valid(_icon):
 		return
@@ -97,6 +96,11 @@ func _refresh(_a = null) -> void:
 
 
 func _open() -> void:
-	var panel := get_node_or_null("../QuestsPanel")
+	# FOUND FROM THE SCENE ROOT, not by counting "../". This node moved three
+	# levels down when it joined the toolbar, and a relative path is precisely
+	# what breaks silently when that happens: "../QuestsPanel" used to resolve
+	# against UI and now resolves against the Buttons container, so it would
+	# return null and the gift would be a button that does nothing.
+	var panel: Node = owner.get_node_or_null("UI/QuestsPanel") if owner else null
 	if panel and panel.has_method("open"):
 		panel.open()
