@@ -398,9 +398,22 @@ func _draw() -> void:
 		_under_construction.texture = (UNDER_CONSTRUCTION_TEXTURE if on_paved_zone
 			else UNDER_CONSTRUCTION_WILD_TEXTURE)
 		# Set with the texture, not once at build time: the two do not share a
-		# ground line, and which one a slot draws depends on its zone.
+		# ground line or a stretch, and which one a slot draws depends on its
+		# zone.
 		_under_construction.position.y = (-SIZE.y * 0.5 if on_paved_zone
 			else -SIZE.y * 0.5 - UNDER_CONSTRUCTION_WILD_LIFT)
+		# THE PAVED ART COVERS A TILE, SO IT TAKES THE TILE'S SHAPE. apron9 is
+		# 207x113 against a 220x110 slot, and KEEP_ASPECT fits by the tighter
+		# axis - height - so it drew 202x110 and left 9px of asphalt showing
+		# down each side, which is the apron edge visible past the tape. Scaled
+		# outright it lands on 220x110 exactly. The 1.06x width it gains is a
+		# diamond getting slightly wider, not machinery getting fat.
+		#
+		# The wild art keeps its aspect: it is a scene standing on the ground
+		# rather than a covering for it, and stretching an excavator to a 2:1
+		# footprint would look like exactly what it is.
+		_under_construction.stretch_mode = (TextureRect.STRETCH_SCALE
+			if on_paved_zone else TextureRect.STRETCH_KEEP_ASPECT_CENTERED)
 		_under_construction.visible = true
 		# Nothing in a locked zone can be built until the zone itself is
 		# bought in the expansion shop, so it gets no "build me" prompt and
