@@ -16,8 +16,29 @@ extends Node2D
 # along the path, not just the road's overall start/end - a bent road can
 # face a different way partway through.
 const VEHICLE_SPEED := 78.0  # px/sec, steady driving speed (no accel/liftoff - that's just for departing planes)
-const MIN_GAP_SECONDS := 1.8  # per road - keeps consecutive spawns from stacking on each other
-const MAX_GAP_SECONDS := 4.5  # wider spread than the gap itself is short, so timing still feels random rather than metronomic
+# HEADWAYS ARE EXPONENTIAL, NOT UNIFORM, because real arrivals are Poisson and
+# a uniform draw is the one shape that cannot look like traffic. Picking evenly
+# from 1.8..4.5 meant no gap was ever under 1.8s and none was ever over 4.5s:
+# every road emitted a steady stream at a mean of 3.15s, which reads as a
+# conveyor of cars rather than as traffic. Widening that window would not have
+# helped - the distribution was the problem, not its bounds.
+#
+# A shifted exponential clusters on its own: vehicles arrive in twos and threes
+# and then the road is empty for a while, which is what a road looks like.
+# Against the old uniform draw, gaps under 3s fall from 45% to 21% and 14% of
+# gaps now run over 12s, where before none ever did.
+#
+# MIN is the floor a shift buys: it is the physical headway, close enough that
+# two cars never overlap, and everything above it is drawn.
+const MIN_GAP_SECONDS := 1.8
+# The average, and the volume dial - the only number to touch to make an
+# airport busier or quieter. 7.0 is about 520 vehicles an hour on a road
+# against the 1,143 the uniform draw was producing.
+const MEAN_GAP_SECONDS := 7.0
+# A lull has to end. Uncapped, the exponential's tail occasionally leaves a
+# road dead for a minute, which stops reading as quiet and starts reading as
+# broken. At 24 that is clipped in about 5% of draws.
+const MAX_GAP_SECONDS := 24.0
 const VEHICLE_DIR := "res://assets/vehicles/"
 
 const VEHICLES_BY_CATEGORY := {
@@ -74,7 +95,10 @@ func _reload_roads() -> void:
 			"points": PathLayout.points_to_vectors(road["points"]),
 		}
 		if not _next_spawn.has(road_name):
-			_next_spawn[road_name] = randf_range(0.0, MAX_GAP_SECONDS)
+			# Roads start out of phase with each other, not from a shared
+			# zero - otherwise every road on the map spawns its first vehicle
+			# in the same instant.
+			_next_spawn[road_name] = randf() * MEAN_GAP_SECONDS
 	for road_name in _next_spawn.keys().duplicate():
 		if not _roads.has(road_name):
 			_next_spawn.erase(road_name)
@@ -84,8 +108,17 @@ func _process(delta: float) -> void:
 	for road_name in _roads.keys():
 		_next_spawn[road_name] -= delta
 		if _next_spawn[road_name] <= 0.0:
-			_next_spawn[road_name] = randf_range(MIN_GAP_SECONDS, MAX_GAP_SECONDS)
+			_next_spawn[road_name] = _next_headway()
 			_spawn(_roads[road_name])
+
+
+# The gap until this road's next vehicle: MIN plus an exponential draw, capped.
+# -log(u) with u in (0, 1] is the standard inverse-transform for an exponential;
+# 1.0 - randf() keeps u off zero, which would be an infinite gap.
+func _next_headway() -> float:
+	var u := 1.0 - randf()
+	var spread := MEAN_GAP_SECONDS - MIN_GAP_SECONDS
+	return minf(MAX_GAP_SECONDS, MIN_GAP_SECONDS - log(u) * spread)
 
 
 func _spawn(road: Dictionary) -> void:
