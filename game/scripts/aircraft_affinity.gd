@@ -97,8 +97,12 @@ const LEVEL_BOOST_CARDS := {5: "speed", 10: "autoturn_60"}
 # a per-hour loss - real income paid for taps - and the capstone stopped being a
 # choice and started being a trap for whoever picked wrong.
 #
-# THESE DOSES ARE UNSWEPT. They are the illustrative figures FLEET.md did the
-# arithmetic with, not measured balance. Run the bot before quoting them.
+# THESE DOSES ARE MEASURED BUT NOT SETTLED. They stopped being the illustrative
+# figures the design was argued from once FLEET.md ran each of them - but
+# measured is not tuned, and FLEET.md says not to tune them yet: until the
+# trade-in gives cash somewhere to go, a bigger cabin bonus is only a bigger
+# number in a currency the game does not spend. Raise them when the sink
+# exists, not before.
 const CAPSTONE_CABIN := "cabin"
 const CAPSTONE_TURNAROUND := "turnaround"
 const CAPSTONE_REACH := "reach"
