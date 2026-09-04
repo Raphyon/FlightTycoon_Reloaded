@@ -33,7 +33,12 @@ const BOARD_TOP_MARGIN := 24.0
 # same act (look through a list of aircraft) on the same background. The grid
 # was already four wide but unbounded downwards, so a fleet of thirty models
 # ran off the bottom of the cabin and out of the panel entirely.
-const CARDS_PER_PAGE := 8
+# SIX, THREE WIDE AND TWO TALL, which is what the board has room for at full
+# size: 3 x 180 + 2 x 30 = 600 wide and 2 x 210 + 20 = 440 tall, against a
+# SafeArea of roughly 1072 x 562. It was eight across four columns - the same
+# two rows, so the same height, but 810 wide for no gain, and the page was
+# reserving space the roster rarely fills.
+const CARDS_PER_PAGE := 6
 # HangarTypeCard's own custom_minimum_size, needed here to reserve a full page
 # whatever the page actually holds - see _lock_grid_size.
 const CARD_SIZE := Vector2(180, 210)
@@ -133,12 +138,30 @@ func _lock_grid_size() -> void:
 		rows * CARD_SIZE.y + (rows - 1) * vs)
 
 
+# MEASURED A FRAME LATE, ON PURPOSE. Every caller reaches this either through
+# call_deferred after rebuilding the roster or straight off root.size_changed -
+# in both cases the containers above have been told they changed but have not
+# been laid out yet, so SafeArea still reports the rect it had BEFORE. Reading
+# it there is how the board came out at 0.57: natural was 543 tall against a
+# SafeArea still reporting its base-resolution 311, and the scale computed from
+# that pair was applied and then never revisited, because the next call
+# measured stale too. One process_frame is all it takes for the anchors to
+# resolve, and the numbers this reads are then the ones on screen.
 func _fit_content() -> void:
 	var vbox: Control = $Frame/SafeArea/Margin/VBox
 	var safe_area: Control = $Frame/SafeArea
 	if not is_instance_valid(vbox) or not is_instance_valid(safe_area):
 		return
-	vbox.scale = Vector2.ONE
+	await get_tree().process_frame
+	# Both can go away over that frame - the panel closes, the scene changes.
+	if not is_instance_valid(vbox) or not is_instance_valid(safe_area):
+		return
+	# NOT reset to ONE first. scale is a transform, so it feeds neither the
+	# VBox's own minimum size nor SafeArea's anchored rect, and resetting it
+	# before the guard below meant a measurement that came back unusable left
+	# the board at full size rather than at the last scale that worked. That is
+	# the other half of what you saw: full size on the first open, because the
+	# first measurement always lands before there is a rect to measure.
 	var natural := vbox.get_combined_minimum_size()
 	var available := safe_area.size
 	if natural.x <= 0 or natural.y <= 0 or available.x <= 0 or available.y <= 0:

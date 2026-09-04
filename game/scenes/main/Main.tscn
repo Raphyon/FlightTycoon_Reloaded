@@ -960,7 +960,7 @@ size_flags_horizontal = 4
 size_flags_vertical = 3
 theme_override_constants/h_separation = 30
 theme_override_constants/v_separation = 20
-columns = 4
+columns = 3
 
 [node name="PageControls" type="HBoxContainer" parent="UI/HangarPanel/Frame/SafeArea/Margin/VBox" unique_id=513765265]
 layout_mode = 2
