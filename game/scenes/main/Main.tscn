@@ -958,7 +958,7 @@ text = "Hangar"
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 3
-theme_override_constants/h_separation = 30
+theme_override_constants/h_separation = 240
 theme_override_constants/v_separation = 20
 columns = 3
 

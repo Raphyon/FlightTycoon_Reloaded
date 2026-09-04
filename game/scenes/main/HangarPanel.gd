@@ -166,7 +166,16 @@ func _fit_content() -> void:
 	var available := safe_area.size
 	if natural.x <= 0 or natural.y <= 0 or available.x <= 0 or available.y <= 0:
 		return
-	var s := minf(1.0, minf(available.x / natural.x, available.y / natural.y))
+	# IT MAY GROW, NOT ONLY SHRINK. This was clamped at 1.0, so a page that was
+	# SMALLER than the board it sits in stayed at its authored size and left the
+	# rest of the box empty - which is most of what "the hangar looks small"
+	# was. Filling works in both directions or it does not fill.
+	#
+	# The gain is modest and height-bound: two rows of 210 plus the title, the
+	# page controls and the separations come to 543 against SafeArea's 562, so
+	# this is worth about 3.5%. The width is where the room was, and that is
+	# what h_separation spends - see the grid in Main.tscn.
+	var s := minf(available.x / natural.x, available.y / natural.y)
 	vbox.scale = Vector2(s, s)
 
 
