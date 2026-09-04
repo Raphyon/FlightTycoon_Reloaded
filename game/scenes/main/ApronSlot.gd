@@ -94,6 +94,18 @@ const COLOR_LOCKED_FALLBACK := Color(0.4, 0.4, 0.4, 0.35)
 # a cone floating over it.
 const UNDER_CONSTRUCTION_TEXTURE := preload("res://assets/aprons/apron9@2x.png")
 const UNDER_CONSTRUCTION_WILD_TEXTURE := preload("res://assets/buildings/construction_site_forest_2x.png")
+# THE WILD ART STANDS ON ITS GROUND; THE PAVED ART IS THE GROUND. apron9 is a
+# taped-off diamond whose dirt fills the tile, so centring it in the slot is
+# right. The wild texture is a scene - a dirt patch low in the frame with an
+# excavator and a roller standing on top of it - and its ground plane sits at
+# about 0.74 of the sprite's height rather than the middle. Centred, that put
+# the dirt 26px below the diamond's centre and the machinery looked sunk into
+# the plot in front.
+#
+# 120x81 into a 220x110 slot is height-bound, so it draws 163x110 and the lift
+# is (0.74 - 0.5) x 110. Applied only to the wild texture; the paved one is
+# already where it belongs.
+const UNDER_CONSTRUCTION_WILD_LIFT := 26.0
 # One-piece callouts: the icon is part of the art, so there is nothing to
 # centre. These were a shared bubble with an icon laid on top, positioned by
 # "(bubble width - icon width) * 0.5 - 3.0, 6.0" - a fudge per axis that never
@@ -385,6 +397,10 @@ func _draw() -> void:
 		var on_paved_zone := apron.area_name in PAVED_ZONES
 		_under_construction.texture = (UNDER_CONSTRUCTION_TEXTURE if on_paved_zone
 			else UNDER_CONSTRUCTION_WILD_TEXTURE)
+		# Set with the texture, not once at build time: the two do not share a
+		# ground line, and which one a slot draws depends on its zone.
+		_under_construction.position.y = (-SIZE.y * 0.5 if on_paved_zone
+			else -SIZE.y * 0.5 - UNDER_CONSTRUCTION_WILD_LIFT)
 		_under_construction.visible = true
 		# Nothing in a locked zone can be built until the zone itself is
 		# bought in the expansion shop, so it gets no "build me" prompt and
