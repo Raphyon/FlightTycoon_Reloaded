@@ -25,20 +25,23 @@ const VEHICLE_SPEED := 78.0  # px/sec, steady driving speed (no accel/liftoff - 
 #
 # A shifted exponential clusters on its own: vehicles arrive in twos and threes
 # and then the road is empty for a while, which is what a road looks like.
-# Against the old uniform draw, gaps under 3s fall from 45% to 21% and 14% of
-# gaps now run over 12s, where before none ever did.
+# Against the old uniform draw, a quarter of gaps now land in the 10-20s band
+# and 11% run past 20s, where before nothing ever exceeded 4.5s.
 #
 # MIN is the floor a shift buys: it is the physical headway, close enough that
 # two cars never overlap, and everything above it is drawn.
 const MIN_GAP_SECONDS := 1.8
 # The average, and the volume dial - the only number to touch to make an
-# airport busier or quieter. 7.0 is about 520 vehicles an hour on a road
-# against the 1,143 the uniform draw was producing.
-const MEAN_GAP_SECONDS := 7.0
+# airport busier or quieter. 10.0 is about 371 vehicles an hour on a road
+# against the 1,143 the uniform draw was producing. It also sets the tail,
+# since an exponential's mean and its spread are the same number: at 10.0 the
+# median gap is 7.5s, 37% of gaps clear 10s and 11% clear 20s, so a road runs
+# visibly empty between clumps rather than merely thinning out.
+const MEAN_GAP_SECONDS := 10.0
 # A lull has to end. Uncapped, the exponential's tail occasionally leaves a
 # road dead for a minute, which stops reading as quiet and starts reading as
-# broken. At 24 that is clipped in about 5% of draws.
-const MAX_GAP_SECONDS := 24.0
+# broken. At 30 that is clipped in about 5% of draws.
+const MAX_GAP_SECONDS := 30.0
 const VEHICLE_DIR := "res://assets/vehicles/"
 
 const VEHICLES_BY_CATEGORY := {
