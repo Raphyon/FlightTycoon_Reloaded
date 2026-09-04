@@ -131,10 +131,20 @@ func _lock_grid_size() -> void:
 		return
 	var cols: int = maxi(1, _grid.columns)
 	var rows: int = ceili(float(CARDS_PER_PAGE) / float(cols))
-	var hs: int = _grid.get_theme_constant("h_separation")
 	var vs: int = _grid.get_theme_constant("v_separation")
-	_grid.custom_minimum_size = Vector2(
-		cols * CARD_SIZE.x + (cols - 1) * hs,
+	# HEIGHT ONLY, so a short page CENTRES. Reserving the width too pinned the
+	# grid at a full page - 3 columns and their separations - and a GridContainer
+	# packs from the left, so one card in a 3-wide reservation sat in the corner
+	# of a box it was nominally filling. size_flags_horizontal is already
+	# SHRINK_CENTER; it just had nothing to shrink into.
+	#
+	# The reserve was never about width anyway. It exists so the scale does not
+	# move between tabs, and the scale is bound by HEIGHT here (543 of the
+	# board's 673) - so the height half is load-bearing and the width half only
+	# ever stopped the cards being centred. natural.x now varies with the page,
+	# 180 for one card against 820 for three, and both leave s_x above s_y, so
+	# the board still measures the same whatever tab you are on.
+	_grid.custom_minimum_size = Vector2(0.0,
 		rows * CARD_SIZE.y + (rows - 1) * vs)
 
 
