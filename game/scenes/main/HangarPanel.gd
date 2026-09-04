@@ -186,6 +186,17 @@ func _fit_content() -> void:
 	# this is worth about 3.5%. The width is where the room was, and that is
 	# what h_separation spends - see the grid in Main.tscn.
 	var s := minf(available.x / natural.x, available.y / natural.y)
+	# SCALE ABOUT THE CENTRE, NOT THE CORNER. pivot_offset defaults to (0, 0),
+	# so every scale here was applied from the VBox's top-left: shrinking pulled
+	# the board into that corner and left the rest of the box empty - which is
+	# the "card in the corner" this panel kept showing - and growing pushed it
+	# off the opposite edge. The grid centres itself inside the VBox, but that
+	# is undone the moment the VBox is scaled away from one of its corners.
+	#
+	# Set every time rather than once, because size follows SafeArea and
+	# SafeArea follows the window. The rect is the whole board and is wider than
+	# the content, so the empty margins are what overhang, not the cards.
+	vbox.pivot_offset = vbox.size * 0.5
 	vbox.scale = Vector2(s, s)
 
 
