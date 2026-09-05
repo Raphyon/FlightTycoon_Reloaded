@@ -94,6 +94,25 @@ var _carry := 0.0
 # while the game is CLOSED - that is most of what a depot is for in a game you
 # put down. See _catch_up.
 var _last_tick := 0.0
+# DEPOT-ORIGIN FUEL STILL IN THE TANK, and the reason capacity means anything.
+# FuelStore holds one number and does not care where a barrel came from, so
+# without this the ceiling was tested against TOTAL stock - and the shop sells
+# 50,000 barrels in one press against a capacity of 20,000 at the rates where
+# fuel is meant to bite. One bulk purchase put stock above the ceiling and the
+# depot stopped producing for the rest of the run: measured, its share of fuel
+# used fell from 85.7% to 14.2% between base rates of 100 and 75, with peak
+# stock jumping ten-fold across the same step. The depot was not being
+# out-produced, it was being switched off by the shop.
+#
+# Counted down rather than tracked exactly: it is clamped to the tank on every
+# pass, so burning fuel frees the depot's own room again while BUYING fuel
+# never fills it. Capacity is the depot's ceiling, not the tank's.
+var _banked := 0
+# The tank as the depot last saw it, so a DROP can be told from a PURCHASE.
+# Clamping _banked to the tank is not enough on its own: with 2,000,000 bought
+# barrels sitting there the tank never falls below the ceiling, so _banked
+# stayed pinned at capacity and the depot still never produced again.
+var _seen := -1
 
 signal depot_changed
 
@@ -104,6 +123,13 @@ func _ready() -> void:
 	depot = clampi(int(data.get("depot", 0)), 0, depot_limit)
 	_carry = float(data.get("carry", 0.0))
 	_last_tick = float(data.get("last_tick", 0.0))
+	_banked = int(data.get("banked", 0))
+	_seen = FuelStore.amount
+	# EVERY fall in the tank frees the depot's own room, and every rise that is
+	# not the depot's does not. That asymmetry is the whole fix, and it has to
+	# see each change individually - netting them off over a tick would let a
+	# purchase in the same interval hide the burn it paid for.
+	FuelStore.fuel_changed.connect(_on_fuel_changed)
 	_catch_up()
 
 
@@ -195,10 +221,19 @@ func _process(delta: float) -> void:
 # clamped-and-carried: a full depot has stopped producing, and carrying the
 # overflow would let a night away arrive as a burst the ceiling was meant to
 # prevent.
+# Fuel leaving the tank comes out of the depot's own stock first, which is what
+# gives its ceiling back. Fuel ARRIVING is ignored unless the depot put it
+# there - a shop purchase must not fill a ceiling it does not draw from.
+func _on_fuel_changed(new_amount: int) -> void:
+	if _seen >= 0 and new_amount < _seen:
+		_banked = maxi(0, _banked - (_seen - new_amount))
+	_seen = new_amount
+
+
 func _produce(seconds: float) -> void:
 	if seconds <= 0.0:
 		return
-	var room := capacity() - FuelStore.amount
+	var room := capacity() - _banked
 	if room <= 0:
 		_carry = 0.0
 		return
@@ -207,11 +242,14 @@ func _produce(seconds: float) -> void:
 	if whole <= 0:
 		return
 	_carry -= float(whole)
-	FuelStore.amount = FuelStore.amount + mini(whole, room)
+	var added := mini(whole, room)
+	_banked += added
+	FuelStore.amount = FuelStore.amount + added
 
 
 func to_save() -> Dictionary:
-	return {"tankers": tankers, "depot": depot, "carry": _carry, "last_tick": _last_tick}
+	return {"tankers": tankers, "depot": depot, "carry": _carry,
+		"last_tick": _last_tick, "banked": _banked}
 
 
 func _load() -> Dictionary:
@@ -237,5 +275,7 @@ func reset() -> void:
 	tankers = 0
 	depot = 0
 	_carry = 0.0
+	_banked = 0
+	_seen = FuelStore.amount
 	_last_tick = GameClock.now()
 	depot_changed.emit()
