@@ -25,6 +25,31 @@ extends RefCounted
 const USER_DIR := "user://save"
 const LEGACY_DIR := "res://data"
 
+# WHAT THE SAVE FOLDER WAS CALLED BEFORE THE PROJECT WAS. Godot derives
+# user:// from config/name, so renaming the project from "ft-proto" to
+# "Flight Tycoon" pointed the game at an empty directory - every save, mine and
+# every tester's, still on disk with nothing reading it. The README argued for
+# years that the internal name was not worth a migration because it was seen
+# nowhere but that table; shipping a macOS build made that false, because the
+# name is the .app, the dock label and the title bar.
+#
+# So the rename happens and this is the cost of it: one more place to look.
+# The old directory is a SIBLING of the new one - both sit under app_userdata -
+# so it can be found from the current path rather than rebuilt per platform.
+const PRE_RENAME_DIR_NAME := "ft-proto"
+
+
+# The pre-rename save folder, or "" where the platform does not lay user data
+# out that way. Never written to - see write_path. A save found here is read
+# once and lands in the new folder the next time anything saves, which is the
+# same shape as the res://data fallback below it and needs no migration step
+# that has to run exactly once.
+static func pre_rename_dir() -> String:
+	var here := OS.get_user_data_dir()
+	if here == "":
+		return ""
+	return "%s/%s/save" % [here.get_base_dir(), PRE_RENAME_DIR_NAME]
+
 
 static func write_path(file_name: String) -> String:
 	DirAccess.make_dir_recursive_absolute(USER_DIR)
@@ -37,6 +62,11 @@ static func read_path(file_name: String) -> String:
 	var user := "%s/%s" % [USER_DIR, file_name]
 	if FileAccess.file_exists(user):
 		return user
+	var renamed := pre_rename_dir()
+	if renamed != "":
+		var before := "%s/%s" % [renamed, file_name]
+		if FileAccess.file_exists(before):
+			return before
 	var legacy := "%s/%s" % [LEGACY_DIR, file_name]
 	if FileAccess.file_exists(legacy):
 		return legacy

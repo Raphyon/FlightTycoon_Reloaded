@@ -14,7 +14,7 @@ compatibility/default_parent_skeleton_in_mesh_instance_3d=true
 
 [application]
 
-config/name="ft-proto"
+config/name="Flight Tycoon"
 run/main_scene="res://scenes/splash/Splash.tscn"
 config/features=PackedStringArray("4.7", "Forward Plus")
 
