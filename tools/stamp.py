@@ -34,10 +34,26 @@ def git(*args: str) -> str:
     ).stdout.strip()
 
 
+# ONLY WHAT GOES INTO THE BUILD COUNTS. The first version asked git whether the
+# whole tree was clean, which flagged every export preset's worth of loose art
+# in source-assets/ and every stray file at the repo root - none of which the
+# exporter ever sees. res:// is game/, so that is the only place a difference
+# can change what a player runs.
+#
+# Untracked files there DO count, unlike the usual reading of "dirty": anything
+# sitting under res:// is packed by export_filter="all_resources" whether git
+# knows about it or not.
+def _build_is_dirty() -> bool:
+    for line in git("status", "--porcelain", "--", "game").splitlines():
+        if line.strip():
+            return True
+    return False
+
+
 def main() -> int:
     try:
         short = git("rev-parse", "--short", "HEAD")
-        dirty = bool(git("status", "--porcelain"))
+        dirty = _build_is_dirty()
     except (subprocess.CalledProcessError, FileNotFoundError) as exc:
         print(f"stamp: no git here ({exc}); leaving the stamp alone", file=sys.stderr)
         return 1
