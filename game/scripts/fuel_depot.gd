@@ -95,6 +95,13 @@ const TANKER_COST_GROWTH := 2.2
 const DEPOT_BASE_COST := 18000
 const DEPOT_COST_GROWTH := 2.0
 
+# HOW OFTEN THE CLOCK REACHES DISK. _last_tick is what tells the next launch how
+# long the game was closed, so it is worthless in memory: it has to be on disk
+# when the process ends, and a process can end without warning. A minute is
+# cheap - one small file - and bounds the worst case to a minute of unbanked
+# production rather than a session of it.
+const TICK_SAVE_SECONDS := 60.0
+
 var tankers := 0
 var depot := 0
 
@@ -156,7 +163,31 @@ func _ready() -> void:
 	# see each change individually - netting them off over a tick would let a
 	# purchase in the same interval hide the burn it paid for.
 	FuelStore.fuel_changed.connect(_on_fuel_changed)
+	# NOT _catch_up() - SEE start_after_load. This autoload comes up eighth and
+	# SaveGame comes up last, so the tank still holds STARTING_AMOUNT here and
+	# anything produced against it would be overwritten the moment SaveGame
+	# restores the real figure.
+
+
+# CALLED BY SAVEGAME, ONCE THE TANK IS REAL. Offline production is the whole
+# point of the depot and it cannot be computed in _ready: this autoload is
+# eighth in project.godot and SaveGame is last, FuelStore._ready restores only
+# the price, and the amount arrives from player.json inside SaveGame._load.
+# Catching up any earlier read the tank as STARTING_AMOUNT, produced against
+# the wrong baseline, and then had the whole result overwritten a few
+# autoloads later - so the feature banked its elapsed time and delivered no
+# fuel at all. Persisting _last_tick in _ready made that permanent rather than
+# merely wrong, because the time was then spent on disk too.
+func start_after_load() -> void:
+	_seen = FuelStore.amount
 	_catch_up()
+	# WRITTEN ON THE FIRST RUN, NOT ONLY ON THE FIRST PURCHASE. _save used to be
+	# reached only from the two buy functions, so a player who had bought
+	# nothing left last_tick at 0 on disk - and 0 is what _catch_up reads as
+	# "first run", so it set the clock, produced nothing, and never wrote it
+	# down. Fuel did not trickle while closed until the first upgrade happened
+	# to persist a timestamp, which is the one thing this system is for.
+	_save()
 
 
 # Barrels an hour, and the only thing that decides how much you can fly.
@@ -237,9 +268,36 @@ func tick(seconds: float) -> void:
 	_produce(seconds)
 
 
+var _since_save := 0.0
+
+
 func _process(delta: float) -> void:
 	_last_tick = GameClock.now()
 	_produce(delta)
+	_since_save += delta
+	if _since_save >= TICK_SAVE_SECONDS:
+		_since_save = 0.0
+		_save()
+
+
+# EVERY WAY A SESSION CAN END. Closing the window is the polite one; a phone
+# backgrounding the app never sends it, and neither does anything that kills the
+# process. The periodic save above is what covers those, and this is what makes
+# the polite exit exact rather than up to a minute stale.
+func _notification(what: int) -> void:
+	if (what == NOTIFICATION_WM_CLOSE_REQUEST
+			or what == NOTIFICATION_APPLICATION_PAUSED):
+		_last_tick = GameClock.now()
+		_save()
+	# THE OTHER HALF OF PAUSING, and without it the pause saves for a restart
+	# that usually never comes. A backgrounded phone is not a closed game: the
+	# process survives, so _ready and start_after_load do not run again, and
+	# _process resumes by setting _last_tick to now - overwriting the very
+	# timestamp the pause wrote and discarding however long the app was away.
+	# Catching up here, BEFORE _process gets a frame, is what makes those hours
+	# arrive as fuel.
+	elif what == NOTIFICATION_APPLICATION_RESUMED:
+		_catch_up()
 
 
 # Fuel is an int in FuelStore, so production is banked as a float here and
@@ -304,4 +362,9 @@ func reset() -> void:
 	_banked = 0
 	_seen = FuelStore.amount
 	_last_tick = GameClock.now()
+	# THE WIPE ITSELF HAS TO REACH DISK. Clearing only memory left the old
+	# tankers and depot levels in fuel_depot.json, and the periodic save is up
+	# to a minute away - so a process killed inside that minute restored every
+	# upgrade a new game had just deleted.
+	_save()
 	depot_changed.emit()
