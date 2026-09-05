@@ -212,6 +212,38 @@ in one call, capped by the room left in the tank rather than by
 empty - capacity IS rate x hours - and the room test is the tighter of the two
 when it does not, so this does not flatter the depot.
 
+**BASE_RATE is 50 now, and the ceiling stopped being fillable by the shop.**
+Two changes, in that order. `_produce` tested its room against TOTAL stock, so
+a 50,000-barrel bulk purchase put the tank above a capacity of 20,000 and the
+depot stopped producing for the rest of the run - it latched off rather than
+degrading, which is why no rate could be chosen: every value gave either free
+fuel or the buy-only economy. Capacity now bounds depot-origin fuel only.
+
+With that gone the rate is a dial, and 200 was measured as far above demand:
+the depot supplied **100% of every barrel** the regular run burned, at 0.0% of
+income. Fifty is the first value where both halves of the design carry weight.
+Across the four runs, before at 200 and after at 50:
+
+| | of income | blocked passes | depot share | top of shelf |
+|---|---|---|---|---|
+| casual | 0.0% -> **1.2%** | 0 -> 51 | 100% -> 85.6% | 20.5 h -> 19.3 h |
+| regular | 0.0% -> **3.8%** | 0 -> 224 | 100% -> 58.4% | 35.3 h -> 42.0 h |
+| heavy | 0.0% -> **2.6%** | 3 -> 203 | 100% -> 56.3% | 66.0 h -> 72.0 h |
+| regular, rate | 0.0% -> **0.0%** | 0 -> 4 | 100% -> 100% | 52.7 h -> 47.3 h |
+
+**It does not bite evenly, and the rate policy is untouched.** A rate-optimiser
+flies eleven models to prestige's thirty and burns a third of the fuel -
+1.2M barrels against 4.1M - so the depot still covers all of it and fuel is as
+inert for that player as it was before. The constraint lands on the profiles
+that fly hardest, which is arguably the right end, but it is not a constraint
+the whole game feels. Casual sits between the two at 1.2%.
+
+The cost is about six hours to the top of the shelf on the regular and heavy
+runs. That is the constraint doing its job rather than a regression, but it is
+a real slowdown and it is the reason to keep the figure under review. The
+casual and rate rows moved the other way, which at this sample size is noise
+in the purchase order rather than a finding.
+
 ---
 
 ## What holds up
