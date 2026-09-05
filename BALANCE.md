@@ -165,6 +165,53 @@ hours later and earns a fifth less. Note how little separates them on level and
 how much on everything else: the ladder is no longer the thing the buy policy
 decides.
 
+### 6. The depot makes fuel free - and produced nothing at all until now
+
+Measured 2026-09-05, and the first thing to say is that **every fuel figure
+above this line was taken with the depot switched off**. Not disabled - simply
+never running. `FuelDepot` accrues only in `_process`, and the bot does its
+whole run synchronously inside `_ready()` with no `await`, so no node's
+`_process` ever fires: `_produce` was called **zero times** across 140
+simulated days. `Bot._skip` already hand-ticks `Quests` and
+`FuelStore.land_deliveries` for exactly this reason and says so in its own
+comment; the depot is the same shape and had simply never been added to it.
+
+With the depot credited for skipped time, and the bot buying its ladder:
+
+| | fuel spend | of income | blocked passes | ladder reached | gross |
+|---|---|---|---|---|---|
+| depot never ran | $49,139,860 | 6.5% | 691 | - | $755M |
+| capped (10 + 7) | $2,640 | **0.0%** | **4** | 10 + 7 | **$905M** |
+| uncapped | $2,640 | **0.0%** | **4** | 12 + 13 | $848M |
+
+**The depot does not make fuel scarce. It makes fuel free.** 6.5% of income to
+0.0%, 691 blocked passes to 4, and 7.3M barrels produced against 200 bought -
+it covers essentially all consumption. The capped run is also the most
+profitable of the three, because fuel stopped costing anything at all. That
+inverts the intent written at the top of `fuel_depot.gd`: pricing "cannot make
+a resource scarce while money is abundant. A RATE can." The rate can - but this
+one lands so far above demand that it removes the constraint instead of being
+one. The lever is `BASE_RATE` and the ladder's reach, not the caps.
+
+**The caps are not what stops the ladder; the cost curve is.** Uncapped, the
+bot reached 12 tankers and 13 depot levels and halted there on its own - the
+next tanker costs $154M and the next depot level $147M against $848M earned
+across the entire run. Tankers price at x2.2 a rung against a rate that grows
+x1.42, and depot levels at x2.0 against hours that grow +1, so costs go
+geometric against benefits that do not and both ladders terminate themselves.
+Removing `MAX_TANKERS` and `MAX_DEPOT` would not produce runaway growth.
+
+It would not buy anything either. Those eight extra rungs produced **7% more
+fuel that was not needed**, and the money diverted into them cost about **$58M
+in gross** - the uncapped run finishes poorer than the capped one. The caps are
+not holding anything back; they are just cheaper than the alternative.
+
+One caveat on method: the bot credits the depot for a whole between-session gap
+in one call, capped by the room left in the tank rather than by
+`_catch_up`'s `hours() * 3600`. Those are the same bound when the tank starts
+empty - capacity IS rate x hours - and the room test is the tighter of the two
+when it does not, so this does not flatter the depot.
+
 ---
 
 ## What holds up
@@ -182,11 +229,12 @@ decides.
 
 ## What does not
 
-- **Fuel is inert.** 0.3% to 0.8% of income, and across four full runs exactly
-  **one** aircraft-pass was ever blocked on an empty tank. A cap on an
-  instantly-refillable stock is a tax rather than a constraint. (The previous
-  pass said zero every profile; the one is the regular run, and it is the same
-  finding.)
+- **Fuel is inert - and the depot did not fix it, it finished it.** Buying
+  alone ran at 0.3% to 0.8% of income with one blocked pass across four runs: a
+  cap on an instantly-refillable stock is a tax rather than a constraint. The
+  depot was meant to answer that with a rate. Measured, it answers it by
+  removing the constraint outright - 0.0% of income and four blocked passes.
+  See finding 6, which also explains why no earlier pass caught this.
 - **The A380-800's margin is an accident, not a decision.** It tops the rate
   ladder at $46,667/h, which is right - it is the last unlock in the game. But
   it leads the CRJ-700 by four percent, and its grade, cabin, fuel and XP are
