@@ -1,5 +1,11 @@
 # ---- Godot ----
 .godot/
+# The build stamp, written by tools/stamp.py just before an export. It names
+# the commit it was generated from, so committing it would be circular - and
+# committing it is exactly what used to make it drift. Absent is correct: a
+# clone with no stamp reports "dev", which is what it is.
+game/scripts/build_stamp.gd
+game/scripts/build_stamp.gd.uid
 *.translation
 
 # ---- OS / editor ----
