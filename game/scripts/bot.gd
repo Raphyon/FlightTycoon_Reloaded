@@ -116,6 +116,7 @@ var _fuel_blocks := 0
 var _depot_produced := 0
 var _fuel_bought_units := 0
 var _uncapped := false
+var _base_rate := 0.0
 var _peak_stock := 0
 var _fuel_before := 0
 var _last_money := -1
@@ -235,6 +236,7 @@ func _ready() -> void:
 			"--quests": _do_quests = args[i + 1] != "off"
 			"--trace": _trace = true
 			"--uncapped": _uncapped = true
+			"--base-rate": _base_rate = maxf(0.0, float(args[i + 1]))
 			"--latency": _latency = maxf(0.0, float(args[i + 1]))
 			"--speed": _speed = maxf(1.0, float(args[i + 1]))
 			"--sessions": _sessions = int(args[i + 1])
@@ -249,6 +251,8 @@ func _ready() -> void:
 	if _uncapped:
 		FuelDepot.tanker_limit = 9999
 		FuelDepot.depot_limit = 9999
+	if _base_rate > 0.0:
+		FuelDepot.base_rate = _base_rate
 	call_deferred("_run")
 
 
@@ -1240,6 +1244,7 @@ func _summary() -> void:
 			100.0 * _fuel_spend / maxf(1.0, _earned)])
 	print("  fuel: %s aircraft-passes blocked on an empty tank, peak stock %s units"
 		% [_thousands(_fuel_blocks), _thousands(_peak_stock)])
+	print("  depot: base rate %s/h" % _thousands(int(FuelDepot.base_rate)))
 	print("  depot: %d tankers + %d depot levels bought%s = %s barrels/h, %s cap"
 		% [FuelDepot.tankers, FuelDepot.depot,
 			"  (LADDERS UNCAPPED)" if _uncapped else "",

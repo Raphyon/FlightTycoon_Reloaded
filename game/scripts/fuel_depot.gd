@@ -80,6 +80,13 @@ var depot := 0
 var tanker_limit := MAX_TANKERS
 var depot_limit := MAX_DEPOT
 
+# THE BOTTOM OF THE RATE LADDER, SETTABLE FOR THE SAME REASON. Everything the
+# depot produces is BASE_RATE times a power of RATE_GROWTH, so this one number
+# sets the whole supply curve - and whether fuel binds at all is a question
+# about where it sits relative to demand. A sweep answers that in one run each;
+# editing a const and rebuilding answers it in one run each plus a rebuild.
+var base_rate := BASE_RATE
+
 # Fuel accrues in real numbers and is spent in whole ones, so the fraction has
 # to live somewhere or a slow depot rounds its way to producing nothing.
 var _carry := 0.0
@@ -102,7 +109,7 @@ func _ready() -> void:
 
 # Barrels an hour, and the only thing that decides how much you can fly.
 func rate() -> float:
-	return BASE_RATE * pow(RATE_GROWTH, float(tankers))
+	return base_rate * pow(RATE_GROWTH, float(tankers))
 
 
 # How long the depot can run unattended before it is full and producing waste.
