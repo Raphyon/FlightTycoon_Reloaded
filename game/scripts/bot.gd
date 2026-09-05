@@ -112,6 +112,10 @@ var _speed := 1.0
 var _fuel_spend := 0
 var _earned := 0
 var _fuel_blocks := 0
+# What the depot produced, and how far up its two ladders the money went.
+var _depot_produced := 0
+var _fuel_bought_units := 0
+var _uncapped := false
 var _peak_stock := 0
 var _fuel_before := 0
 var _last_money := -1
@@ -230,12 +234,21 @@ func _ready() -> void:
 			"--capstone": _capstone = args[i + 1]
 			"--quests": _do_quests = args[i + 1] != "off"
 			"--trace": _trace = true
+			"--uncapped": _uncapped = true
 			"--latency": _latency = maxf(0.0, float(args[i + 1]))
 			"--speed": _speed = maxf(1.0, float(args[i + 1]))
 			"--sessions": _sessions = int(args[i + 1])
 			"--bulk": _bulk = args[i + 1] != "off"
 			"--autoturn": _autoturn_hours = float(args[i + 1])
 			"--minutes": _minutes = float(args[i + 1])
+	# LIFTING THE CAPS IS A MEASUREMENT, NOT A DEFAULT. Both ladders price
+	# geometrically (tankers x2.2, depot x2.0) against benefits that do not
+	# (rate x1.42 a rung, hours +1 a rung), so the interesting question is
+	# whether the cost curve stops the ladder on its own without MAX_TANKERS
+	# and MAX_DEPOT having to. This is how that gets answered with a number.
+	if _uncapped:
+		FuelDepot.tanker_limit = 9999
+		FuelDepot.depot_limit = 9999
 	call_deferred("_run")
 
 
@@ -335,6 +348,16 @@ func _session(minutes: float) -> void:
 
 
 func _skip(seconds: float) -> void:
+	# THE DEPOT RIDES _process TOO, and _process never runs here - the same
+	# reason quests and fuel deliveries are hand-ticked below. Without this the
+	# depot produces literally nothing across a whole run (measured: _produce
+	# called 0 times over 140 days), so every fuel number the bot reports is
+	# the buy-only economy the depot was added to replace. Credited for the
+	# whole gap before the fleet flies it, which is the depot filling while
+	# nobody is looking - which is what it is for.
+	var _fuel_before_depot := FuelStore.amount
+	FuelDepot.tick(seconds)
+	_depot_produced += FuelStore.amount - _fuel_before_depot
 	if _autoturn_hours > 0.0:
 		_skip_auto(seconds)
 		return
@@ -634,6 +657,7 @@ func _buy_fuel(need: int) -> void:
 		var qty: int = tiers[i]
 		if qty >= short and FuelStore.cost_of(qty) <= budget:
 			_fuel_spend += FuelStore.cost_of(qty)
+			_fuel_bought_units += qty
 			FuelStore.buy(qty)
 			return
 	for qty in tiers:
@@ -641,6 +665,7 @@ func _buy_fuel(need: int) -> void:
 			continue
 		if Economy.money >= FuelStore.cost_of(qty):
 			_fuel_spend += FuelStore.cost_of(qty)
+			_fuel_bought_units += qty
 			FuelStore.buy(qty)
 		return
 
@@ -665,6 +690,8 @@ func _buy() -> void:
 		if _free_pads() <= 0 and _pads_wanted() and _build_pad():
 			did = true
 		elif _free_pads() > 0 and _buy_aircraft():
+			did = true
+		elif _buy_fuel_upgrade():
 			did = true
 		elif _buy_zone():
 			did = true
@@ -964,6 +991,32 @@ func _buy_aircraft() -> bool:
 # homeland's area list meant the bot could never buy them, so "all zones" was
 # unreachable by construction and reported "not reached" after 55 hours of play
 # as though that were a finding about the game.
+# THE DEPOT LADDER, CHEAPEST RUNG FIRST. Both rungs buy throughput - a tanker
+# raises barrels an hour, a depot level raises how many hours bank before the
+# tanks overflow - so there is no policy here beyond "buy the cheaper one you
+# can afford". That is deliberate: it lets the COST CURVE decide where the
+# ladder stops rather than a cap, which is the thing an uncapped run is for.
+func _buy_fuel_upgrade() -> bool:
+	var cash := _spendable()
+	var pick := ""
+	var pick_cost := 0
+	if not FuelDepot.tankers_maxed():
+		var tc := FuelDepot.tanker_cost()
+		if tc <= cash:
+			pick = "tanker"
+			pick_cost = tc
+	if not FuelDepot.depot_maxed():
+		var dc := FuelDepot.depot_cost()
+		if dc <= cash and (pick == "" or dc < pick_cost):
+			pick = "depot"
+			pick_cost = dc
+	if pick == "tanker":
+		return FuelDepot.buy_tanker()
+	if pick == "depot":
+		return FuelDepot.buy_depot()
+	return false
+
+
 func _buy_zone() -> bool:
 	if _free_pads() > 0:
 		return false
@@ -1187,6 +1240,16 @@ func _summary() -> void:
 			100.0 * _fuel_spend / maxf(1.0, _earned)])
 	print("  fuel: %s aircraft-passes blocked on an empty tank, peak stock %s units"
 		% [_thousands(_fuel_blocks), _thousands(_peak_stock)])
+	print("  depot: %d tankers + %d depot levels bought%s = %s barrels/h, %s cap"
+		% [FuelDepot.tankers, FuelDepot.depot,
+			"  (LADDERS UNCAPPED)" if _uncapped else "",
+			_thousands(int(FuelDepot.rate())), _thousands(FuelDepot.capacity())])
+	print("  depot: produced %s barrels against %s bought = %.1f%% of fuel used"
+		% [_thousands(_depot_produced), _thousands(_fuel_bought_units),
+			100.0 * _depot_produced
+				/ maxf(1.0, float(_depot_produced + _fuel_bought_units))])
+	print("  depot: next tanker $%s, next depot level $%s"
+		% [_thousands(FuelDepot.tanker_cost()), _thousands(FuelDepot.depot_cost())])
 	print("\n  taps: %s over %.1f h of play = %.0f a minute (%.1fs each, x%d speed)"
 		% [_thousands(_taps), _played / 60.0, _taps / maxf(1.0, _played),
 			_latency, roundi(_speed)])

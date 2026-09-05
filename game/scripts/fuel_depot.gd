@@ -72,6 +72,14 @@ const DEPOT_COST_GROWTH := 2.0
 var tankers := 0
 var depot := 0
 
+# THE LADDER LENGTHS, AS VARIABLES RATHER THAN CONSTANTS. The caps are still
+# MAX_TANKERS and MAX_DEPOT by default and nothing in the game changes them;
+# they are settable only so a --bot run can lift them and measure what an
+# uncapped ladder actually does, which is a question about the cost curve and
+# not one anybody should have to answer by guessing.
+var tanker_limit := MAX_TANKERS
+var depot_limit := MAX_DEPOT
+
 # Fuel accrues in real numbers and is spent in whole ones, so the fraction has
 # to live somewhere or a slow depot rounds its way to producing nothing.
 var _carry := 0.0
@@ -85,8 +93,8 @@ signal depot_changed
 
 func _ready() -> void:
 	var data := _load()
-	tankers = clampi(int(data.get("tankers", 0)), 0, MAX_TANKERS)
-	depot = clampi(int(data.get("depot", 0)), 0, MAX_DEPOT)
+	tankers = clampi(int(data.get("tankers", 0)), 0, tanker_limit)
+	depot = clampi(int(data.get("depot", 0)), 0, depot_limit)
 	_carry = float(data.get("carry", 0.0))
 	_last_tick = float(data.get("last_tick", 0.0))
 	_catch_up()
@@ -116,11 +124,11 @@ func depot_cost() -> int:
 
 
 func tankers_maxed() -> bool:
-	return tankers >= MAX_TANKERS
+	return tankers >= tanker_limit
 
 
 func depot_maxed() -> bool:
-	return depot >= MAX_DEPOT
+	return depot >= depot_limit
 
 
 func buy_tanker() -> bool:
@@ -157,6 +165,17 @@ func _catch_up() -> void:
 	var elapsed := maxf(0.0, now - _last_tick)
 	_last_tick = now
 	_produce(minf(elapsed, hours() * 3600.0))
+
+
+# PRODUCTION FOR TIME THAT WAS SKIPPED RATHER THAN LIVED. _process is the only
+# thing that credits the depot during play, and it rides the frame loop - so a
+# caller that moves GameClock itself (the bot does, and so would any fast-
+# forward) advances the world past the depot without producing a barrel. This
+# is the same crediting, for a stated number of seconds. See Bot._skip, which
+# already does exactly this for quests and for fuel deliveries.
+func tick(seconds: float) -> void:
+	_last_tick = GameClock.now()
+	_produce(seconds)
 
 
 func _process(delta: float) -> void:
