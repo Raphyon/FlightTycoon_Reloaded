@@ -163,6 +163,23 @@ func _ready() -> void:
 	# see each change individually - netting them off over a tick would let a
 	# purchase in the same interval hide the burn it paid for.
 	FuelStore.fuel_changed.connect(_on_fuel_changed)
+	# NOT _catch_up() - SEE start_after_load. This autoload comes up eighth and
+	# SaveGame comes up last, so the tank still holds STARTING_AMOUNT here and
+	# anything produced against it would be overwritten the moment SaveGame
+	# restores the real figure.
+
+
+# CALLED BY SAVEGAME, ONCE THE TANK IS REAL. Offline production is the whole
+# point of the depot and it cannot be computed in _ready: this autoload is
+# eighth in project.godot and SaveGame is last, FuelStore._ready restores only
+# the price, and the amount arrives from player.json inside SaveGame._load.
+# Catching up any earlier read the tank as STARTING_AMOUNT, produced against
+# the wrong baseline, and then had the whole result overwritten a few
+# autoloads later - so the feature banked its elapsed time and delivered no
+# fuel at all. Persisting _last_tick in _ready made that permanent rather than
+# merely wrong, because the time was then spent on disk too.
+func start_after_load() -> void:
+	_seen = FuelStore.amount
 	_catch_up()
 	# WRITTEN ON THE FIRST RUN, NOT ONLY ON THE FIRST PURCHASE. _save used to be
 	# reached only from the two buy functions, so a player who had bought
@@ -272,6 +289,15 @@ func _notification(what: int) -> void:
 			or what == NOTIFICATION_APPLICATION_PAUSED):
 		_last_tick = GameClock.now()
 		_save()
+	# THE OTHER HALF OF PAUSING, and without it the pause saves for a restart
+	# that usually never comes. A backgrounded phone is not a closed game: the
+	# process survives, so _ready and start_after_load do not run again, and
+	# _process resumes by setting _last_tick to now - overwriting the very
+	# timestamp the pause wrote and discarding however long the app was away.
+	# Catching up here, BEFORE _process gets a frame, is what makes those hours
+	# arrive as fuel.
+	elif what == NOTIFICATION_APPLICATION_RESUMED:
+		_catch_up()
 
 
 # Fuel is an int in FuelStore, so production is banked as a float here and
@@ -336,4 +362,9 @@ func reset() -> void:
 	_banked = 0
 	_seen = FuelStore.amount
 	_last_tick = GameClock.now()
+	# THE WIPE ITSELF HAS TO REACH DISK. Clearing only memory left the old
+	# tankers and depot levels in fuel_depot.json, and the periodic save is up
+	# to a minute away - so a process killed inside that minute restored every
+	# upgrade a new game had just deleted.
+	_save()
 	depot_changed.emit()

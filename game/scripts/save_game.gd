@@ -86,6 +86,12 @@ var _loaded := false
 func _ready() -> void:
 	# After the autoloads it reads from - see the order in project.godot.
 	_load()
+	# ONLY NOW CAN THE DEPOT COUNT WHAT IT MADE WHILE THE GAME WAS SHUT. It
+	# needs the real fuel total to know how much room it had to fill, and this
+	# is the line that puts one there - _load is where player.json's "fuel"
+	# reaches FuelStore. Done for a fresh game too, which is how the first
+	# launch gets a timestamp on disk instead of waiting for a first purchase.
+	FuelDepot.start_after_load()
 	Fleet.fleet_changed.connect(_mark_dirty)
 	Economy.money_changed.connect(_mark_dirty.unbind(1))
 	Coins.coins_changed.connect(_mark_dirty.unbind(1))
