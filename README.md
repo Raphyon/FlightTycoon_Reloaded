@@ -1076,6 +1076,19 @@ godot --headless --path game --quit-after 30
 godot --headless --path game -- --bot --who regular --seed 1234
 ```
 
+Before exporting a build, write the stamp:
+
+```bash
+python3 tools/stamp.py
+```
+
+That generates `game/scripts/build_stamp.gd` with the current commit, which is
+what a save's `build` field reports. It is gitignored and never committed - it
+used to be a hand-edited constant in `save_game.gd`, which meant a pull request
+every time anything shipped and a stamp that drifted three times in one day
+when nobody made one. A clone with no stamp reports `dev`; a dirty tree is
+stamped `<hash>+dirty`.
+
 `class_name` globals only register after an editor rescan — `godot --headless
 --editor --path game --quit` — otherwise a new one is "not declared in the
 current scope" at runtime.

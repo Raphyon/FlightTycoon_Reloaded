@@ -29,11 +29,41 @@ const SAVE_DEBOUNCE := 1.0
 # fleet says nothing useful once the prices under it have changed, and two
 # testers on two builds cannot be compared without knowing they differ.
 #
-# Set by hand, and OFF BY ONE on purpose: it names the commit that introduced
-# the code, not the commit that set the string, because a stamp cannot contain
-# the hash of the commit that contains it. Close enough to tell two builds
-# apart, which is all it is for.
-const BUILD := "1b2f569"
+# GENERATED, NOT COMMITTED, AND THAT IS THE WHOLE FIX. This was a constant
+# edited by hand, which failed twice over. It drifted - three times in one day -
+# because keeping it true meant a commit and a pull request every time anything
+# shipped, and a stamp nobody bumps is worse than no stamp, since it reports a
+# build that does not exist. And being committed forced it to be wrong on
+# purpose: a constant cannot contain the hash of the commit that contains it, so
+# it named its own PARENT and every reader had to remember the off-by-one.
+#
+# tools/stamp.py writes scripts/build_stamp.gd before an export. Nothing is
+# committed, so there is no pull request and nothing to forget, and it names the
+# EXACT commit because it is written after that commit exists rather than inside
+# it. A dirty tree is stamped "<hash>+dirty", which is worth knowing: that build
+# cannot be checked out by anybody else.
+#
+# Loaded rather than preloaded because the file is gitignored and simply is not
+# there in a fresh clone or when running from the editor - both of which report
+# "dev", which is the truth about them.
+const STAMP_PATH := "res://scripts/build_stamp.gd"
+
+var _build := ""
+
+
+# The stamp for this run, resolved once. "dev" means no stamp was generated -
+# an editor run, or a clone nobody has exported from.
+func build() -> String:
+	if not _build.is_empty():
+		return _build
+	_build = "dev"
+	if ResourceLoader.exists(STAMP_PATH):
+		var stamp: Script = load(STAMP_PATH)
+		if stamp:
+			var consts := stamp.get_script_constant_map()
+			_build = str(consts.get("HASH", "dev"))
+	return _build
+
 
 # TELEMETRY, and the reason it exists: a save is a SNAPSHOT. It says where a
 # player got to and never how long it took, so the one thing it cannot answer
@@ -147,7 +177,7 @@ func save() -> void:
 		"quests": Quests.to_save(),
 		"daily_login": DailyLogin.to_save(),
 		"boosts": Boosts.to_save(),
-		"build": BUILD,
+		"build": build(),
 		"played_seconds": int(played_seconds),
 		"earned_total": earned_total,
 		"level_at": level_at,
