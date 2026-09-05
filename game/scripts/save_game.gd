@@ -294,6 +294,7 @@ func reset_to_defaults() -> void:
 	ZoneProgress.unlocked_zones.clear()
 	AircraftAffinity.reset()
 	ApronSkins.reset()
+	FuelDepot.reset()
 	BuildingProgress.built.clear()
 
 	# Everything that draws from the above has to be told, or the world keeps

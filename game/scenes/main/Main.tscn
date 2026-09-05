@@ -20,6 +20,7 @@
 [ext_resource type="Script" uid="uid://cqdyqg152a25k" path="res://scenes/main/ShopHubPanel.gd" id="20"]
 [ext_resource type="Texture2D" uid="uid://bed6xvhohrmcf" path="res://assets/background/bigplane2@ipad.png" id="22"]
 [ext_resource type="PackedScene" uid="uid://b5njiowsao2k3" path="res://scenes/main/FuelPanel.tscn" id="24"]
+[ext_resource type="PackedScene" path="res://scenes/main/FuelDepotPanel.tscn" id="fueldepot"]
 [ext_resource type="Script" uid="uid://cprgn7yoij48r" path="res://scenes/main/SkinPickerPanel.gd" id="29"]
 [ext_resource type="Texture2D" uid="uid://dim8nuq40v0sb" path="res://assets/hud/icon_medium_coin@2x.png" id="30"]
 [ext_resource type="Script" uid="uid://gb8jqqnbefpx" path="res://scenes/main/AssignPickerPanel.gd" id="31"]
@@ -654,6 +655,9 @@ layout_mode = 2
 text = "Close"
 
 [node name="FuelPanel" parent="UI" unique_id=1857853396 instance=ExtResource("24")]
+visible = false
+
+[node name="FuelDepotPanel" parent="UI" instance=ExtResource("fueldepot")]
 visible = false
 
 [node name="ShopPanel" type="PanelContainer" parent="UI" unique_id=813678258]

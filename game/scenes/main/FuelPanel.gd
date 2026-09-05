@@ -57,6 +57,19 @@ func _ready() -> void:
 	_delivery.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_delivery.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	$Frame/SafeArea/Margin/VBox.add_child(_delivery)
+
+	# THE WAY THROUGH TO THE DEPOT, and it is here rather than on the shop hub
+	# because the hub cannot take a seventh tile without being redesigned: its
+	# own note works the brown band out to exactly two rows of three, and a
+	# third row lands on the blue floor. The two screens belong together
+	# anyway - one sells fuel, the other is why you might not need to.
+	var depot_button := Button.new()
+	depot_button.text = "Fuel Depot"
+	depot_button.pressed.connect(func() -> void:
+		hide()
+		get_node("../FuelDepotPanel").show())
+	$Frame/SafeArea/Margin/VBox.add_child(depot_button)
+
 	FuelStore.delivery_changed.connect(_refresh)
 	FuelStore.price_changed.connect(_refresh)
 	FuelStore.fuel_changed.connect(_refresh)
