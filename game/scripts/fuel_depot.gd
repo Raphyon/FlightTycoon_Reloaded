@@ -95,6 +95,13 @@ const TANKER_COST_GROWTH := 2.2
 const DEPOT_BASE_COST := 18000
 const DEPOT_COST_GROWTH := 2.0
 
+# HOW OFTEN THE CLOCK REACHES DISK. _last_tick is what tells the next launch how
+# long the game was closed, so it is worthless in memory: it has to be on disk
+# when the process ends, and a process can end without warning. A minute is
+# cheap - one small file - and bounds the worst case to a minute of unbanked
+# production rather than a session of it.
+const TICK_SAVE_SECONDS := 60.0
+
 var tankers := 0
 var depot := 0
 
@@ -157,6 +164,13 @@ func _ready() -> void:
 	# purchase in the same interval hide the burn it paid for.
 	FuelStore.fuel_changed.connect(_on_fuel_changed)
 	_catch_up()
+	# WRITTEN ON THE FIRST RUN, NOT ONLY ON THE FIRST PURCHASE. _save used to be
+	# reached only from the two buy functions, so a player who had bought
+	# nothing left last_tick at 0 on disk - and 0 is what _catch_up reads as
+	# "first run", so it set the clock, produced nothing, and never wrote it
+	# down. Fuel did not trickle while closed until the first upgrade happened
+	# to persist a timestamp, which is the one thing this system is for.
+	_save()
 
 
 # Barrels an hour, and the only thing that decides how much you can fly.
@@ -237,9 +251,27 @@ func tick(seconds: float) -> void:
 	_produce(seconds)
 
 
+var _since_save := 0.0
+
+
 func _process(delta: float) -> void:
 	_last_tick = GameClock.now()
 	_produce(delta)
+	_since_save += delta
+	if _since_save >= TICK_SAVE_SECONDS:
+		_since_save = 0.0
+		_save()
+
+
+# EVERY WAY A SESSION CAN END. Closing the window is the polite one; a phone
+# backgrounding the app never sends it, and neither does anything that kills the
+# process. The periodic save above is what covers those, and this is what makes
+# the polite exit exact rather than up to a minute stale.
+func _notification(what: int) -> void:
+	if (what == NOTIFICATION_WM_CLOSE_REQUEST
+			or what == NOTIFICATION_APPLICATION_PAUSED):
+		_last_tick = GameClock.now()
+		_save()
 
 
 # Fuel is an int in FuelStore, so production is banked as a float here and
