@@ -31,7 +31,33 @@ const SAVE_FILE := "fuel_depot.json"
 # of measuring it in hours: the two cannot drift apart, and buying throughput
 # raises the ceiling with it instead of quietly making the depot too small for
 # the fleet it feeds.
-const BASE_RATE := 200.0
+# FIFTY, MEASURED, AND THE FIRST VALUE THAT MAKES FUEL COST ANYTHING. At 200
+# the depot supplied 100% of every barrel the regular run ever burned - fuel
+# was 0.0% of income and blocked four passes in 140 days, which is the inert
+# reading BALANCE has carried since before the depot existed, arrived at from
+# the opposite direction. A rate that meets demand exactly is not a constraint,
+# it is a formality.
+#
+# Swept against the regular run once capacity stopped being fillable by the
+# shop (see the note on _banked), 200 down to 25:
+#
+#   rate    of income   blocked   depot share
+#    200         0.0%         0        100.0%
+#    150         0.1%        22         99.2%
+#    100         0.0%         2        100.0%
+#     75         0.6%       102         92.7%
+#     50         3.8%       224         58.4%
+#     25         4.9%       326         33.9%
+#
+# Fifty is where both halves of the design are load-bearing: the depot supplies
+# most of the fuel and the shop supplies the rest, so the hourly market has
+# something to sell and running dry is a real event rather than a rounding
+# error. Twenty-five costs more but hands a third of the supply back to buying,
+# which is the economy the depot was added to replace.
+#
+# IT COSTS PROGRESSION, and that is the point: the regular run ends five levels
+# lower than at 100. A constraint that does not slow anything down is not one.
+const BASE_RATE := 50.0
 const BASE_HOURS := 1.0
 
 # GEOMETRIC, BECAUSE THE FLEET IS. One aircraft burns about 120 an hour and a
