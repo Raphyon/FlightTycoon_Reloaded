@@ -32,7 +32,7 @@ const SAVE_FILE := "fuel_depot.json"
 # raises the ceiling with it instead of quietly making the depot too small for
 # the fleet it feeds.
 const BASE_RATE := 200.0
-const BASE_HOURS := 4.0
+const BASE_HOURS := 1.0
 
 # GEOMETRIC, BECAUSE THE FLEET IS. One aircraft burns about 120 an hour and a
 # late fleet of sixty burns some thousands, so the ladder has about 30x to
@@ -43,16 +43,31 @@ const MAX_TANKERS := 10
 # Hours are additive because they are read as hours: "6 hours banked" means
 # something to a player in a way that "1.42x hours" does not. Eight is the top
 # because past a full night's sleep the upgrade stops buying anything real.
+#
+# ONE HOUR AT THE BOTTOM, NOT FOUR. Four made the opening cap 800 barrels -
+# 200 DC-3 legs, 6.7 hours of flying for the single aircraft you own at that
+# point, and 13x the 60 barrels the game starts you with. The RATE bound at
+# 1.7 aircraft, which is the intent; the cap simply never bound at all, so the
+# depot upgrade had nothing to sell until the fleet was large. At one hour the
+# opening cap is 200 - fifty legs, and a reason to buy the first hour.
+#
+# The top does not move: max capacity is max rate x max hours, so 1 + 7 steps
+# reaches the same 8 hours and the same 53,334 barrels that 4 + 4 did. What
+# changes is that the path there is seven decisions instead of four, and the
+# first of them is worth making early.
 const HOURS_STEP := 1.0
-const MAX_DEPOT := 4
+const MAX_DEPOT := 7
 
 # Cost climbs faster than the benefit, so the last tanker is a decision rather
 # than a formality. Anchored on the early game: 12,000 is a few DC-3 round
 # trips at the point the first upgrade becomes worth having.
 const TANKER_BASE_COST := 12000
 const TANKER_COST_GROWTH := 2.2
+# Gentler than the tankers' 2.2 because there are seven of these against ten,
+# and the whole ladder should stay reachable: $18,000 to $2.3M, $2.29M for all
+# seven.
 const DEPOT_BASE_COST := 18000
-const DEPOT_COST_GROWTH := 2.6
+const DEPOT_COST_GROWTH := 2.0
 
 var tankers := 0
 var depot := 0
