@@ -33,14 +33,22 @@ force a fresh start:
 
 | | |
 |---|---|
-| Windows | `%APPDATA%\Godot\app_userdata\ft-proto\save` |
-| macOS | `~/Library/Application Support/Godot/app_userdata/ft-proto/save` |
+| Windows | `%APPDATA%\Godot\app_userdata\Flight Tycoon\save` |
+| macOS | `~/Library/Application Support/Godot/app_userdata/Flight Tycoon/save` |
 
-**Still `ft-proto`, and deliberately.** Godot derives that folder from
-`config/name` in project.godot, so renaming the project to match the repo would
-point the game at an empty directory and every existing save - yours and every
-tester's - would still be on disk with nothing reading it. The internal name is
-not worth a migration; it is seen here and nowhere else.
+**It was `ft-proto` before v0.3.0, and a save from then is still read.** Godot
+derives that folder from `config/name`, so the rename pointed the game at an
+empty directory with every existing save - mine and every tester's - still on
+disk and nothing reading it. This file used to argue the name was not worth a
+migration because it was seen here and nowhere else. Shipping a macOS build
+made that false: the name is the `.app`, the dock label and the title bar.
+
+So `SavePaths` looks in the old folder too. It is a sibling of the new one, so
+it is found from the current path rather than rebuilt per platform, and it is
+never written to - a save read from there lands in the new folder the next time
+anything saves. That is the same shape as the `res://data` fallback beside it,
+and it means there is no migration step that has to run exactly once and be
+correct the first time.
 
 Seven JSON files. To collect a playthrough, zip the whole `save` folder - the
 fleet is in `player.json` but zones, pads, buildings and airframe mastery are in
